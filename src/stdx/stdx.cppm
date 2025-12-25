@@ -8,44 +8,25 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx;
 #else
 export module stdlibx;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import stdx.core;
-export import stdx.arch;
-export import stdx.compiler;
-export import stdx.crypto;
-export import stdx.csv;
-export import stdx.ffi;
-export import stdx.json;
-export import stdx.linq;
-export import stdx.math;
-export import stdx.net;
-export import stdx.os;
-export import stdx.process;
-export import stdx.sql;
-export import stdx.xml;
-export import stdx.util;
-export import stdx.zip;
-#else
-export import stdlibx.core;
-export import stdlibx.arch;
-export import stdlibx.compiler;
-export import stdlibx.crypto;
-export import stdlibx.csv;
-export import stdlibx.ffi;
-export import stdlibx.json;
-export import stdlibx.linq;
-export import stdlibx.math;
-export import stdlibx.net;
-export import stdlibx.os;
-export import stdlibx.process;
-export import stdlibx.sql;
-export import stdlibx.util;
-export import stdlibx.xml;
-export import stdlibx.zip;
-#endif
+export import :core;
+export import :arch;
+export import :compiler;
+export import :crypto;
+export import :csv;
+export import :ffi;
+export import :json;
+export import :linq;
+export import :math;
+export import :net;
+export import :os;
+export import :process;
+export import :sql;
+export import :xml;
+export import :util;
+export import :zip;

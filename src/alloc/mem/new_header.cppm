@@ -1,6 +1,6 @@
 /**
  * @file new_header.cppm
- * @module alloc.mem.new_header
+ * @module alloc:mem.new_header
  * @brief Module file for standard library dynamic memory management operations.
  *
  * This file contains the implementation of the dynamic memory management operations in the standard library.
@@ -11,7 +11,7 @@ module;
 
 #include <new>
 
-export module alloc.mem.new_header;
+export module alloc:mem.new_header;
 
 /**
  * @namespace alloc::mem

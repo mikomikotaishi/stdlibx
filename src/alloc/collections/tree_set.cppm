@@ -1,6 +1,6 @@
 /**
  * @file tree_set.cppm
- * @module alloc.collections.tree_set
+ * @module alloc:collections.tree_set
  * @brief Module file for standard library tree set operations.
  *
  * This file contains the implementation of the tree set operations in the standard library.
@@ -10,12 +10,11 @@ module;
 
 #include <set>
 
-export module alloc.collections.tree_set;
+export module alloc:collections.tree_set;
 
-import core.functional;
-import core.meta.type_traits;
+import core;
 
-import alloc.mem.memory;
+import :mem.memory;
 
 using core::Less;
 using core::meta::IsSameValue;

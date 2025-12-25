@@ -1,6 +1,6 @@
 /**
  * @file csignal.cppm
- * @module core.sys.csignal
+ * @module core:sys.csignal
  * @brief Module file for standard library C-style signal operations.
  *
  * This file contains the implementation of the C-style signal operations in the standard library.
@@ -8,9 +8,9 @@
 
 module;
 
-export module core.sys.csignal;
+export module core:sys.csignal;
 
-import :constants;
+import :sys.csignal.constants;
 
 using _detail::core::sys::Handler;
 

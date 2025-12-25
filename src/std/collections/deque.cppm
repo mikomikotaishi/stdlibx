@@ -1,6 +1,6 @@
 /**
  * @file deque.cppm
- * @module std.collections.deque
+ * @module std:collections.deque
  * @brief Module file for standard library double-ended queue operations.
  *
  * This file contains the implementation of the double-ended queue operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.deque;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.deque;
 #else
-export module stdlib.collections.deque;
+export module stdlib:collections.deque;
 #endif
 
-import alloc.collections.deque;
+import alloc;
 
 /**
  * @namespace std::collections

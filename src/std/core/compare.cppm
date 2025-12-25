@@ -1,6 +1,6 @@
 /**
  * @file compare.cppm
- * @module std.core.compare
+ * @module std:core.compare
  * @brief Module file for standard library comparison operations.
  *
  * This file contains the implementation of the comparison operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.compare;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.compare;
 #else
-export module stdlib.core.compare;
+export module stdlib:core.compare;
 #endif
 
-import core.compare;
+import core;
 
 /**
  * @namespace std::core

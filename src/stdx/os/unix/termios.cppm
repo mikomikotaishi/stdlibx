@@ -1,6 +1,6 @@
 /**
  * @file termios.cppm
- * @module stdx.os.unix.termios
+ * @module stdx:os.unix.termios
  * @brief Module file for Unix terminal I/O operations.
  *
  * This file contains the implementation of the Unix terminal I/O operations from the POSIX libraries,
@@ -13,13 +13,13 @@ module;
 #include <termios.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.termios;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.termios;
 #else
-export module stdlibx.os.unix.termios;
+export module stdlibx:os.unix.termios;
 #endif
 
-export import :constants;
+export import :os.unix.termios.constants;
 
 /**
  * @namespace stdx::os::unix

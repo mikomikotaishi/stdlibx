@@ -1,6 +1,6 @@
 /**
  * @file LoggerFactory.cppm
- * @module stdx.util.logging.LoggerFactory
+ * @module stdx:util.logging.LoggerFactory
  * @brief Implementation of the LoggerFactory singleton.
  *
  * This file contains the LoggerFactory class which creates and manages
@@ -11,15 +11,21 @@ module;
 
 #include <string>
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
-export module stdx.util.logging.LoggerFactory;
-
-export import stdx.util.logging.Level;
-export import stdx.util.logging.Logger;
-export import stdx.util.logging.Sinks;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:util.logging.LoggerFactory;
 
 import std;
+#else
+export module stdlibx:util.logging.LoggerFactory;
 
+import stdlib;
+#endif
+
+import :util.logging.Level;
+import :util.logging.Logger;
+import :util.logging.Sinks;
+
+#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 using std::collections::HashMap;
 using std::collections::Vector;
 using std::io::OpenMode;
@@ -30,14 +36,6 @@ using std::sync::ScopedLock;
 namespace fs = std::fs;
 namespace mem = std::mem;
 #else
-export module stdlibx.util.logging.LoggerFactory;
-
-export import stdlibx.util.logging.Level;
-export import stdlibx.util.logging.Logger;
-export import stdlibx.util.logging.Sinks;
-
-import stdlib;
-
 using stdlib::collections::HashMap;
 using stdlib::collections::Vector;
 using stdlib::io::OpenMode;
@@ -72,6 +70,7 @@ private:
     Vector<SharedPointer<ILogSink>> globalSinks;
     mutable Mutex mutex;
     Level defaultLevel = Level::DEBUG;
+    bool enableSourceLocation = false;
 
     /**
      * @brief Private constructor for singleton pattern.
@@ -141,6 +140,17 @@ public:
     }
 
     /**
+     * @brief Enable or disable source location tracking for all loggers.
+     * 
+     * @param enable Whether to enable source location tracking
+     */
+    LoggerFactory& with_source_locations(bool enable) noexcept {
+        ScopedLock<Mutex> lock(mutex);
+        enableSourceLocation = enable;
+        return *this;
+    }
+
+    /**
      * @brief Get or create a logger with the given name.
      * 
      * @param name The logger name (typically class name)
@@ -155,7 +165,7 @@ public:
             return it->second;
         }
 
-        SharedPointer<Logger> logger = mem::make_shared<Logger>(key, defaultLevel);
+        SharedPointer<Logger> logger = mem::make_shared<Logger>(key, defaultLevel, enableSourceLocation);
         
         for (const SharedPointer<ILogSink>& sink: globalSinks) {
             logger->add_sink(sink);
@@ -192,7 +202,7 @@ public:
      */
     void flush_all() {
         ScopedLock<Mutex> lock(mutex);
-        for (const SharedPointer<ILogSink>& sink : globalSinks) {
+        for (const SharedPointer<ILogSink>& sink: globalSinks) {
             sink->flush();
         }
     }

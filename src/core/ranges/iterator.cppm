@@ -1,6 +1,6 @@
 /**
  * @file iterator.cppm
- * @module core.ranges.iterator
+ * @module core:ranges.iterator
  * @brief Module file for standard library iterator operations.
  *
  * This file contains the implementation of the iterator operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <iterator>
 
-export module core.ranges.iterator;
+export module core:ranges.iterator;
 
 /**
  * @namespace core::ranges

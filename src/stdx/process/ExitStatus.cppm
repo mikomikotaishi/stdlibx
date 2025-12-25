@@ -1,6 +1,6 @@
 /**
  * @file ExitStatus.cppm
- * @module stdx.process.ExitStatus
+ * @module stdx:process.ExitStatus
  * @brief Implementation of the ExitStatus class.
  *
  * This file contains the implementation of the ExitStatus class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.ExitStatus;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.ExitStatus;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.ExitStatus;
+export module stdlibx:process.ExitStatus;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;

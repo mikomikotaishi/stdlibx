@@ -1,13 +1,13 @@
 /**
  * @internal
- * @file cinttypes_constants.cppm
- * @module core.fmt.cinttypes:constants
+ * @file cinttypes.constants.cppm
+ * @module core:fmt.cinttypes.constants
  * @brief Module file for constants of the standard library C-style integer formatting constant operations.
  *
  * This file contains the implementation of the constants of the C-style integer formatting constant operations in the standard library.
  */
 
-export module core.fmt.cinttypes:constants;
+export module core:fmt.cinttypes.constants;
 
 /**
  * @namespace core::fmt

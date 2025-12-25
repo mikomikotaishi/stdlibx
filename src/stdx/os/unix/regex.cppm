@@ -1,6 +1,6 @@
 /**
  * @file regex.cppm
- * @module stdx.os.unix.regex
+ * @module stdx:os.unix.regex
  * @brief Module file for Unix regular expression operations.
  *
  * This file contains the implementation of the Unix regular expression operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <regex.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.regex;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.regex;
 #else
-export module stdlibx.os.unix.regex;
+export module stdlibx:os.unix.regex;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file csetjmp.cppm
- * @module core.sys.csetjmp
+ * @module core:sys.csetjmp
  * @brief Module file for standard library C-style jumping operations.
  *
  * This file contains the implementation of the C-style jumping operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <csetjmp>
 
-export module core.sys.csetjmp;
+export module core:sys.csetjmp;
 
 /**
  * @namespace core::sys

@@ -1,6 +1,6 @@
 /**
  * @file sysinfo.cppm
- * @module stdx.os.linux.sys.sysinfo
+ * @module stdx:os.linux.sys.sysinfo
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/sysinfo.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.sysinfo;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.sysinfo;
 #else
-export module stdlibx.os.linux.sys.sysinfo;
+export module stdlibx:os.linux.sys.sysinfo;
 #endif
 
 /**

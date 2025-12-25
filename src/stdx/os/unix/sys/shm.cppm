@@ -1,6 +1,6 @@
 /**
  * @file shm.cppm
- * @module stdx.os.unix.sys.shm
+ * @module stdx:os.unix.sys.shm
  * @brief Module file for Unix XSI shared memory operations.
  *
  * This file contains the implementation of the Unix XSI shared memory operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/shm.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.shm;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.shm;
 #else
-export module stdlibx.os.unix.sys.shm;
+export module stdlibx:os.unix.sys.shm;
 #endif
 
 /**

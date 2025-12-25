@@ -1,6 +1,6 @@
 /**
  * @file barrier.cppm
- * @module std.sync.barrier
+ * @module std:sync.barrier
  * @brief Module file for standard library barrier operations.
  *
  * This file contains the implementation of the barrier operations in the standard library.
@@ -12,8 +12,8 @@ module;
 #include <barrier>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sync.barrier;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sync.barrier;
 #else
 export module stdlib.sync.barrier;
 #endif

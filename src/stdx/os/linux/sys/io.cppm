@@ -1,6 +1,6 @@
 /**
  * @file io.cppm
- * @module stdx.os.linux.sys.io
+ * @module stdx:os.linux.sys.io
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/io.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.io;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.io;
 #else
-export module stdlibx.os.linux.sys.io;
+export module stdlibx:os.linux.sys.io;
 #endif
 
 /**

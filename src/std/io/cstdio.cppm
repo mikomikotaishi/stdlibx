@@ -1,6 +1,6 @@
 /**
  * @file cstdio.cppm
- * @module std.io.cstdio
+ * @module std:io.cstdio
  * @brief Module file for standard library C-style input/output operations.
  *
  * This file contains the implementation of the C-style input/output operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <cstdio>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.cstdio;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.cstdio;
 #else
-export module stdlib.io.cstdio;
+export module stdlib:io.cstdio;
 #endif
 
 /**

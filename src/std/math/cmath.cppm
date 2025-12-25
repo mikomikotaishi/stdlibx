@@ -1,6 +1,6 @@
 /**
  * @file cmath.cppm
- * @module std.math.cmath
+ * @module std:math.cmath
  * @brief Module file for standard library C math operations.
  *
  * This file contains the implementation of the C math operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.math.cmath;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:math.cmath;
 #else
-export module stdlib.math.cmath;
+export module stdlib:math.cmath;
 #endif
 
-import core.math.cmath;
+import core;
 
 /**
  * @namespace std::math

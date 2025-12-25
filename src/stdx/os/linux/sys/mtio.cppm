@@ -1,6 +1,6 @@
 /**
  * @file mtio.cppm
- * @module stdx.os.linux.sys.mtio
+ * @module stdx:os.linux.sys.mtio
  * @brief Module file for Unix magnetic tape I/O operations.
  *
  * This file contains the implementation of the Unix magnetic tape I/O operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/mtio.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.mtio;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.mtio;
 #else
-export module stdlibx.os.linux.sys.mtio;
+export module stdlibx:os.linux.sys.mtio;
 #endif
 
 /**

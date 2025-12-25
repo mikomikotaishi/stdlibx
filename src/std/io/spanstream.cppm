@@ -1,6 +1,6 @@
 /**
  * @file spanstream.cppm
- * @module std.io.spanstream
+ * @module std:io.spanstream
  * @brief Module file for standard library spanstream operations.
  *
  * This file contains the implementation of the spanstream operations in the standard library.
@@ -12,10 +12,10 @@ module;
 #include <spanstream>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.spanstream;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.spanstream;
 #else
-export module stdlib.io.spanstream;
+export module stdlib:io.spanstream;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file typeindex.cppm
- * @module core.meta.typeindex
+ * @module core:meta.typeindex
  * @brief Module file for standard library type index operations.
  *
  * This file contains the implementation of the type index operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <typeindex>
 
-export module core.meta.typeindex;
+export module core:meta.typeindex;
 
 /**
  * @namespace core::meta

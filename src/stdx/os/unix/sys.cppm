@@ -1,6 +1,6 @@
 /**
  * @file sys.cppm
- * @module stdx.os.unix.sys
+ * @module stdx:os.unix.sys
  * @brief Module file for Unix system operations.
  *
  * This file contains the implementation of the Unix system operations from the POSIX libraries,
@@ -9,50 +9,28 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys;
 #else
-export module stdlibx.os.unix.sys;
+export module stdlibx:os.unix.sys;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import stdx.os.unix.sys.ioctl;
-export import stdx.os.unix.sys.ipc;
-export import stdx.os.unix.sys.mman;
-export import stdx.os.unix.sys.mount;
-export import stdx.os.unix.sys.msg;
-export import stdx.os.unix.sys.resource;
-export import stdx.os.unix.sys.select;
-export import stdx.os.unix.sys.sem;
-export import stdx.os.unix.sys.shm;
-export import stdx.os.unix.sys.socket;
-export import stdx.os.unix.sys.stat;
-export import stdx.os.unix.sys.statvfs;
-export import stdx.os.unix.sys.time;
-export import stdx.os.unix.sys.times;
-export import stdx.os.unix.sys.ttydefaults;
-export import stdx.os.unix.sys.uio;
-export import stdx.os.unix.sys.un;
-export import stdx.os.unix.sys.utsname;
-export import stdx.os.unix.sys.wait;
-#else
-export import stdlibx.os.unix.sys.ioctl;
-export import stdlibx.os.unix.sys.ipc;
-export import stdlibx.os.unix.sys.mman;
-export import stdlibx.os.unix.sys.mount;
-export import stdlibx.os.unix.sys.msg;
-export import stdlibx.os.unix.sys.resource;
-export import stdlibx.os.unix.sys.select;
-export import stdlibx.os.unix.sys.sem;
-export import stdlibx.os.unix.sys.shm;
-export import stdlibx.os.unix.sys.socket;
-export import stdlibx.os.unix.sys.stat;
-export import stdlibx.os.unix.sys.statvfs;
-export import stdlibx.os.unix.sys.time;
-export import stdlibx.os.unix.sys.times;
-export import stdlibx.os.unix.sys.ttydefaults;
-export import stdlibx.os.unix.sys.uio;
-export import stdlibx.os.unix.sys.un;
-export import stdlibx.os.unix.sys.utsname;
-export import stdlibx.os.unix.sys.wait;
-#endif
+export import :os.unix.sys.ioctl;
+export import :os.unix.sys.ipc;
+export import :os.unix.sys.mman;
+export import :os.unix.sys.mount;
+export import :os.unix.sys.msg;
+export import :os.unix.sys.resource;
+export import :os.unix.sys.select;
+export import :os.unix.sys.sem;
+export import :os.unix.sys.shm;
+export import :os.unix.sys.socket;
+export import :os.unix.sys.stat;
+export import :os.unix.sys.statvfs;
+export import :os.unix.sys.time;
+export import :os.unix.sys.times;
+export import :os.unix.sys.ttydefaults;
+export import :os.unix.sys.uio;
+export import :os.unix.sys.un;
+export import :os.unix.sys.utsname;
+export import :os.unix.sys.wait;

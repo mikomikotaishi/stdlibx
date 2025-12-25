@@ -1,6 +1,6 @@
 /**
  * @file sequence.cppm
- * @module core.sequence
+ * @module core:sequence
  * @brief Module file for standard library sequence operations.
  *
  * This file contains the implementation of the sequence operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <utility>
 
-export module core.sequence;
+export module core:sequence;
 
 /**
  * @namespace alloc

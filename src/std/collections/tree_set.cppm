@@ -1,6 +1,6 @@
 /**
  * @file tree_set.cppm
- * @module std.collections.tree_set
+ * @module std:collections.tree_set
  * @brief Module file for standard library tree set operations.
  *
  * This file contains the implementation of the tree set operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.tree_set;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.tree_set;
 #else
-export module stdlib.collections.tree_set;
+export module stdlib:collections.tree_set;
 #endif
 
-import alloc.collections.tree_set;
+import alloc;
 
 /**
  * @namespace std::collections

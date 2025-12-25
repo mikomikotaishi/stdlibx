@@ -1,6 +1,6 @@
 /**
  * @file generator.cppm
- * @module core.ranges.generator
+ * @module core:ranges.generator
  * @brief Module file for standard library generator operations.
  *
  * This file contains the implementation of the generator operations in the standard library.
@@ -12,7 +12,7 @@ module;
 #include <generator>
 #endif
 
-export module core.ranges.generator;
+export module core:ranges.generator;
 
 /**
  * @namespace core::ranges

@@ -1,6 +1,6 @@
 /**
  * @file algorithm.cppm
- * @module std.util.algorithm
+ * @module std:util.algorithm
  * @brief Module file for standard library algorithm operations.
  *
  * This file contains the implementation of the algorithm operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.util.algorithm;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:util.algorithm;
 #else
-export module stdlib.util.algorithm;
+export module stdlib:util.algorithm;
 #endif
 
-import core.util.algorithm;
+import core;
 
 /**
  * @namespace std::util

@@ -1,6 +1,6 @@
 /**
  * @file system_error.cppm
- * @module std.core.system_error
+ * @module std:core.system_error
  * @brief Module file for standard library system error classes.
  *
  * This file contains the implementation of error classes in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.system_error;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.system_error;
 #else
-export module stdlib.core.system_error;
+export module stdlib:core.system_error;
 #endif
 
-import core.system_error;
+import core;
 
 /**
  * @namespace std::core

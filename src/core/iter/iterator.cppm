@@ -1,6 +1,6 @@
 /**
  * @file iterator.cppm
- * @module core.iter.iterator
+ * @module core:iter.iterator
  * @brief Module file for standard library iterator operations.
  *
  * This file contains the implementation of the iterator operations in the standard library.
@@ -10,11 +10,11 @@ module;
 
 #include <iterator>
 
-export module core.iter.iterator;
+export module core:iter.iterator;
 
-import core.concepts;
-import core.functional;
-import core.meta.type_traits;
+import :concepts;
+import :functional;
+import :meta.type_traits;
 
 using core::Identity;
 using core::Semiregular;

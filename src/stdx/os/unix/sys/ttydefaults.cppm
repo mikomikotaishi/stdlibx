@@ -1,6 +1,6 @@
 /**
  * @file ttydefaults.cppm
- * @module stdx.os.unix.sys.ttydefaults
+ * @module stdx:os.unix.sys.ttydefaults
  * @brief Module file for ttydefaults constants.
  *
  * This file contains the implementation of constants,
@@ -9,15 +9,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.ttydefaults;
-
-import stdx.os.unix.termios;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.ttydefaults;
 #else
-export module stdlibx.os.unix.sys.ttydefaults;
-
-import stdlibx.os.unix.termios;
+export module stdlibx:os.unix.sys.ttydefaults;
 #endif
+
+import :os.unix.termios;
 
 /**
  * @namespace stdx::os::unix::sys

@@ -1,6 +1,6 @@
 /**
  * @file cstddef.cppm
- * @module std.math.cstddef
+ * @module std:math.cstddef
  * @brief Module file for standard library C-style integer conversion operations.
  *
  * This file contains the implementation of the C-style integer conversion operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.math.cstddef;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:math.cstddef;
 #else
-export module stdlib.math.cstddef;
+export module stdlib:math.cstddef;
 #endif
 
-import core.math.cstddef;
+import core;
  
 /**
  * @namespace std::math
@@ -27,4 +27,3 @@ export namespace stdlib::math {
 #endif
     using core::math::to_integer;
 }
- 

@@ -1,6 +1,6 @@
 /**
  * @file NullPointerException.cppm
- * @module stdx.core.Exceptions:NullPointerException
+ * @module stdx:core.NullPointerException
  * @brief Implementation of the NullPointerException class.
  *
  * This file contains the implementation of the NullPointerException class, which is used to handle 
@@ -11,13 +11,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.core.Exceptions:NullPointerException;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:core.NullPointerException;
 #else
-export module stdlibx.core.Exceptions:NullPointerException;
+export module stdlibx:core.NullPointerException;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 import std;
 #else
 import stdlib;

@@ -1,6 +1,6 @@
 /**
  * @file perm.cppm
- * @module stdx.os.linux.sys.perm
+ * @module stdx:os.linux.sys.perm
  * @brief Module file for Unix I/O privilege permission modifications.
  *
  * This file contains the implementation of the Unix operations on I/O privilege permissions,
@@ -13,10 +13,10 @@ module;
 #include <sys/perm.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.perm;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.perm;
 #else
-export module stdlibx.os.linux.sys.perm;
+export module stdlibx:os.linux.sys.perm;
 #endif
 
 /**

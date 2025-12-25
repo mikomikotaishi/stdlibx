@@ -1,6 +1,6 @@
 /**
  * @file socket.cppm
- * @module std.net.socket
+ * @module std:net.socket
  * @brief Module file for (experimental) standard library networking socket operations.
  *
  * This file contains the implementation of the (experimental) networking socket operations in the standard library.
@@ -9,14 +9,14 @@
 
 module;
 
-#ifdef STDLIBX_EXPERIMENTAL_STD
+#if __has_include(<experimental/socket>)
 #include <experimental/socket>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.net.socket;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:net.socket;
 #else
-export module stdlib.net.socket;
+export module stdlib:net.socket;
 #endif
 
 /**
@@ -28,7 +28,7 @@ export namespace std::net {
 #else 
 export namespace stdlib::net {
 #endif
-    #ifdef STDLIBX_EXPERIMENTAL_STD
+    #if __has_include(<experimental/socket>)
     using SocketBase = std::experimental::net::socket_base;
 
     template <typename Protocol>

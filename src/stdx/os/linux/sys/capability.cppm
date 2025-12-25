@@ -1,6 +1,6 @@
 /**
  * @file capability.cppm
- * @module stdx.os.linux.sys.capability
+ * @module stdx:os.linux.sys.capability
  * @brief Module file for user library prototype information.
  *
  * This file complements the kernel file by providing prototype information for the user library,
@@ -13,10 +13,10 @@ module;
 #include <sys/capability.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.capability;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.capability;
 #else
-export module stdlibx.os.linux.sys.capability;
+export module stdlibx:os.linux.sys.capability;
 #endif
 
 /**

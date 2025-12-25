@@ -1,6 +1,6 @@
 /**
  * @file cwchar.cppm
- * @module std.io.cwchar
+ * @module std:io.cwchar
  * @brief Module file for standard library wide character input/output operations.
  *
  * This file contains the implementation of the wide character input/output operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <cwchar>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.cwchar;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.cwchar;
 #else
-export module stdlib.io.cwchar;
+export module stdlib:io.cwchar;
 #endif
 
 /**

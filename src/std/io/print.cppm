@@ -1,6 +1,6 @@
 /**
  * @file print.cppm
- * @module std.io.print
+ * @module std:io.print
  * @brief Module file for standard library print operations.
  *
  * This file contains the implementation of the print operations in the standard library.
@@ -12,15 +12,13 @@ module;
 #include <print>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.print;
-
-export import std.io.cstdio;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.print;
 #else
-export module stdlib.io.print;
-
-export import stdlib.io.cstdio;
+export module stdlib:io.print;
 #endif
+
+export import :io.cstdio;
 
 /**
  * @namespace std::io

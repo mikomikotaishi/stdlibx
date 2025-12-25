@@ -1,6 +1,6 @@
 /**
  * @file utime.cppm
- * @module stdx.os.unix.utime
+ * @module stdx:os.unix.utime
  * @brief Module file for Unix inode access operations.
  *
  * This file contains the implementation of the Unix inode access operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <utime.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.utime;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.utime;
 #else
-export module stdlibx.os.unix.utime;
+export module stdlibx:os.unix.utime;
 #endif
 
 /**

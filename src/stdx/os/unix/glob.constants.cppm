@@ -1,6 +1,6 @@
 /**
- * @file glob.cppm
- * @module stdx.os.unix.glob:constants
+ * @file glob.constants.cppm
+ * @module stdx:os.unix.glob.constants
  * @brief Module file for Unix globbing operations.
  *
  * This file contains the implementation of the constants used 
@@ -9,10 +9,10 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.glob:constants;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.glob.constants;
 #else
-export module stdlibx.os.unix.glob:constants;
+export module stdlibx:os.unix.glob.constants;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file ChildStderr.cppm
- * @module stdx.process.ChildStderr
+ * @module stdx:process.ChildStderr
  * @brief Implementation of the Child class.
  *
  * This file contains the implementation of the ChildStderr class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.ChildStderr;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.ChildStderr;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.ChildStderr;
+export module stdlibx:process.ChildStderr;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;

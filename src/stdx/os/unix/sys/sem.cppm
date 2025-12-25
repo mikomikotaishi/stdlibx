@@ -1,6 +1,6 @@
 /**
  * @file sem.cppm
- * @module stdx.os.unix.sys.sem
+ * @module stdx:os.unix.sys.sem
  * @brief Module file for Unix XSI semaphore operations.
  *
  * This file contains the implementation of the Unix XSI semaphore operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/sem.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.sem;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.sem;
 #else
-export module stdlibx.os.unix.sys.sem;
+export module stdlibx:os.unix.sys.sem;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file windows_base.cppm
- * @module stdx.os.win32.windows:windows_base
+ * @module stdx:os.win32.windows.windows_base
  * @brief Module file for Win32 operations.
  *
  * This file contains the implementation of the Windows operations from the Windows API libraries,
@@ -13,10 +13,10 @@ module;
 #include <windows_base.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.win32.windows:windows_base;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.win32.windows.windows_base;
 #else
-export module stdlibx.os.win32.windows:windows_base;
+export module stdlibx:os.win32.windows.windows_base;
 #endif
 
 /**
@@ -28,22 +28,27 @@ export namespace stdx::os::win32 {
 #else 
 export namespace stdlibx::os::win32 {
 #endif
+    [[nodiscard]]
     constexpr bool HResultIsWin32(long x) noexcept {
         return ((((x) >> 16) & 0xFFFF) == 0x8);
     }
 
+    [[nodiscard]]
     constexpr bool HResultIsFailure(long x) noexcept {
         return ((((x) >> 31) & 0x1) == 0x1);
     }
 
+    [[nodiscard]]
     constexpr long HResultFacility(long x) noexcept {
         return (((x) >> 16) & 0xFFFF);
     }
 
+    [[nodiscard]]
     constexpr long HResultCode(long x) noexcept {
         return ((x) & 0xFFFF);
     }
 
+    [[nodiscard]]
     constexpr long HResultFromWin32(long x) noexcept {
         return (0x80070000 | (x));
     }

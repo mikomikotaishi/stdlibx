@@ -1,6 +1,6 @@
 /**
  * @file inet.cppm
- * @module stdx.os.unix.arpa.inet
+ * @module stdx:os.unix.arpa.inet
  * @brief Module file for Unix ARPA operations.
  *
  * This file contains the implementation of the Unix ARPA operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <arpa/inet.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.arpa.inet;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.arpa.inet;
 #else
-export module stdlibx.os.unix.arpa.inet;
+export module stdlibx:os.unix.arpa.inet;
 #endif
 
 /**

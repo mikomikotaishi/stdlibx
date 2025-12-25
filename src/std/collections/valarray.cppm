@@ -1,6 +1,6 @@
 /**
  * @file valarray.cppm
- * @module std.collections.valarray
+ * @module std:collections.valarray
  * @brief Module file for standard library valarray operations.
  *
  * This file contains the implementation of the valarray operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.valarray;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.valarray;
 #else
-export module stdlib.collections.valarray;
+export module stdlib:collections.valarray;
 #endif
 
-import alloc.collections.valarray;
+import alloc;
 
 /**
  * @namespace std::collections

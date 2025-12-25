@@ -1,6 +1,6 @@
 /**
  * @file file.cppm
- * @module stdx.os.linux.sys.file
+ * @module stdx:os.linux.sys.file
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/file.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.file;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.file;
 #else
-export module stdlibx.os.linux.sys.file;
+export module stdlibx:os.linux.sys.file;
 #endif
 
 /**

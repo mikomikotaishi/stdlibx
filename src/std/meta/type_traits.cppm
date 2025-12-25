@@ -1,6 +1,6 @@
 /**
  * @file type_traits.cppm
- * @module std.meta.type_traits
+ * @module std:meta.type_traits
  * @brief Module file for standard library type traits operations.
  *
  * This file contains the implementation of the type traits operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.meta.type_traits;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:meta.type_traits;
 #else
-export module stdlib.meta.type_traits;
+export module stdlib:meta.type_traits;
 #endif
 
-import core.meta.type_traits;
+import core;
 
 /**
  * @namespace std::meta

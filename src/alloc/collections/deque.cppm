@@ -1,6 +1,6 @@
 /**
  * @file deque.cppm
- * @module alloc.collections.deque
+ * @module alloc:collections.deque
  * @brief Module file for standard library deque operations.
  *
  * This file contains the implementation of the deque operations in the standard library.
@@ -10,11 +10,11 @@ module;
 
 #include <deque>
 
-export module alloc.collections.deque;
+export module alloc:collections.deque;
 
-import core.meta.type_traits;
+import core;
 
-import alloc.mem.memory;
+import :mem.memory;
 
 using core::meta::IsSameValue;
 using core::meta::RemoveConstVolatile;

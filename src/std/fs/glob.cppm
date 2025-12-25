@@ -1,10 +1,10 @@
 /**
  * @file glob.cppm
- * @module std.fs.glob
+ * @module std:fs.glob
  * @brief Module file for standard library file system globbing operations.
  *
  * This file contains the implementation of the file system globbing operations in the standard library.
- * Adapted from p-ranav/glob (https://github.com/p-ranav/glob/tree/master)
+ * Adapted from p-ranav/glob (https://github.com/p-ranav/glob)
  */
 
 module;
@@ -13,24 +13,17 @@ module;
 #include <string>
 #include <vector>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.fs.glob;
-
-import std.fmt.format;
-import std.fs.filesystem;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:fs.glob;
 #else
-export module stdlib.fs.glob;
-
-import stdlib.fmt.format;
-import stdlib.fs.filesystem;
+export module stdlib:fs.glob;
 #endif
 
-import core;
+import :fmt.format;
+import :fs.filesystem;
 
-import alloc.collections.tree_map;
-import alloc.collections.vector;
-import alloc.string;
-import alloc.text.regex;
+import core;
+import alloc;
 
 using alloc::collections::TreeMap;
 using alloc::collections::Vector;
@@ -43,7 +36,7 @@ using core::ranges::views::Transform;
 
 using namespace core;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 namespace fmt = std::fmt;
 #else
 namespace fmt = stdlib::fmt;
@@ -60,7 +53,6 @@ namespace stdlib::fs {
 #endif
 
 namespace {
-
     static bool string_replace(String& s, const String& from, const String& to) noexcept {
         usize start = s.find(from);
         if (start == String::npos) {

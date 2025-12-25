@@ -1,6 +1,6 @@
 /**
  * @file semaphore.cppm
- * @module std.sync.semaphore
+ * @module std:sync.semaphore
  * @brief Module file for standard library semaphore operations.
  *
  * This file contains the implementation of the semaphore operations in the standard library.
@@ -12,10 +12,10 @@ module;
 #include <semaphore>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sync.semaphore;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sync.semaphore;
 #else
-export module stdlib.sync.semaphore;
+export module stdlib:sync.semaphore;
 #endif
 
 /**

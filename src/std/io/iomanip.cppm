@@ -1,6 +1,6 @@
 /**
  * @file fstream.cppm
- * @module std.io.iomanip
+ * @module std:io.iomanip
  * @brief Module file for standard library input/output manipulation stream operations.
  *
  * This file contains the implementation of the input/output manipulation operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <iomanip>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.iomanip;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.iomanip;
 #else
-export module stdlib.io.iomanip;
+export module stdlib:io.iomanip;
 #endif
 
 /**

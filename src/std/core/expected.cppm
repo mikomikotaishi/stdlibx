@@ -1,6 +1,6 @@
 /**
  * @file expected.cppm
- * @module std.core.expected
+ * @module std:core.expected
  * @brief Module file for importing the Expected class from the standard library.
  * 
  * This file exports the Expected class operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.expected;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.expected;
 #else
-export module stdlib.core.expected;
+export module stdlib:core.expected;
 #endif
 
-import core.expected;
+import core;
 
 /**
  * @namespace std::core

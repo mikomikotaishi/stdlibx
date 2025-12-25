@@ -1,6 +1,6 @@
 /**
  * @file immintrin.cppm
- * @module stdx.arch.x86.immintrin
+ * @module stdx:arch.x86.immintrin
  * @brief Module file for immintrin operations
  *
  * This file contains the implementation for the immintrin.h header
@@ -12,9 +12,9 @@ module;
 #include <immintrin.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.arch.x86.immintrin;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:arch.x86.immintrin;
 #else
-export module stdlibx.arch.x86.immintrin;
+export module stdlibx:arch.x86.immintrin;
 #endif
 

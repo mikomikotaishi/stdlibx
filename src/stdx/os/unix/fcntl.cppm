@@ -1,6 +1,6 @@
 /**
  * @file fcntl.cppm
- * @module stdx.os.unix.fcntl
+ * @module stdx:os.unix.fcntl
  * @brief Module file for Unix file control operations.
  *
  * This file contains the implementation of the Unix file control operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <fcntl.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.fcntl;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.fcntl;
 #else
-export module stdlibx.os.unix.fcntl;
+export module stdlibx:os.unix.fcntl;
 #endif
 
 /**

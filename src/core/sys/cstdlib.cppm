@@ -1,6 +1,6 @@
 /**
  * @file cstdlib.cppm
- * @module core.sys.cstdlib
+ * @module core:sys.cstdlib
  * @brief Module file for standard library C-style system operations.
  *
  * This file contains the implementation of the C-style system operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <cstdlib>
 
-export module core.sys.cstdlib;
+export module core:sys.cstdlib;
 
 /**
  * @namespace core::sys

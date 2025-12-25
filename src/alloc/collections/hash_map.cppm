@@ -10,12 +10,11 @@ module;
 
 #include <unordered_map>
 
-export module alloc.collections.hash_map;
+export module alloc:collections.hash_map;
 
-import core.functional;
-import core.pair;
+import core;
 
-import alloc.mem.memory;
+import :mem.memory;
 
 using core::EqualTo;
 using core::Hash;

@@ -1,6 +1,6 @@
 /**
  * @file fnmatch.cppm
- * @module stdx.os.unix.fnmatch
+ * @module stdx:os.unix.fnmatch
  * @brief Module file for Unix filename matching operations.
  *
  * This file contains the implementation of the Unix filename matching operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <fnmatch.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.fnmatch;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.fnmatch;
 #else
-export module stdlibx.os.unix.fnmatch;
+export module stdlibx:os.unix.fnmatch;
 #endif
 
 /**

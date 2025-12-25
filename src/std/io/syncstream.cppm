@@ -1,6 +1,6 @@
 /**
  * @file syncstream.cppm
- * @module std.io.syncstream
+ * @module std:io.syncstream
  * @brief Module file for standard library syncstream operations.
  *
  * This file contains the implementation of the syncstream operations in the standard library.
@@ -12,10 +12,10 @@ module;
 #include <syncstream>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.syncstream;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.syncstream;
 #else
-export module stdlib.io.syncstream;
+export module stdlib:io.syncstream;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file cctype.cppm
- * @module core.text.cctype
+ * @module core:text.cctype
  * @brief Module file for standard library character type operations.
  *
  * This file contains the imports for the character type operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <cctype>
 
-export module core.text.cctype;
+export module core:text.cctype;
 
 /**
  * @namespace core::text

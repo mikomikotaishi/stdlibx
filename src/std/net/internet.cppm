@@ -1,6 +1,6 @@
 /**
  * @file internet.cppm
- * @module std.net.internet
+ * @module std:net.internet
  * @brief Module file for (experimental) standard library networking internet operations.
  *
  * This file contains the implementation of the (experimental) networking internet operations in the standard library.
@@ -9,14 +9,14 @@
 
 module;
 
-#ifdef STDLIBX_EXPERIMENTAL_STD
+#if __has_include(<experimental/internet>)
 #include <experimental/internet>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.net.internet;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:net.internet;
 #else
-export module stdlib.net.internet;
+export module stdlib:net.internet;
 #endif
 
 /**
@@ -33,7 +33,7 @@ export namespace stdlib::net {
      * @brief Namespace for operations IP addresses.
      */
     namespace ip {
-        #ifdef STDLIBX_EXPERIMENTAL_STD
+        #if __has_include(<experimental/internet>)
         using AddressV4 = std::experimental::net::ip::address_v4;
         using AddressV6 = std::experimental::net::ip::address_v6;
         using Address = std::experimental::net::ip::address;
@@ -57,7 +57,7 @@ export namespace stdlib::net {
          * @brief Namespace for operations on unicast.
          */
         namespace unicast {
-            #ifdef STDLIBX_EXPERIMENTAL_STD
+            #if __has_include(<experimental/internet>)
             using Hops = std::experimental::net::ip::unicast::hops;
             #endif
         }
@@ -67,7 +67,7 @@ export namespace stdlib::net {
          * @brief Namespace for operations on multicast.
          */
         namespace multicast {
-            #ifdef STDLIBX_EXPERIMENTAL_STD
+            #if __has_include(<experimental/internet>)
             using JoinGroup = std::experimental::net::ip::multicast::join_group;
             using LeaveGroup = std::experimental::net::ip::multicast::leave_group;
             using OutboundInterface = std::experimental::net::ip::multicast::outbound_interface;

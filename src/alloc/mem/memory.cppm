@@ -1,6 +1,6 @@
 /**
  * @file memory.cppm
- * @module alloc.mem.memory
+ * @module alloc:mem.memory
  * @brief Module file for standard library memory operations.
  *
  * This file contains the implementation of the memory operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <memory>
 
-export module alloc.mem.memory;
+export module alloc:mem.memory;
 
 /**
  * @namespace alloc::mem

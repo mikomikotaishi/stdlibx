@@ -1,6 +1,6 @@
 /**
  * @file span.cppm
- * @module std.core.span
+ * @module std:core.span
  * @brief Module file for standard library span operations.
  *
  * This file contains the implementation of the span operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.span;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.span;
 #else
-export module stdlib.core.span;
+export module stdlib:core.span;
 #endif
 
-import core.span;
+import core;
 
 /**
  * @namespace std::core

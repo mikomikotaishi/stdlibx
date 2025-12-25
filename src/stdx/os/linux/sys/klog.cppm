@@ -1,6 +1,6 @@
 /**
  * @file klog.cppm
- * @module stdx.os.linux.sys.klog
+ * @module stdx:os.linux.sys.klog
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/klog.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.klog;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.klog;
 #else
-export module stdlibx.os.linux.sys.klog;
+export module stdlibx:os.linux.sys.klog;
 #endif
 
 /**

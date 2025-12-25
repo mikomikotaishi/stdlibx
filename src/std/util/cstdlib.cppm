@@ -1,6 +1,6 @@
 /**
  * @file cstdlib.cppm
- * @module std.util.cstdlib
+ * @module std:util.cstdlib
  * @brief Module file for standard library C-style algorithm operations.
  *
  * This file contains the implementation of the C-style algorithm operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.util.cstdlib;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:util.cstdlib;
 #else
-export module stdlib.util.cstdlib;
+export module stdlib:util.cstdlib;
 #endif
 
-import core.util.cstdlib;
+import core;
 
 /**
  * @namespace std::util

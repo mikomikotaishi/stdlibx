@@ -1,6 +1,6 @@
 /**
  * @file intrin.cppm
- * @module stdx.os.win32.intrin
+ * @module stdx:os.win32.intrin
  * @brief Module file for Win32 operations.
  *
  * This file contains the implementation of the Windows operations from the Windows API libraries,
@@ -13,10 +13,10 @@ module;
 #include <intrin.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.win32.intrin;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.win32.intrin;
 #else
-export module stdlibx.os.win32.intrin;
+export module stdlibx:os.win32.intrin;
 #endif
 
 /**

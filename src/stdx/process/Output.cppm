@@ -1,6 +1,6 @@
 /**
  * @file Output.cppm
- * @module stdx.process.Output
+ * @module stdx:process.Output
  * @brief Implementation of the Output class.
  *
  * This file contains the implementation of the Output class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.Output;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.Output;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.Output;
+export module stdlibx:process.Output;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;

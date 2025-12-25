@@ -1,6 +1,6 @@
 /**
  * @file functional.cppm
- * @module core.ranges.functional
+ * @module core:ranges.functional
  * @brief Module file for standard library functional ranges operations.
  *
  * This file contains the implementation of the functional ranges operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <functional>
 
-export module core.ranges.functional;
+export module core:ranges.functional;
 
 /**
  * @namespace core::ranges

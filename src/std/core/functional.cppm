@@ -1,6 +1,6 @@
 /**
  * @file functional.cppm
- * @module std.core.functional
+ * @module std:core.functional
  * @brief Module file for importing function objects from the standard library.
  *
  * This file contains the implementation of the function object operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.functional;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.functional;
 #else
-export module stdlib.core.functional;
+export module stdlib:core.functional;
 #endif
 
-import core.functional;
+import core;
 
 /**
  * @namespace std::core

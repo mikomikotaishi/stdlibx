@@ -1,6 +1,6 @@
 /**
  * @file glob.cppm
- * @module stdx.os.unix.glob
+ * @module stdx:os.unix.glob
  * @brief Module file for Unix globbing operations.
  *
  * This file contains the implementation of the Unix globbing operations from the POSIX libraries,
@@ -13,13 +13,13 @@ module;
 #include <glob.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.glob;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.glob;
 #else
-export module stdlibx.os.unix.glob;
+export module stdlibx:os.unix.glob;
 #endif
 
-export import :constants;
+export import :os.unix.glob.constants;
 
 /**
  * @namespace stdx::os::unix

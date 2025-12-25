@@ -1,6 +1,6 @@
 /**
  * @file netdb.cppm
- * @module stdx.os.unix.netdb
+ * @module stdx:os.unix.netdb
  * @brief Module file for Unix numeric address translation operations.
  *
  * This file contains the implementation of the Unix numeric address translation operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <netdb.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.netdb;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.netdb;
 #else
-export module stdlibx.os.unix.netdb;
+export module stdlibx:os.unix.netdb;
 #endif
 
 /**

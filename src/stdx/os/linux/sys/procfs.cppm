@@ -1,6 +1,6 @@
 /**
  * @file procfs.cppm
- * @module stdx.os.linux.sys.procfs
+ * @module stdx:os.linux.sys.procfs
  * @brief Module file for Unix core file/libthread_db operations.
  *
  * This file contains the implementation of the Unix core file/libthread_db operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/procfs.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.procfs;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.procfs;
 #else
-export module stdlibx.os.linux.sys.procfs;
+export module stdlibx:os.linux.sys.procfs;
 #endif
 
 /**

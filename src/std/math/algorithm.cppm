@@ -1,6 +1,6 @@
 /**
  * @file algorithm.cppm
- * @module std.math.algorithm
+ * @module std:math.algorithm
  * @brief Module file for standard library mathematical operations from <algorithm>.
  *
  * This file contains the implementation of the mathematical operations from <algorithm> in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.math.algorithm;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:math.algorithm;
 #else
-export module stdlib.math.algorithm;
+export module stdlib:math.algorithm;
 #endif
 
-import core.math.algorithm;
+import core;
 
 /**
  * @namespace std::math

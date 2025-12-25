@@ -119,14 +119,14 @@ include(FetchContent)
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
-option(STDLIBX_USE_RESERVED_STD_IDENTIFIERS "Force usage of reserved module names std.* and std::* namespace (instead of stdlibx.* and std::*) and suppress related warnings" ON)
+option(STDLIBX_USE_RESERVED_STD_IDENTIFIERS "Force usage of reserved module names std.* and std::* namespace (instead of std.* and std::*) and suppress related warnings" ON)
 option(STDLIBX_NO_STD "Disable the std.* modules and only use core.* and alloc.*" OFF)
 option(STDLIBX_NO_ALLOC "Disable the alloc.* modules and only use core.*" OFF)
 option(STDLIBX_IMPLICIT_USING_CORE "Make std.core.* modules implicitly load symbols into scope by importing" ON)
 option(STDLIBX_ENABLE_COMPAT_NAMES "Enable compatibility names more similar to ISO C++ names" OFF)
-option(STDLIBX_EXPERIMENTAL_STD "Enable experimental headers" OFF)
 option(STDLIBX_EXTENSIONS "Enable the stdx.* modules" OFF)
 option(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY "Enable compiler header modules in stdx.compiler.*" OFF)
+option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx.lua.*" OFF)
 
 if(STDLIBX_NO_STD)
     set(STDLIBX_USE_RESERVED_STD_IDENTIFIERS OFF CACHE BOOL "Disabled because STDLIBX_NO_STD is ON" FORCE)
@@ -172,10 +172,6 @@ endif()
 
 if(STDLIBX_ENABLE_COMPAT_NAMES)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_ENABLE_COMPAT_NAMES)
-endif()
-
-if(STDLIBX_EXPERIMENTAL_STD)
-    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXPERIMENTAL_STD)
 endif()
 
 if(STDLIBX_EXTENSIONS)

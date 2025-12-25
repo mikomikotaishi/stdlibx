@@ -1,6 +1,6 @@
 /**
  * @file grp.cppm
- * @module stdx.os.unix.grp
+ * @module stdx:os.unix.grp
  * @brief Module file for Unix user group control operations.
  *
  * This file contains the implementation of the Unix user group control operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <grp.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.grp;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.grp;
 #else
-export module stdlibx.os.unix.grp;
+export module stdlibx:os.unix.grp;
 #endif
 
 /**

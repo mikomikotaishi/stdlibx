@@ -1,6 +1,6 @@
 /**
  * @file bitset.cppm
- * @module std.collections.bitset
+ * @module std:collections.bitset
  * @brief Module file for standard library bitset operations.
  *
  * This file contains the implementation of the bitset operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.bitset;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.bitset;
 #else
-export module stdlib.collections.bitset;
+export module stdlib:collections.bitset;
 #endif
 
-import core.collections.bitset;
+import core;
 
 /**
  * @namespace std::collections

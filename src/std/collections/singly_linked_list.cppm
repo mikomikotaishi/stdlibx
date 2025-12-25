@@ -1,6 +1,6 @@
 /**
  * @file singly_linked_list.cppm
- * @module std.collections.singly_linked_list
+ * @module std:collections.singly_linked_list
  * @brief Module file for standard library singly-linked list operations.
  *
  * This file contains the implementation of the singly-linked list operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.singly_linked_list;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.singly_linked_list;
 #else
-export module stdlib.collections.singly_linked_list;
+export module stdlib:collections.singly_linked_list;
 #endif
 
-import alloc.collections.singly_linked_list;
+import alloc;
 
 /**
  * @namespace std::collections

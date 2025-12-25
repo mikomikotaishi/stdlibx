@@ -1,6 +1,6 @@
 /**
  * @file limits.cppm
- * @module std.core.limits
+ * @module std:core.limits
  * @brief Module file for standard library limit operations.
  *
  * This file contains the implementation of the limit operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.limits;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.limits;
 #else
-export module stdlib.core.limits;
+export module stdlib:core.limits;
 #endif
 
-import core.limits;
+import core;
 
 /**
  * @namespace std::core

@@ -1,6 +1,6 @@
 /**
  * @file thread.cppm
- * @module std.concurrent.thread
+ * @module std:concurrent.thread
  * @brief Module file for standard library thread operations.
  *
  * This file contains the implementation of the thread operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <thread>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.concurrent.thread;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:concurrent.thread;
 #else
-export module stdlib.concurrent.thread;
+export module stdlib:concurrent.thread;
 #endif
 
 /**

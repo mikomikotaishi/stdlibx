@@ -1,6 +1,6 @@
 /**
  * @file windows.cppm
- * @module stdx.os.win32.windows
+ * @module stdx:os.win32.windows
  * @brief Module file for Win32 operations.
  *
  * This file contains the implementation of the Windows operations from the Windows API libraries,
@@ -49,14 +49,14 @@ module;
 #undef InterlockedCompareExchange128
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.win32.windows;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.win32.windows;
 #else
-export module stdlibx.os.win32.windows;
+export module stdlibx:os.win32.windows;
 #endif
 
-import :constants;
-import :windows_base;
+import :os.win32.windows.constants;
+import :os.win32.windows.windows_base;
 
 /**
  * @namespace stdx::os::win32

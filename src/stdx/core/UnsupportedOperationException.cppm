@@ -1,6 +1,6 @@
 /**
  * @file UnsupportedOperationException.cppm
- * @module stdx.core.Exceptions:UnsupportedOperationException
+ * @module stdx:core.UnsupportedOperationException
  * @brief Implementation of the UnsupportedOperationException class.
  *
  * This file contains the implementation of the UnsupportedOperationException class, which is used to handle unsupported operation exceptions.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.core.Exceptions:UnsupportedOperationException;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:core.UnsupportedOperationException;
 #else
-export module stdlibx.core.Exceptions:UnsupportedOperationException;
+export module stdlibx:core.UnsupportedOperationException;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 import std;
 #else
 import stdlib;

@@ -1,6 +1,6 @@
 /**
  * @file telnet.cppm
- * @module stdx.os.linux.arpa.telnet
+ * @module stdx:os.linux.arpa.telnet
  * @brief Module file for Unix ARPA operations.
  *
  * This file contains the implementation of the Unix ARPA operations from the POSIX libraries,
@@ -15,10 +15,10 @@ module;
 #include <arpa/telnet.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.arpa.telnet;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.arpa.telnet;
 #else
-export module stdlibx.os.linux.arpa.telnet;
+export module stdlibx:os.linux.arpa.telnet;
 #endif
 
 /**

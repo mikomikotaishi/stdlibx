@@ -1,6 +1,6 @@
 /**
  * @file ranges.cppm
- * @module std.ranges.ranges
+ * @module std:ranges.ranges
  * @brief Module file for standard library ranges operations.
  *
  * This file contains the implementation of the ranges operations in the standard library.
@@ -8,14 +8,14 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.ranges.ranges;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:ranges.ranges;
 #else
-export module stdlib.ranges.ranges;
+export module stdlib:ranges.ranges;
 #endif
 
-import alloc.ranges.ranges;
-import core.ranges.ranges;
+import core;
+import alloc;
 
 /**
  * @namespace std::ranges

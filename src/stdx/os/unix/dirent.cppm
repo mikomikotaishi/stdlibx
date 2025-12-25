@@ -1,6 +1,6 @@
 /**
  * @file dirent.cppm
- * @module stdx.os.unix.dirent
+ * @module stdx:os.unix.dirent
  * @brief Module file for Unix directory navigating operations.
  *
  * This file contains the implementation of the Unix directory navigating operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <dirent.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.dirent;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.dirent;
 #else
-export module stdlibx.os.unix.dirent;
+export module stdlibx:os.unix.dirent;
 #endif
 
 /**

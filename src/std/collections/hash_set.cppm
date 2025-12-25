@@ -1,6 +1,6 @@
 /**
  * @file hash_set.cppm
- * @module std.collections.hash_set
+ * @module std:collections.hash_set
  * @brief Module file for standard library hash set operations.
  *
  * This file contains the implementation of the hash set operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.hash_set;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.hash_set;
 #else
-export module stdlib.collections.hash_set;
+export module stdlib:collections.hash_set;
 #endif
 
-import alloc.collections.hash_set;
+import alloc;
 
 /**
  * @namespace std::collections

@@ -1,6 +1,6 @@
 /**
  * @file libgen.cppm
- * @module stdx.os.unix.libgen
+ * @module stdx:os.unix.libgen
  * @brief Module file for Unix pathname manipulation operations.
  *
  * This file contains the implementation of the Unix pathname manipulation operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <libgen.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.libgen;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.libgen;
 #else
-export module stdlibx.os.unix.libgen;
+export module stdlibx:os.unix.libgen;
 #endif
 
 /**

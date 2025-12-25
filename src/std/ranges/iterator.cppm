@@ -1,6 +1,6 @@
 /**
  * @file iterator.cppm
- * @module std.ranges.iterator
+ * @module std:ranges.iterator
  * @brief Module file for standard library iterator operations.
  *
  * This file contains the implementation of the iterator operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.ranges.iterator;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:ranges.iterator;
 #else
-export module stdlib.ranges.iterator;
+export module stdlib:ranges.iterator;
 #endif
 
-import core.ranges.iterator;
+import core;
 
 /**
  * @namespace std::ranges

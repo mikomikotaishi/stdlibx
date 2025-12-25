@@ -1,6 +1,6 @@
 /**
  * @file atomic.cppm
- * @module std.sync.atomic
+ * @module std:sync.atomic
  * @brief Module file for standard library atomic operations.
  *
  * This file contains the implementation of the atomic operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <atomic>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sync.atomic;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sync.atomic;
 #else
-export module stdlib.sync.atomic;
+export module stdlib:sync.atomic;
 #endif
 
 /**

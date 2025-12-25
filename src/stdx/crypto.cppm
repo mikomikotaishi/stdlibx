@@ -1,6 +1,6 @@
 /**
  * @file crypto.cppm
- * @module stdx.crypto
+ * @module stdx:crypto
  * @brief Import of cryptography modules.
  *
  * This file imports the modules for the cryptography library.
@@ -8,14 +8,10 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.crypto;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:crypto;
 #else
-export module stdlibx.crypto;
+export module stdlibx:crypto;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import stdx.crypto.Cipher;
-#else
-export import stdlibx.crypto.Cipher;
-#endif
+export import :crypto.Cipher;

@@ -1,6 +1,6 @@
 /**
  * @file timer.cppm
- * @module std.net.timer
+ * @module std:net.timer
  * @brief Module file for (experimental) standard library networking timer operations.
  *
  * This file contains the implementation of the (experimental) networking timer operations in the standard library.
@@ -9,14 +9,14 @@
 
 module;
 
-#ifdef STDLIBX_EXPERIMENTAL_STD
+#if __has_include(<experimental/timer>)
 #include <experimental/timer>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.net.timer;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:net.timer;
 #else
-export module stdlib.net.timer;
+export module stdlib:net.timer;
 #endif
 
 /**
@@ -28,7 +28,7 @@ export namespace std::net {
 #else 
 export namespace stdlib::net {
 #endif
-    #ifdef STDLIBX_EXPERIMENTAL_STD
+    #if __has_include(<experimental/timer>)
     template <typename Clock>
     using WaitTraits = std::experimental::net::wait_traits<Clock>;
 

@@ -1,6 +1,6 @@
 /**
  * @file variant.cppm
- * @module core.variant
+ * @module core:variant
  * @brief Module file for importing the Variant class from the standard library.
  * 
  * This file exports the Variant class operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <variant>
 
-export module core.variant;
+export module core:variant;
 
 /**
  * @namespace core

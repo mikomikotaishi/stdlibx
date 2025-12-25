@@ -1,6 +1,6 @@
 /**
  * @file time.cppm
- * @module stdx.os.unix.sys.time
+ * @module stdx:os.unix.sys.time
  * @brief Module file for Unix time and date operations.
  *
  * This file contains the implementation of the Unix time and date operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/time.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.time;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.time;
 #else
-export module stdlibx.os.unix.sys.time;
+export module stdlibx:os.unix.sys.time;
 #endif
 
 /**

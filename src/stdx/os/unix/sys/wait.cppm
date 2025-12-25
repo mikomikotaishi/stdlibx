@@ -1,6 +1,6 @@
 /**
  * @file wait.cppm
- * @module stdx.os.unix.sys.wait
+ * @module stdx:os.unix.sys.wait
  * @brief Module file for Unix wait operations.
  *
  * This file contains the implementation of the Unix wait operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/wait.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.wait;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.wait;
 #else
-export module stdlibx.os.unix.sys.wait;
+export module stdlibx:os.unix.sys.wait;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file ttychars.cppm
- * @module stdx.os.linux.sys.ttychars
+ * @module stdx:os.linux.sys.ttychars
  * @brief Module file for Unix terminal handling constants.
  *
  * This file contains the implementation of the Unix terminal handling constants from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/ttychars.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.ttychars;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.ttychars;
 #else
-export module stdlibx.os.linux.sys.ttychars;
+export module stdlibx:os.linux.sys.ttychars;
 #endif
 
 /**

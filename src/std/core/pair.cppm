@@ -1,6 +1,6 @@
 /**
  * @file pair.cppm
- * @module std.core.pair
+ * @module std:core.pair
  * @brief Module file for standard library pair operations.
  *
  * This file contains the implementation of the pair operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.pair;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.pair;
 #else
-export module stdlib.core.pair;
+export module stdlib:core.pair;
 #endif
 
-import core.pair;
+import core;
 
 /**
  * @namespace std::core
@@ -31,9 +31,6 @@ export namespace stdlib::core {
 
     using ::core::swap;
     using ::core::get;
-
-    using ::core::TupleSize;
-    using ::core::TupleElement;
 
     using ::core::operator==;
     using ::core::operator<=>;

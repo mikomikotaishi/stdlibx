@@ -1,6 +1,6 @@
 /**
  * @file iostream.cppm
- * @module std.io.iostream
+ * @module std:io.iostream
  * @brief Module file for standard library input/output stream operations.
  *
  * This file contains the implementation of the input/output stream operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <iostream>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.iostream;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.iostream;
 #else
-export module stdlib.io.iostream;
+export module stdlib:io.iostream;
 #endif
 
 /**

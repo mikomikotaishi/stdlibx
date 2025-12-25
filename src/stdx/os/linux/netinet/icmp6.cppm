@@ -1,6 +1,6 @@
 /**
  * @file icmp6.cppm
- * @module stdx.os.linux.netinet.icmp6
+ * @module stdx:os.linux.netinet.icmp6
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <netinet/icmp6.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.netinet.icmp6;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.netinet.icmp6;
 #else
-export module stdlibx.os.linux.netinet.icmp6;
+export module stdlibx:os.linux.netinet.icmp6;
 #endif
 
 /**

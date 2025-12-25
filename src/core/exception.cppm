@@ -1,6 +1,6 @@
 /**
  * @file exceptions.cppm
- * @module core.exception
+ * @module core:exception
  * @brief Module file for importing exceptions from the standard library.
  *
  * This file contains the implementation of the exception operations in the standard library.
@@ -13,7 +13,7 @@ module;
 
 #include "Macros.hpp"
 
-export module core.exception;
+export module core:exception;
 
 /**
  * @namespace core
@@ -29,12 +29,19 @@ export namespace core {
     using RuntimeException = std::runtime_error;
 
     /// @extends LogicException
+    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
     using DomainException = std::domain_error;
+    #endif
+    using InvalidDomainException = std::domain_error;
     using InvalidArgumentException = std::invalid_argument;
     using LengthException = std::length_error;
     using OutOfRangeException = std::out_of_range;
 
     /// @extends RuntimeException
+    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
+    using RangeException = std::range_error;
+    #endif
+    using InvalidRangeException = std::range_error;
     using OverflowException = std::overflow_error;
     using UnderflowException = std::underflow_error;
     

@@ -1,6 +1,6 @@
 /**
  * @file iconv.cppm
- * @module stdx.os.unix.iconv
+ * @module stdx:os.unix.iconv
  * @brief Module file for Unix codeset conversion operations.
  *
  * This file contains the implementation of the Unix codeset conversion operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <iconv.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.iconv;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.iconv;
 #else
-export module stdlibx.os.unix.iconv;
+export module stdlibx:os.unix.iconv;
 #endif
 
 /**

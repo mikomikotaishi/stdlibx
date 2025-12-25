@@ -1,6 +1,6 @@
 /**
  * @file udp.cppm
- * @module stdx.os.linux.netinet.udp
+ * @module stdx:os.linux.netinet.udp
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <netinet/udp.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.netinet.udp;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.netinet.udp;
 #else
-export module stdlibx.os.linux.netinet.udp;
+export module stdlibx:os.linux.netinet.udp;
 #endif
 
 /**

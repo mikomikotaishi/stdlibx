@@ -1,6 +1,6 @@
 /**
  * @file Cipher.cppm
- * @module stdx.crypto.Cipher
+ * @module stdx:crypto.Cipher
  * @brief Implementation of the Cipher class.
  *
  * This file contains the implementation of the Cipher class.
@@ -8,10 +8,10 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.crypto.Cipher;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:crypto.Cipher;
 #else
-export module stdlibx.crypto.Cipher;
+export module stdlibx:crypto.Cipher;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file math.cppm
- * @module stdx.math
+ * @module stdx:math
  * @brief Import of mathematics modules.
  *
  * This file imports the modules for the mathematics library.
@@ -8,16 +8,11 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.math;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:math;
 #else
-export module stdlibx.math;
+export module stdlibx:math;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import stdx.math.BigDecimal;
-export import stdx.math.BigInteger;
-#else
-export import stdlibx.math.BigDecimal;
-export import stdlibx.math.BigInteger;
-#endif
+export import :math.BigDecimal;
+export import :math.BigInteger;

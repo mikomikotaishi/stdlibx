@@ -1,6 +1,6 @@
 /**
  * @file tags.cppm
- * @module core.tags
+ * @module core:tags
  * @brief Module file for standard library tags aggregation class.
  *
  * This file contains the implementation of the tags aggregation class in the standard library.
@@ -8,12 +8,12 @@
 
 module;
 
-export module core.tags;
+export module core:tags;
 
-import core.cstddef;
-import core.expected;
-import core.ranges.ranges;
-import core.util.utility;
+import :cstddef;
+import :expected;
+import :ranges.ranges;
+import :util.utility;
 
 using core::Unexpect;
 #if __has_include(<ranges>)

@@ -1,6 +1,6 @@
 /**
  * @file type_traits.cppm
- * @module core.meta.type_traits
+ * @module core:meta.type_traits
  * @brief Module file for standard library type traits operations.
  *
  * This file contains the implementation of the type traits operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <type_traits>
 
-export module core.meta.type_traits;
+export module core:meta.type_traits;
 
 /**
  * @namespace core::meta

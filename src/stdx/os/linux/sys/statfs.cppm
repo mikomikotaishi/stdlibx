@@ -1,6 +1,6 @@
 /**
  * @file statfs.cppm
- * @module stdx.os.linux.sys.statfs
+ * @module stdx:os.linux.sys.statfs
  * @brief Module file for Unix filesystem information retrieval operations.
  *
  * This file contains the implementation of the Unix filesystem information retrieval operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/statfs.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.statfs;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.statfs;
 #else
-export module stdlibx.os.linux.sys.statfs;
+export module stdlibx:os.linux.sys.statfs;
 #endif
 
 /**

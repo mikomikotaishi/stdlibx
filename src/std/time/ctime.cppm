@@ -1,6 +1,6 @@
 /**
  * @file ctime.cppm
- * @module std.time.ctime
+ * @module std:time.ctime
  * @brief Module file for standard library C-style time operations.
  *
  * This file contains the implementation of the C-style time operations in the standard library.
@@ -16,10 +16,10 @@ module;
 #include <ctime>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.time.ctime;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:time.ctime;
 #else
-export module stdlib.time.ctime;
+export module stdlib:time.ctime;
 #endif
 
 #ifndef STDLIBX_NO_RESERVED_STD_MODULE
@@ -52,7 +52,7 @@ export namespace stdlib::time {
     #endif
     
     inline Time_t get_time(Time_t* timer) {
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
+        #if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
         return ::_get_time(timer);
         #else
         return std::time(timer);
@@ -64,7 +64,7 @@ export namespace stdlib::time {
      * @brief Wrapper namespace for standard library time formatting operations
      */
     namespace fmt {
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
+        #if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
         using ::timespec_get;
         using ::ctime;
         using ::asctime;

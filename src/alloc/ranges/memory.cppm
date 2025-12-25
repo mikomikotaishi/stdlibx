@@ -1,6 +1,6 @@
 /**
  * @file memory.cppm
- * @module alloc.ranges.memory
+ * @module alloc:ranges.memory
  * @brief Module file for standard library memory ranges operations.
  *
  * This file contains the implementation of the memory ranges operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <memory>
 
-export module alloc.ranges.memory;
+export module alloc:ranges.memory;
 
 /**
  * @namespace alloc::ranges

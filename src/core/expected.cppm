@@ -1,6 +1,6 @@
 /**
  * @file expected.cppm
- * @module core.expected
+ * @module core:expected
  * @brief Module file for importing the Expected class from the standard library.
  * 
  * This file exports the Expected class operations in the standard library.
@@ -14,12 +14,12 @@ module;
 
 #include "Macros.hpp"
 
-export module core.expected;
+export module core:expected;
 
-import core.meta;
-import core.string_view;
-import core.util;
-import core.variant;
+import :meta;
+import :string_view;
+import :util;
+import :variant;
 
 using core::meta::DecayType;
 

@@ -1,6 +1,6 @@
 /**
  * @file optional.cppm
- * @module core.optional
+ * @module core:optional
  * @brief Module file for importing the Optional class from the standard library.
  * 
  * This file exports the Optional class operations in the standard library.
@@ -12,7 +12,7 @@ module;
 
 #include "Macros.hpp"
 
-export module core.optional;
+export module core:optional;
 
 /**
  * @namespace core

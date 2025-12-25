@@ -1,6 +1,6 @@
 /**
  * @file quota.cppm
- * @module stdx.os.linux.sys.quota
+ * @module stdx:os.linux.sys.quota
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/quota.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.quota;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.quota;
 #else
-export module stdlibx.os.linux.sys.quota;
+export module stdlibx:os.linux.sys.quota;
 #endif
 
 /**

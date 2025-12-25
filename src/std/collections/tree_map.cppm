@@ -1,6 +1,6 @@
 /**
  * @file tree_map.cppm
- * @module std.collections.tree_map
+ * @module std:collections.tree_map
  * @brief Module file for standard library tree map operations.
  *
  * This file contains the implementation of the tree map operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.tree_map;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.tree_map;
 #else
-export module stdlib.collections.tree_map;
+export module stdlib:collections.tree_map;
 #endif
 
-import alloc.collections.tree_map;
+import alloc;
 
 /**
  * @namespace std::collections

@@ -1,6 +1,6 @@
 /**
  * @file vector.cppm
- * @module alloc.collections.vector
+ * @module alloc:collections.vector
  * @brief Module file for standard library vector operations.
  *
  * This file contains the implementation of the vector operations in the standard library.
@@ -10,11 +10,11 @@ module;
 
 #include <vector>
 
-export module alloc.collections.vector;
+export module alloc:collections.vector;
 
-import core.meta.type_traits;
+import core;
 
-import alloc.mem.memory;
+import :mem.memory;
 
 using core::meta::IsSameValue;
 using core::meta::RemoveConstVolatile;

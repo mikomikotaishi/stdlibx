@@ -1,6 +1,6 @@
 /**
  * @file functional.cppm
- * @module std.ranges.functional
+ * @module std:ranges.functional
  * @brief Module file for standard library functional ranges operations.
  *
  * This file contains the implementation of the functional ranges operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.ranges.functional;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:ranges.functional;
 #else
-export module stdlib.ranges.functional;
+export module stdlib:ranges.functional;
 #endif
 
-import core.ranges.functional;
+import core;
 
 /**
  * @namespace std::ranges

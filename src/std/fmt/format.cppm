@@ -1,6 +1,6 @@
 /**
  * @file format.cppm
- * @module std.fmt.format
+ * @module std:fmt.format
  * @brief Module file for standard library format operations.
  *
  * This file contains the implementation of the format operations in the standard library.
@@ -12,10 +12,10 @@ module;
 #include <format>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.fmt.format;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:fmt.format;
 #else
-export module stdlib.fmt.format;
+export module stdlib:fmt.format;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file tuple.cppm
- * @module core.tuple
+ * @module core:tuple
  * @brief Module file for standard library tuple operations.
  *
  * This file contains the implementation of the tuple operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <tuple>
 
-export module core.tuple;
+export module core:tuple;
 
 /**
  * @namespace core

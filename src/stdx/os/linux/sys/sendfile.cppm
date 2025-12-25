@@ -1,6 +1,6 @@
 /**
  * @file sendfile.cppm
- * @module stdx.os.linux.sys.sendfile
+ * @module stdx:os.linux.sys.sendfile
  * @brief Module file for Unix sendfile operations.
  *
  * This file contains the implementation of the Unix sendfile operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/sendfile.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.sendfile;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.sendfile;
 #else
-export module stdlibx.os.linux.sys.sendfile;
+export module stdlibx:os.linux.sys.sendfile;
 #endif
 
 /**

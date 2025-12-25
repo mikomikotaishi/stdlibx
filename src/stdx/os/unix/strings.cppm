@@ -1,6 +1,6 @@
 /**
  * @file strings.cppm
- * @module stdx.os.unix.strings
+ * @module stdx:os.unix.strings
  * @brief Module file for Unix string comparison operations.
  *
  * This file contains the implementation of the Unix string comparison operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <strings.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.strings;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.strings;
 #else
-export module stdlibx.os.unix.strings;
+export module stdlibx:os.unix.strings;
 #endif
 
 /**

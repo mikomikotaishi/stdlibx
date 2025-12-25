@@ -1,6 +1,6 @@
 /**
  * @file if.cppm
- * @module stdx.os.unix.net.if_header
+ * @module stdx:os.unix.net.if_header
  * @brief Module file for Unix local network interfacing operations.
  *
  * This file contains the implementation of the Unix local networking interfacing operations from the POSIX libraries,
@@ -14,10 +14,10 @@ module;
 #include <net/if.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.net.if_header;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.net.if_header;
 #else
-export module stdlibx.os.unix.net.if_header;
+export module stdlibx:os.unix.net.if_header;
 #endif
 
 /**

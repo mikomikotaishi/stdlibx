@@ -1,6 +1,6 @@
 /**
  * @file gmon.cppm
- * @module stdx.os.linux.sys.gmon
+ * @module stdx:os.linux.sys.gmon
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/gmon.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.gmon;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.gmon;
 #else
-export module stdlibx.os.linux.sys.gmon;
+export module stdlibx:os.linux.sys.gmon;
 #endif
 
 /**

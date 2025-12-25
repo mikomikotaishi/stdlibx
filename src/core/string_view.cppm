@@ -1,6 +1,6 @@
 /**
  * @file string_view.cppm
- * @module core.string_view
+ * @module core:string_view
  * @brief Module file for importing the StringView class from the standard library.
  * 
  * This file exports the StringView class operations in the standard library.
@@ -10,9 +10,9 @@ module;
 
 #include "Macros.hpp"
 
-export module core.string_view;
+export module core:string_view;
 
-import core.text.string.string_view;
+import :text.string.string_view;
 
 /**
  * @namespace core
@@ -51,12 +51,14 @@ export namespace core {
     using ::core::text::string::data;
 
     using ::core::text::string::hash;
+}
 
-    inline namespace literals {
-        inline namespace string_view_literals {
-            using ::core::text::string::literals::string_view_literals::operator""sv;
-        }
-    }
+/**
+ * @namespace core::literals::string_view_literals
+ * @brief String view literals namespace
+ */
+export namespace core::inline literals::inline string_view_literals {
+    using ::core::literals::string_view_literals::operator""sv;
 }
 
 #if (defined(STDLIBX_NO_STD) || defined(STDLIBX_NO_ALLOC)) && defined(STDLIBX_IMPLICIT_USING_CORE)

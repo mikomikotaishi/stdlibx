@@ -1,6 +1,6 @@
 /**
  * @file eventfd.cppm
- * @module stdx.os.linux.sys.eventfd
+ * @module stdx:os.linux.sys.eventfd
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/eventfd.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.eventfd;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.eventfd;
 #else
-export module stdlibx.os.linux.sys.eventfd;
+export module stdlibx:os.linux.sys.eventfd;
 #endif
 
 /**

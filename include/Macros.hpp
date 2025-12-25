@@ -53,19 +53,21 @@
  * Requires that Formatter is imported into the current scope.
  * Used as a hack to allow std::fmt::Formatter to be used by std::fmt::format().
  * 
+ * @param Namespace The namespace (either std or stdlib).
  * @param Typename The type to specialise into the formatter.
  */
-#define SPECIALIZE_FORMATTER(Typename) \
+#define SPECIALIZE_FORMATTER(Namespace, Typename) \
     template <> \
-    struct std::formatter<Typename> : public Formatter<Typename> {};
+    struct Namespace::fmt::formatter<Typename> : public Formatter<Typename> {};
 
 /**
  * @brief A utility to specialise a type in std::hash. 
  * Requires that Hash is imported into the current scope.
  * Used as a hack to allow std::core::Hash to be used by hash().
  * 
+ * @param Namespace The namespace (either std or stdlib).
  * @param Typename The type to specialise into the hash.
  */
-#define SPECIALIZE_HASH(Typename) \
+#define SPECIALIZE_HASH(Namespace, Typename) \
     template <> \
-    struct std::hash<Typename> : public Hash<Typename> {};
+    struct Namespace::core::hash<Typename> : public Hash<Typename> {};

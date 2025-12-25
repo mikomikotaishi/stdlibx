@@ -1,6 +1,6 @@
 /**
  * @file initializer_list.cppm
- * @module std.core.initializer_list
+ * @module std:core.initializer_list
  * @brief Module file for importing the InitializerList class from the standard library.
  * 
  * This file exports the InitializerList class operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.initializer_list;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.initializer_list;
 #else
-export module stdlib.core.initializer_list;
+export module stdlib:core.initializer_list;
 #endif
 
-import core.initializer_list;
+import core;
 
 /**
  * @namespace std::core

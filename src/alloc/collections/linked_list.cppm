@@ -1,6 +1,6 @@
 /**
  * @file linked_list.cppm
- * @module alloc.collections.linked_list
+ * @module alloc:collections.linked_list
  * @brief Module file for standard library linked list operations.
  *
  * This file contains the implementation of the linked list operations in the standard library.
@@ -10,11 +10,11 @@ module;
 
 #include <list>
 
-export module alloc.collections.linked_list;
+export module alloc:collections.linked_list;
 
-import core.meta.type_traits;
+import core;
 
-import alloc.mem.memory;
+import :mem.memory;
 
 using core::meta::IsSameValue;
 using core::meta::RemoveConstVolatile;

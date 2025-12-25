@@ -1,6 +1,6 @@
 /**
  * @file memory.cppm
- * @module std.ranges.memory
+ * @module std:ranges.memory
  * @brief Module file for standard library memory ranges operations.
  *
  * This file contains the implementation of the memory ranges operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.ranges.memory;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:ranges.memory;
 #else
-export module stdlib.ranges.memory;
+export module stdlib:ranges.memory;
 #endif
 
-import alloc.ranges.memory;
+import alloc;
 
 /**
  * @namespace std::ranges

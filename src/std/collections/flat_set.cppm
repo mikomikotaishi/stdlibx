@@ -1,6 +1,6 @@
 /**
  * @file flat_set.cppm
- * @module std.collections.flat_set
+ * @module std:collections.flat_set
  * @brief Module file for standard library flat set operations.
  *
  * This file contains the implementation of the flat set operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.flat_set;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.flat_set;
 #else
-export module stdlib.collections.flat_set;
+export module stdlib:collections.flat_set;
 #endif
 
-import alloc.collections.flat_set;
+import alloc;
 
 /**
  * @namespace std::collections

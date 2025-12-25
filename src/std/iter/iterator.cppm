@@ -1,6 +1,6 @@
 /**
  * @file iterator.cppm
- * @module std.iter.iterator
+ * @module std:iter.iterator
  * @brief Module file for standard library iterator operations.
  *
  * This file contains the implementation of the iterator operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.iter.iterator;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:iter.iterator;
 #else
-export module stdlib.iter.iterator;
+export module stdlib:iter.iterator;
 #endif
 
-import core.iter.iterator;
+import core;
 
 /**
  * @namespace std::iter

@@ -1,6 +1,6 @@
 /**
  * @file buffer.cppm
- * @module std.net.buffer
+ * @module std:net.buffer
  * @brief Module file for (experimental) standard library networking buffer operations.
  *
  * This file contains the implementation of the (experimental) networking buffer operations in the standard library.
@@ -8,14 +8,14 @@
 
 module;
 
-#ifdef STDLIBX_EXPERIMENTAL_STD
+#if __has_include(<experimental/buffer>)
 #include <experimental/buffer>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.net.buffer;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:net.buffer;
 #else
-export module stdlib.net.buffer;
+export module stdlib:net.buffer;
 #endif
 
 /**
@@ -27,7 +27,7 @@ export namespace std::net {
 #else 
 export namespace stdlib::net {
 #endif
-    #ifdef STDLIBX_EXPERIMENTAL_STD
+    #if __has_include(<experimental/buffer>)
     using ConstBuffer = std::experimental::net::const_buffer;
     using MutableBuffer = std::experimental::net::mutable_buffer;
 

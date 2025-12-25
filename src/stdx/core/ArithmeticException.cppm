@@ -1,6 +1,6 @@
 /**
  * @file ArithmeticException.cppm
- * @module stdx.core.Exceptions:ArithmeticException
+ * @module stdx:core.ArithmeticException
  * @brief Implementation of the ArithmeticException class.
  *
  * This file contains the implementation of the ArithmeticException class, which is used to handle exception arithmetic conditions.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.core.Exceptions:ArithmeticException;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:core.ArithmeticException;
 #else
-export module stdlibx.core.Exceptions:ArithmeticException;
+export module stdlibx:core.ArithmeticException;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 import std;
 #else
 import stdlib;

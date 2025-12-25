@@ -1,18 +1,18 @@
 /**
- * @file glob.cppm
- * @module stdx.os.linux.sys.inotify:constants
- * @brief Module file for Unix globbing operations.
+ * @file inotify.constants.cppm
+ * @module stdx:os.linux.sys.inotify.constants
+ * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the constants used 
- * in <glob.h>.
+ * in <sys/inotify.h>.
  */
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.inotify:constants;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.inotify.constants;
 #else
-export module stdlibx.os.linux.sys.inotify:constants;
+export module stdlibx:os.linux.sys.inotify.constants;
 #endif
 
 /**

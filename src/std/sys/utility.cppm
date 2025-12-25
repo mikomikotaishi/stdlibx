@@ -1,6 +1,6 @@
 /**
  * @file utility.cppm
- * @module std.sys.utility
+ * @module std:sys.utility
  * @brief Module file for standard library utility system operations.
  *
  * This file contains the implementation of the utility system operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sys.utility;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sys.utility;
 #else
-export module stdlib.sys.utility;
+export module stdlib:sys.utility;
 #endif
 
-import core.sys.utility;
+import core;
 
 /**
  * @namespace std::sys

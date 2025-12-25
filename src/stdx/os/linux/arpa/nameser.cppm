@@ -1,6 +1,6 @@
 /**
  * @file nameser.cppm
- * @module stdx.os.linux.arpa.nameser
+ * @module stdx:os.linux.arpa.nameser
  * @brief Module file for Unix ARPA operations.
  *
  * This file contains the implementation of the Unix ARPA operations from the POSIX libraries,
@@ -13,13 +13,13 @@ module;
 #include <arpa/nameser.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.arpa.nameser;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.arpa.nameser;
 #else
-export module stdlibx.os.linux.arpa.nameser;
+export module stdlibx:os.linux.arpa.nameser;
 #endif
 
-export import :constants;
+export import :os.linux.arpa.nameser.constants;
 
 /**
  * @namespace stdx::os::linux::arpa

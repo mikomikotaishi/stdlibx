@@ -1,6 +1,6 @@
 /**
  * @file csv.cppm
- * @module stdx.csv
+ * @module stdx:csv
  * @brief Import of CSV modules.
  *
  * This file imports the modules for the CSV handling library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.csv;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:csv;
 #else
-export module stdlibx.csv;
+export module stdlibx:csv;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 
 #else
 

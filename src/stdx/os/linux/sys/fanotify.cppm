@@ -1,6 +1,6 @@
 /**
  * @file fanotify.cppm
- * @module stdx.os.linux.sys.fanotify
+ * @module stdx:os.linux.sys.fanotify
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/fanotify.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.fanotify;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.fanotify;
 #else
-export module stdlibx.os.linux.sys.fanotify;
+export module stdlibx:os.linux.sys.fanotify;
 #endif
 
 /**

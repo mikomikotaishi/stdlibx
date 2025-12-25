@@ -18,34 +18,34 @@ ifneq ($(BUILD_TESTS),OFF)
 	CMAKE_BUILD_FLAGS += -DSTDLIBX_BUILD_TESTS=ON
 endif
 
-# Sanitiser configuration (can be overridden with make SANITISERS="address undefined")
-SANITISERS ?=
-ENABLE_SANITISERS := OFF
-CMAKE_SANITISER_FLAGS :=
+# Sanitiser configuration (can be overridden with make SANITIZERS="address undefined")
+SANITIZERS ?=
+ENABLE_SANITIZERS := OFF
+CMAKE_SANITIZER_FLAGS :=
 
 # Process sanitiser flags
-ifneq ($(SANITISERS),)
-	ENABLE_SANITISERS := ON
+ifneq ($(SANITIZERS),)
+	ENABLE_SANITIZERS := ON
 	CMAKE_BUILD_TYPE := Debug
 	
-	ifeq ($(findstring address,$(SANITISERS)),address)
-		CMAKE_SANITISER_FLAGS += -DUSE_SANITISER_ADDRESS=ON -DUSE_SANITISER_LEAK=ON
+	ifeq ($(findstring address,$(SANITIZERS)),address)
+		CMAKE_SANITIZER_FLAGS += -DUSE_SANITIZER_ADDRESS=ON -DUSE_SANITIZER_LEAK=ON
 	endif
 	
-	ifeq ($(findstring undefined,$(SANITISERS)),undefined)
-		CMAKE_SANITISER_FLAGS += -DUSE_SANITISER_UNDEFINED=ON
+	ifeq ($(findstring undefined,$(SANITIZERS)),undefined)
+		CMAKE_SANITIZER_FLAGS += -DUSE_SANITIZER_UNDEFINED=ON
 	endif
 	
-	ifeq ($(findstring thread,$(SANITISERS)),thread)
-		CMAKE_SANITISER_FLAGS += -DUSE_SANITISER_THREAD=ON
+	ifeq ($(findstring thread,$(SANITIZERS)),thread)
+		CMAKE_SANITIZER_FLAGS += -DUSE_SANITIZER_THREAD=ON
 	endif
 	
-	ifeq ($(findstring memory,$(SANITISERS)),memory)
-		CMAKE_SANITISER_FLAGS += -DUSE_SANITISER_MEMORY=ON
+	ifeq ($(findstring memory,$(SANITIZERS)),memory)
+		CMAKE_SANITIZER_FLAGS += -DUSE_SANITIZER_MEMORY=ON
 	endif
 	
-	ifeq ($(SANITISERS),all)
-		CMAKE_SANITISER_FLAGS := -DUSE_SANITISER_ADDRESS=ON -DUSE_SANITISER_UNDEFINED=ON -DUSE_SANITISER_LEAK=ON
+	ifeq ($(SANITIZERS),all)
+		CMAKE_SANITIZER_FLAGS := -DUSE_SANITIZER_ADDRESS=ON -DUSE_SANITIZER_UNDEFINED=ON -DUSE_SANITIZER_LEAK=ON
 	endif
 endif
 
@@ -89,10 +89,10 @@ help:
 	@printf "    Example: make build BUILD_TESTS=ON\n"
 	@printf "\n"
 	@printf "$(BOLD)Sanitiser Options:$(RESET)\n"
-	@printf "  $(YELLOW)SANITISERS$(RESET)    - Enable sanitisers (builds in Debug mode)\n"
+	@printf "  $(YELLOW)SANITIZERS$(RESET)    - Enable sanitisers (builds in Debug mode)\n"
 	@printf "    Values: address, undefined, thread, memory, all\n"
-	@printf "    Example: make build SANITISERS=\"address undefined\"\n"
-	@printf "    Example: make test SANITISERS=all\n"
+	@printf "    Example: make build SANITIZERS=\"address undefined\"\n"
+	@printf "    Example: make test SANITIZERS=all\n"
 	@printf "\n"
 	@printf "$(BOLD)Utility Targets:$(RESET)\n"
 	@printf "  $(YELLOW)format$(RESET)        - Format code using clang-format\n"
@@ -104,8 +104,8 @@ help:
 .PHONY: configure
 configure:
 	@printf "$(BOLD)$(BLUE)Configuring CMake build system...$(RESET)\n"
-	@if [ "$(ENABLE_SANITISERS)" = "ON" ]; then \
-		printf "$(BOLD)$(MAGENTA)Sanitisers enabled:$(RESET) $(SANITISERS)\n"; \
+	@if [ "$(ENABLE_SANITIZERS)" = "ON" ]; then \
+		printf "$(BOLD)$(MAGENTA)Sanitisers enabled:$(RESET) $(SANITIZERS)\n"; \
 		printf "$(YELLOW)Building in Debug mode for sanitiser support$(RESET)\n"; \
 	fi
 	@if [ "$(BUILD_TESTS)" = "ON" ]; then \
@@ -113,9 +113,9 @@ configure:
 	fi
 	cmake -S . -B $(BUILD_DIR) -G $(CMAKE_GENERATOR) \
 		-DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) \
-		-DENABLE_SANITISERS=$(ENABLE_SANITISERS) \
+		-DENABLE_SANITIZERS=$(ENABLE_SANITIZERS) \
 		$(CMAKE_BUILD_FLAGS) \
-		$(CMAKE_SANITISER_FLAGS)
+		$(CMAKE_SANITIZER_FLAGS)
 	@printf "$(GREEN)✓ Configuration complete$(RESET)\n"
 
 # Build the library
@@ -196,7 +196,7 @@ info:
 	@printf "$(BOLD)Generator:$(RESET)    $(CMAKE_GENERATOR)\n"
 	@printf "$(BOLD)Build Type:$(RESET)   $(CMAKE_BUILD_TYPE)\n"
 	@printf "$(BOLD)Tests:$(RESET)        $(BUILD_TESTS)\n"
-	@printf "$(BOLD)Sanitisers:$(RESET)   $(if $(SANITISERS),$(SANITISERS),None)\n"
+	@printf "$(BOLD)Sanitisers:$(RESET)   $(if $(SANITIZERS),$(SANITIZERS),None)\n"
 	@printf "\n"
 	@printf "$(BOLD)Status:$(RESET)\n"
 	@if [ -d "$(BUILD_DIR)" ]; then \

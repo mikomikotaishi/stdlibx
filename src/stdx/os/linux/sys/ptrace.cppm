@@ -1,6 +1,6 @@
 /**
  * @file ptrace.cppm
- * @module stdx.os.linux.sys.ptrace
+ * @module stdx:os.linux.sys.ptrace
  * @brief Module file for Unix ptrace debugger interface operations.
  *
  * This file contains the implementation of the Unix ptrace debugger interface operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/ptrace.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.ptrace;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.ptrace;
 #else
-export module stdlibx.os.linux.sys.ptrace;
+export module stdlibx:os.linux.sys.ptrace;
 #endif
 
 /**

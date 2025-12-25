@@ -1,6 +1,6 @@
 /**
  * @file timeb.cppm
- * @module stdx.os.linux.sys.timeb
+ * @module stdx:os.linux.sys.timeb
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/timeb.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.timeb;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.timeb;
 #else
-export module stdlibx.os.linux.sys.timeb;
+export module stdlibx:os.linux.sys.timeb;
 #endif
 
 /**

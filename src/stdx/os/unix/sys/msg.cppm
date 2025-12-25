@@ -1,6 +1,6 @@
 /**
  * @file msg.cppm
- * @module stdx.os.unix.sys.msg
+ * @module stdx:os.unix.sys.msg
  * @brief Module file for Unix message queue operations.
  *
  * This file contains the implementation of the Unix message queue operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/msg.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.msg;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.msg;
 #else
-export module stdlibx.os.unix.sys.msg;
+export module stdlibx:os.unix.sys.msg;
 #endif
 
 /**

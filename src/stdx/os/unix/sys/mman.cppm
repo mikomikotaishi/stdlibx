@@ -1,6 +1,6 @@
 /**
  * @file mman.cppm
- * @module stdx.os.unix.sys.mman
+ * @module stdx:os.unix.sys.mman
  * @brief Module file for Unix memory management operations.
  *
  * This file contains the implementation of the Unix memory management operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/mman.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.mman;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.mman;
 #else
-export module stdlibx.os.unix.sys.mman;
+export module stdlibx:os.unix.sys.mman;
 #endif
 
 /**

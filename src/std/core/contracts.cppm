@@ -11,13 +11,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.contracts;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.contracts;
 #else
-export module stdlib.core.contracts;
+export module stdlib:core.contracts;
 #endif
 
-import core.contracts;
+import core;
 
 /**
  * @namespace std::core
@@ -28,7 +28,7 @@ export namespace std::core {
 #else 
 export namespace stdlib::core {
 #endif
-    #ifdef STDLIBX_EXPERIMENTAL_STD
+    #if __has_include(<experimental/contract>)
     using ::core::ContractViolationContinuationMode;
     using ::core::ContractViolation;
     #endif

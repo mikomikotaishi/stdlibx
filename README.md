@@ -13,8 +13,8 @@ The main features of this repackaging of the standard library are:
     - While I personally would have preferred methods to be in camelCase (like in Java), this would have been too much work to rename existing functions and methods, for very little gain
 - Splitting the standard library into sub-namespaces (in constrast to the ISO C++ `std::` namespace which is largely flat). 
     - The divisions try to follow the Rust standard library modules, but also take inspiration from the Java standard library.
-- Option to toggle between using `std::*`/`std.*` or `stdlib::*`/`stdlib.*` names for symbols/modules (disabled by default as `std` is a reserved name by ISO C++ and library implementations)
-- Option to use only `core.*` and `alloc.*` modules instead of the full standard library, similar to Rust
+- Option to toggle between using `std::*` or `stdlib::*` names for symbols/modules (disabled by default as `std` is a reserved name by ISO C++ and library implementations)
+- Option to use only `core` and `alloc` modules instead of the full standard library, similar to Rust
 - Standard library extensions - features that (in my opinion) ought to be part of the C++ standard library, but are not. Currently largely unimplemented.
 
 Requires a minimum of C++23. 
@@ -24,25 +24,25 @@ Requires a minimum of C++23.
 ## Libraries
 The `stdlibx` library offers the following namespaces/modules:
 
-### Core library (module `core.*`, namespace `core::*`)
+### Core library (module `core`, namespace `core::*`)
 Core modules of the standard library, not requiring any memory allocation. Provides the most fundamental and low-level features of the C++ standard library. 
 
-### Allocation library (module `alloc.*`, namespace `alloc::*`)
+### Allocation library (module `alloc`, namespace `alloc::*`)
 Allocation modules of the standard library, providing heap allocation and non-trivial data structures.
 
 Disabled when `STDLIB_NO_ALLOC` is enabled.
 
-### Standard library (module `std.*`, namespace `std::*`)
-The full C++ standard library, containing everything provided by `core.*` and `alloc.*`, as well as additional functionality depending on operating system and runtime.
+### Standard library (module `std`, namespace `std::*`)
+The full C++ standard library, containing everything provided by `core` and `alloc`, as well as additional functionality depending on operating system and runtime.
 
-If `STDLIBX_USE_RESERVED_STD_IDENTIFIERS` is disabled, `std.*` is `stdlib.*` and `std::*` is `stdlib::*`. `STDLIBX_USE_RESERVED_STD_IDENTIFIERS` can further be more finely-controlled using `STDLIBX_NO_RESERVED_STD_MODULE` (modules) and `STDLIBX_NO_RESERVED_STD_NAMESPACE` (namespaces).
+If `STDLIBX_USE_RESERVED_STD_IDENTIFIERS` is disabled, `std` is `stdlib` and `std::*` is `stdlib::*`. `STDLIBX_USE_RESERVED_STD_IDENTIFIERS` can further be more finely-controlled using `STDLIBX_NO_RESERVED_STD_MODULE` (modules) and `STDLIBX_NO_RESERVED_STD_NAMESPACE` (namespaces).
 
 Disabled when `STDLIBX_NO_STD` (or `STDLIBX_NO_ALLOC`) are enabled.
 
-### Extensions library (module `stdx.*`, namespace `stdx::*`)
+### Extensions library (module `stdx`, namespace `stdx::*`)
 Technically not "standard library" in the sense of the ISO C++ standard library, but contains features that (in my opinion) ought to be part of the C++ standard library, and are offered by standard libraries of other languages.
 
-If `STDLIBX_USE_RESERVED_STD_IDENTIFIERS` is disabled, `stdx.*` is `stdlibx.*` and `stdx::*` is `stdlibx::*`. `STDLIBX_USE_RESERVED_STD_IDENTIFIERS` can further be more finely-controlled using `STDLIBX_NO_RESERVED_STD_MODULE` (modules) and `STDLIBX_NO_RESERVED_STD_NAMESPACE` (namespaces).
+If `STDLIBX_USE_RESERVED_STD_IDENTIFIERS` is disabled, `stdx` is `stdlibx` and `stdx::*` is `stdlibx::*`. `STDLIBX_USE_RESERVED_STD_IDENTIFIERS` can further be more finely-controlled using `STDLIBX_NO_RESERVED_STD_MODULE` (modules) and `STDLIBX_NO_RESERVED_STD_NAMESPACE` (namespaces).
 
 Disabled by default - enabled when `STDLIBX_EXTENSIONS` is enabled. 
 
@@ -58,20 +58,21 @@ import std;
 import stdx;
 
 using std::collections::Vector;
+using std::fs::Begin;
 using std::fs::DirectoryEntry;
 using std::fs::DirectoryIterator;
+using std::fs::End;
 using std::fs::Path;
 using stdx::linq::Query;
 
 int main(int argc, char* argv[]) {
     Path dir = std::fs::current_path();
 
-    Vector<DirectoryEntry> files;
-    for (const DirectoryEntry& entry : DirectoryIterator(dir)) {
-        if (std::fs::is_regular_file(entry)) {
-            files.push_back(entry);
-        }
-    }
+    Vector<DirectoryEntry> files{
+        Begin(DirectoryIterator(dir)),
+        End(DirectoryIterator(dir)),
+        [](const DirectoryEntry& entry) -> bool { return std::fs::is_regular_file(entry); }
+    };
 
     // Use LINQ-style query to find the largest .txt file
     DirectoryEntry result = Query<Vector<DirectoryEntry>>::from(files)

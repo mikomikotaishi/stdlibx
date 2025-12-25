@@ -1,6 +1,6 @@
 /**
  * @file bit.cppm
- * @module core.math.bit
+ * @module core:math.bit
  * @brief Module file for standard library bit manipulation operations.
  *
  * This file contains the implementation of the bit manipulation operations in the standard library.
@@ -12,7 +12,7 @@ module;
 #include <bit>
 #endif
 
-export module core.math.bit;
+export module core:math.bit;
 
 /**
  * @namespace core::math

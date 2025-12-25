@@ -1,6 +1,6 @@
 /**
  * @file if_tr.cppm
- * @module stdx.os.linux.netinet.if_tr
+ * @module stdx:os.linux.netinet.if_tr
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <netinet/if_tr.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.netinet.if_tr;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.netinet.if_tr;
 #else
-export module stdlibx.os.linux.netinet.if_tr;
+export module stdlibx:os.linux.netinet.if_tr;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file xml.cppm
- * @module stdx.xml
+ * @module stdx:xml
  * @brief Import of XML modules.
  *
  * This file imports the modules for the XML handling library.
@@ -32,17 +32,17 @@ distribution.
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.xml;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:xml;
 
 import std;
 #else
-export module stdlibx.xml;
+export module stdlibx:xml;
 
 import stdlib;
 #endif
 
-import :StringPair;
+import :xml.StringPair;
 
 /**
  * @namespace stdx::xml

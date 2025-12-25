@@ -1,6 +1,6 @@
 /**
  * @file generator.cppm
- * @module std.ranges.generator
+ * @module std:ranges.generator
  * @brief Module file for standard library generator operations.
  *
  * This file contains the implementation of the generator operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.ranges.generator;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:ranges.generator;
 #else
-export module stdlib.ranges.generator;
+export module stdlib:ranges.generator;
 #endif
 
-import core.ranges.generator;
+import core;
 
 /**
  * @namespace std::ranges

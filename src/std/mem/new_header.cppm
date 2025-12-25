@@ -1,6 +1,6 @@
 /**
  * @file new_header.cppm
- * @module std.mem.new_header
+ * @module std:mem.new_header
  * @brief Module file for standard library dynamic memory management operations.
  *
  * This file contains the implementation of the dynamic memory management operations in the standard library.
@@ -9,13 +9,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.mem.new_header;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:mem.new_header;
 #else
-export module stdlib.mem.new_header;
+export module stdlib:mem.new_header;
 #endif
 
-import alloc.mem.new_header;
+import alloc;
 
 /**
  * @namespace std::mem

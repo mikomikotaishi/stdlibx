@@ -1,6 +1,6 @@
 /**
  * @file tags.cppm
- * @module std.core.tags
+ * @module std:core.tags
  * @brief Module file for standard library tags aggregation class.
  *
  * This file contains the implementation of the tags aggregation class in the standard library.
@@ -10,28 +10,18 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.tags;
-
-import std.concurrent.stop_token;
-import std.sync.mutex;
-import std.time.chrono;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.tags;
 #else
-export module stdlib.core.tags;
-
-import stdlib.concurrent.stop_token;
-import stdlib.sync.mutex;
-import stdlib.time.chrono;
+export module stdlib:core.tags;
 #endif
 
-import core.cstddef;
-import core.expected;
-import core.ranges.ranges;
-import core.util.utility;
+import :concurrent.stop_token;
+import :sync.mutex;
+import :time.chrono;
 
-import alloc.collections.flat_map; // also repeated in <flat_set>
-import alloc.mem.memory;
-import alloc.mem.new_header;
+import core;
+import alloc;
 
 using core::Unexpect;
 #if __has_include(<ranges>)
@@ -102,7 +92,7 @@ export namespace stdlib::core {
         using AllocatorArgumentTag = ::alloc::mem::AllocatorArgumentTag;
         using DestroyingDeleteTag = ::alloc::mem::DestroyingDeleteTag;
         using NoThrowTag = ::alloc::mem::NoThrowTag;
-        #ifdef STDLIBX_NO_RESERVED_STD_MODULE
+        #if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
         #if __has_include(<stop_token>)
         using NoStopStateTag = ::std::concurrent::NoStopStateTag;
         #endif

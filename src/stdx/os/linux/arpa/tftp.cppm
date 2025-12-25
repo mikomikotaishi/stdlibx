@@ -1,6 +1,6 @@
 /**
  * @file tftp.cppm
- * @module stdx.os.linux.arpa.tftp
+ * @module stdx:os.linux.arpa.tftp
  * @brief Module file for Unix ARPA operations.
  *
  * This file contains the implementation of the Unix ARPA operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <arpa/tftp.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.arpa.tftp;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.arpa.tftp;
 #else
-export module stdlibx.os.linux.arpa.tftp;
+export module stdlibx:os.linux.arpa.tftp;
 #endif
 
 /**

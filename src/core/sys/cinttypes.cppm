@@ -1,12 +1,12 @@
 /**
  * @file cinttypes.cppm
- * @module core.sys.cinttypes
+ * @module core:sys.cinttypes
  * @brief Module file for constants of the standard library C-style integer formatting constant operations.
  *
  * This file contains the implementation of the constants of the C-style integer formatting constant operations in the standard library.
  */
 
-export module core.sys.cinttypes;
+export module core:sys.cinttypes;
 
 /**
  * @namespace core::sys

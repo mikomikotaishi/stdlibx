@@ -1,14 +1,14 @@
 /**
  * @file util.cppm
- * @module core.util
+ * @module core:util
  * @brief Module file for standard library utility operations.
  *
  * This file contains the imports for the utility operations in the standard library.
  */
 
-export module core.util;
+export module core:util;
 
-export import core.util.algorithm;
-export import core.util.cstdlib;
-export import core.util.numeric;
-export import core.util.utility;
+export import :util.algorithm;
+export import :util.cstdlib;
+export import :util.numeric;
+export import :util.utility;

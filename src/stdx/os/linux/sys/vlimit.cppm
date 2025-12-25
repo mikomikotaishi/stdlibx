@@ -1,6 +1,6 @@
 /**
  * @file vlimit.cppm
- * @module stdx.os.linux.sys.vlimit
+ * @module stdx:os.linux.sys.vlimit
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/vlimit.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.vlimit;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.vlimit;
 #else
-export module stdlibx.os.linux.sys.vlimit;
+export module stdlibx:os.linux.sys.vlimit;
 #endif
 
 /**

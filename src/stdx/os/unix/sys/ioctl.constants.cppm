@@ -1,6 +1,6 @@
 /**
- * @file ioctl.cppm
- * @module stdx.os.unix.sys.ioctl:constants
+ * @file ioctl.constants.cppm
+ * @module stdx:os.unix.sys.ioctl.constants
  * @brief Module file for I/O control operations.
  *
  * This file contains the implementation of the constants used 
@@ -9,10 +9,10 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.ioctl:constants;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.ioctl.constants;
 #else
-export module stdlibx.os.unix.sys.ioctl:constants;
+export module stdlibx:os.unix.sys.ioctl.constants;
 #endif
 
 /**

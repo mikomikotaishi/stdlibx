@@ -1,6 +1,6 @@
 /**
  * @file algorithm.cppm
- * @module core.ranges.algorithm
+ * @module core:ranges.algorithm
  * @brief Module file for standard library algorithm operations.
  *
  * This file contains the implementation of the algorithm operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <algorithm>
 
-export module core.ranges.algorithm;
+export module core:ranges.algorithm;
 
 /**
  * @namespace core::ranges

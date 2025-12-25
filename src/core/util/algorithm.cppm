@@ -1,6 +1,6 @@
 /**
  * @file algorithm.cppm
- * @module core.util.algorithm
+ * @module core:util.algorithm
  * @brief Module file for standard library algorithm operations.
  *
  * This file contains the implementation of the algorithm operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <algorithm>
 
-export module core.util.algorithm;
+export module core:util.algorithm;
 
 /**
  * @namespace core::util

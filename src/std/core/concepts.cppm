@@ -1,6 +1,6 @@
 /**
  * @file concepts.cppm
- * @module std.core.concepts
+ * @module std:core.concepts
  * @brief Module file for standard library concept operations.
  *
  * This file contains the implementation of the concept operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.concepts;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.concepts;
 #else
-export module stdlib.core.concepts;
+export module stdlib:core.concepts;
 #endif
 
-import core.concepts;
+import core;
 
 /**
  * @namespace std::core

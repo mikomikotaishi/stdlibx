@@ -9,14 +9,10 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.compiler.clang;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:compiler.clang;
 #else
-export module stdlibx.compiler.clang;
+export module stdlibx:compiler.clang;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import stdx.compiler.clang.api_notes;
-#else
-export import stdlibx.compiler.clang.api_notes;
-#endif
+export import :compiler.clang.api_notes;

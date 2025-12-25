@@ -1,6 +1,6 @@
 /**
  * @file dlfcn.cppm
- * @module stdx.os.unix.dlfcn
+ * @module stdx:os.unix.dlfcn
  * @brief Module file for Unix dynamic linking operations.
  *
  * This file contains the implementation of the Unix dynamic linking operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <dlfcn.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.dlfcn;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.dlfcn;
 #else
-export module stdlibx.os.unix.dlfcn;
+export module stdlibx:os.unix.dlfcn;
 #endif
 
 /**

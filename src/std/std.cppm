@@ -8,50 +8,28 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module std;
 #else
 export module stdlib;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import std.core;
-export import std.collections;
-export import std.concurrent;
-export import std.execution;
-export import std.fmt;
-export import std.fs;
-export import std.io;
-export import std.iter;
-export import std.math;
-export import std.mem;
-export import std.meta;
-export import std.net;
-export import std.random;
-export import std.ranges;
-export import std.sync;
-export import std.sys;
-export import std.text;
-export import std.time;
-export import std.util;
-#else
-export import stdlib.core;
-export import stdlib.collections;
-export import stdlib.concurrent;
-export import stdlib.execution;
-export import stdlib.fmt;
-export import stdlib.fs;
-export import stdlib.io;
-export import stdlib.iter;
-export import stdlib.math;
-export import stdlib.mem;
-export import stdlib.meta;
-export import stdlib.net;
-export import stdlib.random;
-export import stdlib.ranges;
-export import stdlib.sync;
-export import stdlib.sys;
-export import stdlib.text;
-export import stdlib.time;
-export import stdlib.util;
-#endif
+export import :core;
+export import :collections;
+export import :concurrent;
+export import :execution;
+export import :fmt;
+export import :fs;
+export import :io;
+export import :iter;
+export import :math;
+export import :mem;
+export import :meta;
+export import :net;
+export import :random;
+export import :ranges;
+export import :sync;
+export import :sys;
+export import :text;
+export import :time;
+export import :util;

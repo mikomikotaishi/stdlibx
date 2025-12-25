@@ -1,6 +1,6 @@
 /**
  * @file coroutine.cppm
- * @module std.concurrent.coroutine
+ * @module std:concurrent.coroutine
  * @brief Module file for standard library coroutine operations.
  *
  * This file contains the implementation of the coroutine operations in the standard library.
@@ -12,10 +12,10 @@ module;
 #include <coroutine>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.concurrent.coroutine;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:concurrent.coroutine;
 #else
-export module stdlib.concurrent.coroutine;
+export module stdlib:concurrent.coroutine;
 #endif
 
 /**

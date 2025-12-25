@@ -1,6 +1,6 @@
 /**
  * @file CommandEnvs.cppm
- * @module stdx.process.CommandEnvs
+ * @module stdx:process.CommandEnvs
  * @brief Implementation of the CommandEnvs class.
  *
  * This file contains the implementation of the CommandEnvs class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.CommandEnvs;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.CommandEnvs;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.CommandEnvs;
+export module stdlibx:process.CommandEnvs;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;

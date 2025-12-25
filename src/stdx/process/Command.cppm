@@ -1,6 +1,6 @@
 /**
  * @file Command.cppm
- * @module stdx.process.Command
+ * @module stdx:process.Command
  * @brief Implementation of the Command class.
  *
  * This file contains the implementation of the Command class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.Command;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.Command;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.Command;
+export module stdlibx:process.Command;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;

@@ -1,6 +1,6 @@
 /**
  * @file sequence.cppm
- * @module std.core.sequence
+ * @module std:core.sequence
  * @brief Module file for standard library sequence operations.
  *
  * This file contains the implementation of the sequence operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.sequence;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.sequence;
 #else
-export module stdlib.core.sequence;
+export module stdlib:core.sequence;
 #endif
 
-import core.sequence;
+import core;
 
 /**
  * @namespace std::core

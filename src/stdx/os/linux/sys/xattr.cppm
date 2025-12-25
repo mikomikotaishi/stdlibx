@@ -1,6 +1,6 @@
 /**
  * @file xattr.cppm
- * @module stdx.os.linux.sys.xattr
+ * @module stdx:os.linux.sys.xattr
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/xattr.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.xattr;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.xattr;
 #else
-export module stdlibx.os.linux.sys.xattr;
+export module stdlibx:os.linux.sys.xattr;
 #endif
 
 /**

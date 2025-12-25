@@ -1,6 +1,6 @@
 /**
  * @file utmpx.cppm
- * @module stdx.os.unix.utmpx
+ * @module stdx:os.unix.utmpx
  * @brief Module file for Unix user account database operations.
  *
  * This file contains the implementation of the Unix user account database operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <utmpx.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.utmpx;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.utmpx;
 #else
-export module stdlibx.os.unix.utmpx;
+export module stdlibx:os.unix.utmpx;
 #endif
 
 /**

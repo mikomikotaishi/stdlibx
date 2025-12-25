@@ -1,5 +1,6 @@
 /**
- * @file chrono.cppm
+ * @file chrono.detail.cppm
+ * @module std:time.chrono.detail
  * @brief Module file for standard library time operations.
  *
  * This file contains the implementation of the time operations in the standard library.
@@ -9,27 +10,27 @@ module;
 
 #include <chrono>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.time.chrono:detail;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:time.chrono.detail;
+#else
+export module stdlib:time.chrono.detail;
+#endif
 
-import std.math.ratio;
+import :math.ratio;
 
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 using std::math::ratio::Ratio;
 #else
-export module stdlib.time.chrono:detail;
-
-import stdlib.math.ratio;
-
 using stdlib::math::ratio::Ratio;
 #endif
 
 /**
  * @internal
- * @namespace _detail::std::time
+ * @namespace _detail
  * @brief Wrapper namespace for standard library time operations.
  * Detail namespace - not to be exported for external use
  */
-export namespace _detail::std::time {
+export namespace _detail {
     template <typename Rep, typename Period = Ratio<1>>
     using Duration = ::std::chrono::duration<Rep, Period>;
 
@@ -67,18 +68,6 @@ export namespace _detail::std::time {
     using MonthDay = ::std::chrono::month_day;
     using YearMonth = ::std::chrono::year_month;
     using YearMonthDay = ::std::chrono::year_month_day;
-
-    inline namespace literals {
-        inline namespace chrono_literals {
-            using ::std::literals::chrono_literals::operator""d;
-            using ::std::literals::chrono_literals::operator""h;
-            using ::std::literals::chrono_literals::operator""min;
-            using ::std::literals::chrono_literals::operator""ms;
-            using ::std::literals::chrono_literals::operator""s;
-            using ::std::literals::chrono_literals::operator""us;
-            using ::std::literals::chrono_literals::operator""y; 
-        }
-    }
 
     using ::std::chrono::January;
     using ::std::chrono::February;
@@ -153,70 +142,61 @@ export namespace _detail::std::time {
     using ::std::hash;
     using ::std::formatter;
 
-    /**
-     * @namespace chrono
-     * @brief Wrapper namespace for standard library chronological operations
-     */
-    namespace chrono {
-        using LastSpecifier = ::std::chrono::last_spec;
-        inline constexpr LastSpecifier Last = ::std::chrono::last;
-        using WeekdayIndexed = ::std::chrono::weekday_indexed;
-        using WeekdayLast = ::std::chrono::weekday_last;
-        using MonthDayLast = ::std::chrono::month_day_last;
-        using MonthWeekday = ::std::chrono::month_weekday;
-        using MonthWeekdayLast = ::std::chrono::month_weekday_last;
-        using YearMonthDayLast = ::std::chrono::year_month_day_last;
-        using YearMonthWeekday = ::std::chrono::year_month_weekday;
-        using YearMonthWeekdayLast = ::std::chrono::year_month_weekday_last;
-        
-        using Choose = ::std::chrono::choose;
-    }
-
-    /**
-     * @namespace fmt
-     * @brief Wrapper namespace for standard library time formatting operations
-     */
-    namespace fmt {
-        using ::std::chrono::is_am;
-        using ::std::chrono::is_pm;
-        using ::std::chrono::make12;
-        using ::std::chrono::make24;
-
-        template <typename _Duration>
-        using HHMMSS = ::std::chrono::hh_mm_ss<_Duration>;
-
-        using ::std::chrono::from_stream;
-        using ::std::chrono::parse;
-    }
-
-    /**
-     * @namespace temporal
-     * @brief Wrapper namespace for standard library time temporal unit operations
-     */
-    namespace temporal {
-        using Nanoseconds = ::std::chrono::nanoseconds;
-        using Microseconds = ::std::chrono::microseconds;
-        using Milliseconds = ::std::chrono::milliseconds;
-        using Seconds = ::std::chrono::seconds;
-        using Minutes = ::std::chrono::minutes;
-        using Hours = ::std::chrono::hours;
-        using Days = ::std::chrono::days;
-        using Weeks = ::std::chrono::weeks;
-        using Months = ::std::chrono::months;
-        using Years = ::std::chrono::years;
-    }
-
-    /**
-     * @namespace zone
-     * @brief Wrapper namespace for standard library time zone operations
-     */
-    namespace zone {
-        template <typename _Duration>
-        using ZonedTraits = ::std::chrono::zoned_traits<_Duration>;
+    using LastSpecifier = ::std::chrono::last_spec;
+    inline constexpr LastSpecifier Last = ::std::chrono::last;
+    using WeekdayIndexed = ::std::chrono::weekday_indexed;
+    using WeekdayLast = ::std::chrono::weekday_last;
+    using MonthDayLast = ::std::chrono::month_day_last;
+    using MonthWeekday = ::std::chrono::month_weekday;
+    using MonthWeekdayLast = ::std::chrono::month_weekday_last;
+    using YearMonthDayLast = ::std::chrono::year_month_day_last;
+    using YearMonthWeekday = ::std::chrono::year_month_weekday;
+    using YearMonthWeekdayLast = ::std::chrono::year_month_weekday_last;
     
-        template <typename _Duration>
-        using ZonedTime = ::std::chrono::zoned_time<_Duration>;
-    
-        using TimeZoneLink = ::std::chrono::time_zone_link;
-    }
+    using Choose = ::std::chrono::choose;
+
+    using ::std::chrono::is_am;
+    using ::std::chrono::is_pm;
+    using ::std::chrono::make12;
+    using ::std::chrono::make24;
+
+    template <typename _Duration>
+    using HHMMSS = ::std::chrono::hh_mm_ss<_Duration>;
+
+    using ::std::chrono::from_stream;
+    using ::std::chrono::parse;
+
+    using Nanoseconds = ::std::chrono::nanoseconds;
+    using Microseconds = ::std::chrono::microseconds;
+    using Milliseconds = ::std::chrono::milliseconds;
+    using Seconds = ::std::chrono::seconds;
+    using Minutes = ::std::chrono::minutes;
+    using Hours = ::std::chrono::hours;
+    using Days = ::std::chrono::days;
+    using Weeks = ::std::chrono::weeks;
+    using Months = ::std::chrono::months;
+    using Years = ::std::chrono::years;
+
+    template <typename _Duration>
+    using ZonedTraits = ::std::chrono::zoned_traits<_Duration>;
+
+    template <typename _Duration>
+    using ZonedTime = ::std::chrono::zoned_time<_Duration>;
+
+    using TimeZoneLink = ::std::chrono::time_zone_link;
+}
+
+/**
+ * @internal
+ * @namespace _detail
+ * @brief Chrono literals namespace
+ */
+export namespace _detail {
+    using ::std::literals::chrono_literals::operator""d;
+    using ::std::literals::chrono_literals::operator""h;
+    using ::std::literals::chrono_literals::operator""min;
+    using ::std::literals::chrono_literals::operator""ms;
+    using ::std::literals::chrono_literals::operator""s;
+    using ::std::literals::chrono_literals::operator""us;
+    using ::std::literals::chrono_literals::operator""y; 
 }

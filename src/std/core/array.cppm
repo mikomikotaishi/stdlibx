@@ -1,6 +1,6 @@
 /**
  * @file array.cppm
- * @module std.core.array
+ * @module std:core.array
  * @brief Module file for standard library array operations.
  *
  * This file contains the implementation of the array operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.array;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.array;
 #else
-export module stdlib.core.array;
+export module stdlib:core.array;
 #endif
 
-import core.array;
+import core;
 
 /**
  * @namespace std::core

@@ -1,6 +1,6 @@
 /**
  * @file psx_syscall.cppm
- * @module stdx.os.linux.sys.psx_syscall
+ * @module stdx:os.linux.sys.psx_syscall
  * @brief Module file for Unix POSIX syscalls for pthread operations.
  *
  * This file contains the implementation of the Unix POSIX syscalls for pthread operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/psx_syscall.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.psx_syscall;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.psx_syscall;
 #else
-export module stdlibx.os.linux.sys.psx_syscall;
+export module stdlibx:os.linux.sys.psx_syscall;
 #endif
 
 /**

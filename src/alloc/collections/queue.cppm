@@ -1,6 +1,6 @@
 /**
  * @file queue.cppm
- * @module alloc.collections.queue
+ * @module alloc:collections.queue
  * @brief Module file for standard library queue operations.
  *
  * This file contains the implementation of the queue operations in the standard library.
@@ -10,13 +10,12 @@ module;
 
 #include <queue>
 
-export module alloc.collections.queue;
+export module alloc:collections.queue;
 
-import core.functional;
-import core.meta.type_traits;
+import core;
 
-import alloc.collections.deque;
-import alloc.collections.vector;
+import :collections.deque;
+import :collections.vector;
 
 using core::Less;
 using core::meta::IsSameValue;

@@ -1,6 +1,6 @@
 /**
  * @file ranges.cppm
- * @module core.ranges.ranges
+ * @module core:ranges.ranges
  * @brief Module file for standard library ranges operations.
  *
  * This file contains the implementation of the ranges operations in the standard library.
@@ -12,10 +12,10 @@ module;
 #include <ranges>
 #endif
 
-export module core.ranges.ranges;
+export module core:ranges.ranges;
 
-import core.concepts;
-import core.iter.iterator;
+import :concepts;
+import :iter.iterator;
 
 using core::iter::SentinelFor;
 using core::iter::SizedSentinelFor;

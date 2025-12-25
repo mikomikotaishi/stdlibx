@@ -1,6 +1,6 @@
 /**
  * @file utsname.cppm
- * @module stdx.os.unix.sys.utsname
+ * @module stdx:os.unix.sys.utsname
  * @brief Module file for Unix operating system information operations.
  *
  * This file contains the implementation of the Unix operating system information operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/utsname.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.utsname;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.utsname;
 #else
-export module stdlibx.os.unix.sys.utsname;
+export module stdlibx:os.unix.sys.utsname;
 #endif
 
 /**

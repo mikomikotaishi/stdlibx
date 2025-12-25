@@ -1,6 +1,6 @@
 /**
  * @file stat.cppm
- * @module stdx.os.unix.sys.stat
+ * @module stdx:os.unix.sys.stat
  * @brief Module file for Unix file information operations.
  *
  * This file contains the implementation of the Unix file information operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/stat.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.stat;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.stat;
 #else
-export module stdlibx.os.unix.sys.stat;
+export module stdlibx:os.unix.sys.stat;
 #endif
 
 /**

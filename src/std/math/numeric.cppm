@@ -1,6 +1,6 @@
 /**
  * @file numeric.cppm
- * @module std.math.numeric
+ * @module std:math.numeric
  * @brief Module file for standard library numeric operations.
  *
  * This file contains the implementation of the numeric operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.math.numeric;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:math.numeric;
 #else
-export module stdlib.math.numeric;
+export module stdlib:math.numeric;
 #endif
 
-import core.math.numeric;
+import core;
 
 /**
  * @namespace std::math

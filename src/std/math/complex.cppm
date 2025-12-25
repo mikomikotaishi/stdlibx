@@ -1,6 +1,6 @@
 /**
  * @file complex.cppm
- * @module std.math.complex
+ * @module std:math.complex
  * @brief Module file for standard library complex number operations.
  *
  * This file contains the implementation of the complex number operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.math.complex;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:math.complex;
 #else
-export module stdlib.math.complex;
+export module stdlib:math.complex;
 #endif
 
-import core.math.complex;
+import core;
 
 /**
  * @namespace std::math
@@ -34,14 +34,6 @@ export namespace stdlib::math {
     using core::math::operator==;
     using core::math::operator<<;
     using core::math::operator>>;
-
-    inline namespace literals {
-        inline namespace complex_literals {
-            using core::math::literals::complex_literals::operator""i;
-            using core::math::literals::complex_literals::operator""if;
-            using core::math::literals::complex_literals::operator""il;
-        }
-    }
 
     using core::math::real;
     using core::math::imag;
@@ -69,8 +61,18 @@ export namespace stdlib::math {
     using core::math::asinh;
     using core::math::acosh;
     using core::math::atanh;
+}
 
-    using core::math::operator""if;
-    using core::math::operator""i;
-    using core::math::operator""il;
+/**
+ * @namespace std::literals::string_view_literals
+ * @brief Complex literals namespace
+ */
+#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
+export namespace std::inline literals::inline complex_literals {
+#else 
+export namespace stdlib::inline literals::inline complex_literals {
+#endif
+    using core::literals::complex_literals::operator""i;
+    using core::literals::complex_literals::operator""if;
+    using core::literals::complex_literals::operator""il;
 }

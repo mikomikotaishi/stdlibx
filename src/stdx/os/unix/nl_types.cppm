@@ -1,6 +1,6 @@
 /**
  * @file nl_types.cppm
- * @module stdx.os.unix.nl_types
+ * @module stdx:os.unix.nl_types
  * @brief Module file for Unix localisation message catalogue operations.
  *
  * This file contains the implementation of the Unix localisation message catalogue operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <nl_types.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.nl_types;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.nl_types;
 #else
-export module stdlibx.os.unix.nl_types;
+export module stdlibx:os.unix.nl_types;
 #endif
 
 /**

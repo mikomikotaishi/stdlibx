@@ -1,6 +1,6 @@
 /**
  * @file InvalidOperationException.cppm
- * @module stdx.core.Exceptions:InvalidOperationException
+ * @module stdx:core.InvalidOperationException
  * @brief Implementation of the InvalidOperationException class.
  *
  * This file contains the implementation of the InvalidOperationException class, which is used to handle exception arithmetic conditions.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.core.Exceptions:InvalidOperationException;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:core.InvalidOperationException;
 #else
-export module stdlibx.core.Exceptions:InvalidOperationException;
+export module stdlibx:core.InvalidOperationException;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 import std;
 #else
 import stdlib;

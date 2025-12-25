@@ -1,6 +1,6 @@
 /**
  * @file charconv.cppm
- * @module std.fmt.charconv
+ * @module std:fmt.charconv
  * @brief Module file for standard library character conversion operations.
  *
  * This file contains the implementation of the character conversion operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <charconv>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.fmt.charconv;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:fmt.charconv;
 #else
-export module stdlib.fmt.charconv;
+export module stdlib:fmt.charconv;
 #endif
 
 /**

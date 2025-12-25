@@ -1,6 +1,6 @@
 /**
  * @file random.cppm
- * @module std.random.random
+ * @module std:random.random
  * @brief Module file for standard library random number operations.
  *
  * This file contains the implementation of the random number operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <random>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.random.random;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:random.random;
 #else
-export module stdlib.random.random;
+export module stdlib:random.random;
 #endif
 
 /**
@@ -23,7 +23,7 @@ export module stdlib.random.random;
  * Detail namespace - not to be exported for external use
  */
 namespace _detail::std::random {
-    constexpr auto RandMax = RAND_MAX;
+    constexpr decltype(RAND_MAX) RandMax = RAND_MAX;
 }
 
 #undef RAND_MAX
@@ -168,5 +168,5 @@ export namespace stdlib::random {
     using std::rand;
     using std::srand;
 
-    constexpr auto RAND_MAX = _detail::std::random::RandMax;
+    constexpr decltype(_detail::std::random::RandMax) RAND_MAX = _detail::std::random::RandMax;
 }

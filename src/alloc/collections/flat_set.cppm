@@ -12,13 +12,12 @@ module;
 #include <flat_set>
 #endif
 
-export module alloc.collections.flat_set;
+export module alloc:collections.flat_set;
 
-import core.functional;
-import core.meta.type_traits;
+import core;
 
-import alloc.collections.vector;
-import alloc.mem.memory;
+import :collections.vector;
+import :mem.memory;
 
 using core::Less;
 using core::meta::IsNothrowSwappableValue;

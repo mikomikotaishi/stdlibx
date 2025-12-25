@@ -1,6 +1,6 @@
 /**
  * @file variant.cppm
- * @module std.core.variant
+ * @module std:core.variant
  * @brief Module file for importing the Variant class from the standard library.
  * 
  * This file exports the Variant class operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.variant;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.variant;
 #else
-export module stdlib.core.variant;
+export module stdlib:core.variant;
 #endif
 
-import core.variant;
+import core;
 
 /**
  * @namespace std::core

@@ -1,6 +1,6 @@
 /**
  * @file stacktrace.cppm
- * @module std.meta.stacktrace
+ * @module std:meta.stacktrace
  * @brief Module file for standard library stacktrace operations.
  *
  * This file contains the implementation of the stack trace operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.meta.stacktrace;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:meta.stacktrace;
 #else
-export module stdlib.meta.stacktrace;
+export module stdlib:meta.stacktrace;
 #endif
 
-import core.meta.stacktrace;
+import core;
 
 /**
  * @namespace std::meta

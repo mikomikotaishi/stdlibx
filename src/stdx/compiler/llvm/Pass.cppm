@@ -1,6 +1,6 @@
 /**
  * @file Pass.cppm
- * @module stdx.compiler.llvm.Pass
+ * @module stdx:compiler.llvm.Pass
  * @brief LLVM header file
  */
 
@@ -10,10 +10,10 @@ module;
 #include <llvm/Pass.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.compiler.llvm.Pass;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:compiler.llvm.Pass;
 #else
-export module stdlibx.compiler.llvm.Pass;
+export module stdlibx:compiler.llvm.Pass;
 #endif
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY

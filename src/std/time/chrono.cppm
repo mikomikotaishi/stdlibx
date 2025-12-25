@@ -1,6 +1,6 @@
 /**
  * @file chrono.cppm
- * @module std.time.chrono
+ * @module std:time.chrono
  * @brief Module file for standard library time operations.
  *
  * This file contains the implementation of the time operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.time.chrono;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:time.chrono;
 #else
-export module stdlib.time.chrono;
+export module stdlib:time.chrono;
 #endif
 
-import :detail;
+import :time.chrono.detail;
 
 /**
  * @namespace std::time
@@ -25,132 +25,120 @@ export namespace std::time {
 #else 
 export namespace stdlib::time {
 #endif
-    using _detail::std::time::Duration;
-    using _detail::std::time::TreatAsFloatingPoint;
-    using _detail::std::time::DurationValues;
-    using _detail::std::time::TimePoint;
-    using _detail::std::time::LocalTime;
-    using _detail::std::time::ClockTimeConversion;
-    using _detail::std::time::IsClock;
-    using _detail::std::time::SystemClock;
-    using _detail::std::time::SteadyClock;
-    using _detail::std::time::HighResolutionClock;
-    using _detail::std::time::UTCClock;
-    using _detail::std::time::TAIClock;
-    using _detail::std::time::GPSClock;
-    using _detail::std::time::FileClock;
-    using _detail::std::time::Local;
+    using _detail::Duration;
+    using _detail::TreatAsFloatingPoint;
+    using _detail::DurationValues;
+    using _detail::TimePoint;
+    using _detail::LocalTime;
+    using _detail::ClockTimeConversion;
+    using _detail::IsClock;
+    using _detail::SystemClock;
+    using _detail::SteadyClock;
+    using _detail::HighResolutionClock;
+    using _detail::UTCClock;
+    using _detail::TAIClock;
+    using _detail::GPSClock;
+    using _detail::FileClock;
+    using _detail::Local;
 
-    using _detail::std::time::Day;
-    using _detail::std::time::Month;
-    using _detail::std::time::Year;
-    using _detail::std::time::Weekday;
-    using _detail::std::time::MonthDay;
-    using _detail::std::time::YearMonth;
-    using _detail::std::time::YearMonthDay;
+    using _detail::Day;
+    using _detail::Month;
+    using _detail::Year;
+    using _detail::Weekday;
+    using _detail::MonthDay;
+    using _detail::YearMonth;
+    using _detail::YearMonthDay;
 
-    inline namespace literals {
-        inline namespace chrono_literals {
-            using _detail::std::time::literals::chrono_literals::operator""d;
-            using _detail::std::time::literals::chrono_literals::operator""h;
-            using _detail::std::time::literals::chrono_literals::operator""min;
-            using _detail::std::time::literals::chrono_literals::operator""ms;
-            using _detail::std::time::literals::chrono_literals::operator""s;
-            using _detail::std::time::literals::chrono_literals::operator""us;
-            using _detail::std::time::literals::chrono_literals::operator""y; 
-        }
-    }
+    using _detail::January;
+    using _detail::February;
+    using _detail::March;
+    using _detail::April;
+    using _detail::May;
+    using _detail::June;
+    using _detail::July;
+    using _detail::August;
+    using _detail::September;
+    using _detail::October;
+    using _detail::November;
+    using _detail::December;
 
-    using _detail::std::time::January;
-    using _detail::std::time::February;
-    using _detail::std::time::March;
-    using _detail::std::time::April;
-    using _detail::std::time::May;
-    using _detail::std::time::June;
-    using _detail::std::time::July;
-    using _detail::std::time::August;
-    using _detail::std::time::September;
-    using _detail::std::time::October;
-    using _detail::std::time::November;
-    using _detail::std::time::December;
+    using _detail::Sunday;
+    using _detail::Monday;
+    using _detail::Tuesday;
+    using _detail::Wednesday;
+    using _detail::Thursday;
+    using _detail::Friday;
+    using _detail::Saturday;
 
-    using _detail::std::time::Sunday;
-    using _detail::std::time::Monday;
-    using _detail::std::time::Tuesday;
-    using _detail::std::time::Wednesday;
-    using _detail::std::time::Thursday;
-    using _detail::std::time::Friday;
-    using _detail::std::time::Saturday;
-
-    using _detail::std::time::JANUARY;
-    using _detail::std::time::FEBRUARY;
-    using _detail::std::time::MARCH;
-    using _detail::std::time::APRIL;
-    using _detail::std::time::MAY;
-    using _detail::std::time::JUNE;
-    using _detail::std::time::JULY;
-    using _detail::std::time::AUGUST;
-    using _detail::std::time::SEPTEMBER;
-    using _detail::std::time::OCTOBER;
-    using _detail::std::time::NOVEMBER;
-    using _detail::std::time::DECEMBER;
+    using _detail::JANUARY;
+    using _detail::FEBRUARY;
+    using _detail::MARCH;
+    using _detail::APRIL;
+    using _detail::MAY;
+    using _detail::JUNE;
+    using _detail::JULY;
+    using _detail::AUGUST;
+    using _detail::SEPTEMBER;
+    using _detail::OCTOBER;
+    using _detail::NOVEMBER;
+    using _detail::DECEMBER;
     
-    using _detail::std::time::SUNDAY;
-    using _detail::std::time::MONDAY;
-    using _detail::std::time::TUESDAY;
-    using _detail::std::time::WEDNESDAY;
-    using _detail::std::time::THURSDAY;
-    using _detail::std::time::FRIDAY;
-    using _detail::std::time::SATURDAY;
+    using _detail::SUNDAY;
+    using _detail::MONDAY;
+    using _detail::TUESDAY;
+    using _detail::WEDNESDAY;
+    using _detail::THURSDAY;
+    using _detail::FRIDAY;
+    using _detail::SATURDAY;
 
-    using _detail::std::time::TimeZoneDatabase;
-    using _detail::std::time::TimeZoneDatabaseList;
-    using _detail::std::time::TimeZone;
+    using _detail::TimeZoneDatabase;
+    using _detail::TimeZoneDatabaseList;
+    using _detail::TimeZone;
     #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using _detail::std::time::SysInfo;
+    using _detail::SysInfo;
     #endif
-    using _detail::std::time::SystemInfo;
-    using _detail::std::time::LocalInfo;
+    using _detail::SystemInfo;
+    using _detail::LocalInfo;
 
-    using _detail::std::time::LeapSecond;
-    using _detail::std::time::LeapSecondInfo;
+    using _detail::LeapSecond;
+    using _detail::LeapSecondInfo;
 
-    using _detail::std::time::AmbiguousLocalTimeException;
-    using _detail::std::time::NonexistentLocalTimeException;
+    using _detail::AmbiguousLocalTimeException;
+    using _detail::NonexistentLocalTimeException;
 
-    using _detail::std::time::duration_cast;
-    using _detail::std::time::time_point_cast;
-    using _detail::std::time::floor;
+    using _detail::duration_cast;
+    using _detail::time_point_cast;
+    using _detail::floor;
 
-    using _detail::std::time::get_tzdb;
-    using _detail::std::time::get_tzdb_list;
-    using _detail::std::time::reload_tzdb;
-    using _detail::std::time::remote_version;
-    using _detail::std::time::locate_zone;
-    using _detail::std::time::current_zone;
+    using _detail::get_tzdb;
+    using _detail::get_tzdb_list;
+    using _detail::reload_tzdb;
+    using _detail::remote_version;
+    using _detail::locate_zone;
+    using _detail::current_zone;
 
-    using _detail::std::time::get_leap_second_info;
+    using _detail::get_leap_second_info;
 
-    using _detail::std::time::hash;
-    using _detail::std::time::formatter;
+    using _detail::hash;
+    using _detail::formatter;
 
     /**
      * @namespace chrono
      * @brief Wrapper namespace for standard library chronological operations
      */
     namespace chrono {
-        using _detail::std::time::chrono::LastSpecifier;
-        using _detail::std::time::chrono::Last;
-        using _detail::std::time::chrono::WeekdayIndexed;
-        using _detail::std::time::chrono::WeekdayLast;
-        using _detail::std::time::chrono::MonthDayLast;
-        using _detail::std::time::chrono::MonthWeekday;
-        using _detail::std::time::chrono::MonthWeekdayLast;
-        using _detail::std::time::chrono::YearMonthDayLast;
-        using _detail::std::time::chrono::YearMonthWeekday;
-        using _detail::std::time::chrono::YearMonthWeekdayLast;
+        using _detail::LastSpecifier;
+        using _detail::Last;
+        using _detail::WeekdayIndexed;
+        using _detail::WeekdayLast;
+        using _detail::MonthDayLast;
+        using _detail::MonthWeekday;
+        using _detail::MonthWeekdayLast;
+        using _detail::YearMonthDayLast;
+        using _detail::YearMonthWeekday;
+        using _detail::YearMonthWeekdayLast;
         
-        using _detail::std::time::chrono::Choose;
+        using _detail::Choose;
     }
 
     /**
@@ -158,15 +146,15 @@ export namespace stdlib::time {
      * @brief Wrapper namespace for standard library time formatting operations
      */
     namespace fmt {
-        using _detail::std::time::fmt::is_am;
-        using _detail::std::time::fmt::is_pm;
-        using _detail::std::time::fmt::make12;
-        using _detail::std::time::fmt::make24;
+        using _detail::is_am;
+        using _detail::is_pm;
+        using _detail::make12;
+        using _detail::make24;
 
-        using _detail::std::time::fmt::HHMMSS;
+        using _detail::HHMMSS;
 
-        using _detail::std::time::fmt::from_stream;
-        using _detail::std::time::fmt::parse;
+        using _detail::from_stream;
+        using _detail::parse;
     }
 
     /**
@@ -174,16 +162,16 @@ export namespace stdlib::time {
      * @brief Wrapper namespace for standard library time temporal unit operations
      */
     namespace temporal {
-        using _detail::std::time::temporal::Nanoseconds;
-        using _detail::std::time::temporal::Microseconds;
-        using _detail::std::time::temporal::Milliseconds;
-        using _detail::std::time::temporal::Seconds;
-        using _detail::std::time::temporal::Minutes;
-        using _detail::std::time::temporal::Hours;
-        using _detail::std::time::temporal::Days;
-        using _detail::std::time::temporal::Weeks;
-        using _detail::std::time::temporal::Months;
-        using _detail::std::time::temporal::Years;
+        using _detail::Nanoseconds;
+        using _detail::Microseconds;
+        using _detail::Milliseconds;
+        using _detail::Seconds;
+        using _detail::Minutes;
+        using _detail::Hours;
+        using _detail::Days;
+        using _detail::Weeks;
+        using _detail::Months;
+        using _detail::Years;
     }
 
     /**
@@ -191,8 +179,22 @@ export namespace stdlib::time {
      * @brief Wrapper namespace for standard library time zone operations
      */
     namespace zone {
-        using _detail::std::time::zone::ZonedTraits;
-        using _detail::std::time::zone::ZonedTime;
-        using _detail::std::time::zone::TimeZoneLink;
+        using _detail::ZonedTraits;
+        using _detail::ZonedTime;
+        using _detail::TimeZoneLink;
     }
+}
+
+#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
+export namespace std::inline literals::inline chrono_literals  {
+#else 
+export namespace stdlib::inline literals::inline chrono_literals  {
+#endif
+    using _detail::operator""d;
+    using _detail::operator""h;
+    using _detail::operator""min;
+    using _detail::operator""ms;
+    using _detail::operator""s;
+    using _detail::operator""us;
+    using _detail::operator""y; 
 }

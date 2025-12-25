@@ -1,6 +1,6 @@
 /**
  * @file cstdlib.cppm
- * @module std.mem.cstdlib
+ * @module std:mem.cstdlib
  * @brief Module file for standard library C-style memory operations.
  *
  * This file contains the implementation of the C-style memory operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.mem.cstdlib;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:mem.cstdlib;
 #else
-export module stdlib.mem.cstdlib;
+export module stdlib:mem.cstdlib;
 #endif
 
-import alloc.mem.cstdlib;
+import alloc;
 
 /**
  * @namespace std::mem

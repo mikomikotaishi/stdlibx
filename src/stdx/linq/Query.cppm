@@ -1,6 +1,6 @@
 /**
  * @file Query.cppm
- * @module stdx.linq.Query
+ * @module stdx:linq.Query
  * @brief Implementation of the Query class.
  *
  * This file contains the implementation of the Query class, which is used to perform 
@@ -11,19 +11,19 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.linq.Query;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:linq.Query;
 #else
-export module stdlibx.linq.Query;
+export module stdlibx:linq.Query;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 import std;
-import stdx.core;
 #else
 import stdlib;
-import stdlibx.core;
 #endif
+
+import :core;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using std::collections::Vector;
@@ -338,7 +338,7 @@ public:
      *
      * @throws InvalidOperationException if the range is empty.
      */
-    constexpr RangeValue<Ran> first() const throws(InvalidOperationException) {
+    constexpr RangeValue<Ran> first() const throws (InvalidOperationException) {
         if (begin() == end()) {
             throw InvalidOperationException("Range is empty.");
         }
@@ -431,7 +431,7 @@ public:
      * 
      * @throws InvalidOperationException if the range has zero or more than one element.
      */
-    constexpr RangeValue<Ran> single() const throws(InvalidOperationException) {
+    constexpr RangeValue<Ran> single() const throws (InvalidOperationException) {
         auto it = begin();
         if (it == end()) {
             throw InvalidOperationException("Range is empty.");
@@ -453,7 +453,7 @@ public:
      * @throws InvalidOperationException if the range has zero or more than one element satisfying the predicate.
      */
     template <typename Pred>
-    constexpr RangeValue<Ran> single(Pred&& pred) const throws(InvalidOperationException) {
+    constexpr RangeValue<Ran> single(Pred&& pred) const throws (InvalidOperationException) {
         Optional<RangeValue<Ran>> found;
         for (auto&& element: range) {
             if (pred(element)) {

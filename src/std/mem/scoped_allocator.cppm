@@ -1,6 +1,6 @@
 /**
  * @file scoped_allocator.cppm
- * @module std.mem.scoped_allocator
+ * @module std:mem.scoped_allocator
  * @brief Module file for standard library scoped allocator operations.
  *
  * This file contains the implementation of the scoped allocator operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.mem.scoped_allocator;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:mem.scoped_allocator;
 #else
-export module stdlib.mem.scoped_allocator;
+export module stdlib:mem.scoped_allocator;
 #endif
 
-import alloc.mem.scoped_allocator;
+import alloc;
 
 /**
  * @namespace std::mem

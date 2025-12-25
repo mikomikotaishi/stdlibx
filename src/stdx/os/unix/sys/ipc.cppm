@@ -1,6 +1,6 @@
 /**
  * @file ipc.cppm
- * @module stdx.os.unix.sys.ipc
+ * @module stdx:os.unix.sys.ipc
  * @brief Module file for Unix inter-process communication operations.
  *
  * This file contains the implementation of the Unix inter-process communication operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/ipc.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.ipc;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.ipc;
 #else
-export module stdlibx.os.unix.sys.ipc;
+export module stdlibx:os.unix.sys.ipc;
 #endif
 
 /**

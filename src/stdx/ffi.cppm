@@ -1,6 +1,6 @@
 /**
  * @file ffi.cppm
- * @module stdx.ffi
+ * @module stdx:ffi
  * @brief Import of foreign function interface modules.
  *
  * This file imports the modules for the foreign function interface library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.ffi;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:ffi;
 #else
-export module stdlibx.ffi;
+export module stdlibx:ffi;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 
 #else
 

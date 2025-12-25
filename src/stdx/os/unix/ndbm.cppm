@@ -1,6 +1,6 @@
 /**
  * @file ndbm.cppm
- * @module stdx.os.unix.ndbm
+ * @module stdx:os.unix.ndbm
  * @brief Module file for Unix NDBM database operations.
  *
  * This file contains the implementation of the Unix NDBM database operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <ndbm.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.ndbm;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.ndbm;
 #else
-export module stdlibx.os.unix.ndbm;
+export module stdlibx:os.unix.ndbm;
 #endif
 
 /**

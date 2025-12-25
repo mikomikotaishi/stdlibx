@@ -1,6 +1,6 @@
 /**
  * @file ios.cppm
- * @module std.io.ios
+ * @module std:io.ios
  * @brief Module file for standard library base input/output operations.
  *
  * This file contains the implementation of the base input/output operations in the standard library.
@@ -12,14 +12,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.ios;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.ios;
 #else
-export module stdlib.io.ios;
+export module stdlib:io.ios;
 #endif
 
-import core.io.ios;
-import core.system_error;
+import core;
 
 using core::ErrorCode;
 using core::ErrorCondition;

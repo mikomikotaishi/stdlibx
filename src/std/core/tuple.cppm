@@ -1,6 +1,6 @@
 /**
  * @file tuple.cppm
- * @module std.core.tuple
+ * @module std:core.tuple
  * @brief Module file for standard library tuple operations.
  *
  * This file contains the implementation of the tuple operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.tuple;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.tuple;
 #else
-export module stdlib.core.tuple;
+export module stdlib:core.tuple;
 #endif
 
-import core.tuple;
+import core;
 
 /**
  * @namespace std::core

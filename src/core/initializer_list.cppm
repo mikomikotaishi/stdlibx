@@ -1,6 +1,6 @@
 /**
  * @file initializer_list.cppm
- * @module core.initializer_list
+ * @module core:initializer_list
  * @brief Module file for importing the InitializerList class from the standard library.
  * 
  * This file exports the InitializerList class operations in the standard library.
@@ -12,7 +12,7 @@ module;
 
 #include "Macros.hpp"
 
-export module core.initializer_list;
+export module core:initializer_list;
 
 /**
  * @namespace core

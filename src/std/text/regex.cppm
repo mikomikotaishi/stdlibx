@@ -1,6 +1,6 @@
 /**
  * @file regex.cppm
- * @module std.text.regex
+ * @module std:text.regex
  * @brief Module file for standard library regular expression operations.
  *
  * This file contains the implementation of the regular expression operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.text.regex;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:text.regex;
 #else
-export module stdlib.text.regex;
+export module stdlib:text.regex;
 #endif
 
-import alloc.text.regex;
+import alloc;
 
 /**
  * @namespace std::text

@@ -1,6 +1,6 @@
 /**
  * @file latch.cppm
- * @module std.sync.latch
+ * @module std:sync.latch
  * @brief Module file for standard library latch operations.
  *
  * This file contains the implementation of the latch operations in the standard library.
@@ -12,10 +12,10 @@ module;
 #include <latch>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sync.latch;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sync.latch;
 #else
-export module stdlib.sync.latch;
+export module stdlib:sync.latch;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file netinet.cppm
- * @module stdx.os.unix.netinet
+ * @module stdx:os.unix.netinet
  * @brief Module file for Unix network internet operations.
  *
  * This file contains the implementation of the Unix network internet operations from the POSIX libraries,
@@ -9,16 +9,11 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.netinet;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.netinet;
 #else
-export module stdlibx.os.unix.netinet;
+export module stdlibx:os.unix.netinet;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import stdx.os.unix.netinet.in;
-export import stdx.os.unix.netinet.tcp;
-#else
-export import stdlibx.os.unix.netinet.in;
-export import stdlibx.os.unix.netinet.tcp;
-#endif
+export import :os.unix.netinet.in;
+export import :os.unix.netinet.tcp;

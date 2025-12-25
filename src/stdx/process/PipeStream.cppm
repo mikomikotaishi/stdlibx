@@ -1,6 +1,6 @@
 /**
  * @file PipeStream.cppm
- * @module stdx.process.PipeStream
+ * @module stdx:process.PipeStream
  * @brief Implementation of the PipeStream class.
  *
  * This file contains the implementation of the PipeStream class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.PipeStream;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.PipeStream;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.PipeStream;
+export module stdlibx:process.PipeStream;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 #ifdef _WIN32
@@ -112,6 +112,7 @@ public:
         return *this;
     }
 
+    [[nodiscard]]
     Handle raw_handle() const noexcept {
         return handle;
     }

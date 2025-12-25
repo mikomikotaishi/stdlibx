@@ -1,6 +1,6 @@
 /**
  * @file cstddef.cppm
- * @module std.core.cstddef
+ * @module std:core.cstddef
  * @brief Module file for importing various aliases from the standard library.
  * 
  * This file exports various aliases in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.cstddef;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.cstddef;
 #else
-export module stdlib.core.cstddef;
+export module stdlib:core.cstddef;
 #endif
 
-import core.cstddef;
+import core;
 
 /**
  * @namespace std::core

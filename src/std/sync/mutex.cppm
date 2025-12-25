@@ -1,6 +1,6 @@
 /**
  * @file mutex.cppm
- * @module std.sync.mutex
+ * @module std:sync.mutex
  * @brief Module file for standard library mutex operations.
  *
  * This file contains the implementation of the mutex operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <mutex>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sync.mutex;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sync.mutex;
 #else
-export module stdlib.sync.mutex;
+export module stdlib:sync.mutex;
 #endif
 
 /**

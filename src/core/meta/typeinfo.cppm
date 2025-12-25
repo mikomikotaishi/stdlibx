@@ -1,6 +1,6 @@
 /**
  * @file typeinfo.cppm
- * @module core.meta.typeinfo
+ * @module core:meta.typeinfo
  * @brief Module file for standard library type information operations.
  *
  * This file contains the implementation of the type information operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <typeinfo>
 
-export module core.meta.typeinfo;
+export module core:meta.typeinfo;
 
 /**
  * @namespace core::meta

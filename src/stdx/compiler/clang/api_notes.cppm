@@ -1,6 +1,6 @@
 /**
  * @file api_notes.cppm
- * @module stdx.compiler.clang.api_notes
+ * @module stdx:compiler.clang.api_notes
  * @brief Re-export of all APINotes files in Clang
  */
 
@@ -15,10 +15,10 @@ module;
 #include <clang/APINotes/Types.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.compiler.clang.api_notes;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:compiler.clang.api_notes;
 #else
-export module stdlibx.compiler.clang.api_notes;
+export module stdlibx:compiler.clang.api_notes;
 #endif
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY

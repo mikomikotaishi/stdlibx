@@ -1,6 +1,6 @@
 /**
  * @file cstdlib.cppm
- * @module std.sys.cstdlib
+ * @module std:sys.cstdlib
  * @brief Module file for standard library C-style system operations.
  *
  * This file contains the implementation of the C-style system operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sys.cstdlib;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sys.cstdlib;
 #else
-export module stdlib.sys.cstdlib;
+export module stdlib:sys.cstdlib;
 #endif
 
-import core.sys.cstdlib;
+import core;
 
 /**
  * @namespace std::sys

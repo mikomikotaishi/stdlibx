@@ -1,6 +1,6 @@
 /**
  * @file functional.cppm
- * @module core.functional
+ * @module core:functional
  * @brief Module file for importing function objects from the standard library.
  *
  * This file contains the implementation of the function object operations in the standard library.
@@ -12,7 +12,7 @@ module;
 
 #include "Macros.hpp"
 
-export module core.functional;
+export module core:functional;
 
 /**
  * @namespace core

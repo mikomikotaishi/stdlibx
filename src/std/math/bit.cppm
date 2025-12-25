@@ -1,6 +1,6 @@
 /**
  * @file bit.cppm
- * @module std.math.bit
+ * @module std:math.bit
  * @brief Module file for standard library bit manipulation operations.
  *
  * This file contains the implementation of the bit manipulation operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.math.bit;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:math.bit;
 #else
-export module stdlib.math.bit;
+export module stdlib:math.bit;
 #endif
 
-import core.math.bit;
+import core;
 
 /**
  * @namespace std::math

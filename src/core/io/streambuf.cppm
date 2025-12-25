@@ -1,6 +1,6 @@
 /**
  * @file streambuf.cppm
- * @module core.io.streambuf
+ * @module core:io.streambuf
  * @brief Module file for standard library stream buffer operations.
  *
  * This file contains the implementation of the stream buffer operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <streambuf>
 
-export module core.io.streambuf;
+export module core:io.streambuf;
 
 /**
  * @namespace core::io

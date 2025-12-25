@@ -1,6 +1,6 @@
 /**
  * @file ChildStdin.cppm
- * @module stdx.process.ChildStdin
+ * @module stdx:process.ChildStdin
  * @brief Implementation of the ChildStdin class.
  *
  * This file contains the implementation of the ChildStdin class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.ChildStdin;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.ChildStdin;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.ChildStdin;
+export module stdlibx:process.ChildStdin;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;

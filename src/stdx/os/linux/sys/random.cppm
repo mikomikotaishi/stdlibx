@@ -1,6 +1,6 @@
 /**
  * @file random.cppm
- * @module stdx.os.linux.sys.random
+ * @module stdx:os.linux.sys.random
  * @brief Module file for Unix random number retrieval operations.
  *
  * This file contains the implementation of the Unix random number retrieval operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/random.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.random;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.random;
 #else
-export module stdlibx.os.linux.sys.random;
+export module stdlibx:os.linux.sys.random;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file fmtmsg.cppm
- * @module stdx.os.unix.fmtmsg
+ * @module stdx:os.unix.fmtmsg
  * @brief Module file for Unix message display structure operations.
  *
  * This file contains the implementation of the Unix message display structure operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <fmtmsg.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.fmtmsg;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.fmtmsg;
 #else
-export module stdlibx.os.unix.fmtmsg;
+export module stdlibx:os.unix.fmtmsg;
 #endif
 
 /**

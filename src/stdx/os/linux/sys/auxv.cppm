@@ -1,6 +1,6 @@
 /**
  * @file auxv.cppm
- * @module stdx.os.linux.sys.auxv
+ * @module stdx:os.linux.sys.auxv
  * @brief Module file for Unix auxilliary vector operations.
  *
  * This file contains the implementation of the Unix auxilliary vector operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/auxv.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.auxv;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.auxv;
 #else
-export module stdlibx.os.linux.sys.auxv;
+export module stdlibx:os.linux.sys.auxv;
 #endif
 
 /**

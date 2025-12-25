@@ -1,6 +1,6 @@
 /**
  * @file sstream.cppm
- * @module std.io.sstream
+ * @module std:io.sstream
  * @brief Module file for standard library string stream operations.
  *
  * This file contains the implementation of the string stream operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <sstream>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.sstream;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.sstream;
 #else
-export module stdlib.io.sstream;
+export module stdlib:io.sstream;
 #endif
 
 /**

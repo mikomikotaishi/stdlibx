@@ -1,6 +1,6 @@
 /**
  * @file inotify.cppm
- * @module stdx.os.linux.sys.inotify
+ * @module stdx:os.linux.sys.inotify
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,13 +13,13 @@ module;
 #include <sys/inotify.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.inotify;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.inotify;
 #else
-export module stdlibx.os.linux.sys.inotify;
+export module stdlibx:os.linux.sys.inotify;
 #endif
 
-export import :constants;
+export import :os.linux.sys.inotify.constants;
 
 /**
  * @namespace stdx::os::linux::sys

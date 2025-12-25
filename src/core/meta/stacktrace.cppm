@@ -1,6 +1,6 @@
 /**
  * @file stacktrace.cppm
- * @module core.meta.stacktrace
+ * @module core:meta.stacktrace
  * @brief Module file for standard library stacktrace operations.
  *
  * This file contains the implementation of the stack trace operations in the standard library.
@@ -12,7 +12,7 @@ module;
 #include <stacktrace>
 #endif
 
-export module core.meta.stacktrace;
+export module core:meta.stacktrace;
 
 /**
  * @namespace core::meta

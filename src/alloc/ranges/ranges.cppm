@@ -1,6 +1,6 @@
 /**
  * @file ranges.cppm
- * @module alloc.ranges.ranges
+ * @module alloc:ranges.ranges
  * @brief Module file for standard library ranges operations.
  *
  * This file contains the implementation of the ranges operations in the standard library.
@@ -12,13 +12,12 @@ module;
 #include <ranges>
 #endif
 
-export module alloc.ranges.ranges;
+export module alloc:ranges.ranges;
 
-import core.concepts;
-import core.ranges.ranges;
+import core;
 
-import alloc.string;
-import alloc.mem.memory;
+import :string;
+import :mem.memory;
 
 using core::Movable;
 #if __has_include(<ranges>)

@@ -1,6 +1,6 @@
 /**
  * @file utility.cppm
- * @module std.util.utility
+ * @module std:util.utility
  * @brief Module file for standard library utility operations.
  *
  * This file contains the implementation of the utility operations in the standard library.
@@ -8,13 +8,15 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.util.utility;
+#include <utility>
+
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:util.utility;
 #else
-export module stdlib.util.utility;
+export module stdlib:util.utility;
 #endif
 
-import core.util.utility;
+import core;
 
 /**
  * @namespace std::util

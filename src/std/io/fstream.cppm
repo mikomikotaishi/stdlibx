@@ -1,6 +1,6 @@
 /**
  * @file fstream.cppm
- * @module std.io.fstream
+ * @module std:io.fstream
  * @brief Module file for standard library file stream operations.
  *
  * This file contains the implementation of the file stream operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <fstream>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.fstream;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.fstream;
 #else
-export module stdlib.io.fstream;
+export module stdlib:io.fstream;
 #endif
 
 /**

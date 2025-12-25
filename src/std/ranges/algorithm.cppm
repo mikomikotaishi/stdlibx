@@ -1,6 +1,6 @@
 /**
  * @file algorithm.cppm
- * @module std.ranges.algorithm
+ * @module std:ranges.algorithm
  * @brief Module file for standard library algorithm operations.
  *
  * This file contains the implementation of the algorithm operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.ranges.algorithm;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:ranges.algorithm;
 #else
-export module stdlib.ranges.algorithm;
+export module stdlib:ranges.algorithm;
 #endif
 
-import core.ranges.algorithm;
+import core;
 
 /**
  * @namespace std::ranges

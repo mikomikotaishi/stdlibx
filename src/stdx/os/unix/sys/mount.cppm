@@ -1,6 +1,6 @@
 /**
  * @file mount.cppm
- * @module stdx.os.unix.sys.mount
+ * @module stdx:os.unix.sys.mount
  * @brief Module file for Unix filesystem mounting/unmounting operations.
  *
  * This file contains the implementation of the Unix filesystem mounting/unmounting operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/mount.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.mount;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.mount;
 #else
-export module stdlibx.os.unix.sys.mount;
+export module stdlibx:os.unix.sys.mount;
 #endif
 
 /**

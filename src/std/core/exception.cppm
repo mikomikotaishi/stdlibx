@@ -1,6 +1,6 @@
 /**
  * @file exceptions.cppm
- * @module std.core.exceptions
+ * @module std:core.exceptions
  * @brief Module file for importing exceptions from the standard library.
  *
  * This file contains the implementation of the exception operations in the standard library.
@@ -8,16 +8,15 @@
 
 module;
 
-#include <exception>
-#include <stdexcept>
-
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.exceptions;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.exceptions;
 #else
-export module stdlib.core.exceptions;
+export module stdlib:core.exceptions;
 #endif
+
+import core;
 
 /**
  * @namespace std::core
@@ -28,41 +27,48 @@ export namespace std::core {
 #else 
 export namespace stdlib::core {
 #endif
-    using Exception = std::exception;
-    using NestedException = std::nested_exception;
+    using ::core::Exception;
+    using ::core::NestedException;
 
     /// @extends Exception
-    using BadExceptionException = std::bad_exception;
-    using LogicException = std::logic_error;
-    using RuntimeException = std::runtime_error;
+    using ::core::BadExceptionException;
+    using ::core::LogicException;
+    using ::core::RuntimeException;
 
     /// @extends LogicException
-    using DomainException = std::domain_error;
-    using InvalidArgumentException = std::invalid_argument;
-    using LengthException = std::length_error;
-    using OutOfRangeException = std::out_of_range;
+    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
+    using ::core::DomainException;
+    #endif
+    using ::core::InvalidDomainException;
+    using ::core::InvalidArgumentException;
+    using ::core::LengthException;
+    using ::core::OutOfRangeException;
 
     /// @extends RuntimeException
-    using OverflowException = std::overflow_error;
-    using UnderflowException = std::underflow_error;
+    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
+    using ::core::RangeException;
+    #endif
+    using ::core::InvalidRangeException;
+    using ::core::OverflowException;
+    using ::core::UnderflowException;
     
-    using TerminateHandler = std::terminate_handler;
+    using ::core::TerminateHandler;
 
     #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ExceptionPtr = std::exception_ptr;
+    using ::core::ExceptionPtr;
     #endif
 
-    using ExceptionPointer = std::exception_ptr;
+    using ::core::ExceptionPointer;
 
-    using std::uncaught_exceptions;
-    using std::make_exception_ptr;
-    using std::current_exception;
-    using std::rethrow_exception;
-    using std::throw_with_nested;
-    using std::rethrow_if_nested;
-    using std::terminate;
-    using std::get_terminate;
-    using std::set_terminate;
+    using ::core::uncaught_exceptions;
+    using ::core::make_exception_ptr;
+    using ::core::current_exception;
+    using ::core::rethrow_exception;
+    using ::core::throw_with_nested;
+    using ::core::rethrow_if_nested;
+    using ::core::terminate;
+    using ::core::get_terminate;
+    using ::core::set_terminate;
 }
 
 #if !defined(STDLIBX_NO_STD) && defined(STDLIBX_IMPLICIT_USING_CORE)

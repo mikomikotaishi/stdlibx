@@ -1,6 +1,6 @@
 /**
  * @file rseq.cppm
- * @module stdx.os.linux.sys.rseq
+ * @module stdx:os.linux.sys.rseq
  * @brief Module file for Unix restartable sequences operations.
  *
  * This file contains the implementation of the Unix restartable sequences operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/rseq.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.rseq;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.rseq;
 #else
-export module stdlibx.os.linux.sys.rseq;
+export module stdlibx:os.linux.sys.rseq;
 #endif
 
 /**

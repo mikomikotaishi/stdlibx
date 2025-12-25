@@ -10,11 +10,11 @@ module;
 
 #include <unordered_set>
 
-export module alloc.collections.hash_set;
+export module alloc:collections.hash_set;
 
-import core.functional;
+import core;
 
-import alloc.mem.memory;
+import :mem.memory;
 
 using core::EqualTo;
 using core::Hash;

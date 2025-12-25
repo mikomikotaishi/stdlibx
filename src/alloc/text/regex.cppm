@@ -1,6 +1,6 @@
 /**
  * @file regex.cppm
- * @module alloc.text.regex
+ * @module alloc:text.regex
  * @brief Module file for standard library regular expression operations.
  *
  * This file contains the implementation of the regular expression operations in the standard library.
@@ -10,12 +10,11 @@ module;
 
 #include <regex>
 
-export module alloc.text.regex;
+export module alloc:text.regex;
 
-import core.iter.iterator;
-import core.meta.type_traits;
+import core;
 
-import alloc.mem.memory;
+import :mem.memory;
 
 using core::iter::IteratorTraits;
 using core::meta::IsSameValue;

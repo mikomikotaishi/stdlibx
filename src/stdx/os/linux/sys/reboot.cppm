@@ -1,6 +1,6 @@
 /**
  * @file reboot.cppm
- * @module stdx.os.linux.sys.reboot
+ * @module stdx:os.linux.sys.reboot
  * @brief Module file for Unix reboot operations.
  *
  * This file contains the implementation of the Unix reboot operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/reboot.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.reboot;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.reboot;
 #else
-export module stdlibx.os.linux.sys.reboot;
+export module stdlibx:os.linux.sys.reboot;
 #endif
 
 /**

@@ -1,11 +1,11 @@
 /**
  * @file collections.cppm
- * @module core.collections
+ * @module core:collections
  * @brief Module file for standard library collection operations.
  *
  * This file contains the imports for the collection operations in the standard library.
  */
 
-export module core.collections;
+export module core:collections;
 
-export import core.collections.bitset;
+export import :collections.bitset;

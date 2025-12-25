@@ -1,6 +1,6 @@
 /**
  * @file concepts.cppm
- * @module core.concepts
+ * @module core:concepts
  * @brief Module file for standard library concept operations.
  *
  * This file contains the implementation of the concept operations in the standard library.
@@ -14,7 +14,7 @@ module;
 
 #include "Macros.hpp"
 
-export module core.concepts;
+export module core:concepts;
 
 /**
  * @namespace core

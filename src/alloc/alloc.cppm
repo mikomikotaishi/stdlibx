@@ -8,7 +8,8 @@
 
 export module alloc;
 
-export import alloc.collections;
-export import alloc.mem;
-export import alloc.string;
-export import alloc.text;
+export import :collections;
+export import :mem;
+export import :ranges;
+export import :string;
+export import :text;

@@ -1,6 +1,6 @@
 /**
  * @file numeric.cppm
- * @module std.util.numeric
+ * @module std:util.numeric
  * @brief Module file for standard library numeric operations.
  *
  * This file contains the implementation of the numeric operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.util.numeric;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:util.numeric;
 #else
-export module stdlib.util.numeric;
+export module stdlib:util.numeric;
 #endif
 
-import core.util.numeric;
+import core;
 
 /**
  * @namespace std::util

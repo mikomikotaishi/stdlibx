@@ -1,6 +1,6 @@
 /**
  * @file times.cppm
- * @module stdx.os.unix.sys.times
+ * @module stdx:os.unix.sys.times
  * @brief Module file for Unix file access/modification times operations.
  *
  * This file contains the implementation of the Unix file access/modification times operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/times.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.times;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.times;
 #else
-export module stdlibx.os.unix.sys.times;
+export module stdlibx:os.unix.sys.times;
 #endif
 
 /**

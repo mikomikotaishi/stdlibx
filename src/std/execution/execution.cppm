@@ -1,6 +1,6 @@
 /**
  * @file execution.cppm
- * @module std.execution.execution
+ * @module std:execution.execution
  * @brief Module file for standard library execution policy operations.
  *
  * This file contains the implementation of the execution policy operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <execution>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.execution.execution;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:execution.execution;
 #else
-export module stdlib.execution.execution;
+export module stdlib:execution.execution;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file queue.cppm
- * @module std.collections.queue
+ * @module std:collections.queue
  * @brief Module file for standard library queue operations.
  *
  * This file contains the implementation of the queue operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.queue;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.queue;
 #else
-export module stdlib.collections.queue;
+export module stdlib:collections.queue;
 #endif
 
-import alloc.collections.queue;
+import alloc;
 
 /**
  * @namespace std::collections

@@ -1,6 +1,6 @@
 /**
  * @file net.cppm
- * @module stdx.net
+ * @module stdx:net
  * @brief Import of networking modules.
  *
  * This file imports the modules for the networking library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.net;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:net;
 #else
-export module stdlibx.net;
+export module stdlibx:net;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 
 #else
 

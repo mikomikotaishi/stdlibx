@@ -1,18 +1,18 @@
 /**
  * @file math.cppm
- * @module core.math
+ * @module core:math
  * @brief Module file for standard library mathematical operations.
  *
  * This file contains the imports for the mathematical operations in the standard library.
  */
 
-export module core.math;
+export module core:math;
 
-export import core.math.algorithm;
-export import core.math.bit;
-export import core.math.cmath;
-export import core.math.complex;
-export import core.math.cstddef;
-export import core.math.numbers;
-export import core.math.numeric;
-export import core.math.ratio;
+export import :math.algorithm;
+export import :math.bit;
+export import :math.cmath;
+export import :math.complex;
+export import :math.cstddef;
+export import :math.numbers;
+export import :math.numeric;
+export import :math.ratio;

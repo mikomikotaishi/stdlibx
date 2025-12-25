@@ -1,6 +1,6 @@
 /**
  * @file stack.cppm
- * @module alloc.collections.stack
+ * @module alloc:collections.stack
  * @brief Module file for standard library stack operations.
  *
  * This file contains the implementation of the stack operations in the standard library.
@@ -10,11 +10,11 @@ module;
 
 #include <stack>
 
-export module alloc.collections.stack;
+export module alloc:collections.stack;
 
-import core.meta.type_traits;
+import core;
 
-import alloc.collections.deque;
+import :collections.deque;
 
 using core::meta::IsSameValue;
 

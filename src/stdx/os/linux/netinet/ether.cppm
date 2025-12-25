@@ -1,6 +1,6 @@
 /**
  * @file ether.cppm
- * @module stdx.os.linux.netinet.ether
+ * @module stdx:os.linux.netinet.ether
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <netinet/ether.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.netinet.ether;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.netinet.ether;
 #else
-export module stdlibx.os.linux.netinet.ether;
+export module stdlibx:os.linux.netinet.ether;
 #endif
 
 /**

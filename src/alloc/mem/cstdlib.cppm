@@ -1,6 +1,6 @@
 /**
  * @file cstdlib.cppm
- * @module alloc.mem.cstdlib
+ * @module alloc:mem.cstdlib
  * @brief Module file for standard library C-style memory operations.
  *
  * This file contains the implementation of the C-style memory operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <cstdlib>
 
-export module alloc.mem.cstdlib;
+export module alloc:mem.cstdlib;
 
 /**
  * @namespace alloc::mem

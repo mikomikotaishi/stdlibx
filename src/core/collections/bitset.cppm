@@ -1,6 +1,6 @@
 /**
  * @file bitset.cppm
- * @module core.collections.bitset
+ * @module core:collections.bitset
  * @brief Module file for standard library bitset operations.
  *
  * This file contains the implementation of the bitset operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <bitset>
 
-export module core.collections.bitset;
+export module core:collections.bitset;
 
 /**
  * @namespace core::collections

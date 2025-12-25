@@ -1,6 +1,6 @@
 /**
  * @file cinttypes.cppm
- * @module core.fmt.cinttypes
+ * @module core:fmt.cinttypes
  * @brief Module file for standard library C-style integer formatting constant operations.
  *
  * This file contains the implementation of the C-style integer formatting constants operations in the standard library.
@@ -10,9 +10,9 @@ module;
 
 #include <cinttypes>
 
-export module core.fmt.cinttypes;
+export module core:fmt.cinttypes;
 
-export import :constants;
+export import :fmt.cinttypes.constants;
 
 /**
  * @namespace core::fmt

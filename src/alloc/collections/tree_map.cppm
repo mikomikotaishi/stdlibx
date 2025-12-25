@@ -1,6 +1,6 @@
 /**
  * @file tree_map.cppm
- * @module alloc.collections.tree_map
+ * @module alloc:collections.tree_map
  * @brief Module file for standard library tree map operations.
  *
  * This file contains the implementation of the tree map operations in the standard library.
@@ -10,13 +10,11 @@ module;
 
 #include <map>
 
-export module alloc.collections.tree_map;
+export module alloc:collections.tree_map;
 
-import core.functional;
-import core.pair;
-import core.meta.type_traits;
+import core;
 
-import alloc.mem.memory;
+import :mem.memory;
 
 using core::Less;
 using core::Pair;

@@ -1,5 +1,6 @@
 /**
- * @file nameser_constants.cppm
+ * @file nameser.constants.cppm
+ * @module stdx:os.linux.arpa.nameser.constants
  * @brief Module file for Unix ARPA operations.
  *
  * This file contains the implementation of the constants
@@ -8,10 +9,10 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.arpa.nameser:constants;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.arpa.nameser.constants;
 #else
-export module stdlibx.os.linux.arpa.nameser:constants;
+export module stdlibx:os.linux.arpa.nameser.constants;
 #endif
 
 /**

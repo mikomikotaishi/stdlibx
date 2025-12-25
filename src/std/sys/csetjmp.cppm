@@ -1,6 +1,6 @@
 /**
  * @file csetjmp.cppm
- * @module std.sys.csetjmp
+ * @module std:sys.csetjmp
  * @brief Module file for standard library C-style jumping operations.
  *
  * This file contains the implementation of the C-style jumping operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sys.csetjmp;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sys.csetjmp;
 #else
-export module stdlib.sys.csetjmp;
+export module stdlib:sys.csetjmp;
 #endif
 
-import core.sys.csetjmp;
+import core;
 
 /**
  * @namespace std::sys

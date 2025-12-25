@@ -1,6 +1,6 @@
 /**
  * @file user.cppm
- * @module stdx.os.linux.sys.user
+ * @module stdx:os.linux.sys.user
  * @brief Module file for Unix GDB user operations.
  *
  * This file contains the implementation of the Unix GDB user operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/user.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.user;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.user;
 #else
-export module stdlibx.os.linux.sys.user;
+export module stdlibx:os.linux.sys.user;
 #endif
 
 /**

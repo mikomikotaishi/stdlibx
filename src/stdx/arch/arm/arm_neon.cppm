@@ -1,6 +1,6 @@
 /**
  * @file arm_neon.cppm
- * @module stdx.arch.arm.arm_neon
+ * @module stdx:arch.arm.arm_neon
  * @brief Module file for arm_neon operations
  *
  * This file contains the implementation for the arm_neon.h header
@@ -12,8 +12,8 @@ module;
 #include <arm_neon.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.arch.arm.arm_neon;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:arch.arm.arm_neon;
 #else
-export module stdlibx.arch.arm.arm_neon;
+export module stdlibx:arch.arm.arm_neon;
 #endif

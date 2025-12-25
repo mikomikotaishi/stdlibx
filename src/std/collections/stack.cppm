@@ -1,6 +1,6 @@
 /**
  * @file stack.cppm
- * @module std.collections.stack
+ * @module std:collections.stack
  * @brief Module file for standard library stack operations.
  *
  * This file contains the implementation of the stack operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.stack;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.stack;
 #else
-export module stdlib.collections.stack;
+export module stdlib:collections.stack;
 #endif
 
-import alloc.collections.stack;
+import alloc;
 
 /**
  * @namespace std::collections

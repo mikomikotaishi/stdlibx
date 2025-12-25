@@ -1,6 +1,6 @@
 /**
  * @file langinfo.cppm
- * @module stdx.os.unix.langinfo
+ * @module stdx:os.unix.langinfo
  * @brief Module file for Unix language information operations.
  *
  * This file contains the implementation of the Unix language information operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <langinfo.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.langinfo;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.langinfo;
 #else
-export module stdlibx.os.unix.langinfo;
+export module stdlibx:os.unix.langinfo;
 #endif
 
 /**

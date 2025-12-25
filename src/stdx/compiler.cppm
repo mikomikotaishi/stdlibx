@@ -1,6 +1,6 @@
 /**
  * @file compiler.cppm
- * @module stdx.compiler
+ * @module stdx:compiler
  * @brief Module file for compiler operations.
  *
  * This file contains the imports for the compiler operations.
@@ -8,16 +8,11 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.compiler;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:compiler;
 #else
-export module stdlibx.compiler;
+export module stdlibx:compiler;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import stdx.compiler.clang;
-export import stdx.compiler.llvm;
-#else
-export import stdlibx.compiler.clang;
-export import stdlibx.compiler.llvm;
-#endif
+export import :compiler.clang;
+export import :compiler.llvm;

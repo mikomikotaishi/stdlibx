@@ -1,6 +1,6 @@
 /**
  * @file search.cppm
- * @module stdx.os.unix.search
+ * @module stdx:os.unix.search
  * @brief Module file for Unix search table operations.
  *
  * This file contains the implementation of the Unix search table operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <search.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.search;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.search;
 #else
-export module stdlibx.os.unix.search;
+export module stdlibx:os.unix.search;
 #endif
 
 /**

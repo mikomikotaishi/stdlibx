@@ -1,6 +1,6 @@
 /**
  * @file monetary.cppm
- * @module stdx.os.unix.monetary
+ * @module stdx:os.unix.monetary
  * @brief Module file for Unix monetary unit string formatting operations.
  *
  * This file contains the implementation of the Unix monetary unit string formatting operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <monetary.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.monetary;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.monetary;
 #else
-export module stdlibx.os.unix.monetary;
+export module stdlibx:os.unix.monetary;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file ppp_defs.cppm
- * @module stdx.os.linux.net.ppp_defs
+ * @module stdx:os.linux.net.ppp_defs
  * @brief Module file for Unix local network interfacing operations.
  *
  * This file contains the implementation of the Unix local networking interfacing operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <net/ppp_defs.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.net.ppp_defs;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.net.ppp_defs;
 #else
-export module stdlibx.os.linux.net.ppp_defs;
+export module stdlibx:os.linux.net.ppp_defs;
 #endif
 
 /**

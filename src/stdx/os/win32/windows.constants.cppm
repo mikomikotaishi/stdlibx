@@ -1,6 +1,6 @@
 /**
- * @file windows_constants.cppm
- * @module stdx.os.win32.windows:constants
+ * @file windows.constants.cppm
+ * @module stdx:os.win32.windows.constants
  * @brief Module file for constants of the Win32 operations.
  *
  * This file contains the implementation of the constants of the C-style signal operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <cstddef>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.win32.windows:constants;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.win32.windows.constants;
 #else
-export module stdlibx.os.win32.windows:constants;
+export module stdlibx:os.win32.windows.constants;
 #endif
 
 /**

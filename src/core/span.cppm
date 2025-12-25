@@ -1,6 +1,6 @@
 /**
  * @file span.cppm
- * @module core.span
+ * @module core:span
  * @brief Module file for importing the Span class from the standard library.
  * 
  * This file exports the Span class operations in the standard library.
@@ -14,7 +14,7 @@ module;
 
 #include "Macros.hpp"
 
-export module core.span;
+export module core:span;
 
 /**
  * @namespace core

@@ -1,6 +1,6 @@
 /**
  * @file string_view.cppm
- * @module std.core.string_view
+ * @module std:core.string_view
  * @brief Module file for importing the StringView class from the standard library.
  * 
  * This file exports the StringView class operations in the standard library.
@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.string_view;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.string_view;
 #else
-export module stdlib.core.string_view;
+export module stdlib:core.string_view;
 #endif
 
-import core.string_view;
+import core;
 
 /**
  * @namespace std::core
@@ -45,12 +45,6 @@ export namespace stdlib::core {
     using ::core::operator==;
     using ::core::operator<=>;
     using ::core::operator<<;
-    using ::core::operator""sv;
-    inline namespace literals {
-        inline namespace string_view_literals {
-            using ::core::literals::string_view_literals::operator""sv;
-        }
-    }
 
     using ::core::hash;
     using ::core::swap;
@@ -67,6 +61,18 @@ export namespace stdlib::core {
     using ::core::ssize;
     using ::core::empty;
     using ::core::data;
+}
+
+/**
+ * @namespace std::literals::string_view_literals
+ * @brief String view literals namespace
+ */
+#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
+export namespace std::inline literals::inline string_view_literals {
+#else 
+export namespace stdlib::inline literals::inline string_view_literals {
+#endif
+    using ::core::literals::string_view_literals::operator""sv;
 }
 
 #ifdef __GLIBCXX__

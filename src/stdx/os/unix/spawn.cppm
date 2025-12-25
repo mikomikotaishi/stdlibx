@@ -1,6 +1,6 @@
 /**
  * @file spawn.cppm
- * @module stdx.os.unix.spawn
+ * @module stdx:os.unix.spawn
  * @brief Module file for Unix process spawning operations.
  *
  * This file contains the implementation of the Unix process spawning operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <spawn.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.spawn;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.spawn;
 #else
-export module stdlibx.os.unix.spawn;
+export module stdlibx:os.unix.spawn;
 #endif
 
 /**

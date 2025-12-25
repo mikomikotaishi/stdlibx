@@ -1,6 +1,6 @@
 /**
  * @file swap.cppm
- * @module stdx.os.linux.sys.swap
+ * @module stdx:os.linux.sys.swap
  * @brief Module file for Unix swapping enable/disable operations.
  *
  * This file contains the implementation of the Unix swapping enable/disable operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/swap.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.swap;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.swap;
 #else
-export module stdlibx.os.linux.sys.swap;
+export module stdlibx:os.linux.sys.swap;
 #endif
 
 /**

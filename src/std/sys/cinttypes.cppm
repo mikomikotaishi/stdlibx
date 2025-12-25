@@ -1,6 +1,6 @@
 /**
  * @file cinttypes.cppm
- * @module std.sys.cinttypes
+ * @module std:sys.cinttypes
  * @brief Module file for constants of the standard library C-style integer formatting constant operations.
  *
  * This file contains the implementation of the constants of the C-style integer formatting constant operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sys.cinttypes;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sys.cinttypes;
 #else
-export module stdlib.sys.cinttypes;
+export module stdlib:sys.cinttypes;
 #endif
 
-import core.sys.cinttypes;
+import core;
 
 /**
  * @namespace std::sys

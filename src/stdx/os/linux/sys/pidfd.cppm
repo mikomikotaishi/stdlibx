@@ -1,6 +1,6 @@
 /**
  * @file pidfd.cppm
- * @module stdx.os.linux.sys.pidfd
+ * @module stdx:os.linux.sys.pidfd
  * @brief Module file for Unix process function file descriptor operations.
  *
  * This file contains the implementation of the Unix process function file descriptor operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/pidfd.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.pidfd;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.pidfd;
 #else
-export module stdlibx.os.linux.sys.pidfd;
+export module stdlibx:os.linux.sys.pidfd;
 #endif
 
 /**

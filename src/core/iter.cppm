@@ -1,11 +1,11 @@
 /**
  * @file iter.cppm
- * @module core.iter
+ * @module core:iter
  * @brief Module file for standard library iterator operations.
  *
  * This file contains the imports for the iterator operations in the standard library.
  */
 
-export module core.iter;
+export module core:iter;
 
-export import core.iter.iterator;
+export import :iter.iterator;

@@ -1,6 +1,6 @@
 /**
  * @file flat_map.cppm
- * @module std.collections.flat_map
+ * @module std:collections.flat_map
  * @brief Module file for standard library flat map operations.
  *
  * This file contains the implementation of the flat map operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.flat_map;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.flat_map;
 #else
-export module stdlib.collections.flat_map;
+export module stdlib:collections.flat_map;
 #endif
 
-import alloc.collections.flat_map;
+import alloc;
 
 /**
  * @namespace std::collections

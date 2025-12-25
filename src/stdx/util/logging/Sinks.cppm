@@ -1,6 +1,6 @@
 /**
  * @file Sinks.cppm
- * @module stdx.util.logging.Sinks
+ * @module stdx:util.logging.Sinks
  * @brief Definition of log sink interfaces and implementations.
  *
  * This file contains the base ILogSink interface and concrete implementations
@@ -9,13 +9,21 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
-export module stdx.util.logging.Sinks;
+#include "Macros.hpp"
 
-export import stdx.util.logging.Level;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:util.logging.Sinks;
 
 import std;
+#else
+export module stdlibx:util.logging.Sinks;
 
+import stdlib;
+#endif
+
+import :util.logging.Level;
+
+#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 using std::fs::Path;
 using std::io::IOException;
 using std::io::IOS;
@@ -24,6 +32,7 @@ using std::io::OutputFileStream;
 using std::io::Stderr;
 using std::io::Stdout;
 using std::mem::UniquePointer;
+using std::meta::SourceLocation;
 using std::sync::Mutex;
 using std::sync::ScopedLock;
 
@@ -31,12 +40,6 @@ namespace io = std::io;
 namespace fs = std::fs;
 namespace mem = std::mem;
 #else
-export module stdlibx.util.logging.Sinks;
-
-export import stdlibx.util.logging.Level;
-
-import stdlib;
-
 using stdlib::fs::Path;
 using stdlib::io::IOException;
 using stdlib::io::IOS;
@@ -45,6 +48,7 @@ using stdlib::io::OutputFileStream;
 using stdlib::io::Stderr;
 using stdlib::io::Stdout;
 using stdlib::mem::UniquePointer;
+using stdlib::meta::SourceLocation;
 using stdlib::sync::Mutex;
 using stdlib::sync::ScopedLock;
 
@@ -78,8 +82,17 @@ public:
      * @param level The log level
      * @param loggerName The name of the logger
      * @param message The formatted message
+     * @param enableSourceLocation Whether to include source location in output
+     * @param location The source location (if enabled)
      */
-    virtual void write(StringView timestamp, Level level, StringView loggerName, StringView message) = 0;
+    virtual void write(
+        StringView timestamp,
+        Level level,
+        StringView loggerName,
+        StringView message, 
+        bool enableSourceLocation = false, 
+        const SourceLocation& location = SourceLocation::current()
+    ) = 0;
 
     /**
      * @brief Flush any buffered output.
@@ -103,17 +116,34 @@ public:
      * 
      * @param path Path to the log file
      * @param mode Open mode (default: APPEND)
+     * @throws IOException
      */
-    explicit FileSink(StringView path, OpenMode::InternalOpenMode mode = OpenMode::APPEND) {
+    explicit FileSink(StringView path, OpenMode::Self mode = OpenMode::APPEND) throws (IOException) {
         file = mem::make_unique<OutputFileStream>(Path(path), mode);
         if (!file->is_open()) {
             throw IOException("Failed to open log file");
         }
     }
 
-    void write(StringView timestamp, Level level, StringView loggerName, StringView message) override {
+    void write(
+        StringView timestamp,
+        Level level,
+        StringView loggerName,
+        StringView message,
+        bool enableSourceLocation = false,
+        const SourceLocation& location = SourceLocation::current()
+    ) override {
         ScopedLock<Mutex> lock(mutex);
-        io::println(*file, "[{}] {} [{}]: {}", timestamp, level, loggerName, message);
+        if (enableSourceLocation) {
+            io::println(
+                *file, "[{}] {} [{}] [{}:{}:{}]: {}", 
+                timestamp, level, loggerName, 
+                location.file_name(), location.line(), location.function_name(),
+                message
+            );
+        } else {
+            io::println(*file, "[{}] {} [{}]: {}", timestamp, level, loggerName, message);
+        }
     }
 
     void flush() override {
@@ -141,12 +171,36 @@ public:
     explicit ConsoleSink(bool toStderr = true):
         useStderr{toStderr} {}
 
-    void write(StringView timestamp, Level level, StringView loggerName, StringView message) override {
+    void write(
+        StringView timestamp,
+        Level level,
+        StringView loggerName,StringView message,
+        bool enableSourceLocation = false,
+        const SourceLocation& location = SourceLocation::current()
+    ) override {
         ScopedLock<Mutex> lock(mutex);
-        if (useStderr) {
-            io::println(Stderr, "[{}] {} [{}]: {}", timestamp, level, loggerName, message);
+        if (enableSourceLocation) {
+            if (useStderr) {
+                io::println(
+                    Stderr, "[{}] {} [{}] [{}:{}:{}]: {}", 
+                    timestamp, level, loggerName,
+                    location.file_name(), location.line(), location.function_name(),
+                    message
+                );
+            } else {
+                io::println(
+                    Stdout, "[{}] {} [{}] [{}:{}:{}]: {}", 
+                    timestamp, level, loggerName,
+                    location.file_name(), location.line(), location.function_name(),
+                    message
+                );
+            }
         } else {
-            io::println(Stdout, "[{}] {} [{}]: {}", timestamp, level, loggerName, message);
+            if (useStderr) {
+                io::println(Stderr, "[{}] {} [{}]: {}", timestamp, level, loggerName, message);
+            } else {
+                io::println(Stdout, "[{}] {} [{}]: {}", timestamp, level, loggerName, message);
+            }
         }
     }
 

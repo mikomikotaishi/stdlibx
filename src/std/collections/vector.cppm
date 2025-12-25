@@ -1,6 +1,6 @@
 /**
  * @file vector.cppm
- * @module std.collections.vector
+ * @module std:collections.vector
  * @brief Module file for standard library vector operations.
  *
  * This file contains the implementation of the vector operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.vector;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.vector;
 #else
-export module stdlib.collections.vector;
+export module stdlib:collections.vector;
 #endif
 
-import alloc.collections.vector;
+import alloc;
 
 /**
  * @namespace std::collections

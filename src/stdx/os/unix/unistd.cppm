@@ -1,6 +1,6 @@
 /**
  * @file unistd.cppm
- * @module stdx.os.unix.unistd
+ * @module stdx:os.unix.unistd
  * @brief Module file for Unix essential POSIX function operations.
  *
  * This file contains the implementation of the Unix essential POSIX function operations from the POSIX libraries,
@@ -17,10 +17,10 @@ module;
 #undef STDOUT_FILENO
 #undef STDERR_FILENO
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.unistd;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.unistd;
 #else
-export module stdlibx.os.unix.unistd;
+export module stdlibx:os.unix.unistd;
 #endif
 
 /**

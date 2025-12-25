@@ -1,7 +1,7 @@
 /**
  * @internal
- * @file csignal_constants.cppm
- * @module core.sys.csignal:constants
+ * @file csignal.constants.cppm
+ * @module core:sys.csignal.constants
  * @brief Module file for constants of the standard library C-style signal operations.
  *
  * This file contains the implementation of the constants of the C-style signal operations in the standard library.
@@ -124,7 +124,7 @@ module;
 #define SIGCLD SIGCHLD
 #endif
 
-export module core.sys.csignal:constants;
+export module core:sys.csignal.constants;
 
 /**
  * @internal

@@ -1,6 +1,6 @@
 /**
  * @file StringPair.cppm
- * @module stdx.xml:StringPair
+ * @module stdx:xml.StringPair
  * @brief Implementation of the StringPair class
  *
  * This file contains the implementation of the StringPair class.
@@ -32,12 +32,12 @@ distribution.
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.xml:StringPair;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:xml.StringPair;
 
 import std;
 #else
-export module stdlibx.xml:StringPair;
+export module stdlibx:xml.StringPair;
 
 import stdlib;
 #endif

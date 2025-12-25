@@ -1,6 +1,6 @@
 /**
  * @file string.cppm
- * @module alloc.string
+ * @module alloc:string
  * @brief Module file for importing the String class from the standard library.
  * 
  * This file exports the String class operations in the standard library.
@@ -10,9 +10,9 @@ module;
 
 #include "Macros.hpp"
 
-export module alloc.string;
+export module alloc:string;
 
-import alloc.text.string.string;
+import :text.string.string;
 
 /**
  * @namespace alloc
@@ -64,11 +64,7 @@ export namespace alloc {
     using ::alloc::text::string::operator+;
     using ::alloc::text::string::operator==;
     using ::alloc::text::string::operator<=>;
-    inline namespace literals {
-        inline namespace string_literals {
-            using ::alloc::text::string::operator""s;
-        }
-    }
+
     using ::alloc::text::string::erase;
     using ::alloc::text::string::erase_if;
     using ::alloc::text::string::begin;
@@ -86,6 +82,14 @@ export namespace alloc {
 
     using ::alloc::text::string::hash;
     using ::alloc::text::string::swap;
+}
+
+/**
+ * @namespace alloc::literals::string_literals
+ * @brief String literals namespace
+ */
+export namespace core::inline literals::inline string_literals {
+    using ::alloc::literals::string_literals::operator""s;
 }
 
 #ifdef __GLIBCXX__

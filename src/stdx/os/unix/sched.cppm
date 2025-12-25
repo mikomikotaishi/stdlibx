@@ -1,6 +1,6 @@
 /**
  * @file sched.cppm
- * @module stdx.os.unix.sched
+ * @module stdx:os.unix.sched
  * @brief Module file for Unix execution scheduling operations.
  *
  * This file contains the implementation of the Unix executing scheduling operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sched.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sched;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sched;
 #else
-export module stdlibx.os.unix.sched;
+export module stdlibx:os.unix.sched;
 #endif
 
 /**

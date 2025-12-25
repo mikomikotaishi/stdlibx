@@ -1,6 +1,6 @@
 /**
  * @file Level.cppm
- * @module stdx.util.logging.Level
+ * @module stdx:util.logging.Level
  * @brief Definition of the Level enum class.
  *
  * This file contains the definition of the Level enum class, which represents logging message level.
@@ -10,8 +10,8 @@ module;
 
 #include "Macros.hpp"
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
-export module stdx.util.logging.Level;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:util.logging.Level;
 
 import std;
 
@@ -22,7 +22,7 @@ using std::fmt::Formatter;
 namespace fmt = std::fmt;
 namespace sys = std::sys;
 #else
-export module stdlibx.util.logging.Level;
+export module stdlibx:util.logging.Level;
 
 import std;
 

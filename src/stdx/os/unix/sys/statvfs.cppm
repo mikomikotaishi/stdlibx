@@ -1,6 +1,6 @@
 /**
  * @file statvfs.cppm
- * @module stdx.os.unix.sys.statvfs
+ * @module stdx:os.unix.sys.statvfs
  * @brief Module file for Unix filesystem information operations.
  *
  * This file contains the implementation of the Unix filesystem information operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/statvfs.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.statvfs;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.statvfs;
 #else
-export module stdlibx.os.unix.sys.statvfs;
+export module stdlibx:os.unix.sys.statvfs;
 #endif
 
 /**

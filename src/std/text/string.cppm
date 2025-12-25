@@ -1,6 +1,6 @@
 /**
  * @file string.cppm
- * @module std.text.string
+ * @module std:text.string
  * @brief Module file for standard library string operations.
  *
  * This file contains the imports for the string operations in the standard library.
@@ -8,18 +8,12 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.text.string;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:text.string;
 #else
-export module stdlib.text.string;
+export module stdlib:text.string;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import std.text.string.cstring;
-export import std.text.string.string;
-export import std.text.string.string_view;
-#else
-export import stdlib.text.string.cstring;
-export import stdlib.text.string.string;
-export import stdlib.text.string.string_view;
-#endif
+export import :text.string.cstring;
+export import :text.string.string;
+export import :text.string.string_view;

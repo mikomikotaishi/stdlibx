@@ -1,6 +1,6 @@
 /**
  * @file tcp.cppm
- * @module stdx.os.unix.netinet.tcp
+ * @module stdx:os.unix.netinet.tcp
  * @brief Module file for Unix TCP control operations.
  *
  * This file contains the implementation of the Unix TCP control operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <netinet/tcp.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.netinet.tcp;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.netinet.tcp;
 #else
-export module stdlibx.os.unix.netinet.tcp;
+export module stdlibx:os.unix.netinet.tcp;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file cctype.cppm
- * @module std.text.cctype
+ * @module std:text.cctype
  * @brief Module file for standard library character type operations.
  *
  * This file contains the imports for the character type operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.text.cctype;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:text.cctype;
 #else
-export module stdlib.text.cctype;
+export module stdlib:text.cctype;
 #endif
 
-import core.text.cctype;
+import core;
 
 /**
  * @namespace std::text

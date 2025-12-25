@@ -1,6 +1,6 @@
 /**
  * @file Stdio.cppm
- * @module stdx.process.Stdio
+ * @module stdx:process.Stdio
  * @brief Implementation of the Stdio class.
  *
  * This file contains the implementation of the Stdio class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.Stdio;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.Stdio;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.Stdio;
+export module stdlibx:process.Stdio;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;
@@ -43,9 +43,9 @@ export namespace stdlibx::process {
  * The StdioType enumeration defines the stdio types that can be spawned.
  */
 enum class StdioType: u8 {
-    Inherit, ///< Inherit stdio type.
-    Pipe, ///< Pipe stdio type.
-    Null, ///< Null stdio type.
+    INHERIT, ///< Inherit stdio type.
+    PIPE, ///< Pipe stdio type.
+    NULL_TYPE, ///< Null stdio type.
 };
 
 /**
@@ -68,15 +68,15 @@ private:
     }
 public:
     static Stdio inherit() noexcept {
-        return Stdio(StdioType::Inherit);
+        return Stdio(StdioType::INHERIT);
     }
 
     static Stdio pipe() noexcept {
-        return Stdio(StdioType::Pipe);
+        return Stdio(StdioType::PIPE);
     }
 
     static Stdio null() noexcept {
-        return Stdio(StdioType::Null);
+        return Stdio(StdioType::NULL_TYPE);
     }
 
     StdioType type() const noexcept {

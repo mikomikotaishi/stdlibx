@@ -1,6 +1,6 @@
 /**
  * @file ioctl.cppm
- * @module stdx.os.unix.sys.ioctl
+ * @module stdx:os.unix.sys.ioctl
  * @brief Module file for I/O control operations.
  *
  * This file contains the implementation of the I/O control operations in Unix systems,
@@ -13,13 +13,13 @@ module;
 #include <sys/ioctl.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.ioctl;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.ioctl;
 #else
-export module stdlibx.os.unix.sys.ioctl;
+export module stdlibx:os.unix.sys.ioctl;
 #endif
 
-export import :constants;
+export import :os.unix.sys.ioctl.constants;
 
 /**
  * @namespace stdx::os::unix::sys

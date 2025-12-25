@@ -1,6 +1,6 @@
 /**
  * @file any.cppm
- * @module std.core.any
+ * @module std:core.any
  * @brief Module file for importing the Any class from the standard library.
  * 
  * This file exports the Any class operations in the standard library.
@@ -12,10 +12,10 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.any;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.any;
 #else
-export module stdlib.core.any;
+export module stdlib:core.any;
 #endif
 
 /**

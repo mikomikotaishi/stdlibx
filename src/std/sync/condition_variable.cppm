@@ -1,6 +1,6 @@
 /**
  * @file condition_variable.cppm
- * @module std.sync.condition_variable
+ * @module std:sync.condition_variable
  * @brief Module file for standard library condition variable operations.
  *
  * This file contains the implementation of the condition variable operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <condition_variable>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sync.condition_variable;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sync.condition_variable;
 #else
-export module stdlib.sync.condition_variable;
+export module stdlib:sync.condition_variable;
 #endif
 
 /**

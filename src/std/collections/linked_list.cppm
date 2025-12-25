@@ -1,6 +1,6 @@
 /**
  * @file linked_list.cppm
- * @module std.collections.linked_list
+ * @module std:collections.linked_list
  * @brief Module file for standard library linked list operations.
  *
  * This file contains the implementation of the linked list operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.linked_list;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.linked_list;
 #else
-export module stdlib.collections.linked_list;
+export module stdlib:collections.linked_list;
 #endif
 
-import alloc.collections.linked_list;
+import alloc;
 
 /**
  * @namespace std::collections

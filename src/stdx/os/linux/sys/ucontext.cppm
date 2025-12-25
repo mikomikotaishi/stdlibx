@@ -1,6 +1,6 @@
 /**
  * @file ucontext.cppm
- * @module stdx.os.linux.sys.ucontext
+ * @module stdx:os.linux.sys.ucontext
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/ucontext.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.ucontext;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.ucontext;
 #else
-export module stdlibx.os.linux.sys.ucontext;
+export module stdlibx:os.linux.sys.ucontext;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file syslog.cppm
- * @module stdx.os.linux.sys.syslog
+ * @module stdx:os.linux.sys.syslog
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/syslog.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.syslog;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.syslog;
 #else
-export module stdlibx.os.linux.sys.syslog;
+export module stdlibx:os.linux.sys.syslog;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file CommandArgs.cppm
- * @module stdx.process.CommandArgs
+ * @module stdx:process.CommandArgs
  * @brief Implementation of the CommandArgs class.
  *
  * This file contains the implementation of the CommandArgs class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.CommandArgs;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.CommandArgs;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.CommandArgs;
+export module stdlibx:process.CommandArgs;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;

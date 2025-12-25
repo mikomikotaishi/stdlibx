@@ -1,6 +1,6 @@
 /**
  * @file numeric.cppm
- * @module core.util.numeric
+ * @module core:util.numeric
  * @brief Module file for standard library numeric operations.
  *
  * This file contains the implementation of the numeric operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <numeric>
 
-export module core.util.numeric;
+export module core:util.numeric;
 
 /**
  * @namespace core::util

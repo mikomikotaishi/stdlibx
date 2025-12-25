@@ -1,6 +1,6 @@
 /**
  * @file valarray.cppm
- * @module alloc.collections.valarray
+ * @module alloc:collections.valarray
  * @brief Module file for standard library valarray operations.
  *
  * This file contains the implementation of the valarray operations in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <valarray>
 
-export module alloc.collections.valarray;
+export module alloc:collections.valarray;
 
 /**
  * @namespace alloc::collections

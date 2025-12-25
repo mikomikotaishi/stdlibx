@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.string;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.string;
 #else
-export module stdlib.core.string;
+export module stdlib:core.string;
 #endif
 
-import alloc.string;
+import alloc;
 
 /**
  * @namespace std::core
@@ -76,11 +76,7 @@ export namespace stdlib::core {
     using alloc::operator+;
     using alloc::operator==;
     using alloc::operator<=>;
-    inline namespace literals {
-        inline namespace string_literals {
-            using ::alloc::literals::string_literals::operator""s;
-        }
-    }
+
     using alloc::erase;
     using alloc::erase_if;
 
@@ -99,6 +95,18 @@ export namespace stdlib::core {
 
     using alloc::hash;
     using alloc::swap;
+}
+
+/**
+ * @namespace std::literals::string_literals
+ * @brief String literals namespace
+ */
+#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
+export namespace std::inline literals::inline string_literals {
+#else 
+export namespace stdlib::inline literals::inline string_literals {
+#endif
+    using alloc::literals::string_literals::operator""s;
 }
 
 #ifdef __GLIBCXX__

@@ -1,6 +1,6 @@
 /**
  * @file array.cppm
- * @module core.array
+ * @module core:array
  * @brief Module file for standard library array operations.
  *
  * This file contains the implementation of the array operations in the standard library.
@@ -12,7 +12,7 @@ module;
 
 #include "Macros.hpp"
 
-export module core.array;
+export module core:array;
 
 /**
  * @namespace core

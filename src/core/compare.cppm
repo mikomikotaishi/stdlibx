@@ -1,6 +1,6 @@
 /**
  * @file compare.cppm
- * @module core.compare
+ * @module core:compare
  * @brief Module file for standard library comparison operations.
  *
  * This file contains the implementation of the comparison operations in the standard library.
@@ -14,7 +14,7 @@ module;
 
 #include "Macros.hpp"
 
-export module core.compare;
+export module core:compare;
 
 /**
  * @namespace core

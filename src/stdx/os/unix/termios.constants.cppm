@@ -1,6 +1,6 @@
 /**
- * @file termios_constants.cppm
- * @module stdx.os.unix.termios:constants
+ * @file termios.constants.cppm
+ * @module stdx:os.unix.termios:constants
  * @brief Module file for Unix terminal I/O operations.
  *
  * This file contains the implementation of the constants used 
@@ -9,10 +9,10 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.termios:constants;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.termios.constants;
 #else
-export module stdlibx.os.unix.termios:constants;
+export module stdlibx:os.unix.termios.constants;
 #endif
 
 /**

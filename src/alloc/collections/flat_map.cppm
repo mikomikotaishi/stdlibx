@@ -1,6 +1,6 @@
 /**
  * @file flat_map.cppm
- * @module alloc.collections.flat_map
+ * @module alloc:collections.flat_map
  * @brief Module file for standard library flat map operations.
  *
  * This file contains the implementation of the flat set operations in the standard library.
@@ -12,13 +12,12 @@ module;
 #include <flat_map>
 #endif
 
-export module alloc.collections.flat_map;
+export module alloc:collections.flat_map;
 
-import core.functional;
-import core.meta.type_traits;
+import core;
 
-import alloc.collections.vector;
-import alloc.mem.memory;
+import :collections.vector;
+import :mem.memory;
 
 using core::Less;
 using core::meta::IsNothrowSwappableValue;

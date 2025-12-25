@@ -1,6 +1,6 @@
 /**
  * @file Child.cppm
- * @module stdx.process.Child
+ * @module stdx:process.Child
  * @brief Implementation of the Child class.
  *
  * This file contains the implementation of the Child class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.Child;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.Child;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.Child;
+export module stdlibx:process.Child;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;

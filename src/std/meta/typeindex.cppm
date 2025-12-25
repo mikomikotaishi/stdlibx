@@ -1,6 +1,6 @@
 /**
  * @file typeindex.cppm
- * @module std.meta.typeindex
+ * @module std:meta.typeindex
  * @brief Module file for standard library type index operations.
  *
  * This file contains the implementation of the type index operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.meta.typeindex;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:meta.typeindex;
 #else
-export module stdlib.meta.typeindex;
+export module stdlib:meta.typeindex;
 #endif
 
-import core.meta.typeindex;
+import core;
 
 /**
  * @namespace std::meta

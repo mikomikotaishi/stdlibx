@@ -1,6 +1,6 @@
 /**
  * @file pthread.cppm
- * @module stdx.os.unix.pthread
+ * @module stdx:os.unix.pthread
  * @brief Module file for Unix POSIX thread manipulation operations.
  *
  * This file contains the implementation of the Unix POSIX thread manipulation operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <pthread.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.pthread;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.pthread;
 #else
-export module stdlibx.os.unix.pthread;
+export module stdlibx:os.unix.pthread;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file Logger.cppm
- * @module stdx.util.logging.Logger
+ * @module stdx:util.logging.Logger
  * @brief Implementation of individual Logger instances.
  *
  * This file contains the Logger class which represents a named logger instance
@@ -11,17 +11,26 @@ module;
 
 #include <vector>
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
-export module stdx.util.logging.Logger;
-
-export import stdx.util.logging.Level;
-export import stdx.util.logging.Sinks;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:util.logging.Logger;
 
 import std;
+#else
+export module stdlibx:util.logging.Logger;
 
+import stdlib;
+#endif
+
+import core;
+
+import :util.logging.Level;
+import :util.logging.Sinks;
+
+#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 using std::collections::Vector;
 using std::fmt::FormatString;
 using std::mem::SharedPointer;
+using std::meta::SourceLocation;
 using std::time::LocalTime;
 using std::time::SystemClock;
 using std::time::TimePoint;
@@ -31,16 +40,10 @@ namespace fmt = std::fmt;
 namespace mem = std::mem;
 namespace time = std::time;
 #else
-export module stdlibx.util.logging.Logger;
-
-export import stdlibx.util.logging.Level;
-export import stdlibx.util.logging.LogSink;
-
-import stdlib;
-
 using stdlib::collections::Vector;
 using stdlib::fmt::FormatString;
 using stdlib::mem::SharedPointer;
+using stdlib::meta::SourceLocation;
 using stdlib::time::LocalTime;
 using stdlib::time::SystemClock;
 using stdlib::time::TimePoint;
@@ -70,13 +73,14 @@ private:
     String loggerName;
     Vector<SharedPointer<ILogSink>> sinks;
     Level minLevel;
+    bool enableSourceLocation;
 
     /**
      * @brief Get the current time as a string.
      * @return The current time formatted as a string.
      */
     [[nodiscard]]
-    static String getCurrentTimeAsString() {
+    static String current_time_as_string() {
         TimePoint<SystemClock> now = SystemClock::now();
         LocalTime<Seconds> currentTime = time::current_zone()->to_local(time::floor<Seconds>(now));
         return fmt::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
@@ -87,9 +91,10 @@ public:
      *
      * @param loggerName The name of this logger
      * @param minimumLevel Minimum log level to output (default: DEBUG)
+     * @param enableSourceLocation Whether to capture source location (default: false)
      */
-    explicit Logger(String loggerName, Level minimumLevel = Level::DEBUG):
-        loggerName{std::util::move(loggerName)}, minLevel{minimumLevel} {}
+    explicit Logger(StringView loggerName, Level minimumLevel = Level::DEBUG, bool enableSourceLocation = false):
+        loggerName{String(loggerName)}, minLevel{minimumLevel}, enableSourceLocation{enableSourceLocation} {}
 
     /**
      * @brief Add a sink to this logger.
@@ -97,7 +102,7 @@ public:
      * @param sink The sink to add
      */
     Logger& add_sink(SharedPointer<ILogSink> sink) {
-        sinks.emplace_back(std::util::move(sink));
+        sinks.emplace_back(core::util::move(sink));
         return *this;
     }
 
@@ -128,18 +133,24 @@ public:
      * @param level The log level
      * @param fmt Format string
      * @param args Arguments for the format string
+     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void log(Level level, const FormatString<Args...>& fmt, Args&&... args) const {
-        if (static_cast<u8>(level) < static_cast<u8>(minLevel)) {
+    void log(
+        Level level,
+        const FormatString<Args...>& fmt,
+        Args&&... args,
+        const SourceLocation& location = SourceLocation::current()
+    ) const {
+        if (core::util::to_underlying(level) < core::util::to_underlying(minLevel)) {
             return;
         }
 
-        String message = std::fmt::format(fmt, std::util::forward<Args>(args)...);
-        String timestamp = getCurrentTimeAsString();
+        String message = fmt::format(fmt, core::util::forward<Args>(args)...);
+        String timestamp = current_time_as_string();
 
         for (const SharedPointer<ILogSink>& sink: sinks) {
-            sink->write(timestamp, level, loggerName, message);
+            sink->write(timestamp, level, loggerName, message, enableSourceLocation, location);
         }
     }
 
@@ -149,10 +160,15 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
+     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void trace(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::TRACE, fmt, std::util::forward<Args>(args)...);
+    void trace(
+        const FormatString<Args...>& fmt,
+        Args&&... args,
+        const SourceLocation& location = SourceLocation::current()
+    ) const {
+        log(Level::TRACE, fmt, core::util::forward<Args>(args)..., location);
     }
 
     /**
@@ -161,10 +177,12 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
+     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void debug(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::DEBUG, fmt, std::util::forward<Args>(args)...);
+    void debug(const FormatString<Args...>& fmt, Args&&... args,
+              const SourceLocation& location = SourceLocation::current()) const {
+        log(Level::DEBUG, fmt, core::util::forward<Args>(args)..., location);
     }
 
     /**
@@ -173,10 +191,15 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
+     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void info(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::INFO, fmt, std::util::forward<Args>(args)...);
+    void info(
+        const FormatString<Args...>& fmt,
+        Args&&... args,
+        const SourceLocation& location = SourceLocation::current()
+    ) const {
+        log(Level::INFO, fmt, core::util::forward<Args>(args)..., location);
     }
 
     /**
@@ -185,10 +208,15 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
+     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void warn(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::WARNING, fmt, std::util::forward<Args>(args)...);
+    void warn(
+        const FormatString<Args...>& fmt,
+        Args&&... args,
+        const SourceLocation& location = SourceLocation::current()
+    ) const {
+        log(Level::WARNING, fmt, core::util::forward<Args>(args)..., location);
     }
 
     /**
@@ -197,10 +225,15 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
+     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void error(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::ERROR, fmt, std::util::forward<Args>(args)...);
+    void error(
+        const FormatString<Args...>& fmt,
+        Args&&... args,
+        const SourceLocation& location = SourceLocation::current()
+    ) const {
+        log(Level::ERROR, fmt, core::util::forward<Args>(args)..., location);
     }
 
     /**

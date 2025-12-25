@@ -1,6 +1,6 @@
 /**
  * @file utility.cppm
- * @module core.util.utility
+ * @module core:util.utility
  * @brief Module file for standard library utility operations.
  *
  * This file contains the implementation of the utility operations in the standard library.
@@ -10,9 +10,9 @@ module;
 
 #include <utility>
 
-export module core.util.utility;
+export module core:util.utility;
 
-import core.cstddef;
+import :cstddef;
 
 using core::usize;
 

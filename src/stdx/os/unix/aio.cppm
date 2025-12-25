@@ -1,6 +1,6 @@
 /**
  * @file aio.cppm
- * @module stdx.os.unix.aio
+ * @module stdx:os.unix.aio
  * @brief Module file for Unix asynchronous I/O operations.
  *
  * This file contains the implementation of the Unix asynchronous I/O operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <aio.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.aio;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.aio;
 #else
-export module stdlibx.os.unix.aio;
+export module stdlibx:os.unix.aio;
 #endif
 
 /**

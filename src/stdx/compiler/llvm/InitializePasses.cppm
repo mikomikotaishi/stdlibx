@@ -1,6 +1,6 @@
 /**
  * @file InitializePasses.cppm
- * @module stdx.compiler.llvm.InitializePasses
+ * @module stdx:compiler.llvm.InitializePasses
  * @brief LLVM header file
  */
 
@@ -11,10 +11,10 @@ module;
 #include <llvm/PassRegistry.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.compiler.llvm.InitializePasses;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:compiler.llvm.InitializePasses;
 #else
-export module stdlibx.compiler.llvm.InitializePasses;
+export module stdlibx:compiler.llvm.InitializePasses;
 #endif
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY

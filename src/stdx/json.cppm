@@ -1,6 +1,6 @@
 /**
  * @file json.cppm
- * @module stdx.json
+ * @module stdx:json
  * @brief Import of JSON modules.
  *
  * This file imports the modules for the JSON handling library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.json;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:json;
 #else
-export module stdlibx.json;
+export module stdlibx:json;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 
 #else
 

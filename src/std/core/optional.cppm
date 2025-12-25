@@ -10,13 +10,13 @@ module;
 
 #include "Macros.hpp"
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.core.optional;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:core.optional;
 #else
-export module stdlib.core.optional;
+export module stdlib:core.optional;
 #endif
 
-import core.optional;
+import core;
 
 /**
  * @namespace std::core

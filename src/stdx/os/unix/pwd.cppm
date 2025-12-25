@@ -1,6 +1,6 @@
 /**
  * @file pwd.cppm
- * @module stdx.os.unix.pwd
+ * @module stdx:os.unix.pwd
  * @brief Module file for Unix password access/control operations.
  *
  * This file contains the implementation of the Unix password access/control operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <pwd.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.pwd;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.pwd;
 #else
-export module stdlibx.os.unix.pwd;
+export module stdlibx:os.unix.pwd;
 #endif
 
 /**

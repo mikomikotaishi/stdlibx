@@ -1,6 +1,6 @@
 /**
  * @file algorithm.cppm
- * @module core.math.algorithm
+ * @module core:math.algorithm
  * @brief Module file for standard library mathematical operations from <algorithm>.
  *
  * This file contains the implementation of the mathematical operations from <algorithm> in the standard library.
@@ -10,7 +10,7 @@ module;
 
 #include <algorithm>
 
-export module core.math.algorithm;
+export module core:math.algorithm;
 
 /**
  * @namespace core::math

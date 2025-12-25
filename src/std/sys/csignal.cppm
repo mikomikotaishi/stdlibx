@@ -1,6 +1,6 @@
 /**
  * @file csignal.cppm
- * @module std.sys.csignal
+ * @module std:sys.csignal
  * @brief Module file for standard library C-style signal operations.
  *
  * This file contains the implementation of the C-style signal operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.sys.csignal;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:sys.csignal;
 #else
-export module stdlib.sys.csignal;
+export module stdlib:sys.csignal;
 #endif
 
-import core.sys.csignal;
+import core;
 
 /**
  * @namespace std::sys

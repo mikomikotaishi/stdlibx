@@ -1,6 +1,6 @@
 /**
  * @file hash_map.cppm
- * @module std.collections.hash_map
+ * @module std:collections.hash_map
  * @brief Module file for standard library hash map operations.
  *
  * This file contains the implementation of the hash map operations in the standard library.
@@ -8,13 +8,13 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.collections.hash_map;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:collections.hash_map;
 #else
-export module stdlib.collections.hash_map;
+export module stdlib:collections.hash_map;
 #endif
 
-import alloc.collections.hash_map;
+import alloc;
 
 /**
  * @namespace std::collections

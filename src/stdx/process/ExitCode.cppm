@@ -1,6 +1,6 @@
 /**
  * @file ExitCode.cppm
- * @module stdx.process.ExitCode
+ * @module stdx:process.ExitCode
  * @brief Implementation of the ExitCode class.
  *
  * This file contains the implementation of the ExitCode class, which is used to
@@ -8,17 +8,17 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.process.ExitCode;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:process.ExitCode;
 
 import std;
-import stdx.os;
 #else
-export module stdlibx.process.ExitCode;
+export module stdlibx:process.ExitCode;
 
 import stdlib;
-import stdlibx.os;
 #endif
+
+import :os;
 
 #ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
 using namespace stdx::os;
@@ -36,14 +36,15 @@ export namespace stdx::process {
 export namespace stdlibx::process {
 #endif
 
-class ExitCode {
+class [[nodiscard]] ExitCode {
 private:
     i32 exitCode;
 public:
     explicit ExitCode(i32 exitCode):
         exitCode{exitCode} {}
 
-    i32 code() const {
+    [[nodiscard]]
+    i32 code() const noexcept {
         return exitCode;
     }
 

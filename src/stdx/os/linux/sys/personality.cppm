@@ -1,6 +1,6 @@
 /**
  * @file personality.cppm
- * @module stdx.os.linux.sys.personality
+ * @module stdx:os.linux.sys.personality
  * @brief Module file for Unix operations.
  *
  * This file contains the implementation of the Unix operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/personality.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux.sys.personality;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux.sys.personality;
 #else
-export module stdlibx.os.linux.sys.personality;
+export module stdlibx:os.linux.sys.personality;
 #endif
 
 /**

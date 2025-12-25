@@ -1,6 +1,6 @@
 /**
  * @file linux.cppm
- * @module stdx.os.linux
+ * @module stdx:os.linux
  * @brief Module file for Linux operations.
  *
  * This file contains the implementation of the Linux operations.
@@ -8,22 +8,14 @@
 
 module;
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.linux;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.linux;
 #else
-export module stdlibx.os.linux;
+export module stdlibx:os.linux;
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export import stdx.os.linux.arpa;
-export import stdx.os.linux.asmgeneric;
-export import stdx.os.linux.net;
-export import stdx.os.linux.netinet;
-export import stdx.os.linux.sys;
-#else
-export import stdlibx.os.linux.arpa;
-export import stdx.os.linux.asmgeneric;
-export import stdlibx.os.linux.net;
-export import stdlibx.os.linux.netinet;
-export import stdlibx.os.linux.sys;
-#endif
+export import :os.linux.arpa;
+export import :os.linux.asmgeneric;
+export import :os.linux.net;
+export import :os.linux.netinet;
+export import :os.linux.sys;

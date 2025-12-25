@@ -1,6 +1,6 @@
 /**
  * @file semaphore.cppm
- * @module stdx.os.unix.semaphore
+ * @module stdx:os.unix.semaphore
  * @brief Module file for Unix POSIX semaphore operations.
  *
  * This file contains the implementation of the Unix POSIX semaphore operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <semaphore.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.semaphore;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.semaphore;
 #else
-export module stdlibx.os.unix.semaphore;
+export module stdlibx:os.unix.semaphore;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file string.cppm
- * @module std.io.string
+ * @module std:io.string
  * @brief Module file for standard library string operations.
  *
  * This file contains the implementation of the string operations in the standard library.
@@ -10,10 +10,10 @@ module;
 
 #include <string>
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module std.io.string;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module std:io.string;
 #else
-export module stdlib.io.string;
+export module stdlib:io.string;
 #endif
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file un.cppm
- * @module stdx.os.unix.sys.un
+ * @module stdx:os.unix.sys.un
  * @brief Module file for Unix domain socket operations.
  *
  * This file contains the implementation of the Unix domain socket operations from the POSIX libraries,
@@ -13,10 +13,10 @@ module;
 #include <sys/un.h>
 #endif
 
-#ifdef STDLIBX_NO_RESERVED_STD_MODULE
-export module stdx.os.unix.sys.un;
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+export module stdx:os.unix.sys.un;
 #else
-export module stdlibx.os.unix.sys.un;
+export module stdlibx:os.unix.sys.un;
 #endif
 
 /**
