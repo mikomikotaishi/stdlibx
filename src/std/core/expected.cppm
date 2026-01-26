@@ -35,7 +35,7 @@ export namespace stdlib::core {
     using ::core::UnexpectTag;
     using ::core::Unexpect;
     using ::core::BadExpectedAccessException;
-    using ::core::Error;
+    using ::core::ErrorDescription;
 
     using ::core::swap;
 

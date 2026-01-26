@@ -133,14 +133,27 @@ public:
      * @param level The log level
      * @param fmt Format string
      * @param args Arguments for the format string
-     * @param location Source location (automatically captured at call site)
+     */
+    template <typename... Args>
+    void log(Level level, const FormatString<Args...>& fmt, Args&&... args) const {
+        log(level, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+    }
+
+    /**
+     * @brief Log a message at the specified level with explicit source location.
+     *
+     * @tparam Args Template parameter pack for format arguments
+     * @param level The log level
+     * @param fmt Format string
+     * @param location Source location
+     * @param args Arguments for the format string
      */
     template <typename... Args>
     void log(
         Level level,
         const FormatString<Args...>& fmt,
-        Args&&... args,
-        const SourceLocation& location = SourceLocation::current()
+        const SourceLocation& location,
+        Args&&... args
     ) const {
         if (core::util::to_underlying(level) < core::util::to_underlying(minLevel)) {
             return;
@@ -160,15 +173,23 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
-     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void trace(
-        const FormatString<Args...>& fmt,
-        Args&&... args,
-        const SourceLocation& location = SourceLocation::current()
-    ) const {
-        log(Level::TRACE, fmt, core::util::forward<Args>(args)..., location);
+    void trace(const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::TRACE, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+    }
+
+    /**
+     * @brief Log a diagnostic/tracing message with explicit source location.
+     *
+     * @tparam Args Template parameter pack for format arguments
+     * @param location Source location
+     * @param fmt Format string
+     * @param args Arguments for the format string
+     */
+    template <typename... Args>
+    void trace(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::TRACE, fmt, location, core::util::forward<Args>(args)...);
     }
 
     /**
@@ -177,12 +198,23 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
-     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void debug(const FormatString<Args...>& fmt, Args&&... args,
-              const SourceLocation& location = SourceLocation::current()) const {
-        log(Level::DEBUG, fmt, core::util::forward<Args>(args)..., location);
+    void debug(const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::DEBUG, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+    }
+
+    /**
+     * @brief Log a debug message with explicit source location.
+     *
+     * @tparam Args Template parameter pack for format arguments
+     * @param location Source location
+     * @param fmt Format string
+     * @param args Arguments for the format string
+     */
+    template <typename... Args>
+    void debug(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::DEBUG, fmt, location, core::util::forward<Args>(args)...);
     }
 
     /**
@@ -191,15 +223,23 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
-     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void info(
-        const FormatString<Args...>& fmt,
-        Args&&... args,
-        const SourceLocation& location = SourceLocation::current()
-    ) const {
-        log(Level::INFO, fmt, core::util::forward<Args>(args)..., location);
+    void info(const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::INFO, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+    }
+
+    /**
+     * @brief Log an info message with explicit source location.
+     *
+     * @tparam Args Template parameter pack for format arguments
+     * @param location Source location
+     * @param fmt Format string
+     * @param args Arguments for the format string
+     */
+    template <typename... Args>
+    void info(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::INFO, fmt, location, core::util::forward<Args>(args)...);
     }
 
     /**
@@ -208,15 +248,23 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
-     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void warn(
-        const FormatString<Args...>& fmt,
-        Args&&... args,
-        const SourceLocation& location = SourceLocation::current()
-    ) const {
-        log(Level::WARNING, fmt, core::util::forward<Args>(args)..., location);
+    void warn(const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::WARNING, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+    }
+
+    /**
+     * @brief Log a warning message with explicit source location.
+     *
+     * @tparam Args Template parameter pack for format arguments
+     * @param location Source location
+     * @param fmt Format string
+     * @param args Arguments for the format string
+     */
+    template <typename... Args>
+    void warn(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::WARNING, fmt, location, core::util::forward<Args>(args)...);
     }
 
     /**
@@ -225,15 +273,23 @@ public:
      * @tparam Args Template parameter pack for format arguments
      * @param fmt Format string
      * @param args Arguments for the format string
-     * @param location Source location (automatically captured at call site)
      */
     template <typename... Args>
-    void error(
-        const FormatString<Args...>& fmt,
-        Args&&... args,
-        const SourceLocation& location = SourceLocation::current()
-    ) const {
-        log(Level::ERROR, fmt, core::util::forward<Args>(args)..., location);
+    void error(const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::ERROR, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+    }
+
+    /**
+     * @brief Log an error message with explicit source location.
+     *
+     * @tparam Args Template parameter pack for format arguments
+     * @param location Source location
+     * @param fmt Format string
+     * @param args Arguments for the format string
+     */
+    template <typename... Args>
+    void error(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
+        log(Level::ERROR, fmt, location, core::util::forward<Args>(args)...);
     }
 
     /**

@@ -144,7 +144,7 @@ public:
      * 
      * @param enable Whether to enable source location tracking
      */
-    LoggerFactory& with_source_locations(bool enable) noexcept {
+    LoggerFactory& with_source_location(bool enable) noexcept {
         ScopedLock<Mutex> lock(mutex);
         enableSourceLocation = enable;
         return *this;

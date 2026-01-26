@@ -8,12 +8,15 @@ target_sources(stdlibx_stdx
 
 configure_cpp_module_target(stdlibx_stdx)
 
+
 target_link_libraries(stdlibx_stdx PUBLIC stdlibx_std)
 
 target_include_directories(stdlibx_stdx 
     PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
 )
+
+add_library(stdlibx::stdx ALIAS stdlibx_stdx)
 
 if(STDLIBX_NO_STD)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_NO_STD)

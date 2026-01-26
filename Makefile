@@ -16,6 +16,7 @@ CMAKE_BUILD_FLAGS :=
 # Process build options
 ifneq ($(BUILD_TESTS),OFF)
 	CMAKE_BUILD_FLAGS += -DSTDLIBX_BUILD_TESTS=ON
+	CMAKE_BUILD_FLAGS += -DSTDLIBX_EXTENSIONS=ON
 endif
 
 # Sanitiser configuration (can be overridden with make SANITIZERS="address undefined")

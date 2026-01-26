@@ -13,6 +13,8 @@ target_include_directories(stdlibx_core
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
 )
 
+add_library(stdlibx::core ALIAS stdlibx_core)
+
 if(STDLIBX_NO_STD)
     target_compile_definitions(stdlibx_core PRIVATE STDLIBX_NO_STD)
 endif()

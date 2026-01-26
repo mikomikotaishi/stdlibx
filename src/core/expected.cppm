@@ -46,18 +46,18 @@ export namespace core {
     using BadExpectedAccessException = std::bad_expected_access<E>;
 
     template <typename E>
-    class [[nodiscard]] Error {
+    class [[nodiscard]] ErrorDescription {
     private:
         E err;
         StringView msg;
     public:
-        constexpr Error(E err, StringView msg = ""):
+        constexpr ErrorDescription(E err, StringView msg = ""):
             err{err}, msg{msg} {}
-        constexpr ~Error() = default;
-        constexpr Error(const Error& other) = default;
-        constexpr Error(Error&& other) = default;
-        constexpr Error& operator=(const Error& other) = default;
-        constexpr Error& operator=(Error&& other) = default;
+        constexpr ~ErrorDescription() = default;
+        constexpr ErrorDescription(const ErrorDescription& other) = default;
+        constexpr ErrorDescription(ErrorDescription&& other) = default;
+        constexpr ErrorDescription& operator=(const ErrorDescription& other) = default;
+        constexpr ErrorDescription& operator=(ErrorDescription&& other) = default;
 
         [[nodiscard]]
         constexpr E error() const noexcept {
