@@ -19,13 +19,6 @@ export import :fmt.cinttypes.constants;
  * @brief Wrapper namespace for standard library format operations.
  */
 export namespace core::fmt {
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using IMaxDiv_t = std::imaxdiv_t;
-    using IntegerMaxDiv_t = std::imaxdiv_t;
-    using IMaxDiv = std::imaxdiv_t;
-    using IntegerMaxDiv = std::imaxdiv_t;
-    using IntegerMaximumDivision_t = std::imaxdiv_t;
-    #endif
 
     using IntegerMaximumDivision = std::imaxdiv_t;
 

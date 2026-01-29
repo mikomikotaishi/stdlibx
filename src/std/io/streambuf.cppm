@@ -25,11 +25,6 @@ export namespace std::io {
 #else 
 export namespace stdlib::io {
 #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::io::BasicStreamBuf;
-    using core::io::StreamBuf;
-    using core::io::WStreamBuf;
-    #endif
 
     using core::io::BasicStreamBuffer;
     using core::io::StreamBuffer;

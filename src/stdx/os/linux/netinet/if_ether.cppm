@@ -29,9 +29,6 @@ export namespace stdx::os::linux::netinet {
 export namespace stdlibx::os::linux::netinet {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using EtherArp = ::ether_arp;
-    #endif
 
     using EthernetArp = ::ether_arp;
     #endif

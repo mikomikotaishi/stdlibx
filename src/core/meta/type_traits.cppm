@@ -20,10 +20,6 @@ export namespace core::meta {
     template <typename T, T v>
     using IntegralConstant = std::integral_constant<T, v>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <bool B>
-    using BoolConstant = std::bool_constant<B>;
-    #endif
 
     template <bool B>
     using BooleanConstant = std::bool_constant<B>;
@@ -451,54 +447,7 @@ export namespace core::meta {
     template <typename R, typename Fn, typename... ArgTypes>
     constexpr bool IsNothrowInvocableReturnValue = std::is_nothrow_invocable_r_v<R, Fn, ArgTypes...>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T>
-    using RemoveConst_t = std::remove_const_t<T>;
 
-    template <typename T>
-    using RemoveVolatile_t = std::remove_volatile_t<T>;
-
-    template <typename T>
-    using AddConst_t = std::add_const_t<T>;
-
-    template <typename T>
-    using AddVolatile_t = std::add_volatile_t<T>;
-
-    template <typename T>
-    using RemoveReference_t = std::remove_reference_t<T>;
-
-    template <typename T>
-    using AddLvalueReference_t = std::add_lvalue_reference_t<T>;
-
-    template <typename T>
-    using AddRvalueReference_t = std::add_rvalue_reference_t<T>;
-
-    template <typename T>
-    using AddPointer_t = std::add_pointer_t<T>;
-
-    template <typename T>
-    using MakeSigned_t = std::make_signed_t<T>;
-
-    template <typename T>
-    using MakeUnsigned_t = std::make_unsigned_t<T>;
-
-    template <typename T>
-    using RemoveExtent_t = std::remove_extent_t<T>;
-
-    template <typename T>
-    using RemoveAllExtents_t = std::remove_all_extents_t<T>;
-    #endif
-
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T>
-    using RemoveCV = std::remove_cv<T>;
-
-    template <typename T>
-    using RemoveCV_t = std::remove_cv_t<T>;
-
-    template <typename T>
-    using RemoveConstVolatile_t = std::remove_cv_t<T>;
-    #endif
 
     template <typename T>
     using RemoveConstVolatile = std::remove_cv<T>;
@@ -518,16 +467,6 @@ export namespace core::meta {
     template <typename T>
     using RemoveVolatileType = std::remove_volatile_t<T>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T>
-    using AddCV = std::add_cv<T>;
-
-    template <typename T>
-    using AddCV_t = std::add_cv_t<T>;
-
-    template <typename T>
-    using AddConstVolatile_t = std::add_cv_t<T>;
-    #endif
 
     template <typename T>
     using AddConstVolatile = std::add_cv<T>;
@@ -607,13 +546,6 @@ export namespace core::meta {
     template <typename T>
     using DecayType = std::decay_t<T>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T>
-    using RemoveCVRef = std::remove_cvref<T>;
-
-    template <typename T>
-    using RemoveCVRef_t = std::remove_cvref_t<T>;
-    #endif
 
     template <typename T>
     using RemoveConstVolatileReference = std::remove_cvref<T>;
@@ -692,16 +624,6 @@ export namespace core::meta {
     template <typename Bn>
     constexpr bool NegationValue = std::negation_v<Bn>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename Bn>
-    constexpr bool Conjunction_v = std::conjunction_v<Bn>;
-
-    template <typename Bn>
-    constexpr bool Disjunction_v = std::disjunction_v<Bn>;
-
-    template <typename Bn>
-    constexpr bool Negation_v = std::negation_v<Bn>;
-    #endif
 
     using std::is_constant_evaluated;
 }

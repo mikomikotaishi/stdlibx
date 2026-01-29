@@ -33,13 +33,6 @@ export namespace alloc::collections {
     template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
     using HashMultimap = std::unordered_multimap<Key, Value, HashFn, Predicate, Alloc>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
-    using UnorderedMap = HashMap<Key, Value, HashFn, Predicate, Alloc>;
-
-    template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
-    using UnorderedMultimap = HashMultimap<Key, Value, HashFn, Predicate, Alloc>;
-    #endif
 
     /**
      * @namespace pmr
@@ -52,13 +45,6 @@ export namespace alloc::collections {
         template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
         using HashMultimap = std::pmr::unordered_multimap<Key, Value, HashFn, Predicate>;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
-        using UnorderedMap = HashMap<Key, Value, HashFn, Predicate>;
-
-        template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
-        using UnorderedMultimap = HashMultimap<Key, Value, HashFn, Predicate>;
-        #endif
     }
 
     using std::erase_if;

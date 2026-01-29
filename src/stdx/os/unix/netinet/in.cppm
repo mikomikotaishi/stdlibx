@@ -29,10 +29,6 @@ export namespace stdx::os::unix::netinet {
 export namespace stdlibx::os::unix::netinet {
 #endif
     #ifdef __unix__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using InAddr = ::in_addr;
-    using In6Addr = ::in6_addr;
-    #endif
 
     using InternetAddress = ::in_addr;
     using Internet6Address = ::in6_addr;
@@ -40,14 +36,6 @@ export namespace stdlibx::os::unix::netinet {
     using ::in6addr_any;
     using ::in6addr_loopback;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using IpMReq = ::ip_mreq;
-    using IpMReqN = ::ip_mreqn;
-    using IpMReqSource = ::ip_mreq_source;
-    using IpV6MReq = ::ipv6_mreq;
-    using GroupReq = ::group_req;
-    using GroupSourceReq = ::group_source_req;
-    #endif
 
     using IpMulticastRequest = ::ip_mreq;
     using IpMulticastRequestN = ::ip_mreqn;
@@ -61,12 +49,6 @@ export namespace stdlibx::os::unix::netinet {
     using ::bindresvport;
     using ::bindresvport6;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using CMsgHdr = ::cmsghdr;
-
-    using In6PktInfo = ::in6_pktinfo;
-    using Ip6MtuInfo = ::ip6_mtuinfo;
-    #endif
 
     using ControlMessageHeader = ::cmsghdr;
 

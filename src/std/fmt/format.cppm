@@ -43,9 +43,6 @@ export namespace stdlib::fmt {
 
     using FormatParseContext = std::format_parse_context;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using WFormatParseContext = std::wformat_parse_context;
-    #endif
     
     using WideFormatParseContext = std::wformat_parse_context;
 
@@ -54,9 +51,6 @@ export namespace stdlib::fmt {
 
     using FormatContext = std::format_context;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using WFormatContext = std::wformat_context;
-    #endif
 
     using WideFormatContext = std::wformat_context;
 

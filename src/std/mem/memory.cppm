@@ -30,11 +30,6 @@ export namespace stdlib::mem {
     using alloc::mem::AllocatorTraits;
     using alloc::mem::UsesAllocator;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::mem::UniquePtr;
-    using alloc::mem::SharedPtr;
-    using alloc::mem::WeakPtr;
-    #endif
 
     using alloc::mem::UniquePointer;
     using alloc::mem::SharedPointer;
@@ -47,10 +42,6 @@ export namespace stdlib::mem {
 
     using alloc::mem::hash;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::mem::OutPtr_t;
-    using alloc::mem::InOutPtr_t;
-    #endif
 
     using alloc::mem::OutputPointer;
     using alloc::mem::InOutPointer;

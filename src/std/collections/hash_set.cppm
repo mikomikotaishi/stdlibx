@@ -28,10 +28,6 @@ export namespace stdlib::collections {
     using alloc::collections::HashSet;
     using alloc::collections::HashMultiset;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::collections::UnorderedSet;
-    using alloc::collections::UnorderedMultiset;
-    #endif
 
     /**
      * @namespace pmr
@@ -41,10 +37,6 @@ export namespace stdlib::collections {
         using alloc::collections::pmr::HashSet;
         using alloc::collections::pmr::HashMultiset;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using alloc::collections::pmr::UnorderedSet;
-        using alloc::collections::pmr::UnorderedMultiset;
-        #endif
     }
 
     using alloc::collections::erase_if;

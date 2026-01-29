@@ -32,13 +32,6 @@ export namespace alloc::collections {
             IsSameValue<typename Alloc::value_type, T>
     using SinglyLinkedList = std::forward_list<T, Alloc>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T, typename Alloc = Allocator<T>>
-        requires 
-            IsSameValue<typename RemoveConstVolatile<T>::type, T> &&
-            IsSameValue<typename Alloc::value_type, T>
-    using ForwardList = std::forward_list<T, Alloc>;
-    #endif
 
     /**
      * @namespace pmr
@@ -48,10 +41,6 @@ export namespace alloc::collections {
         template <typename T>
         using SinglyLinkedList = std::pmr::forward_list<T>;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        template <typename T>
-        using ForwardList = std::pmr::forward_list<T>;
-        #endif
     }
 
     using std::erase;

@@ -48,16 +48,6 @@ export namespace core::ranges {
     }
 
     inline namespace range_cpo {
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        inline constexpr access::ConstBegin CBegin = std::ranges::cbegin;
-        inline constexpr access::ConstEnd CEnd = std::ranges::cend;
-        inline constexpr access::ReverseBegin RBegin = std::ranges::rbegin;
-        inline constexpr access::ReverseEnd REnd = std::ranges::rend;
-        inline constexpr access::ConstReverseBegin CRBegin = std::ranges::crbegin;
-        inline constexpr access::ConstReverseEnd CREnd = std::ranges::crend;
-        inline constexpr access::SignedSize SSize = std::ranges::ssize;
-        inline constexpr access::ConstData CData = std::ranges::cdata;
-        #endif
         inline constexpr access::Begin Begin = std::ranges::begin;
         inline constexpr access::End End = std::ranges::end;
         inline constexpr access::ConstBegin ConstBegin = std::ranges::cbegin;
@@ -123,52 +113,6 @@ export namespace core::ranges {
 
     using std::ranges::to;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T>
-    using Iterator_t = std::ranges::iterator_t<T>;
-
-    template <Range R>
-    using ConstIterator_t = std::ranges::const_iterator_t<R>;
-
-    template <Range R>
-    using Sentinel_t = std::ranges::sentinel_t<R>;
-
-    template <Range R>
-    using ConstSentinel_t = std::ranges::const_sentinel_t<R>;
-
-    template <typename T>
-    using RangeIterator_t = std::ranges::iterator_t<T>;
-
-    template <Range R>
-    using RangeConstIterator_t = std::ranges::const_iterator_t<R>;
-
-    template <Range R>
-    using RangeSentinel_t = std::ranges::sentinel_t<R>;
-
-    template <Range R>
-    using RangeConstSentinel_t = std::ranges::const_sentinel_t<R>;
-
-    template <Range R>
-    using RangeDifference_t = std::ranges::range_difference_t<R>;
-
-    template <SizedRange R>
-    using RangeSize_t = std::ranges::range_size_t<R>;
-
-    template <Range R>
-    using RangeValue_t = std::ranges::range_value_t<R>;
-
-    template <Range R>
-    using RangeReference_t = std::ranges::range_reference_t<R>;
-
-    template <Range R>
-    using RangeConstReference_t = std::ranges::range_const_reference_t<R>;
-
-    template <Range R>
-    using RangeRvalueReference_t = std::ranges::range_rvalue_reference_t<R>;
-
-    template <Range R>
-    using RangeCommonReference_t = std::ranges::range_common_reference_t<R>;
-    #endif
 
     template <typename T>
     using RangeIterator = std::ranges::iterator_t<T>;
@@ -283,10 +227,6 @@ export namespace core::ranges {
     template <typename Derived>
     using RangeAdaptorClosure = std::ranges::range_adaptor_closure<Derived>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <Range R>
-    using RefView = std::ranges::ref_view<R>;
-    #endif
 
     template <Range R>
     using ReferenceView = std::ranges::ref_view<R>;

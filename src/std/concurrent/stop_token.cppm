@@ -34,9 +34,6 @@ export namespace stdlib::concurrent {
     template <typename Callback>
     using StopCallback = ::std::stop_callback<Callback>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using NoStopState_t = ::std::nostopstate_t;
-    #endif
 
     using NoStopStateTag = ::std::nostopstate_t;
     inline constexpr NoStopStateTag NoStopState = ::std::nostopstate;

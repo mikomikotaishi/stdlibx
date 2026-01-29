@@ -32,9 +32,6 @@ export namespace stdlibx::os::linux::sys {
     using ToStruct = ::tostruct;
     using RawArc = ::rawarc;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using GmonParam = ::gmonparam;
-    #endif
 
     using GmonParameter = ::gmonparam;
 

@@ -121,10 +121,6 @@ export namespace stdlib::fs {
         static constexpr Self NO_FOLLOW = std::filesystem::perm_options::nofollow;
     };
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using Perms = Permissions;
-    using PermOptions = PermissionOptions;
-    #endif
 
     using FileStatus = std::filesystem::file_status;
 

@@ -43,15 +43,10 @@ export namespace stdlib::net {
     template <typename Protocol>
     using BasicSocketAcceptor = std::experimental::net::basic_socket_acceptor<Protocol>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename Protocol>
-    using BasicSocketStreamBuf = std::experimental::net::basic_socket_streambuf<Protocol>;
-    #endif
-
     template <typename Protocol>
     using BasicSocketStreamBuffer = std::experimental::net::basic_socket_streambuf<Protocol>;
 
     template <typename Protocol>
-    using BasicSocketIOStream = std::experimental::net::basic_socket_iostream<Protocol>;
+    using BasicSocketInputOutputStream = std::experimental::net::basic_socket_iostream<Protocol>;
     #endif
 }

@@ -30,14 +30,6 @@ export namespace stdlibx::os::linux::sys {
 #endif
     #ifdef __linux__
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using IfDqBlk = ::if_dqblk;
-    using IfNextDqBlk = ::if_nextdqblk;
-    using IfDqInfo = ::if_dqinfo;
-
-    using DqBlk = ::dqblk;
-    using DqInfo = ::dqinfo;
-    #endif
 
     using InformationDefaultQuotaBlock = ::if_dqblk;
     using InformationNextDefaultQuotaBlock = ::if_nextdqblk;

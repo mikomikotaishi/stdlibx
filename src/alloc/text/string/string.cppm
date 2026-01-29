@@ -33,18 +33,10 @@ export namespace alloc::text::string {
     template <typename CharT, typename Traits = CharTraits<CharT>, typename Alloc = Allocator<CharT>>
     using BasicString = std::basic_string<CharT, Traits, Alloc>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using U8String = std::u8string;
-    using U16String = std::u16string;
-    using U32String = std::u32string;
-    #endif
     using Utf8String = std::u8string;
     using Utf16String = std::u16string;
     using Utf32String = std::u32string;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using WString = std::wstring;
-    #endif
 
     using WideString = std::wstring;
 
@@ -58,18 +50,10 @@ export namespace alloc::text::string {
 
         using String = std::pmr::string;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using U8String = std::pmr::u8string;
-        using U16String = std::pmr::u16string;
-        using U32String = std::pmr::u32string;
-        #endif
         using Utf8String = std::pmr::u8string;
         using Utf16String = std::pmr::u16string;
         using Utf32String = std::pmr::u32string;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using WString = std::pmr::wstring;
-        #endif
 
         using WideString = std::pmr::wstring;
     }

@@ -26,21 +26,12 @@ export namespace std::mem {
 #else 
 export namespace stdlib::mem {
 #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::mem::AlignVal_t;
-    using alloc::mem::AlignValue_t;
-    using alloc::mem::NoThrow_t;
-    using alloc::mem::DestroyingDelete_t;
-    #endif
 
     using alloc::mem::AlignValue;
     using alloc::mem::NewHandler;
     using alloc::mem::NoThrow;
     using alloc::mem::DestroyingDelete;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::mem::BadAllocException;
-    #endif
 
     using alloc::mem::HARDWARE_CONSTRUCTIVE_INTERFERENCE_SIZE;
     using alloc::mem::HARDWARE_DESTRUCTIVE_INTERFERENCE_SIZE;

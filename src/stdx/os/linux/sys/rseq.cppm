@@ -29,14 +29,6 @@ export namespace stdx::os::linux::sys {
 export namespace stdlibx::os::linux::sys {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using RSeqCpuIdState = ::rseq_cpu_id_state;
-    using RSeqFlags = ::rseq_flags;
-    using RSeqCsFlagsBit = ::rseq_cs_flags_bit;
-    using RSeqCsFlags = ::rseq_cs_flags;
-    using RSeqCs = ::rseq_cs;
-    using RSeq = ::rseq;
-    #endif
 
     using RestartableSequenceCpuIdState = ::rseq_cpu_id_state;
     using RestartableSequenceFlags = ::rseq_flags;

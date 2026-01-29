@@ -32,8 +32,8 @@ export namespace stdlib::net {
     template <typename Clock>
     using WaitTraits = std::experimental::net::wait_traits<Clock>;
 
-    template <typename Clock, typename _WaitTraits>
-    using BasicWaitableTimer = std::experimental::net::basic_waitable_timer<Clock, _WaitTraits>;
+    template <typename Clock, typename WaitTraits>
+    using BasicWaitableTimer = std::experimental::net::basic_waitable_timer<Clock, WaitTraits>;
 
     using SystemTimer = std::experimental::net::system_timer;
     using SteadyTimer = std::experimental::net::steady_timer;

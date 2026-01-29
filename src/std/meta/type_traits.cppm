@@ -26,9 +26,6 @@ export namespace std::meta {
 export namespace stdlib::meta {
 #endif
     using core::meta::IntegralConstant;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::meta::BoolConstant;
-    #endif
     using core::meta::BooleanConstant;
     using core::meta::TrueType;
     using core::meta::FalseType;
@@ -170,36 +167,12 @@ export namespace stdlib::meta {
     using core::meta::IsInvocableReturnValue;
     using core::meta::IsNothrowInvocableReturn;
     using core::meta::IsNothrowInvocableReturnValue;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::meta::RemoveConst_t;
-    using core::meta::RemoveVolatile_t;
-    using core::meta::AddConst_t;
-    using core::meta::AddVolatile_t;
-    using core::meta::RemoveReference_t;
-    using core::meta::AddLvalueReference_t;
-    using core::meta::AddRvalueReference_t;
-    using core::meta::AddPointer_t;
-    using core::meta::MakeSigned_t;
-    using core::meta::MakeUnsigned_t;
-    using core::meta::RemoveExtent_t;
-    using core::meta::RemoveAllExtents_t;
-    #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::meta::RemoveCV;
-    using core::meta::RemoveCV_t;
-    using core::meta::RemoveConstVolatile_t;
-    #endif
     using core::meta::RemoveConstVolatile;
     using core::meta::RemoveConstVolatileType;
     using core::meta::RemoveConst;
     using core::meta::RemoveConstType;
     using core::meta::RemoveVolatile;
     using core::meta::RemoveVolatileType;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::meta::AddCV;
-    using core::meta::AddCV_t;
-    using core::meta::AddConstVolatile_t;
-    #endif
     using core::meta::AddConstVolatile;
     using core::meta::AddConstVolatileType;
     using core::meta::AddConst;
@@ -226,10 +199,6 @@ export namespace stdlib::meta {
     using core::meta::RemoveAllExtentsType;
     using core::meta::Decay;
     using core::meta::DecayType;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::meta::RemoveCVRef;
-    using core::meta::RemoveCVRef_t;
-    #endif
     using core::meta::RemoveConstVolatileReference;
     using core::meta::RemoveConstVolatileReferenceType;
     using core::meta::EnableIf;
@@ -256,11 +225,6 @@ export namespace stdlib::meta {
     using core::meta::DisjunctionValue;
     using core::meta::Negation;
     using core::meta::NegationValue;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::meta::Conjunction_v;
-    using core::meta::Disjunction_v;
-    using core::meta::Negation_v;
-    #endif
 
     using core::meta::is_constant_evaluated;
 }

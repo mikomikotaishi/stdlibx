@@ -35,9 +35,6 @@ export namespace stdlibx::os::unix::sys {
     using ::settimeofday;
     using ::adjtime;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ITimerVal = ::itimerval;
-    #endif
 
     using IntervalTimerValue = ::itimerval;
 

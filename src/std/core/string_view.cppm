@@ -29,17 +29,9 @@ export namespace stdlib::core {
 #endif
     using ::core::BasicStringView;
     using ::core::StringView;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::U8StringView;
-    using ::core::U16StringView;
-    using ::core::U32StringView;
-    #endif
     using ::core::Utf8StringView;
     using ::core::Utf16StringView;
     using ::core::Utf32StringView;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::WStringView;
-    #endif
     using ::core::WideStringView;
 
     using ::core::operator==;

@@ -30,12 +30,6 @@ export namespace stdx::os::unix::net {
 export namespace stdlibx::os::unix::net {
 #endif
     #ifdef __unix__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using IfAddr = ::ifaddr;
-    using IfMap = ::ifmap;
-    using IfReq = ::ifreq;
-    using IfConf = ::ifconf;
-    #endif
 
     using InterfaceAddress = ::ifaddr;
     using InterfaceMap = ::ifmap;

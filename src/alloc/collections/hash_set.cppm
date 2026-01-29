@@ -32,13 +32,6 @@ export namespace alloc::collections {
     template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Key>>
     using HashMultiset = std::unordered_multiset<Key, HashFn, Predicate, Alloc>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Key>>
-    using UnorderedSet = HashSet<Key, HashFn, Predicate, Alloc>;
-
-    template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Key>>
-    using UnorderedMultiset = HashMultiset<Key, HashFn, Predicate, Alloc>;
-    #endif
 
     /**
      * @namespace pmr
@@ -51,13 +44,6 @@ export namespace alloc::collections {
         template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
         using HashMultiset = std::pmr::unordered_multiset<Key, HashFn, Predicate>;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
-        using UnorderedSet = HashSet<Key, HashFn, Predicate>;
-
-        template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
-        using UnorderedMultiset = HashMultiset<Key, HashFn, Predicate>;
-        #endif
     }
 
     using std::erase_if;

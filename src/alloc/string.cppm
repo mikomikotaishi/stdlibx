@@ -22,12 +22,6 @@ export namespace alloc {
     using ::alloc::text::string::String;
     using ::alloc::text::string::CharTraits;
     using ::alloc::text::string::BasicString;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::alloc::text::string::U8String;
-    using ::alloc::text::string::U16String;
-    using ::alloc::text::string::U32String;
-    using ::alloc::text::string::WString;
-    #endif
     using ::alloc::text::string::Utf8String;
     using ::alloc::text::string::Utf16String;
     using ::alloc::text::string::Utf32String;
@@ -40,12 +34,6 @@ export namespace alloc {
     namespace pmr {
         using ::alloc::text::string::pmr::BasicString;
         using ::alloc::text::string::pmr::String;
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using ::alloc::text::string::pmr::U8String;
-        using ::alloc::text::string::pmr::U16String;
-        using ::alloc::text::string::pmr::U32String;
-        using ::alloc::text::string::pmr::WString;
-        #endif
         using ::alloc::text::string::pmr::Utf8String;
         using ::alloc::text::string::pmr::Utf16String;
         using ::alloc::text::string::pmr::Utf32String;

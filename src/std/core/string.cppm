@@ -30,17 +30,9 @@ export namespace stdlib::core {
     using alloc::CharTraits;
     using alloc::BasicString;
     using alloc::String;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::U8String;
-    using alloc::U16String;
-    using alloc::U32String;
-    #endif
     using alloc::Utf8String;
     using alloc::Utf16String;
     using alloc::Utf32String;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::WString;
-    #endif
     using alloc::WideString;
 
     /**
@@ -50,12 +42,6 @@ export namespace stdlib::core {
     namespace pmr {
         using alloc::pmr::BasicString;
         using alloc::pmr::String;
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using alloc::pmr::U8String;
-        using alloc::pmr::U16String;
-        using alloc::pmr::U32String;
-        using alloc::pmr::WString;
-        #endif
         using alloc::pmr::Utf8String;
         using alloc::pmr::Utf16String;
         using alloc::pmr::Utf32String;

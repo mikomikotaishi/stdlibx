@@ -29,9 +29,6 @@ export namespace stdx::os::linux::net {
 export namespace stdlibx::os::linux::net {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ShaperConf = ::shaperconf;
-    #endif
 
     using ShaperConfig = ::shaperconf;
     #endif

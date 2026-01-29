@@ -28,18 +28,6 @@ export namespace std::io {
 export namespace stdlib::io {
 #endif
     #if __has_include(<syncstream>)
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename CharT>
-    using BasicSyncBuf = std::basic_syncbuf<CharT>;
-
-    template <typename CharT>
-    using BasicOSyncStream = std::basic_osyncstream<CharT>;
-
-    using SyncBuf = std::syncbuf;
-    using WSyncBuf = std::wsyncbuf;
-    using OSyncStream = std::osyncstream;
-    using WOSyncStream = std::wosyncstream;
-    #endif
 
     template <typename CharT>
     using BasicSyncBuffer = std::basic_syncbuf<CharT>;

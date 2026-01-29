@@ -32,13 +32,6 @@ export namespace core {
     template <std::size_t I, typename T>
     using TupleElementType = std::tuple_element_t<I, T>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T>
-    constexpr bool TupleSize_v = std::tuple_size_v<T>;
-
-    template <std::size_t I, typename T>
-    using TupleElement_t = std::tuple_element_t<I, T>;
-    #endif
 
     using std::operator==;
     using std::operator<=>;

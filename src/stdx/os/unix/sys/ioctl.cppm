@@ -33,10 +33,6 @@ export namespace stdlibx::os::unix::sys {
     #ifdef __unix__
     using ::ioctl;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using WinSize = ::winsize;
-    // using TermIO = ::termio;
-    #endif
 
     using WindowSize = ::winsize;
     // using TerminalIO = ::termio;

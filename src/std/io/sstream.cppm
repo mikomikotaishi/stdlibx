@@ -25,10 +25,6 @@ export namespace std::io {
 #else 
 export namespace stdlib::io {
 #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename CharT>
-    using BasicStringBuf = std::basic_stringbuf<CharT>;
-    #endif
 
     template <typename CharT>
     using BasicStringBuffer = std::basic_stringbuf<CharT>;
@@ -36,16 +32,6 @@ export namespace stdlib::io {
     template <typename CharT>
     using BasicStringStream = std::basic_stringstream<CharT>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename CharT>
-    using BasicIStringStream = std::basic_istringstream<CharT>;
-
-    template <typename CharT>
-    using BasicOStringStream = std::basic_ostringstream<CharT>;
-
-    using StringBuf = std::stringbuf;
-    using WStringBuf = std::wstringbuf;
-    #endif
 
     template <typename CharT>
     using BasicInputStringStream = std::basic_istringstream<CharT>;
@@ -58,13 +44,6 @@ export namespace stdlib::io {
 
     using StringStream = std::stringstream;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using WStringStream = std::wstringstream;
-    using IStringStream = std::istringstream;
-    using WIStringStream = std::wistringstream;
-    using OStringStream = std::ostringstream;
-    using WOStringStream = std::wostringstream;
-    #endif
 
     using WideStringStream = std::wstringstream;
     using InputStringStream = std::istringstream;

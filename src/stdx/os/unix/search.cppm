@@ -29,9 +29,6 @@ export namespace stdx::os::unix {
 export namespace stdlibx::os::unix {
 #endif
     #ifdef __unix__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using QElem = ::qelem;
-    #endif
 
     using QueueElement = ::qelem;
 
@@ -44,9 +41,6 @@ export namespace stdlibx::os::unix {
     using ::hcreate;
     using ::hdestroy;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using HSearchData = ::hsearch_data;
-    #endif
 
     using HashSearchData = ::hsearch_data;
 

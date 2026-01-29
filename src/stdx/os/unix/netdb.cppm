@@ -32,9 +32,6 @@ export namespace stdlibx::os::unix {
     using ::herror;
     using ::hstrerror;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using HostEnt = ::hostent;
-    #endif
 
     using HostEntry = ::hostent;
 

@@ -25,13 +25,6 @@ export namespace std::io {
 #else 
 export namespace stdlib::io {
 #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename CharT>
-    using BasicOutputStream = std::basic_ostream<CharT>;
-
-    using OStream = std::ostream;
-    using WOStream = std::wostream;
-    #endif
 
     template <typename CharT>
     using BasicOutputStream = std::basic_ostream<CharT>;

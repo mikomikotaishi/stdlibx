@@ -28,10 +28,6 @@ export namespace stdlib::collections {
     using alloc::collections::TreeSet;
     using alloc::collections::TreeMultiset;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::collections::Set;
-    using alloc::collections::Multiset;
-    #endif
 
     /**
      * @namespace pmr
@@ -41,10 +37,6 @@ export namespace stdlib::collections {
         using alloc::collections::pmr::TreeSet;
         using alloc::collections::pmr::TreeMultiset;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using alloc::collections::pmr::Set;
-        using alloc::collections::pmr::Multiset;
-        #endif
     }
 
     using alloc::collections::erase_if;

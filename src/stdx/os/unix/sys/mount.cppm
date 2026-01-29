@@ -29,10 +29,6 @@ export namespace stdx::os::unix::sys {
 export namespace stdlibx::os::unix::sys {
 #endif
     #ifdef __unix__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using MountAttr = ::mount_attr;
-    using FsConfigCommand = ::fsconfig_command;
-    #endif
 
     using MountAttribute = ::mount_attr;
     using FileSystemConfigCommand = ::fsconfig_command;

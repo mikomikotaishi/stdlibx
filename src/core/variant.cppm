@@ -28,10 +28,6 @@ export namespace core {
     template <std::size_t I, typename V>
     using VariantAlternative = std::variant_alternative<I, V>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <std::size_t I, typename T>
-    using VariantAlternative_t = std::variant_alternative_t<I, T>;
-    #endif
 
     template <std::size_t I, typename T>
     using VariantAlternativeType = std::variant_alternative_t<I, T>;
@@ -40,9 +36,6 @@ export namespace core {
 
     using std::hash;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    inline constexpr std::size_t VariantNPos = std::variant_npos;
-    #endif
 
     inline constexpr std::size_t VariantNoPosition = std::variant_npos;
 

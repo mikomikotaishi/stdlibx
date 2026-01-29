@@ -28,9 +28,6 @@ export namespace stdlib::sync {
     using ConditionVariable = std::condition_variable;
     using ConditionVariableAny = std::condition_variable_any;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using CvStatus = std::cv_status;
-    #endif
 
     using ConditionVariableStatus = std::cv_status;
 

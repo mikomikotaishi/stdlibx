@@ -34,20 +34,28 @@ export namespace stdlib::net {
      */
     namespace ip {
         #if __has_include(<experimental/internet>)
-        using AddressV4 = std::experimental::net::ip::address_v4;
-        using AddressV6 = std::experimental::net::ip::address_v6;
+        using IPv4Address = std::experimental::net::ip::address_v4;
+        using IPv6Address = std::experimental::net::ip::address_v6;
         using Address = std::experimental::net::ip::address;
-        using NetworkV4 = std::experimental::net::ip::network_v4;
-        using NetworkV6 = std::experimental::net::ip::network_v6;
+        using IPv4NetworkAddress = std::experimental::net::ip::network_v4;
+        using IPv6NetworkAddress = std::experimental::net::ip::network_v6;
         using ResolverBase = std::experimental::net::ip::resolver_base;
-        using UDP = std::experimental::net::ip::udp;
-        using TCP = std::experimental::net::ip::tcp;
+        using Udp = std::experimental::net::ip::udp;
+        using Tcp = std::experimental::net::ip::tcp;
+        using TcpEndpoint = std::experimental::net::ip::tcp::endpoint;
+        using TcpResolver = std::experimental::net::ip::tcp::resolver;
+        using TcpSocket = std::experimental::net::ip::tcp::socket;
+        using TcpAcceptor = std::experimental::net::ip::tcp::acceptor;
+        using TcpInputOutputStream = std::experimental::net::ip::tcp::iostream;
+        using UdpEndpoint = std::experimental::net::ip::udp::endpoint;
+        using UdpResolver = std::experimental::net::ip::udp::resolver;
+        using UdpSocket = std::experimental::net::ip::udp::socket;
 
-        template <typename InternetProtocol>
-        using BasicEndpoint = std::experimental::net::ip::basic_endpoint<InternetProtocol>;
+        template <typename InetProtocol>
+        using BasicEndpoint = std::experimental::net::ip::basic_endpoint<InetProtocol>;
 
-        template <typename InternetProtocol>
-        using BasicResolverResults = std::experimental::net::ip::basic_resolver_results<InternetProtocol>;
+        template <typename InetProtocol>
+        using BasicResolverResults = std::experimental::net::ip::basic_resolver_results<InetProtocol>;
 
         using V6Only = std::experimental::net::ip::v6_only;
         #endif

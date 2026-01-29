@@ -44,16 +44,6 @@ export namespace stdlib::ranges {
     }
 
     inline namespace range_cpo {
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using ::core::ranges::range_cpo::CBegin;
-        using ::core::ranges::range_cpo::CEnd;
-        using ::core::ranges::range_cpo::RBegin;
-        using ::core::ranges::range_cpo::REnd;
-        using ::core::ranges::range_cpo::CRBegin;
-        using ::core::ranges::range_cpo::CREnd;
-        using ::core::ranges::range_cpo::SSize;
-        using ::core::ranges::range_cpo::CData;
-        #endif
         using ::core::ranges::range_cpo::Begin;
         using ::core::ranges::range_cpo::End;
         using ::core::ranges::range_cpo::ConstBegin;
@@ -85,23 +75,6 @@ export namespace stdlib::ranges {
     using ::core::ranges::CommonRange;
     using ::core::ranges::ViewableRange;
     using ::core::ranges::ConstantRange;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::ranges::Iterator_t;
-    using ::core::ranges::ConstIterator_t;
-    using ::core::ranges::Sentinel_t;
-    using ::core::ranges::ConstSentinel_t;
-    using ::core::ranges::RangeIterator_t;
-    using ::core::ranges::RangeConstIterator_t;
-    using ::core::ranges::RangeSentinel_t;
-    using ::core::ranges::RangeConstSentinel_t;
-    using ::core::ranges::RangeDifference_t;
-    using ::core::ranges::RangeSize_t;
-    using ::core::ranges::RangeValue_t;
-    using ::core::ranges::RangeReference_t;
-    using ::core::ranges::RangeConstReference_t;
-    using ::core::ranges::RangeRvalueReference_t;
-    using ::core::ranges::RangeCommonReference_t;
-    #endif
     using ::core::ranges::RangeIterator;
     using ::core::ranges::RangeConstIterator;
     using ::core::ranges::RangeSentinel;
@@ -124,9 +97,6 @@ export namespace stdlib::ranges {
     using ::core::ranges::SingleView;
     using ::core::ranges::IotaView;
     using ::core::ranges::RepeatView;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::ranges::BasicIStreamView;
-    #endif
     using alloc::ranges::BasicInputStreamView;
 
     namespace types {
@@ -169,9 +139,6 @@ export namespace stdlib::ranges {
     }
 
     using ::core::ranges::RangeAdaptorClosure;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::ranges::RefView;
-    #endif
     using ::core::ranges::ReferenceView;
     using ::core::ranges::OwningView;
     using ::core::ranges::AsRvalueView;
@@ -207,9 +174,6 @@ export namespace stdlib::ranges {
         using ::core::ranges::views::Single;
         using ::core::ranges::views::Iota;
         using ::core::ranges::views::Repeat;
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using alloc::ranges::views::IStream;
-        #endif
         using alloc::ranges::views::InputStream;
         using ::core::ranges::views::AllTag;
         using ::core::ranges::views::All;

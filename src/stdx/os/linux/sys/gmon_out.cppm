@@ -29,10 +29,6 @@ export namespace stdx::os::linux::sys {
 export namespace stdlibx::os::linux::sys {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using GmonHdr = ::gmon_hdr;
-    using GmonHistHdr = ::gmon_hist_hdr;
-    #endif
 
     using GmonHeader = ::gmon_hdr;
     using GmonHistoryHeader = ::gmon_hist_hdr;

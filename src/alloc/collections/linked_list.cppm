@@ -32,10 +32,6 @@ export namespace alloc::collections {
             IsSameValue<typename Alloc::value_type, T>
     using LinkedList = std::list<T, Alloc>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T, typename Alloc = Allocator<T>>
-    using List = LinkedList<T, Alloc>;
-    #endif
 
     /**
      * @namespace pmr
@@ -45,10 +41,6 @@ export namespace alloc::collections {
         template <typename T>
         using LinkedList = std::pmr::list<T>;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        template <typename T>
-        using List = LinkedList<T>;
-        #endif
     }
 
     using std::erase;

@@ -25,24 +25,12 @@ export namespace std::io {
 #else 
 export namespace stdlib::io {
 #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    inline std::ostream& cout = std::cout;
-    inline std::istream& cin = std::cin;
-    inline std::ostream& cerr = std::cerr;
-    inline std::ostream& clog = std::clog;
-    #endif
 
     inline std::ostream& Cout = std::cout;
     inline std::istream& Cin = std::cin;
     inline std::ostream& Cerr = std::cerr;
     inline std::ostream& Clog = std::clog;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    inline std::wostream& wcout = std::wcout;
-    inline std::wistream& wcin = std::wcin;
-    inline std::wostream& wcerr = std::wcerr;
-    inline std::wostream& wclog = std::wclog;
-    #endif
 
     inline std::wostream& WideCout = std::wcout;
     inline std::wistream& WideCin = std::wcin;

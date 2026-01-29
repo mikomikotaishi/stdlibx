@@ -28,9 +28,6 @@ export namespace stdlib::concurrent {
     using Thread = ::std::thread;
     using ThreadId = ::std::thread::id;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using JThread = ::std::jthread;
-    #endif
 
     using JoiningThread = ::std::jthread;
 

@@ -27,9 +27,6 @@ export namespace stdlib::collections {
 #endif
     using alloc::collections::LinkedList;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::collections::List;
-    #endif
 
     /**
      * @namespace pmr
@@ -38,9 +35,6 @@ export namespace stdlib::collections {
     namespace pmr {
         using alloc::collections::pmr::LinkedList;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using alloc::collections::pmr::List;
-        #endif
     }
 
     using alloc::collections::erase;

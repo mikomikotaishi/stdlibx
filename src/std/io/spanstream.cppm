@@ -31,13 +31,6 @@ export namespace stdlib::io {
     template <typename CharT>
     using BasicSpanBuf = std::basic_spanbuf<CharT>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename CharT>
-    using BasicISpanStream = std::basic_ispanstream<CharT>;
-
-    template <typename CharT>
-    using BasicOSpanStream = std::basic_ospanstream<CharT>;
-    #endif
 
     template <typename CharT>
     using BasicInputSpanStream = std::basic_ispanstream<CharT>;
@@ -48,14 +41,6 @@ export namespace stdlib::io {
     template <typename CharT>
     using BasicSpanStream = std::basic_spanstream<CharT>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using SpanBuf = std::spanbuf;
-    using WSpanBuf = std::wspanbuf;
-    using ISpanStream = std::ispanstream;
-    using WISpanstream = std::wispanstream;
-    using OSpanStream = std::ospanstream;
-    using WOSpanStream = std::wospanstream;
-    #endif
 
     using SpanBuffer = std::spanbuf;
     using WideSpanBuffer = std::wspanbuf;
@@ -66,9 +51,6 @@ export namespace stdlib::io {
 
     using SpanStream = std::spanstream;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using WSpanStream = std::wspanstream;
-    #endif
 
     using WideSpanStream = std::wspanstream;
 

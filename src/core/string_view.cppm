@@ -22,12 +22,6 @@ export namespace core {
     using ::core::text::string::CharTraits;
     using ::core::text::string::BasicStringView;
     using ::core::text::string::StringView;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::text::string::U8StringView;
-    using ::core::text::string::U16StringView;
-    using ::core::text::string::U32StringView;
-    using ::core::text::string::WStringView;
-    #endif
     using ::core::text::string::Utf8StringView;
     using ::core::text::string::Utf16StringView;
     using ::core::text::string::Utf32StringView;

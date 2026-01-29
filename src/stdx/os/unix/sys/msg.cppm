@@ -29,9 +29,6 @@ export namespace stdx::os::unix::sys {
 export namespace stdlibx::os::unix::sys {
 #endif
     #ifdef __unix__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using MsgBuf = ::msgbuf;
-    #endif
 
     using MessageBuffer = ::msgbuf;
 

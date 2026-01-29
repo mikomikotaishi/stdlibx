@@ -31,17 +31,11 @@ export namespace stdlib::core {
     using ::core::Monostate;
     using ::core::VariantSize;
     using ::core::VariantAlternative;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::VariantAlternative_t;
-    #endif
     using ::core::VariantAlternativeType;
     using ::core::BadVariantAccessException;
 
     using ::core::hash;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::VariantNPos;
-    #endif
 
     using ::core::VariantNoPosition;
 

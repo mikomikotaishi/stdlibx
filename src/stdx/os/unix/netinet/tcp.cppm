@@ -29,21 +29,9 @@ export namespace stdx::os::unix::netinet {
 export namespace stdlibx::os::unix::netinet {
 #endif
     #ifdef __unix__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using TcpHdr = ::tcphdr;
-    #endif
     
     using TcpHeader = ::tcphdr;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    enum class TcpCaState {
-        OPEN = 0,
-        DISORDER = 1,
-        CWR = 2,
-        RECOVERY = 3,
-        LOSS = 4
-    };
-    #endif
 
     enum class TcpCongestionAlgorithmState {
         OPEN = 0,
@@ -55,10 +43,6 @@ export namespace stdlibx::os::unix::netinet {
 
     using TcpInfo = ::tcp_info;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using TcpMd5Sig = ::tcp_md5sig;
-    using TcpRepairOpt = ::tcp_repair_opt;
-    #endif
 
     using TcpMd5Signature = ::tcp_md5sig;
     using TcpRepairOption = ::tcp_repair_opt;

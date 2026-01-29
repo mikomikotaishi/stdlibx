@@ -35,9 +35,6 @@ export namespace core {
     template <typename E>
     using Unexpected = std::unexpected<E>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using Unexpect_t = std::unexpect_t;
-    #endif
 
     using UnexpectTag = std::unexpect_t;
     inline constexpr UnexpectTag Unexpect = std::unexpect;

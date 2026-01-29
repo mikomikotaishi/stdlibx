@@ -54,35 +54,12 @@ export namespace stdlib::iter {
     using core::iter::Mergeable;
     using core::iter::Sortable;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::iter::IndirectResult_t;
-    #endif
 
     using core::iter::IndirectResult;
     using core::iter::Projected;
     using core::iter::IncrementableTraits;
     using core::iter::IndirectlyReadableTraits;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::iter::IterValue;
-    using core::iter::IterReference;
-    using core::iter::IterConstReference;
-    using core::iter::IterDifference;
-    using core::iter::IterRValueReference;
-    using core::iter::IterCommonReference;
-    using core::iter::IterValue_t;
-    using core::iter::IterReference_t;
-    using core::iter::IterConstReference_t;
-    using core::iter::IterDifference_t;
-    using core::iter::IterRValueReference_t;
-    using core::iter::IterCommonReference_t;
-    using core::iter::IteratorValue_t;
-    using core::iter::IteratorReference_t;
-    using core::iter::IteratorConstReference_t;
-    using core::iter::IteratorDifference_t;
-    using core::iter::IteratorRValueReference_t;
-    using core::iter::IteratorCommonReference_t;
-    #endif
 
     using core::iter::IteratorValue;
     using core::iter::IteratorReference;
@@ -107,10 +84,6 @@ export namespace stdlib::iter {
     using core::iter::ConstSentinel;
     using core::iter::CommonIterator;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::iter::DefaultSentinel_t;
-    using core::iter::UnreachableSentinel_t;
-    #endif
 
     using core::iter::DefaultSentinel;
     using core::iter::UnreachableSentinel;
@@ -119,12 +92,6 @@ export namespace stdlib::iter {
     using core::iter::FrontInsertIterator;
     using core::iter::InsertIterator;
     
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::iter::IStreamIterator;
-    using core::iter::OStreamIterator;
-    using core::iter::IStreamBufIterator;
-    using core::iter::OStreamBufIterator;
-    #endif
 
     using core::iter::InputStreamIterator;
     using core::iter::OutputStreamIterator;

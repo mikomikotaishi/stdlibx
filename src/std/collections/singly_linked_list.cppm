@@ -26,9 +26,6 @@ export namespace std::collections {
 export namespace stdlib::collections {
 #endif
     using alloc::collections::SinglyLinkedList;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::collections::ForwardList;
-    #endif
 
     /**
      * @namespace pmr
@@ -37,9 +34,6 @@ export namespace stdlib::collections {
     namespace pmr {
         using alloc::collections::pmr::SinglyLinkedList;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using alloc::collections::pmr::ForwardList;
-        #endif
     }
 
     using alloc::collections::erase;

@@ -29,10 +29,6 @@ export namespace stdx::os::linux::net {
 export namespace stdlibx::os::linux::net {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using RtEntry = ::rtentry;
-    using In6RtMsg = ::in6_rtmsg;
-    #endif
 
     using RouteEntry = ::rtentry;
     using Internet6RouteMessage = ::in6_rtmsg;

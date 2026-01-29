@@ -29,9 +29,6 @@ export namespace stdx::os::linux::arpa {
 export namespace stdlibx::os::linux::arpa {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using TftpHdr = ::tftphdr;
-    #endif
 
     using TftpHeader = ::tftphdr;
     #endif

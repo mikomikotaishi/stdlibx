@@ -94,9 +94,6 @@ export namespace stdlib::time {
     using _detail::TimeZoneDatabase;
     using _detail::TimeZoneDatabaseList;
     using _detail::TimeZone;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using _detail::SysInfo;
-    #endif
     using _detail::SystemInfo;
     using _detail::LocalInfo;
 

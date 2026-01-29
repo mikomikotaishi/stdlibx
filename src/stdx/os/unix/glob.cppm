@@ -34,9 +34,6 @@ export namespace stdlibx::os::unix {
     using Stat = ::stat;
     using Stat64 = ::stat64;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using Glob_t = ::glob_t;
-    #endif
 
     using Glob = ::glob_t;
 
