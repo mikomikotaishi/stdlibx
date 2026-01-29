@@ -68,18 +68,4 @@ export namespace stdlib::math::inline random {
     
     using RANDOM::generate_canonical;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using RANDOM::MinStdRand0;
-    using RANDOM::MinStdRand;
-    using RANDOM::Mt19937;
-    using RANDOM::Mt19937_64;
-    using RANDOM::MersenneTwister19937;
-    using RANDOM::MersenneTwister19937_64;
-    using RANDOM::Ranlux24Base;
-    using RANDOM::Ranlux48Base;
-    using RANDOM::Ranlux24;
-    using RANDOM::Ranlux48;
-    using RANDOM::KnuthB;
-    using RANDOM::SeedSeq;
-    #endif
 }

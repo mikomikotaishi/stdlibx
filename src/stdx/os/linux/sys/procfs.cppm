@@ -29,11 +29,6 @@ export namespace stdx::os::linux::sys {
 export namespace stdlibx::os::linux::sys {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ElfSigInfo = ::elf_siginfo;
-    using ElfPrStatus = ::elf_prstatus;
-    using ElfPrpsInfo = ::elf_prpsinfo;
-    #endif 
 
     using ElfSignatureInfo = ::elf_siginfo;
     using ElfProcessStatus = ::elf_prstatus;

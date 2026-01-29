@@ -27,18 +27,8 @@ export namespace stdlib::io {
 #endif
     using File = std::FILE;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using FPos = std::fpos_t;
-    using FPos_t = std::fpos_t;
-    using FilePosition_t = std::fpos_t;
-    #endif
     using FilePosition = std::fpos_t;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::stdin;
-    using ::stdout;
-    using ::stderr;
-    #endif
 
     FILE*& Stdin = ::stdin;
     FILE*& Stdout = ::stdout;

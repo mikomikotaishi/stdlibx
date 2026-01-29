@@ -25,11 +25,6 @@ export namespace std::sys {
 #else 
 export namespace stdlib::sys {
 #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::sys::SigAtomic;
-    using core::sys::SigAtomic_t;
-    using core::sys::SignalAtomic_t;
-    #endif 
     
     using core::sys::SignalAtomic;
 

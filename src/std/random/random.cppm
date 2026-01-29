@@ -65,20 +65,6 @@ export namespace stdlib::random {
     template <typename RandomNumberEngine, std::size_t k>
     using ShuffleOrderEngine = std::shuffle_order_engine<RandomNumberEngine, k>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    // Predefined Generators
-    using MinStdRand0 = std::minstd_rand0;
-    using MinStdRand = std::minstd_rand;
-    using Mt19937 = std::mt19937;
-    using Mt19937_64 = std::mt19937_64;
-    using Ranlux24Base = std::ranlux24_base;
-    using Ranlux48Base = std::ranlux48_base;
-    using Ranlux24 = std::ranlux24;
-    using Ranlux48 = std::ranlux48;
-    using KnuthB = std::knuth_b;
-    using MersenneTwister19937 = std::mt19937;
-    using MersenneTwister19937_64 = std::mt19937_64;
-    #endif
 
     // Predefined Generators
     using MinimalStandardRandom0 = std::minstd_rand0;
@@ -154,10 +140,6 @@ export namespace stdlib::random {
     template <typename RealType = double>
     using PiecewiseLinearDistribution = std::piecewise_linear_distribution<RealType>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    // Seed sequence
-    using SeedSeq = std::seed_seq;
-    #endif
 
     // Seed sequence
     using SeedSequence = std::seed_seq;

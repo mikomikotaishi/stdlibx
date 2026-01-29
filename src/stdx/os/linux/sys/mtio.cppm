@@ -29,13 +29,6 @@ export namespace stdx::os::linux::sys {
 export namespace stdlibx::os::linux::sys {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using MTOp = ::mtop;
-    using MTGet = ::mtget;
-    using MTTapeInfo = ::mt_tape_info;
-    using MTPos = ::mtpos;
-    using MTConfigInfo = ::mtconfiginfo;
-    #endif
 
     using MagneticTapeOperation = ::mtop;
     using MagneticTapeGet = ::mtget;

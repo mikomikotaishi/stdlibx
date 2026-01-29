@@ -46,10 +46,6 @@ export namespace core {
     template <typename T>
     using UnwrapReference = std::unwrap_reference<T>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T>
-    using UnwrapRefDecay = std::unwrap_ref_decay<T>;
-    #endif
 
     template <typename T>
     using UnwrapReferenceDecay = std::unwrap_ref_decay<T>;

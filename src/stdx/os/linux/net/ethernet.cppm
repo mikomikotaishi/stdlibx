@@ -29,10 +29,6 @@ export namespace stdx::os::linux::net {
 export namespace stdlibx::os::linux::net {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using EtherAddr = ::ether_addr;
-    using EtherHeader = ::ether_header;
-    #endif
 
     using EthernetAddress = ::ether_addr;
     using EthernetHeader = ::ether_header;

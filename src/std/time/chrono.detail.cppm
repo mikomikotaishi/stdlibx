@@ -114,9 +114,6 @@ export namespace _detail {
     using TimeZoneDatabase = ::std::chrono::tzdb;
     using TimeZoneDatabaseList = ::std::chrono::tzdb_list;
     using TimeZone = ::std::chrono::time_zone;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using SysInfo = ::std::chrono::sys_info;
-    #endif
     using SystemInfo = ::std::chrono::sys_info;
     using LocalInfo = ::std::chrono::local_info;
 

@@ -60,26 +60,16 @@ export namespace stdlib::io {
     using core::io::operator&=;
     using core::io::operator^=;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::io::WIOS;
-    using core::io::FPos;
-    #endif
 
     using core::io::WideIOS;
     using core::io::FilePosition;
     using core::io::IOErrc;
     using core::io::IsErrorCodeEnum;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::io::StreamOff;
-    #endif
 
     using core::io::StreamOffset;
     using core::io::StreamSize;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::io::IOSBaseException;
-    #endif
 
     using core::io::IOException;
 

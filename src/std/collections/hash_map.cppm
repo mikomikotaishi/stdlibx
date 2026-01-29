@@ -28,10 +28,6 @@ export namespace stdlib::collections {
     using alloc::collections::HashMap;
     using alloc::collections::HashMultimap;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::collections::UnorderedMap;
-    using alloc::collections::UnorderedMultimap;
-    #endif
 
     /**
      * @namespace pmr
@@ -41,10 +37,6 @@ export namespace stdlib::collections {
         using alloc::collections::pmr::HashMap;
         using alloc::collections::pmr::HashMultimap;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using alloc::collections::pmr::UnorderedMap;
-        using alloc::collections::pmr::UnorderedMultimap;
-        #endif
     }
 
     using alloc::collections::erase_if;

@@ -121,10 +121,6 @@ export namespace core::iter {
     template <typename Iter, typename Comp = std::ranges::less, typename Proj = Identity>
     concept Sortable = std::sortable<Iter, Comp, Proj>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename Fn, typename... Is>
-    using IndirectResult_t = std::indirect_result_t<Fn, Is>;
-    #endif
 
     template <typename Fn, typename... Is>
     using IndirectResult = std::indirect_result_t<Fn, Is...>;
@@ -138,61 +134,6 @@ export namespace core::iter {
     template <typename T>
     using IndirectlyReadableTraits = std::indirectly_readable_traits<T>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T>
-    using IterValue = std::iter_value_t<T>;
-
-    template <typename T>
-    using IterReference = std::iter_reference_t<T>;
-
-    template <IndirectlyReadable T>
-    using IterConstReference = std::iter_const_reference_t<T>;
-
-    template <typename T>
-    using IterDifference = std::iter_difference_t<T>;
-
-    template <typename T>
-    using IterRValueReference = std::iter_rvalue_reference_t<T>
-
-    template <IndirectlyReadable T>
-    using IterCommonReference = std::iter_common_reference_t<T>;
-
-    template <typename T>
-    using IterValue_t = std::iter_value_t<T>;
-
-    template <typename T>
-    using IterReference_t = std::iter_reference_t<T>;
-
-    template <IndirectlyReadable T>
-    using IterConstReference_t = std::iter_const_reference_t<T>;
-
-    template <typename T>
-    using IterDifference_t = std::iter_difference_t<T>;
-
-    template <typename T>
-    using IterRValueReference_t = std::iter_rvalue_reference_t<T>
-
-    template <IndirectlyReadable T>
-    using IterCommonReference_t = std::iter_common_reference_t<T>;
-
-    template <typename T>
-    using IteratorValue_t = std::iter_value_t<T>;
-
-    template <typename T>
-    using IteratorReference_t = std::iter_reference_t<T>;
-
-    template <IndirectlyReadable T>
-    using IteratorConstReference_t = std::iter_const_reference_t<T>;
-
-    template <typename T>
-    using IteratorDifference_t = std::iter_difference_t<T>;
-
-    template <typename T>
-    using IteratorRValueReference_t = std::iter_rvalue_reference_t<T>
-
-    template <IndirectlyReadable T>
-    using IteratorCommonReference_t = std::iter_common_reference_t<T>;
-    #endif
 
     template <typename T>
     using IteratorValue = std::iter_value_t<T>;
@@ -254,10 +195,6 @@ export namespace core::iter {
     template <InputOrOutputIterator Iter, SentinelFor<Iter> Sent>
     using CommonIterator = std::common_iterator<Iter, Sent>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using DefaultSentinel_t = std::default_sentinel_t;
-    using UnreachableSentinel_t = std::unreachable_sentinel_t;
-    #endif
 
     using DefaultSentinel = std::default_sentinel_t;
     using UnreachableSentinel = std::unreachable_sentinel_t;
@@ -274,19 +211,6 @@ export namespace core::iter {
     template <typename Container>
     using InsertIterator = std::insert_iterator<Container>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename T, typename CharT = char, typename Traits = std::char_traits<CharT>, typename Distance = std::ptrdiff_t>
-    using IStreamIterator = std::istream_iterator<T, CharT, Traits, Distance>;
-
-    template <typename T, typename CharT = char, typename Traits = std::char_traits<CharT>>
-    using OStreamIterator = std::ostream_iterator<T, CharT, Traits, Distance>;
-
-    template <typename CharT, typename Traits = std::char_traits<CharT>>
-    using IStreamBufIterator = std::istreambuf_iterator<CharT, Traits>;
-
-    template <typename CharT, typename Traits = std::char_traits<CharT>>
-    using OStreamBufIterator = std::ostreambuf_iterator<CharT, Traits>;
-    #endif
 
     template <typename T, typename CharT = char, typename Traits = std::char_traits<CharT>, typename Distance = std::ptrdiff_t>
     using InputStreamIterator = std::istream_iterator<T, CharT, Traits, Distance>;

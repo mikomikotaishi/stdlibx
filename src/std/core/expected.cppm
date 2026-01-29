@@ -29,9 +29,6 @@ export namespace stdlib::core {
 #endif
     using ::core::Expected;
     using ::core::Unexpected;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::Unexpect_t;
-    #endif
     using ::core::UnexpectTag;
     using ::core::Unexpect;
     using ::core::BadExpectedAccessException;

@@ -29,36 +29,6 @@ export namespace stdx::os::linux::sys {
 export namespace stdlibx::os::linux::sys {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using Cap_t = ::cap_t;
-    using CapValue_t = ::cap_value_t;
-
-    enum class CapFlag_t {
-        EFFECTIVE = 0, ///< Specifies the effective flag
-        PERMITTED = 1, ///< Specifies the permitted flag
-        INHERITABLE = 2 ///< Specifies the inheritable flag
-    };
-
-    enum class CapIABVector_t {
-        INH = 2,
-        AMB = 3,
-        BOUND = 4
-    };
-
-    enum class CapValue_t {
-        CLEAR = 0, ///< The flag is cleared/disabled
-        SET = 1 ///< The flag is set/enabled
-    };
-
-    using CapIAB_s = ::cap_iab_s;
-    using CapIAB_t = ::cap_iab_t;
-    using CapMode_t = ::cap_mode_t;
-    using CapLaunch_s = ::cap_launch_s;
-    using CapLaunch_t = ::cap_launch_t;
-    using CapUserHeader_t = ::cap_user_header_t;
-    using VFSCapData = ::vfs_cap_data;
-    using VFSNSCapData = ::vfs_ns_cap_data;
-    #endif
 
     using Capability_t = ::cap_t;
     using CapabilityValue_t = ::cap_value_t;

@@ -38,18 +38,12 @@ export namespace stdlib::core {
     using ::core::RuntimeException;
 
     /// @extends LogicException
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::DomainException;
-    #endif
     using ::core::InvalidDomainException;
     using ::core::InvalidArgumentException;
     using ::core::LengthException;
     using ::core::OutOfRangeException;
 
     /// @extends RuntimeException
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::RangeException;
-    #endif
     using ::core::InvalidRangeException;
     using ::core::OverflowException;
     using ::core::UnderflowException;
@@ -169,9 +163,6 @@ export namespace stdlib::core {
             UnsupportedOperationException(msg) {}
     };
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::ExceptionPtr;
-    #endif
 
     using ::core::ExceptionPointer;
 

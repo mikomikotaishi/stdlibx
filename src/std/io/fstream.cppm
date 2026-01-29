@@ -25,16 +25,6 @@ export namespace std::io {
 #else 
 export namespace stdlib::io {
 #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using FileBuf = std::filebuf;
-    using WFileBuf = std::wfilebuf;
-    using IFStream = std::ifstream;
-    using WIFStream = std::wifstream;
-    using OFStream = std::ofstream;
-    using WOFStream = std::wofstream;
-    using FStream = std::fstream;
-    using WFStream = std::wfstream;
-    #endif
 
     using FileBuffer = std::filebuf;
     using WideFileBuffer = std::wfilebuf;

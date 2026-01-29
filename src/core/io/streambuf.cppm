@@ -17,13 +17,6 @@ export module core:io.streambuf;
  * @brief Wrapper namespace for standard library input/output operations.
  */
 export namespace core::io {
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <typename CharT>
-    using BasicStreamBuf = std::basic_streambuf<CharT>;
-
-    using StreamBuf = std::streambuf;
-    using WStreamBuf = std::wstreambuf;
-    #endif
 
     template <typename CharT>
     using BasicStreamBuffer = std::basic_streambuf<CharT>;

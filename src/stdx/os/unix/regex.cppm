@@ -29,10 +29,6 @@ export namespace stdx::os::unix {
 export namespace stdlibx::os::unix {
 #endif
     #ifdef __unix__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using REPatternBuffer = ::re_pattern_buffer;
-    using RERegisters = ::re_registers;
-    #endif
 
     using RegexPatternBuffer = ::re_pattern_buffer;
     using RegexRegisters = ::re_registers;    

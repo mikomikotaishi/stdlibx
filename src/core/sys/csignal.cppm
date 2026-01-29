@@ -60,11 +60,6 @@ export namespace core::sys {
     inline const Handler SIG_IGN = _detail::core::sys::C_SIG_IGN; ///< Ignore signal handler.
     inline const Handler SIG_ERR = _detail::core::sys::C_SIG_ERR; ///< Error return value.
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using _detail::core::sys::SigAtomic;
-    using _detail::core::sys::SigAtomic_t;
-    using _detail::core::sys::SignalAtomic_t;
-    #endif 
     
     using _detail::core::sys::SignalAtomic;
 

@@ -36,10 +36,6 @@ export namespace alloc::ranges {
     template <Range R, typename Alloc = Allocator<std::byte>>
     using ElementsOf = std::ranges::elements_of<R, Alloc>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    template <Movable V, typename CharT, typename Traits = CharTraits<CharT>>
-    using BasicIStreamView = std::ranges::basic_istream_view<V, CharT, Traits>;
-    #endif
 
     template <Movable V, typename CharT, typename Traits = CharTraits<CharT>>
     using BasicInputStreamView = std::ranges::basic_istream_view<V, CharT, Traits>;
@@ -50,10 +46,6 @@ export namespace alloc::ranges {
     }
 
     namespace views {
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        template <typename T>
-        inline constexpr types::InputStream<T> IStream = std::ranges::views::istream<T>;
-        #endif
         template <typename T>
         inline constexpr types::InputStream<T> InputStream = std::ranges::views::istream<T>;
     }

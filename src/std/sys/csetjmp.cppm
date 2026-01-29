@@ -25,9 +25,6 @@ export namespace std::sys {
 #else 
 export namespace stdlib::sys {
 #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::sys::JmpBuf;
-    #endif
 
     using core::sys::JumpBuffer;
     

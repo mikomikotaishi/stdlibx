@@ -31,6 +31,7 @@ using core::NumericLimits;
 using core::Optional;
 using core::StringView;
 using core::StrongOrdering;
+using core::nullopt;
 
 #if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 namespace fmt = std::fmt;
@@ -78,30 +79,12 @@ export namespace stdlib::core {
 
     using ::core::ByteUnit;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::NullPtr;
-    using ::core::NullPtr_t;
-    using ::core::NullPointer_t;
-    #endif
 
     using ::core::NullPointer;
     using ::core::Void;
 
     #include "Numbers.inl"
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::Div_t;
-    using ::core::LDiv_t;
-    using ::core::LLDiv_t;
-    using ::core::LDiv;
-    using ::core::LLDiv;
-    using ::core::LongDiv_t;
-    using ::core::LongLongDiv_t;
-    using ::core::IntegerMaxDiv_t;
-    using ::core::MaxAlign;
-    using ::core::MaxAlign_t;
-    using ::core::MaximumAlignment_t;
-    #endif
     using ::core::Div;
     using ::core::LongDiv;
     using ::core::LongLongDiv;

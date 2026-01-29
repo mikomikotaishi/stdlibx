@@ -22,11 +22,6 @@ export namespace core {
     template <typename T>
     using Optional = std::optional<T>;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using NullOpt = std::nullopt_t;
-    using NullOpt_t = std::nullopt_t;
-    using NullOption_t = std::nullopt_t;
-    #endif
 
     using std::nullopt;
     using NullOption = std::nullopt_t;

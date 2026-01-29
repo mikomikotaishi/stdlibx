@@ -25,13 +25,6 @@ export namespace std::fmt {
 #else 
 export namespace stdlib::fmt {
 #endif
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using core::fmt::IMaxDiv_t;
-    using core::fmt::IntegerMaxDiv_t;
-    using core::fmt::IMaxDiv;
-    using core::fmt::IntegerMaxDiv;
-    using core::fmt::IntegerMaximumDivision_t;
-    #endif
 
     using core::fmt::IntegerMaximumDivision;
 

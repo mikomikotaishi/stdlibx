@@ -28,11 +28,6 @@ export namespace std::core {
 export namespace stdlib::core {
 #endif
     using ::core::Optional;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::NullOpt;
-    using ::core::NullOpt_t;
-    using ::core::NullOption_t;
-    #endif
     using ::core::nullopt;
     using ::core::NullOption;
     using ::core::BadOptionalAccessException;

@@ -29,12 +29,6 @@ export namespace stdx::os::linux::net {
 export namespace stdlibx::os::linux::net {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using NpIOCtl = ::npioctl;
-    using PppOptionData = ::ppp_option_data;
-    using IfPppStatsReq = ::ifpppstatsreq;
-    using IfPppCStatsReq = ::ifpppcstatsreq;
-    #endif
 
     using NetworkProtocolIOControl = ::npioctl;
     using PppOptionData = ::ppp_option_data;

@@ -29,10 +29,6 @@ export namespace stdx::os::linux::sys {
 export namespace stdlibx::os::linux::sys {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using UContext_t = ::ucontext_t;
-    using UserlevelContext_t = ::ucontext_t;
-    #endif
 
     using UserlevelContext = ::ucontext_t;
     #endif

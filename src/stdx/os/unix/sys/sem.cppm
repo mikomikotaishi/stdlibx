@@ -29,10 +29,6 @@ export namespace stdx::os::unix::sys {
 export namespace stdlibx::os::unix::sys {
 #endif
     #ifdef __unix__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using SemInfo = ::seminfo;
-    using SemBuf = ::sembuf;
-    #endif
 
     using SemaphoreInfo = ::seminfo;
     using SemaphoreBuffer = ::sembuf;

@@ -33,12 +33,6 @@ export namespace stdlibx::os::unix {
     #ifdef __unix__
     using TermIOSettings = ::termios;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using PID_t = ::pid_t;
-    using CC_t = ::cc_t;
-    using Speed_t = ::speed_t;
-    using TCFlag_t = ::tcflag_t;
-    #endif
 
     using ProcessID = ::pid_t;
     using ControlCharacter = ::cc_t;

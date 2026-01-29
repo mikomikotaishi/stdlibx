@@ -29,17 +29,6 @@ export namespace stdx::os::linux::net {
 export namespace stdlibx::os::linux::net {
 #endif
     #ifdef __linux__
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using NpMode = ::NPmode;
-    using PppStat = ::pppstat;
-    using VjStat = ::vjstat;
-    using CompStat = ::compstat;
-    using PppStats = ::ppp_stats;
-    using PppCompStats = ::ppp_comp_stats;
-    using PppIdle = ::ppp_idle;
-    using PppIdle32 = ::ppp_idle32;
-    using PppIdle64 = ::ppp_idle64;
-    #endif
 
     using NetworkProtocolMode = ::NPmode;
     using PppStat = ::pppstat;

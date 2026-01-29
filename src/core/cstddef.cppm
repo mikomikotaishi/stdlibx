@@ -89,29 +89,11 @@ export namespace core {
 
     using NullPointer = std::nullptr_t;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using NullPtr = std::nullptr_t;
-    using NullPtr_t = std::nullptr_t;
-    using NullPointer_t = std::nullptr_t;
-    #endif
 
     using Void = void;
 
     #include "Numbers.inl"
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using Div_t = std::div_t;
-    using LDiv_t = std::ldiv_t;
-    using LLDiv_t = std::lldiv_t;
-    using LDiv = std::ldiv_t;
-    using LLDiv = std::lldiv_t;
-    using LongDiv_t = std::ldiv_t;
-    using LongLongDiv_t = std::lldiv_t;
-    using IntegerMaxDiv_t = std::imaxdiv_t;
-    using MaxAlign = std::max_align_t;
-    using MaxAlign_t = std::max_align_t;
-    using MaximumAlignment_t = std::max_align_t;
-    #endif
     using Div = std::div_t;
     using LongDiv = std::ldiv_t;
     using LongLongDiv = std::lldiv_t;

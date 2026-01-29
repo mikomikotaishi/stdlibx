@@ -135,11 +135,6 @@ export module core:sys.csignal.constants;
 export namespace _detail::core::sys {
     using Handler = void (*)(int);
     
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using SigAtomic = std::sig_atomic_t;
-    using SigAtomic_t = std::sig_atomic_t;
-    using SignalAtomic_t = std::sig_atomic_t;
-    #endif 
     
     using SignalAtomic = std::sig_atomic_t;
 

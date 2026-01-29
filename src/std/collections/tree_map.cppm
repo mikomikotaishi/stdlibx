@@ -28,10 +28,6 @@ export namespace stdlib::collections {
     using alloc::collections::TreeMap;
     using alloc::collections::TreeMultimap;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using alloc::collections::Map;
-    using alloc::collections::Multimap;
-    #endif
 
     /**
      * @namespace pmr
@@ -41,10 +37,6 @@ export namespace stdlib::collections {
         using alloc::collections::pmr::TreeMap;
         using alloc::collections::pmr::TreeMultimap;
 
-        #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-        using alloc::collections::pmr::Map;
-        using alloc::collections::pmr::Multimap;
-        #endif
     }
 
     using alloc::collections::erase_if;

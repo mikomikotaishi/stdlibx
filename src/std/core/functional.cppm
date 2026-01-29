@@ -36,9 +36,6 @@ export namespace stdlib::core {
     using ::core::MemberFunction;
     using ::core::ReferenceWrapper;
     using ::core::UnwrapReference;
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using ::core::UnwrapRefDecay;
-    #endif
     using ::core::UnwrapReferenceDecay;
     using ::core::IsBindExpression;
     using ::core::IsPlaceholder;

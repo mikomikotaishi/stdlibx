@@ -25,18 +25,10 @@ export namespace core::text::string {
 
     using StringView = std::string_view;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using U8StringView = std::u8string_view;
-    using U16StringView = std::u16string_view;
-    using U32StringView = std::u32string_view;
-    #endif
     using Utf8StringView = std::u8string_view;
     using Utf16StringView = std::u16string_view;
     using Utf32StringView = std::u32string_view;
 
-    #ifdef STDLIBX_ENABLE_COMPAT_NAMES
-    using WStringView = std::wstring_view;
-    #endif
 
     using WideStringView = std::wstring_view;
 
