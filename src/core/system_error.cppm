@@ -26,8 +26,9 @@ export namespace core {
     public:
         using Self = std::errc;
 
-        Errc() = delete;
+        Errc() = delete;;
 
+        static constexpr Self SUCCESS = std::errc();
         static constexpr Self ADDRESS_FAMILY_NOT_SUPPORTED = std::errc::address_family_not_supported;
         static constexpr Self ADDRESS_IN_USE = std::errc::address_in_use;
         static constexpr Self ADDRESS_NOT_AVAILABLE = std::errc::address_not_available;

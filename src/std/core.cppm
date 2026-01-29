@@ -20,7 +20,7 @@ export import :core.compare;
 export import :core.concepts;
 export import :core.contracts;
 export import :core.cstddef;
-export import :core.exceptions;
+export import :core.exception;
 export import :core.expected;
 export import :core.functional;
 export import :core.initializer_list;

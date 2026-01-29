@@ -19,7 +19,17 @@ module;
 
 #include "Macros.hpp"
 
+#define STDLIBX_NO_STD_CORE_FEATURES
+
 export module core:cstddef;
+
+import :compare;
+import :concepts;
+import :limits;
+import :optional;
+import :string_view;
+import :system_error;
+import :text.charconv;
 
 /**
  * @internal
@@ -65,15 +75,19 @@ export namespace core {
     using usize = std::size_t;
     using isize = std::intptr_t;
 
+    using byte = unsigned char;
     using char8 = char8_t;
     using char16 = char16_t;
     using char32 = char32_t;
+    using wchar = wchar_t;
 
     using c32 = std::complex<float>;
     using c64 = std::complex<double>;
     using c128 = std::complex<long double>;
 
-    using byte = std::byte;
+    using ByteUnit = std::byte;
+
+    using NullPointer = std::nullptr_t;
 
     #ifdef STDLIBX_ENABLE_COMPAT_NAMES
     using NullPtr = std::nullptr_t;
@@ -81,45 +95,9 @@ export namespace core {
     using NullPointer_t = std::nullptr_t;
     #endif
 
-    using NullPointer = std::nullptr_t;
-
     using Void = void;
-    using Boolean = bool;
-    using Short = short;
-    using Integer = int;
-    using Long = long;
-    using LongLong = long long;
-    using UnsignedShort = unsigned short;
-    using UnsignedInteger = unsigned int;
-    using UnsignedLong = unsigned long;
-    using UnsignedLongLong = unsigned long long;
-    using Integer8 = std::int8_t;
-    using Integer16 = std::int16_t;
-    using Integer32 = std::int32_t;
-    using Integer64 = std::int64_t;
-    using UnsignedInteger8 = std::uint8_t;
-    using UnsignedInteger16 = std::uint16_t;
-    using UnsignedInteger32 = std::uint32_t;
-    using UnsignedInteger64 = std::uint64_t;
-    using Byte = std::byte;
-    using SignedSize = std::intptr_t;
-    using UnsignedSize = std::size_t;
-    using Character = char;
-    using UnsignedCharacter = unsigned char;
-    using Character8 = char8_t;
-    using Character16 = char16_t;
-    using Character32 = char32_t;
-    using WideCharacter = wchar_t;
-    using Float = float;
-    using Double = double;
-    using LongDouble = long double;
-    using Float32 = float;
-    using Float64 = double;
-    using Float128 = long double;
-    // using Float16 = std::float16;
-    // using Float32 = std::float32;
-    // using Float64 = std::float64;
-    // using Float128 = std::float128;
+
+    #include "Numbers.inl"
 
     #ifdef STDLIBX_ENABLE_COMPAT_NAMES
     using Div_t = std::div_t;

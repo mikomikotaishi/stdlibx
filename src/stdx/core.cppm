@@ -14,8 +14,3 @@ export module stdx:core;
 export module stdlibx:core;
 #endif
 
-export import :core.ArithmeticException;
-export import :core.InvalidOperationException;
-export import :core.NotImplementedException;
-export import :core.NullPointerException;
-export import :core.UnsupportedOperationException;

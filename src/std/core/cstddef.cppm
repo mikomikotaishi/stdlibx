@@ -16,7 +16,27 @@ export module std:core.cstddef;
 export module stdlib:core.cstddef;
 #endif
 
+import :core.exception;
+import :fmt.format;
+
 import core;
+import alloc;
+
+using alloc::String;
+
+using core::Errc;
+using core::FloatingPoint;
+using core::Integral;
+using core::NumericLimits;
+using core::Optional;
+using core::StringView;
+using core::StrongOrdering;
+
+#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
+namespace fmt = std::fmt;
+#else
+namespace fmt = stdlib::fmt;
+#endif
 
 /**
  * @namespace std::core
@@ -46,15 +66,17 @@ export namespace stdlib::core {
     using ::core::usize;
     using ::core::isize;
 
+    using ::core::byte;
     using ::core::char8;
     using ::core::char16;
     using ::core::char32;
+    using ::core::wchar;
 
     using ::core::c32;
     using ::core::c64;
     using ::core::c128;
 
-    using ::core::byte;
+    using ::core::ByteUnit;
 
     #ifdef STDLIBX_ENABLE_COMPAT_NAMES
     using ::core::NullPtr;
@@ -64,39 +86,8 @@ export namespace stdlib::core {
 
     using ::core::NullPointer;
     using ::core::Void;
-    using ::core::Boolean;
-    using ::core::Short;
-    using ::core::Integer;
-    using ::core::Long;
-    using ::core::LongLong;
-    using ::core::UnsignedShort;
-    using ::core::UnsignedInteger;
-    using ::core::UnsignedLong;
-    using ::core::UnsignedLongLong;
-    using ::core::Integer8;
-    using ::core::Integer16;
-    using ::core::Integer32;
-    using ::core::Integer64;
-    using ::core::UnsignedInteger8;
-    using ::core::UnsignedInteger16;
-    using ::core::UnsignedInteger32;
-    using ::core::UnsignedInteger64;
-    using ::core::Byte;
-    using ::core::SignedSize;
-    using ::core::UnsignedSize;
-    using ::core::Character;
-    using ::core::UnsignedCharacter;
-    using ::core::Character8;
-    using ::core::Character16;
-    using ::core::Character32;
-    using ::core::WideCharacter;
-    using ::core::Float;
-    using ::core::Double;
-    using ::core::LongDouble;
-    // using ::core::Float16;
-    using ::core::Float32;
-    using ::core::Float64;
-    using ::core::Float128;
+
+    #include "Numbers.inl"
 
     #ifdef STDLIBX_ENABLE_COMPAT_NAMES
     using ::core::Div_t;

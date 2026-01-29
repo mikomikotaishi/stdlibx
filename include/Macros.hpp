@@ -7,7 +7,13 @@
 
 #pragma once
 
-#define throws(...) noexcept(false)
+#define THROWS_FALSE noexcept
+#define THROWS_TRUE noexcept(false)
+
+#define THROWS_SELECT(_1, NAME, ...) NAME
+#define THROWS_CHOOSE(...) THROWS_SELECT(__VA_ARGS__, THROWS_TRUE, THROWS_FALSE)
+
+#define throws(...) THROWS_CHOOSE(__VA_ARGS__)
 
 /**
  * @brief Automatically exports the symbols in the std::core namespace.
