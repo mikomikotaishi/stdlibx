@@ -21,13 +21,12 @@ export module stdx:compiler.clang.api_notes;
 export module stdlibx:compiler.clang.api_notes;
 #endif
 
-#ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY
-
 #if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::compiler::clang {
 #else 
 export namespace stdlibx::compiler::clang {
 #endif
+#ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY
     using ::clang::APINotesOptions;
 
     namespace api_notes {
@@ -65,6 +64,5 @@ export namespace stdlibx::compiler::clang {
         using ::clang::api_notes::parseAndDumpAPINotes;
         using ::clang::api_notes::compileAPINotes;
     }
-}
-
 #endif
+}

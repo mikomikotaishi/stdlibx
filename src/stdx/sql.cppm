@@ -14,8 +14,9 @@ export module stdx:sql;
 export module stdlibx:sql;
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
-
-#else
-
-#endif
+export import :sql.Connection;
+export import :sql.DriverManager;
+export import :sql.PreparedStatement;
+export import :sql.ResultSet;
+export import :sql.SQLException;
+export import :sql.Statement;

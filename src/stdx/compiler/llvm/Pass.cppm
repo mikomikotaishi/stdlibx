@@ -16,13 +16,12 @@ export module stdx:compiler.llvm.Pass;
 export module stdlibx:compiler.llvm.Pass;
 #endif
 
-#ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY
-
 #if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::compiler::llvm {
 #else 
 export namespace stdlibx::compiler::llvm {
 #endif
+#ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY
     using ::llvm::AnalysisID;
     using ::llvm::PassManagerType;
     using ::llvm::PassKind;
@@ -33,6 +32,5 @@ export namespace stdlibx::compiler::llvm {
     using ::llvm::FunctionPass;
     using ::llvm::TimePassesIsEnabled;
     using ::llvm::TimePassesPerRun;
-}
-
 #endif
+}

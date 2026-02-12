@@ -125,7 +125,8 @@ option(STDLIBX_NO_ALLOC "Disable the alloc.* modules and only use core.*" OFF)
 option(STDLIBX_IMPLICIT_USING_CORE "Make std.core.* modules implicitly load symbols into scope by importing" ON)
 option(STDLIBX_EXTENSIONS "Enable the stdx.* modules" OFF)
 option(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY "Enable compiler header modules in stdx.compiler.*" OFF)
-option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx.lua.*" OFF)
+option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx.lua.*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules in stdx.sql.*" ON)
 
 if(STDLIBX_NO_STD)
     set(STDLIBX_USE_RESERVED_STD_IDENTIFIERS OFF CACHE BOOL "Disabled because STDLIBX_NO_STD is ON" FORCE)
@@ -137,6 +138,7 @@ endif()
 
 if(NOT STDLIBX_EXTENSIONS)
     set(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY OFF CACHE BOOL "Disabled because STDLIBX_EXTENSIONS is OFF" FORCE)
+    set(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY OFF CACHE BOOL "Disabled because STDLIBX_EXTENSIONS is OFF" FORCE)
 endif()
 
 if(STDLIBX_NO_STD AND STDLIBX_ENABLE_COMPAT_NAMES)
@@ -179,6 +181,10 @@ endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
 endif()
 
 set_target_properties(stdlibx PROPERTIES 

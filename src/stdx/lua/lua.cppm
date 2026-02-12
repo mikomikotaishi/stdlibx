@@ -8,7 +8,9 @@
 
 module;
 
+#ifdef STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY
 #include <lua.hpp>
+#endif
 
 #if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:lua.lua;
@@ -24,8 +26,6 @@ import stdlib;
 
 import core;
 
-#ifdef STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY
-
 /**
  * @namespace stdx::lua
  * @brief Wrapper namespace for standard library extension Lua libraries.
@@ -35,6 +35,7 @@ export namespace stdx::lua {
 #else
 export namespace stdlibx::lua {
 #endif
+#ifdef STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY
     constexpr i32 OK = LUA_OK;
     constexpr i32 YIELD = LUA_YIELD;
     constexpr i32 ERRRUN = LUA_ERRRUN;
@@ -873,6 +874,5 @@ export namespace stdlibx::lua {
             return String(luaL_buffinitsize(l, b, sz));
         }
     }
-}
-
 #endif
+}

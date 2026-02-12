@@ -17,15 +17,13 @@ export module stdx:compiler.llvm.InitializePasses;
 export module stdlibx:compiler.llvm.InitializePasses;
 #endif
 
-#ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY
-
 #if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::compiler::llvm {
 #else 
 export namespace stdlibx::compiler::llvm {
 #endif
+#ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY
     using ::llvm::PassRegistry;
     using ::llvm::initializeCore;
-}
-
 #endif
+}

@@ -1,4 +1,5 @@
 file(GLOB_RECURSE STDX_MODULES *.cppm)
+
 add_library(stdlibx_stdx)
 target_sources(stdlibx_stdx
     PUBLIC
@@ -36,6 +37,20 @@ endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
+    find_package(LLVM REQUIRED)
+    target_link_libraries(stdlibx_stdx PUBLIC LLVMSupport LLVMCore)
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
+    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
+    find_package(Lua REQUIRED)
+    target_link_libraries(stdlibx_stdx PUBLIC Lua::Lua)
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
+    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
+    find_package(ODBC REQUIRED)
+    target_link_libraries(stdlibx_stdx PUBLIC ODBC::ODBC)
 endif()
 
 set_target_properties(stdlibx_stdx PROPERTIES 
