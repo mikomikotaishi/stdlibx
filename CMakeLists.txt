@@ -3,11 +3,6 @@ cmake_minimum_required(VERSION 3.28 FATAL_ERROR)
 set(CMAKE_CXX_STANDARD 23)
 # set(CMAKE_CXX_MODULE_STD ON)
 
-if(UNIX)
-    set(CMAKE_C_COMPILER "/usr/bin/clang")
-    set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-endif()
-
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR BUILD_SHARED_LIBS STREQUAL "OFF")
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
     
