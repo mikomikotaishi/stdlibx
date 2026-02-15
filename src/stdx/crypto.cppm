@@ -8,10 +8,6 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:crypto;
-#else
-export module stdlibx:crypto;
-#endif
 
 export import :crypto.Cipher;

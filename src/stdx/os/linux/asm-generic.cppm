@@ -9,10 +9,6 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.asmgeneric;
-#else
-export module stdlibx:os.linux.asmgeneric;
-#endif
 
 export import :os.linux.asmgeneric.errno;

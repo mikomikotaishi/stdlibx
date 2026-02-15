@@ -1,0 +1,50 @@
+/**
+ * @file singly_linked_list.cppm
+ * @module stdx:collections.singly_linked_list
+ * @brief Module file for standard library singly-linked list operations.
+ *
+ * This file contains the implementation of the singly-linked list operations in the standard library.
+ */
+
+module;
+
+export module stdx:collections.singly_linked_list;
+
+import alloc;
+
+/**
+ * @namespace stdx::collections
+ * @brief Wrapper namespace for standard library collection operations.
+ */
+export namespace stdx::collections {
+    using alloc::collections::SinglyLinkedList;
+
+    /**
+     * @namespace pmr
+     * @brief Namespace for operations on polymorphic memory resources.
+     */
+    namespace pmr {
+        using alloc::collections::pmr::SinglyLinkedList;
+    }
+
+    using alloc::collections::erase;
+    using alloc::collections::erase_if;
+
+    using alloc::collections::operator==;
+    using alloc::collections::operator<=>;
+
+    using alloc::collections::begin;
+    using alloc::collections::cbegin;
+    using alloc::collections::end;
+    using alloc::collections::cend;
+    using alloc::collections::rbegin;
+    using alloc::collections::crbegin;
+    using alloc::collections::rend;
+    using alloc::collections::crend;
+    using alloc::collections::size;
+    using alloc::collections::ssize;
+    using alloc::collections::empty;
+    using alloc::collections::data;
+
+    using alloc::collections::swap;
+}

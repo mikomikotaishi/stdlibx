@@ -10,17 +10,9 @@ module;
 #include <llvm/Pass.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:compiler.llvm.Pass;
-#else
-export module stdlibx:compiler.llvm.Pass;
-#endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::compiler::llvm {
-#else 
-export namespace stdlibx::compiler::llvm {
-#endif
 #ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY
     using ::llvm::AnalysisID;
     using ::llvm::PassManagerType;

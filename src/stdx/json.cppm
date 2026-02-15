@@ -8,14 +8,4 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:json;
-#else
-export module stdlibx:json;
-#endif
-
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
-
-#else
-
-#endif

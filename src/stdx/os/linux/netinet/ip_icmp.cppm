@@ -13,24 +13,16 @@ module;
 #include <netinet/ip_icmp.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.netinet.ip_icmp;
-#else
-export module stdlibx:os.linux.netinet.ip_icmp;
-#endif
 
 /**
  * @namespace stdx::os::linux::netinet
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::netinet {
-#else 
-export namespace stdlibx::os::linux::netinet {
-#endif
     #ifdef __linux__
-    using ICMPHdr = ::icmphdr;
-    using ICMPRAAddr = ::icmp_ra_addr;
-    using ICMP = ::icmp;
+    using IcmpHeader = ::icmphdr;
+    using IcmpRouterAdvertisementHeader = ::icmp_ra_addr;
+    using Icmp = ::icmp;
     #endif
 }

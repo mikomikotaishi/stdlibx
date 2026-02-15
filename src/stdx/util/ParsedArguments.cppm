@@ -10,21 +10,13 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:util.ParsedArguments;
 
-import std;
+import :core;
+import :collections;
 
-using std::collections::HashMap;
-using std::collections::Vector;
-#else
-export module stdlibx:util.ParsedArguments;
-
-import stdlib;
-
-using stdlib::collections::HashMap;
-using stdlib::collections::Vector;
-#endif
+using stdx::collections::HashMap;
+using stdx::collections::Vector;
 
 #if 0
 
@@ -32,11 +24,7 @@ using stdlib::collections::Vector;
  * @namespace stdx::util
  * @brief Wrapper namespace for standard library extension utility operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::util {
-#else
-export namespace stdlibx::util {
-#endif
 
 /**
  * @class ParsedArguments

@@ -16,38 +16,21 @@ module;
 #include <sqlext.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:sql.PreparedStatement;
 
-import std;
-#else
-export module stdlibx:sql.PreparedStatement;
-
-import stdlib;
-#endif
-
+import :core;
+import :collections;
 import :sql.SQLException;
 import :sql.ResultSet;
+import :util.utility;
 
-#ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
-using std::collections::Vector;
-
-namespace util = std::util;
-#else
-using stdlib::collections::Vector;
-
-namespace util = stdlib::util;
-#endif
+using stdx::collections::Vector;
 
 /**
  * @namespace stdx::sql
  * @brief Wrapper namespace for standard library extension SQL operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::sql {
-#else
-export namespace stdlibx::sql {
-#endif
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
 
@@ -127,10 +110,10 @@ public:
      */
     PreparedStatement(PreparedStatement&& other) noexcept:
         dbc{other.dbc}, stmt{other.stmt}, 
-        int_params{util::move(other.int_params)}, long_params{util::move(other.long_params)},
-        double_params{util::move(other.double_params)}, string_params{util::move(other.string_params)},
-        bool_params{util::move(other.bool_params)}, indicators{util::move(other.indicators)},
-        sql{util::move(other.sql)}, closed{other.closed} {
+        int_params{stdx::util::move(other.int_params)}, long_params{stdx::util::move(other.long_params)},
+        double_params{stdx::util::move(other.double_params)}, string_params{stdx::util::move(other.string_params)},
+        bool_params{stdx::util::move(other.bool_params)}, indicators{stdx::util::move(other.indicators)},
+        sql{stdx::util::move(other.sql)}, closed{other.closed} {
         other.stmt = nullptr;
         other.closed = true;
     }
@@ -143,13 +126,13 @@ public:
             close();
             dbc = other.dbc;
             stmt = other.stmt;
-            int_params = util::move(other.int_params);
-            long_params = util::move(other.long_params);
-            double_params = util::move(other.double_params);
-            string_params = util::move(other.string_params);
-            bool_params = util::move(other.bool_params);
-            indicators = util::move(other.indicators);
-            sql = util::move(other.sql);
+            int_params = stdx::util::move(other.int_params);
+            long_params = stdx::util::move(other.long_params);
+            double_params = stdx::util::move(other.double_params);
+            string_params = stdx::util::move(other.string_params);
+            bool_params = stdx::util::move(other.bool_params);
+            indicators = stdx::util::move(other.indicators);
+            sql = stdx::util::move(other.sql);
             closed = other.closed;
             other.stmt = nullptr;
             other.closed = true;

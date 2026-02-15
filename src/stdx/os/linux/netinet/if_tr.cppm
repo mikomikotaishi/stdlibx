@@ -13,25 +13,17 @@ module;
 #include <netinet/if_tr.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.netinet.if_tr;
-#else
-export module stdlibx:os.linux.netinet.if_tr;
-#endif
 
 /**
  * @namespace stdx::os::linux::netinet
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::netinet {
-#else 
-export namespace stdlibx::os::linux::netinet {
-#endif
     #ifdef __linux__
-    using TRHHdr = ::trh_hdr;
-    using TRLLC = ::trllc;
-    using TRStatistics = ::tr_statistics;
-    using TRNHdr = ::trn_hdr;
+    using TokenRingFrameHeader = ::trh_hdr;
+    using TokenRingLlc = ::trllc;
+    using TokenRingStatistics = ::tr_statistics;
+    using TokenRingNHeader = ::trn_hdr;
     #endif
 }

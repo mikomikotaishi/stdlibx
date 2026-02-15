@@ -9,11 +9,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.arpa;
-#else
-export module stdlibx:os.linux.arpa;
-#endif
 
 export import :os.linux.arpa.ftp;
 export import :os.linux.arpa.nameser;

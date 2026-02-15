@@ -9,21 +9,13 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.arpa.nameser.constants;
-#else
-export module stdlibx:os.linux.arpa.nameser.constants;
-#endif
 
 /**
  * @namespace stdx::os::linux::arpa
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::arpa {
-#else 
-export namespace stdlibx::os::linux::arpa {
-#endif
     /// Constants based on RFC 883, RFC 1034, RFC 1035
     inline constexpr int NS_PACKETSZ = 512; ///< default UDP packet size
     inline constexpr int NS_MAXDNAME = 1025; ///< maximum domain name

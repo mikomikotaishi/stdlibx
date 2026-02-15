@@ -12,8 +12,4 @@ module;
 #include <arm_neon.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:arch.arm.arm_neon;
-#else
-export module stdlibx:arch.arm.arm_neon;
-#endif

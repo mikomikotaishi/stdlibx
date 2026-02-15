@@ -10,21 +10,13 @@ module;
 
 #include <cstddef>
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.win32.windows.constants;
-#else
-export module stdlibx:os.win32.windows.constants;
-#endif
 
 /**
  * @namespace stdx::os::win32
  * @brief Wrapper namespace for Windows API operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::win32 {
-#else 
-export namespace stdlibx::os::win32 {
-#endif
     constexpr size_t PATH_MAX = 260;
     constexpr size_t MAX_PATH = 260;
 

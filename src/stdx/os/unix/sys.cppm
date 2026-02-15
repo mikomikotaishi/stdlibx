@@ -9,11 +9,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.sys;
-#else
-export module stdlibx:os.unix.sys;
-#endif
 
 export import :os.unix.sys.ioctl;
 export import :os.unix.sys.ipc;

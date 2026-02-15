@@ -54,7 +54,3 @@ export namespace core {
 export namespace core::inline literals::inline string_view_literals {
     using ::core::literals::string_view_literals::operator""sv;
 }
-
-#if (defined(STDLIBX_NO_STD) || defined(STDLIBX_NO_ALLOC)) && defined(STDLIBX_IMPLICIT_USING_CORE)
-STDLIBX_CORE_MODULE_EXPORT_CORE();
-#endif

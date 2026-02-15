@@ -9,11 +9,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.sys;
-#else
-export module stdlibx:os.linux.sys;
-#endif
 
 export import :os.linux.sys.acct;
 export import :os.linux.sys.acl;

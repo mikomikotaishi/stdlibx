@@ -8,11 +8,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:util.logging;
-#else
-export module stdlibx:util.logging;
-#endif
 
 export import :util.logging.Level;
 export import :util.logging.Logger;

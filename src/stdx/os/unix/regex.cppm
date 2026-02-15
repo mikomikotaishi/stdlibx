@@ -13,23 +13,14 @@ module;
 #include <regex.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.regex;
-#else
-export module stdlibx:os.unix.regex;
-#endif
 
 /**
  * @namespace stdx::os::unix
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix {
-#else 
-export namespace stdlibx::os::unix {
-#endif
     #ifdef __unix__
-
     using RegexPatternBuffer = ::re_pattern_buffer;
     using RegexRegisters = ::re_registers;    
 

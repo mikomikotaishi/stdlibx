@@ -12,11 +12,6 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     # Link against the stdlibx library
     target_link_libraries(${TEST_NAME} PRIVATE stdlibx::stdlibx)
     
-    # Link against stdx extensions if they're enabled
-    if(STDLIBX_EXTENSIONS AND TARGET stdlibx::stdx)
-        target_link_libraries(${TEST_NAME} PRIVATE stdlibx::stdx)
-    endif()
-    
     # Set C++ standard and properties
     set_target_properties(${TEST_NAME} PROPERTIES
         CXX_STANDARD 23

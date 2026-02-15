@@ -16,34 +16,19 @@ module;
 #include <sqlext.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:sql.Statement;
 
-import std;
-#else
-export module stdlibx:sql.Statement;
-
-import stdlib;
-#endif
-
+import :mem;
 import :sql.SQLException;
 import :sql.ResultSet;
 
-#ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
-using std::mem::UniquePointer;
-#else
-using stdlib::mem::UniquePointer;
-#endif
+using stdx::mem::UniquePointer;
 
 /**
  * @namespace stdx::sql
  * @brief Wrapper namespace for standard library extension SQL operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::sql {
-#else
-export namespace stdlibx::sql {
-#endif
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
 

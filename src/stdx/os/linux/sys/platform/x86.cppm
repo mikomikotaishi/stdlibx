@@ -13,31 +13,24 @@ module;
 #include <sys/platform/x86.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.sys.platform.x86;
-#else
-export module stdlibx:os.linux.sys.platform.x86;
-#endif
 
 /**
  * @namespace stdx::os::linux::sys::platform
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::sys::platform {
-#else 
-export namespace stdlibx::os::linux::sys::platform {
-#endif
     #ifdef __linux__
     using CpuIdFeature = ::cpuid_feature;
-    enum class CpuIdRegisterIndex {
+    enum class CpuIdRegisterIndex: unsigned char {
         INDEX_EAX = static_cast<int>(cpuid_register_index::cpuid_register_index_eax),
         INDEX_EBX = static_cast<int>(cpuid_register_index::cpuid_register_index_ebx),
         INDEX_ECX = static_cast<int>(cpuid_register_index::cpuid_register_index_ecx),
         INDEX_EDX = static_cast<int>(cpuid_register_index::cpuid_register_index_edx)
     };
 
-    inline bool x86_cpu_present(unsigned int index) {
+    [[nodiscard]]
+    inline bool x86_cpu_present(unsigned int index) noexcept {
         constexpr unsigned int BITS_PER_UINT = 8 * sizeof(unsigned int);
         constexpr unsigned int BITS_PER_LEAF = BITS_PER_UINT * 4;
 
@@ -50,7 +43,8 @@ export namespace stdlibx::os::linux::sys::platform {
         return leaf->cpuid_array[reg_index] & (1u << bit_index);
     }
 
-    inline bool x86_cpu_active(unsigned int index) {
+    [[nodiscard]]
+    inline bool x86_cpu_active(unsigned int index) noexcept {
         if (index == x86_cpu_IBT || index == x86_cpu_SHSTK) {
             return x86_cpu_cet_active(index);
         }

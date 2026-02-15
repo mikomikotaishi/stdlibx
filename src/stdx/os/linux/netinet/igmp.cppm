@@ -13,22 +13,14 @@ module;
 #include <netinet/igmp.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.netinet.igmp;
-#else
-export module stdlibx:os.linux.netinet.igmp;
-#endif
 
 /**
  * @namespace stdx::os::linux::netinet
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::netinet {
-#else 
-export namespace stdlibx::os::linux::netinet {
-#endif
     #ifdef __linux__
-    using IGMP = ::igmp;
+    using Igmp = ::igmp;
     #endif
 }

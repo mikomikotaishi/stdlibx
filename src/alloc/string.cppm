@@ -87,7 +87,3 @@ export namespace __gnu_cxx {
     using __gnu_cxx::operator<=>;
 }
 #endif
-
-#if defined(STDLIBX_NO_STD) && defined(STDLIBX_IMPLICIT_USING_CORE)
-STDLIBX_ALLOC_MODULE_EXPORT_CORE();
-#endif

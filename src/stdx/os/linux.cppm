@@ -8,11 +8,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux;
-#else
-export module stdlibx:os.linux;
-#endif
 
 export import :os.linux.arpa;
 export import :os.linux.asmgeneric;

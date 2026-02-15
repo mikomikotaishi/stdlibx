@@ -17,21 +17,13 @@ module;
 #undef STDOUT_FILENO
 #undef STDERR_FILENO
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.unistd;
-#else
-export module stdlibx:os.unix.unistd;
-#endif
 
 /**
  * @namespace stdx::os::unix
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix {
-#else 
-export namespace stdlibx::os::unix {
-#endif
     inline constexpr int STDIN_FILENO = 0;
     inline constexpr int STDOUT_FILENO = 1;
     inline constexpr int STDERR_FILENO = 2;

@@ -128,40 +128,40 @@ export namespace core {
 
     using BadFunctionCallException = std::bad_function_call;
 
-    /**
-     * @brief Wrapper namespace for placeholder objects of the Functional namespace (up to 29).
-     */
-    namespace Placeholders {
-        using std::placeholders::_1;
-        using std::placeholders::_2;
-        using std::placeholders::_3;
-        using std::placeholders::_4;
-        using std::placeholders::_5;
-        using std::placeholders::_6;
-        using std::placeholders::_7;
-        using std::placeholders::_8;
-        using std::placeholders::_9;
-        using std::placeholders::_10;
-        using std::placeholders::_11;
-        using std::placeholders::_12;
-        using std::placeholders::_13;
-        using std::placeholders::_14;
-        using std::placeholders::_15;
-        using std::placeholders::_16;
-        using std::placeholders::_17;
-        using std::placeholders::_18;
-        using std::placeholders::_19;
-        using std::placeholders::_20;
-        using std::placeholders::_21;
-        using std::placeholders::_22;
-        using std::placeholders::_23;
-        using std::placeholders::_24;
-        using std::placeholders::_25;
-        using std::placeholders::_26;
-        using std::placeholders::_27;
-        using std::placeholders::_28;
-        using std::placeholders::_29;
-    }
+    class Placeholders {
+    public:
+        Placeholders() = delete;
+
+        static constexpr auto _1 = std::placeholders::_1;
+        static constexpr auto _2 = std::placeholders::_2;
+        static constexpr auto _3 = std::placeholders::_3;
+        static constexpr auto _4 = std::placeholders::_4;
+        static constexpr auto _5 = std::placeholders::_5;
+        static constexpr auto _6 = std::placeholders::_6;
+        static constexpr auto _7 = std::placeholders::_7;
+        static constexpr auto _8 = std::placeholders::_8;
+        static constexpr auto _9 = std::placeholders::_9;
+        static constexpr auto _10 = std::placeholders::_10;
+        static constexpr auto _11 = std::placeholders::_11;
+        static constexpr auto _12 = std::placeholders::_12;
+        static constexpr auto _13 = std::placeholders::_13;
+        static constexpr auto _14 = std::placeholders::_14;
+        static constexpr auto _15 = std::placeholders::_15;
+        static constexpr auto _16 = std::placeholders::_16;
+        static constexpr auto _17 = std::placeholders::_17;
+        static constexpr auto _18 = std::placeholders::_18;
+        static constexpr auto _19 = std::placeholders::_19;
+        static constexpr auto _20 = std::placeholders::_20;
+        static constexpr auto _21 = std::placeholders::_21;
+        static constexpr auto _22 = std::placeholders::_22;
+        static constexpr auto _23 = std::placeholders::_23;
+        static constexpr auto _24 = std::placeholders::_24;
+        static constexpr auto _25 = std::placeholders::_25;
+        static constexpr auto _26 = std::placeholders::_26;
+        static constexpr auto _27 = std::placeholders::_27;
+        static constexpr auto _28 = std::placeholders::_28;
+        static constexpr auto _29 = std::placeholders::_29;
+    };
 
     using std::bind_front;
     using std::bind;
@@ -169,7 +169,3 @@ export namespace core {
     using std::cref;
     using std::invoke;
 }
-
-#if (defined(STDLIBX_NO_STD) || defined(STDLIBX_NO_ALLOC)) && defined(STDLIBX_IMPLICIT_USING_CORE)
-STDLIBX_CORE_MODULE_EXPORT_CORE();
-#endif

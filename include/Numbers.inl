@@ -191,18 +191,33 @@ public:
     }
 
     [[nodiscard]]
-    virtual byte byte_value() const noexcept {
+    byte byte_value() const noexcept {
         return static_cast<byte>(static_cast<unsigned char>(value));
     }
 
     [[nodiscard]]
-    virtual i8 signed_byte_value() const noexcept {
+    static byte byte_value(T x) noexcept {
+        return static_cast<byte>(static_cast<unsigned char>(x));
+    }
+
+    [[nodiscard]]
+    i8 signed_byte_value() const noexcept {
         return static_cast<i8>(value);
     }
 
     [[nodiscard]]
-    virtual u8 unsigned_byte_value() const noexcept {
+    static i8 signed_byte_value(T x) noexcept {
+        return static_cast<i8>(x);
+    }
+
+    [[nodiscard]]
+    u8 unsigned_byte_value() const noexcept {
         return static_cast<u8>(value);
+    }
+
+    [[nodiscard]]
+    static u8 unsigned_byte_value(T x) noexcept {
+        return static_cast<u8>(x);
     }
 
     [[nodiscard]]
@@ -283,14 +298,81 @@ public:
 
     [[nodiscard]]
     String to_string() const noexcept {
-        return fmt::format("{}", value);
+        return stdx::fmt::format("{}", value);
     }
 
     [[nodiscard]]
     static String to_string(T v) noexcept {
-        return fmt::format("{}", v);
+        return stdx::fmt::format("{}", v);
     }
     #endif
+};
+
+template <CharacterLike Ch>
+class [[nodiscard]] CharacterBase: public Number<Ch> {
+public:
+    [[nodiscard]]
+    bool is_alphanumeric() const noexcept {
+        return ::core::text::isalnum(static_cast<unsigned char>(this->value));
+    }
+
+    [[nodiscard]]
+    bool is_alphabetic() const noexcept {
+        return ::core::text::isalpha(static_cast<unsigned char>(this->value));
+    }
+
+    [[nodiscard]]
+    bool is_lower_case() const noexcept {
+        return ::core::text::islower(static_cast<unsigned char>(this->value));
+    }
+
+    [[nodiscard]]
+    bool is_upper_case() const noexcept {
+        return ::core::text::isupper(static_cast<unsigned char>(this->value));
+    }
+
+    [[nodiscard]]
+    bool is_digit() const noexcept {
+        return ::core::text::isdigit(static_cast<unsigned char>(this->value));
+    }
+
+    [[nodiscard]]
+    bool is_whitespace() const noexcept {
+        return ::core::text::isspace(static_cast<unsigned char>(this->value));
+    }
+
+    [[nodiscard]]
+    bool is_control() const noexcept {
+        return ::core::text::iscntrl(static_cast<unsigned char>(this->value));
+    }
+
+    [[nodiscard]]
+    bool is_printable() const noexcept {
+        return ::core::text::isprint(static_cast<unsigned char>(this->value));
+    }
+};
+
+template <FloatingPoint F>
+class [[nodiscard]] FloatingPointBase: public Number<F> {
+public:
+    static constexpr F POSITIVE_INFINITY = NumericLimits<F>::infinity(); ///< A constant representing positive infinity for the floating-point type.
+    static constexpr F NEGATIVE_INFINITY = -NumericLimits<F>::infinity(); ///< A constant representing negative infinity for the floating-point type.
+    static constexpr F NaN = NumericLimits<F>::quiet_NaN(); ///< A constant representing Not-a-Number (NaN) for the floating-point type.
+
+    [[nodiscard]]
+    bool is_nan() const noexcept {
+        return ::core::math::isnan(this->value);
+    }
+
+    [[nodiscard]]
+    bool is_infinite() const noexcept {
+        return ::core::math::isinf(this->value);
+    }
+
+    [[nodiscard]]
+    bool is_finite() const noexcept {
+        return ::core::math::isfinite(this->value);
+    }
 };
 
 class [[nodiscard]] Boolean final {
@@ -433,7 +515,7 @@ public:
     }
 };
 
-class [[nodiscard]] Character final: public Number<char> {
+class [[nodiscard]] Character final: public CharacterBase<char> {
 public:
     [[nodiscard]]
     constexpr operator char() const noexcept {
@@ -441,7 +523,7 @@ public:
     }
 };
 
-class [[nodiscard]] UnsignedCharacter final: public Number<unsigned char> {
+class [[nodiscard]] UnsignedCharacter final: public CharacterBase<unsigned char> {
 public:
     [[nodiscard]]
     constexpr operator unsigned char() const noexcept {
@@ -449,7 +531,7 @@ public:
     }
 };
 
-class [[nodiscard]] Character8 final: public Number<char8> {
+class [[nodiscard]] Character8 final: public CharacterBase<char8> {
 public:
     [[nodiscard]]
     constexpr operator char8() const noexcept {
@@ -457,7 +539,7 @@ public:
     }
 };
 
-class [[nodiscard]] Character16 final: public Number<char16> {
+class [[nodiscard]] Character16 final: public CharacterBase<char16> {
 public:
     [[nodiscard]]
     constexpr operator char16() const noexcept {
@@ -465,7 +547,7 @@ public:
     }
 };
 
-class [[nodiscard]] Character32 final: public Number<char32> {
+class [[nodiscard]] Character32 final: public CharacterBase<char32> {
 public:
     [[nodiscard]]
     constexpr operator char32() const noexcept {
@@ -473,7 +555,7 @@ public:
     }
 };
 
-class [[nodiscard]] WideCharacter final: public Number<wchar> {
+class [[nodiscard]] WideCharacter final: public CharacterBase<wchar> {
 public:
     [[nodiscard]]
     constexpr operator wchar() const noexcept {
@@ -497,7 +579,7 @@ public:
     }
 };
 
-class [[nodiscard]] Float final: public Number<f32> {
+class [[nodiscard]] Float final: public FloatingPointBase<f32> {
 public:
     [[nodiscard]]
     constexpr operator f32() const noexcept {
@@ -505,7 +587,7 @@ public:
     }
 };
 
-class [[nodiscard]] Double final: public Number<f64> {
+class [[nodiscard]] Double final: public FloatingPointBase<f64> {
 public:
     [[nodiscard]]
     constexpr operator f64() const noexcept {
@@ -513,7 +595,7 @@ public:
     }
 };
 
-class [[nodiscard]] LongDouble final: public Number<f128> {
+class [[nodiscard]] LongDouble final: public FloatingPointBase<f128> {
 public:
     [[nodiscard]]
     constexpr operator f128() const noexcept {

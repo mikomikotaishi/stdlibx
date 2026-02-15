@@ -9,11 +9,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.net;
-#else
-export module stdlibx:os.linux.net;
-#endif
 
 export import :os.linux.net.ethernet;
 export import :os.linux.net.if_arp;

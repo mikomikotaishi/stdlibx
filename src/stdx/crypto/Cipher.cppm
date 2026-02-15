@@ -8,20 +8,12 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:crypto.Cipher;
-#else
-export module stdlibx:crypto.Cipher;
-#endif
 
 /**
  * @namespace stdx::crypto
  * @brief Wrapper namespace for standard library extension cryptography operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::crypto {
-#else
-export namespace stdlibx::crypto {
-#endif
     
 }

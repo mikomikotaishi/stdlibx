@@ -13,25 +13,17 @@ module;
 #include <aio.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.aio;
-#else
-export module stdlibx:os.unix.aio;
-#endif
 
 /**
  * @namespace stdx::os::unix
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix {
-#else 
-export namespace stdlibx::os::unix {
-#endif
     #ifdef __unix__
-    using AIOCB = ::aiocb;
-    using AIOCB64 = ::aiocb64;
-    using AIOInit = ::aioinit;
+    using AsynchronousIOControlBlock = ::aiocb;
+    using AsynchronousIOControlBlock64 = ::aiocb64;
+    using AsynchronousIOInit = ::aioinit;
 
     using ::aio_init;
     using ::aio_read;

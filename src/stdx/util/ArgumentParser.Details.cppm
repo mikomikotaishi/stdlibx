@@ -12,47 +12,31 @@ module;
 
 #include "Macros.hpp"
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:util.ArgumentParser.Details;
 
-import std;
+import :core;
+import :collections;
+import :io;
+import :iter;
+import :meta;
+import :ranges;
+import :text;
 
-using std::collections::TreeMap;
-using std::collections::Vector;
-using std::io::StringStream;
-using std::iter::InputIterator;
-using std::meta::FalseType;
-using std::meta::IsConvertibleValue;
-using std::meta::IsSameValue;
-using std::meta::RemoveReferenceType;
-using std::meta::TrueType;
-using std::ranges::IotaView;
-using std::ranges::views::Take;
-using std::text::CharsFormat;
+using stdx::collections::TreeMap;
+using stdx::collections::Vector;
+using stdx::io::StringStream;
+using stdx::iter::InputIterator;
+using stdx::meta::FalseType;
+using stdx::meta::IsConvertibleValue;
+using stdx::meta::IsSameValue;
+using stdx::meta::RemoveReferenceType;
+using stdx::meta::TrueType;
+using stdx::ranges::IotaView;
+using stdx::ranges::views::Take;
+using stdx::text::CharsFormat;
 
-using namespace std;
-using namespace std::literals;
-#else
-export module stdlibx:util.ArgumentParser.Detail;
-
-import stdlib;
-
-using stdlib::collections::TreeMap;
-using stdlib::collections::Vector;
-using stdlib::io::StringStream;
-using stdlib::iter::InputIterator;
-using stdlib::meta::FalseType;
-using stdlib::meta::IsConvertibleValue;
-using stdlib::meta::IsSameValue;
-using stdlib::meta::RemoveReferenceType;
-using stdlib::meta::TrueType;
-using stdlib::ranges::IotaView;
-using stdlib::ranges::views::Take;
-using stdlib::text::CharsFormat;
-
-using namespace stdlib;
-using namespace stdlib::literals;
-#endif
+using namespace stdx;
+using namespace stdx::literals;
 
 #if 0
 
@@ -86,7 +70,7 @@ String represent(const T& val) {
     if constexpr (IsSameValue<T, bool>) {
         return val ? "true" : "false";
     } else if constexpr (IsConvertibleValue<T, StringView>) {
-        return fmt::format("\"{}\"", StringView(val));
+        return stdx::fmt::format("\"{}\"", StringView(val));
     } else if constexpr (Collection<T>) {
         StringStream out;
         out << "{";
@@ -107,7 +91,7 @@ String represent(const T& val) {
             }
         }
         if (size > 0) {
-            out << represent(*iter::prev(val.end()));
+            out << represent(*stdx::iter::prev(val.end()));
         }
         out << "}";
         return out.str();
@@ -132,15 +116,15 @@ concept StandardInteger = StandardSignedInteger<T> || StandardUnsignedInteger<T>
 template <typename F, typename Tpl, typename Ext, usize... I>
 constexpr decltype(auto) apply_plus_one_impl(F&& f, Tpl&& t, Ext&& x, [[maybe_unused]] IndexSequence<I...> ind_seq) noexcept {
     (void)ind_seq;
-    return invoke(util::forward<F>(f), get<I>(util::forward<Tpl>(t))..., util::forward<Ext>(x));
+    return invoke(stdx::util::forward<F>(f), get<I>(stdx::util::forward<Tpl>(t))..., stdx::util::forward<Ext>(x));
 }
 
 template <typename F, typename Tpl, typename Ext>
 constexpr decltype(auto) apply_plus_one(F&& f, Tpl&& t, Ext&& x) noexcept {
     return _detail::apply_plus_one_impl(
-        util::forward<F>(f),
-        util::forward<Tpl>(t),
-        util::forward<Ext>(x),
+        stdx::util::forward<F>(f),
+        stdx::util::forward<Tpl>(t),
+        stdx::util::forward<Ext>(x),
         make_index_sequence<TupleSizeValue<RemoveReferenceType<Tpl>>>{}
     );
 }
@@ -202,19 +186,19 @@ template <typename T, usize Param>
 T perform_from_chars(StringView s) throws (InvalidArgumentException, InvalidRangeException) {
     T x{0};
     auto [first, last] = pointer_range(s);
-    auto [ptr, ec] = text::from_chars(first, last, x, Param);
+    auto [ptr, ec] = stdx::text::from_chars(first, last, x, Param);
     switch (ec) {
         case Errc::Self():
             if (ptr == last) {
                 return x;
             }
-            throw InvalidArgumentException(fmt::format("Pattern {} does not match to the end!", s));
+            throw InvalidArgumentException(stdx::fmt::format("Pattern {} does not match to the end!", s));
         case Errc::INVALID_ARGUMENT:
-            throw InvalidArgumentException(fmt::format("Pattern {} not found!", s));
+            throw InvalidArgumentException(stdx::fmt::format("Pattern {} not found!", s));
         case Errc::RESULT_OUT_OF_RANGE:
-            throw InvalidRangeException(fmt::format("'{}' not representable!", s));
+            throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
         default:
-            sys::unreachable();
+            stdx::sys::unreachable();
     }
 }
 
@@ -231,7 +215,7 @@ struct ParseNumber<T, 2uz> {
         if (auto [ok, rest] = consume_binary_prefix(s); ok) {
             return perform_from_chars<T, 2uz>(rest);
         }
-        throw InvalidArgumentException("Pattern not found!");
+        throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
     }
 };
 
@@ -242,12 +226,12 @@ struct ParseNumber<T, 16uz> {
             try {
                 return perform_from_chars<T, 16uz>(rest);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             }
         }
-        throw InvalidArgumentException(fmt::format("Failed to parse '{}' not identified as hexadecimal!", s));
+        throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' not identified as hexadecimal!", s));
     }
 };
 
@@ -260,9 +244,9 @@ struct ParseNumber<T> {
             try {
                 return perform_from_chars<T, 16uz>(rest);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             }
         }
 
@@ -270,11 +254,11 @@ struct ParseNumber<T> {
         auto [ok_binary, rest_binary] = consume_binary_prefix(s);
         if (ok_binary) {
             try {
-                return perform_from_chars<T, 2uz>(rest);
+                return perform_from_chars<T, 2uz>(rest_binary);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(fmt::format("Failed to parse '{}' as binary: {}", s, e.what()));
+                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as binary: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(fmt::format("Failed to parse '{}' as binary: {}", s, e.what()));
+                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as binary: {}", s, e.what()));
             }
         }
 
@@ -283,9 +267,9 @@ struct ParseNumber<T> {
             try {
                 return perform_from_chars<T, 8uz>(rest);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(fmt::format("Failed to parse '{}' as octal: {}", s, e.what()));
+                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as octal: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(fmt::format("Failed to parse '{}' as octal: {}", s, e.what()));
+                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as octal: {}", s, e.what()));
             }
         }
 
@@ -293,9 +277,9 @@ struct ParseNumber<T> {
         try {
             return perform_from_chars<T, 10uz>(rest);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(fmt::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
+            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(fmt::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
+            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
         }
     }
 };
@@ -305,26 +289,26 @@ concept FloatingPoint = IsSameValue<T, float> || IsSameValue<T, double> || IsSam
 
 template <FloatingPoint T>
 T perform_floating_from_chars(StringView s, CharsFormat fmt) throws (InvalidArgumentException, InvalidRangeException) {
-    if (text::isspace(static_cast<unsigned char>(s[0])) || s[0] == '+') {
-        throw InvalidArgumentException(fmt::format("Pattern '{}' not found!", s));
+    if (stdx::text::isspace(static_cast<unsigned char>(s[0])) || s[0] == '+') {
+        throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
     }
     
     T x{0};
     auto [first, last] = pointer_range(s);
-    auto [ptr, ec] = text::from_chars(first, last, x, fmt);
+    auto [ptr, ec] = stdx::text::from_chars(first, last, x, fmt);
 
     switch (ec) {
         case Errc::Self():
             if (ptr == last) {
                 return x;
             }
-            throw InvalidArgumentException(fmt::format("Pattern '{}' does not match to the end!", s));
+            throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' does not match to the end!", s));
         case Errc::INVALID_ARGUMENT:
-            throw InvalidArgumentException(fmt::format("Pattern '{}' not found!", s));
+            throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
         case Errc::RESULT_OUT_OF_RANGE:
-            throw InvalidRangeException(fmt::format("'{}' not representable!", s));
+            throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
         default:
-            sys::unreachable();
+            stdx::sys::unreachable();
     }
 }
 
@@ -342,9 +326,9 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::GENERAL)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::GENERAL);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(fmt::format("Failed to parse '{}' as number: {}", s, e.what()));
+            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as number: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(fmt::format("Failed to parse '{}' as number: {}", s, e.what()));
+            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as number: {}", s, e.what()));
         }
     }
 };
@@ -363,9 +347,9 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::HEX)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::HEX);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
         }
     }
 };
@@ -402,9 +386,9 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::SCIENTIFIC)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::SCIENTIFIC);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(fmt::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
+            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(fmt::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
+            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
         }
     }
 };
@@ -426,9 +410,9 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::FIXED)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::FIXED);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(fmt::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
+            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(fmt::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
+            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
         }
     }
 };
@@ -471,8 +455,8 @@ concept CanInvokeToString = requires(T val) {
 
 template <typename T>
 concept ChoiceTypeSupported = [] {
-    using CleanType = meta::DecayType<T>;
-    return meta::IsIntegralValue<CleanType>
+    using CleanType = stdx::meta::DecayType<T>;
+    return stdx::meta::IsIntegralValue<CleanType>
         || IsSameValue<CleanType, String>
         || IsSameValue<CleanType, StringView>
         || IsSameValue<CleanType, const char*>;
@@ -492,7 +476,7 @@ usize get_levenshtein_distance(const StrT& s1, const StrT& s2) {
             } else if (s1[i - 1] == s2[j - 1]) {
                 dp[i][j] = dp[i - 1][j - 1];
             } else {
-                dp[i][j] = 1uz + math::min<usize>({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});
+                dp[i][j] = 1uz + stdx::math::min<usize>({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});
             }
         }
     }
@@ -531,12 +515,12 @@ enum class DefaultArguments: u8 {
 
 [[nodiscard]]
 constexpr DefaultArguments operator&(DefaultArguments a, DefaultArguments b) noexcept {
-    return static_cast<DefaultArguments>(util::to_underlying(a) & util::to_underlying(b));
+    return static_cast<DefaultArguments>(stdx::util::to_underlying(a) & stdx::util::to_underlying(b));
 }
 
 [[nodiscard]]
 constexpr DefaultArguments operator|(DefaultArguments a, DefaultArguments b) noexcept {
-    return static_cast<DefaultArguments>(util::to_underlying(a) | util::to_underlying(b));
+    return static_cast<DefaultArguments>(stdx::util::to_underlying(a) | stdx::util::to_underlying(b));
 }
 
 }

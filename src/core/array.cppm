@@ -42,7 +42,3 @@ export namespace core {
 
     using std::swap;
 }
-
-#if defined(STDLIBX_NO_STD) || defined(STDLIBX_NO_ALLOC)
-STDLIBX_CORE_MODULE_EXPORT_CORE();
-#endif

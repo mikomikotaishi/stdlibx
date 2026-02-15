@@ -13,21 +13,13 @@ module;
 #include <sys/wait.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.sys.wait;
-#else
-export module stdlibx:os.unix.sys.wait;
-#endif
 
 /**
  * @namespace stdx::os::unix::sys
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix::sys {
-#else 
-export namespace stdlibx::os::unix::sys {
-#endif
     #ifdef __unix__
     using ::wait;
     using ::waitpid;

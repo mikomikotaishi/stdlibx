@@ -15,21 +15,15 @@ module;
 #include <arpa/telnet.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.arpa.telnet;
-#else
-export module stdlibx:os.linux.arpa.telnet;
-#endif
+
+import :core;
 
 /**
  * @namespace stdx::os::linux::arpa
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::arpa {
-#else 
-export namespace stdlibx::os::linux::arpa {
-#endif
     #ifdef __linux__
     using ::telcmds;
     using ::telopts;
@@ -37,17 +31,16 @@ export namespace stdlibx::os::linux::arpa {
     using ::authtype_names;
     #endif
 
-    const char* AuthTypeNames[] = {
-        "NULL", "KERBEROS_V4", "KERBEROS_V5", "SPX", "MINK", 0,
+    inline constexpr Array<const char*, 5> AuthTypeNames = {
+        "NULL", "KERBEROS_V4", "KERBEROS_V5", "SPX", "MINK"
     };
 
-    const char* EncryptNames[] = {
+    inline constexpr Array<const char*, 9> EncryptNames = {
         "IS", "SUPPORT", "REPLY", "START", "END",
         "REQUEST-START", "REQUEST-END", "ENC-KEYID", "DEC-KEYID",
-        0,
     };
 
-    const char* EnctypeNames[] = {
-        "ANY", "DES_CFB64",  "DES_OFB64",  0,
+    inline constexpr Array<const char*, 3> EnctypeNames = {
+        "ANY", "DES_CFB64",  "DES_OFB64"
     };
 }

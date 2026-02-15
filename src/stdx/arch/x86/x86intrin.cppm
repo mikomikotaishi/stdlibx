@@ -12,9 +12,4 @@ module;
 #include <x86intrin.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:arch.x86.x86intrin;
-#else
-export module stdlibx:arch.x86.x86intrin;
-#endif
-

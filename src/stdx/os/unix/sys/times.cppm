@@ -13,23 +13,14 @@ module;
 #include <sys/times.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.sys.times;
-#else
-export module stdlibx:os.unix.sys.times;
-#endif
 
 /**
  * @namespace stdx::os::unix::sys
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix::sys {
-#else 
-export namespace stdlibx::os::unix::sys {
-#endif
     #ifdef __unix__
-
     using Times = ::tms;
 
     using ::times;

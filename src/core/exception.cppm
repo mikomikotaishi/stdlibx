@@ -54,7 +54,3 @@ export namespace core {
     using std::get_terminate;
     using std::set_terminate;
 }
-#if (defined(STDLIBX_NO_STD) || defined(STDLIBX_NO_ALLOC)) && defined(STDLIBX_IMPLICIT_USING_CORE)
-STDLIBX_CORE_MODULE_EXPORT_CORE();
-#endif
-

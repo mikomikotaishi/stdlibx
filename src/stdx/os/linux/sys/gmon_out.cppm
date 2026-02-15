@@ -13,23 +13,14 @@ module;
 #include <sys/gmon_out.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.sys.gmon_out;
-#else
-export module stdlibx:os.linux.sys.gmon_out;
-#endif
 
 /**
  * @namespace stdx::os::linux::sys
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::sys {
-#else 
-export namespace stdlibx::os::linux::sys {
-#endif
     #ifdef __linux__
-
     using GmonHeader = ::gmon_hdr;
     using GmonHistoryHeader = ::gmon_hist_hdr;
     using GmonCgArcRecord = ::gmon_cg_arc_record;

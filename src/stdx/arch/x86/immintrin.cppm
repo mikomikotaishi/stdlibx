@@ -12,9 +12,4 @@ module;
 #include <immintrin.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:arch.x86.immintrin;
-#else
-export module stdlibx:arch.x86.immintrin;
-#endif
-

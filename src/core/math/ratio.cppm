@@ -52,34 +52,34 @@ export namespace core::math::inline ratio {
 
     #if __INTMAX_WIDTH__ >= 96
     #if __INTMAX_WIDTH__ >= 128
-    using QUECTO = std::quecto;
+    using Quecto = std::quecto;
     #endif 
-    using RONTO = std::ronto;
-    using YOCTO = std::yocto;
-    using ZEPTO = std::zepto;
+    using Ronto = std::ronto;
+    using Yocto = std::yocto;
+    using Zepto = std::zepto;
     #endif
-    using ATTO = std::atto;
-    using FEMTO =std::femto;
-    using PICO = std::pico;
-    using NANO = std::nano;
-    using MICRO = std::micro;
-    using MILLI = std::milli;
-    using CENTI = std::centi;
-    using DECI = std::deci;
-    using DECA = std::deca;
-    using HECTO = std::hecto;
-    using KILO = std::kilo;
-    using MEGA = std::mega;
-    using GIGA = std::giga;
-    using TERA = std::tera;
-    using PETA = std::peta;
-    using EXA = std::exa;
+    using Atto = std::atto;
+    using Femto =std::femto;
+    using Pico = std::pico;
+    using Nano = std::nano;
+    using Micro = std::micro;
+    using Milli = std::milli;
+    using Centi = std::centi;
+    using Deci = std::deci;
+    using Deca = std::deca;
+    using Hecto = std::hecto;
+    using Kilo = std::kilo;
+    using Mega = std::mega;
+    using Giga = std::giga;
+    using Tera = std::tera;
+    using Peta = std::peta;
+    using Exa = std::exa;
     #if __INTMAX_WIDTH__ >= 96
-    using ZETTA = std::zetta;
-    using YOTTA = std::yotta;
-    using RONNA = std::ronna;
+    using Zetta = std::zetta;
+    using Yotta = std::yotta;
+    using Ronna = std::ronna;
     #if __INTMAX_WIDTH__ >= 128
-    using QUETTA = std::quetta;
+    using Quetta = std::quetta;
     #endif 
     #endif
 }

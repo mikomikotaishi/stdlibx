@@ -114,10 +114,13 @@ export namespace core {
 
     template <typename Rel, typename T, typename U>
     concept StrictWeakOrder = std::strict_weak_order<Rel, T, U>;
+
+    template <typename T>
+    concept CharacterLike = SameAs<T, char>
+        || SameAs<T, unsigned char>
+        || SameAs<T, char8_t>
+        || SameAs<T, char16_t>
+        || SameAs<T, char32_t>
+        || SameAs<T, wchar_t>;
     #endif
 }
-
-#if (defined(STDLIBX_NO_STD) || defined(STDLIBX_NO_ALLOC)) && defined(STDLIBX_IMPLICIT_USING_CORE)
-STDLIBX_CORE_MODULE_EXPORT_CORE();
-#endif
-

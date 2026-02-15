@@ -8,10 +8,6 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:arch.arm;
-#else
-export module stdlibx:arch.arm;
-#endif
 
 export import :arch.arm.arm_neon;

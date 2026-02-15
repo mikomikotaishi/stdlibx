@@ -11,61 +11,33 @@ module;
 
 #include "Macros.hpp"
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:util.logging.Sinks;
 
-import std;
-#else
-export module stdlibx:util.logging.Sinks;
-
-import stdlib;
-#endif
-
+import :core;
+import :fs;
+import :io;
+import :mem;
+import :meta;
+import :sync;
 import :util.logging.Level;
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
-using std::fs::Path;
-using std::io::IOException;
-using std::io::IOS;
-using std::io::OpenMode;
-using std::io::OutputFileStream;
-using std::io::Stderr;
-using std::io::Stdout;
-using std::mem::UniquePointer;
-using std::meta::SourceLocation;
-using std::sync::Mutex;
-using std::sync::ScopedLock;
-
-namespace io = std::io;
-namespace fs = std::fs;
-namespace mem = std::mem;
-#else
-using stdlib::fs::Path;
-using stdlib::io::IOException;
-using stdlib::io::IOS;
-using stdlib::io::OpenMode;
-using stdlib::io::OutputFileStream;
-using stdlib::io::Stderr;
-using stdlib::io::Stdout;
-using stdlib::mem::UniquePointer;
-using stdlib::meta::SourceLocation;
-using stdlib::sync::Mutex;
-using stdlib::sync::ScopedLock;
-
-namespace io = stdlib::io;
-namespace fs = stdlib::fs;
-namespace mem = stdlib::mem;
-#endif
+using stdx::fs::Path;
+using stdx::io::IOException;
+using stdx::io::IOS;
+using stdx::io::OpenMode;
+using stdx::io::OutputFileStream;
+using stdx::io::Stderr;
+using stdx::io::Stdout;
+using stdx::mem::UniquePointer;
+using stdx::meta::SourceLocation;
+using stdx::sync::Mutex;
+using stdx::sync::ScopedLock;
 
 /**
  * @namespace stdx::util::logging
  * @brief Wrapper namespace for standard library extension utility operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::util::logging {
-#else
-export namespace stdlibx::util::logging {
-#endif
 
 /**
  * @interface LogSink
@@ -80,17 +52,17 @@ public:
      * 
      * @param timestamp The timestamp string
      * @param level The log level
-     * @param loggerName The name of the logger
+     * @param logger_name The name of the logger
      * @param message The formatted message
-     * @param enableSourceLocation Whether to include source location in output
+     * @param enable_source_location Whether to include source location in output
      * @param location The source location (if enabled)
      */
     virtual void write(
         StringView timestamp,
         Level level,
-        StringView loggerName,
+        StringView logger_name,
         StringView message, 
-        bool enableSourceLocation = false, 
+        bool enable_source_location = false, 
         const SourceLocation& location = SourceLocation::current()
     ) = 0;
 
@@ -119,7 +91,7 @@ public:
      * @throws IOException
      */
     explicit FileSink(StringView path, OpenMode::Self mode = OpenMode::APPEND) throws (IOException) {
-        file = mem::make_unique<OutputFileStream>(Path(path), mode);
+        file = stdx::mem::make_unique<OutputFileStream>(Path(path), mode);
         if (!file->is_open()) {
             throw IOException("Failed to open log file");
         }
@@ -128,21 +100,21 @@ public:
     void write(
         StringView timestamp,
         Level level,
-        StringView loggerName,
+        StringView logger_name,
         StringView message,
-        bool enableSourceLocation = false,
+        bool enable_source_location = false,
         const SourceLocation& location = SourceLocation::current()
     ) override {
         ScopedLock<Mutex> lock(mutex);
-        if (enableSourceLocation) {
-            io::println(
+        if (enable_source_location) {
+            stdx::io::println(
                 *file, "[{}] {} [{}] [{}:{}:{}]: {}", 
-                timestamp, level, loggerName, 
+                timestamp, level, logger_name, 
                 location.file_name(), location.line(), location.function_name(),
                 message
             );
         } else {
-            io::println(*file, "[{}] {} [{}]: {}", timestamp, level, loggerName, message);
+            stdx::io::println(*file, "[{}] {} [{}]: {}", timestamp, level, logger_name, message);
         }
     }
 
@@ -160,7 +132,7 @@ public:
  */
 class ConsoleSink final: public ILogSink {
 private:
-    bool useStderr;
+    bool use_stderr;
     mutable Mutex mutex;
 public:
     /**
@@ -168,48 +140,49 @@ public:
      * 
      * @param toStderr If true, write to stderr; otherwise stdout
      */
-    explicit ConsoleSink(bool toStderr = true):
-        useStderr{toStderr} {}
+    explicit ConsoleSink(bool to_stderr = true):
+        use_stderr{to_stderr} {}
 
     void write(
         StringView timestamp,
         Level level,
-        StringView loggerName,StringView message,
-        bool enableSourceLocation = false,
+        StringView logger_name,
+        StringView message,
+        bool enable_source_location = false,
         const SourceLocation& location = SourceLocation::current()
     ) override {
         ScopedLock<Mutex> lock(mutex);
-        if (enableSourceLocation) {
-            if (useStderr) {
-                io::println(
+        if (enable_source_location) {
+            if (use_stderr) {
+                stdx::io::println(
                     Stderr, "[{}] {} [{}] [{}:{}:{}]: {}", 
-                    timestamp, level, loggerName,
+                    timestamp, level, logger_name,
                     location.file_name(), location.line(), location.function_name(),
                     message
                 );
             } else {
-                io::println(
+                stdx::io::println(
                     Stdout, "[{}] {} [{}] [{}:{}:{}]: {}", 
-                    timestamp, level, loggerName,
+                    timestamp, level, logger_name,
                     location.file_name(), location.line(), location.function_name(),
                     message
                 );
             }
         } else {
-            if (useStderr) {
-                io::println(Stderr, "[{}] {} [{}]: {}", timestamp, level, loggerName, message);
+            if (use_stderr) {
+                stdx::io::println(Stderr, "[{}] {} [{}]: {}", timestamp, level, logger_name, message);
             } else {
-                io::println(Stdout, "[{}] {} [{}]: {}", timestamp, level, loggerName, message);
+                stdx::io::println(Stdout, "[{}] {} [{}]: {}", timestamp, level, logger_name, message);
             }
         }
     }
 
     void flush() override {
         ScopedLock<Mutex> lock(mutex);
-        if (useStderr) {
-            io::fflush(Stderr);
+        if (use_stderr) {
+            stdx::io::fflush(Stderr);
         } else {
-            io::fflush(Stdout);
+            stdx::io::fflush(Stdout);
         }
     }
 };

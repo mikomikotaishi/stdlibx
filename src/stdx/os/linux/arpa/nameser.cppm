@@ -13,11 +13,7 @@ module;
 #include <arpa/nameser.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.arpa.nameser;
-#else
-export module stdlibx:os.linux.arpa.nameser;
-#endif
 
 export import :os.linux.arpa.nameser.constants;
 
@@ -25,11 +21,7 @@ export import :os.linux.arpa.nameser.constants;
  * @namespace stdx::os::linux::arpa
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::arpa {
-#else 
-export namespace stdlibx::os::linux::arpa {
-#endif
     #ifdef __linux__
     using NsTsigKey = ::ns_tsig_key;
     using NsTcpTsigState = ::ns_tcp_tsig_state;

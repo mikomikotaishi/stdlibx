@@ -9,8 +9,7 @@ target_sources(stdlibx_stdx
 
 configure_cpp_module_target(stdlibx_stdx)
 
-
-target_link_libraries(stdlibx_stdx PUBLIC stdlibx_std)
+target_link_libraries(stdlibx_stdx PUBLIC stdlibx_core stdlibx_alloc)
 
 target_include_directories(stdlibx_stdx 
     PUBLIC 
@@ -31,8 +30,8 @@ if(STDLIBX_IMPLICIT_USING_CORE)
     target_compile_definitions(stdlibx_stdx INTERFACE STDLIBX_IMPLICIT_USING_CORE)
 endif()
 
-if(STDLIBX_EXTENSIONS)
-    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS)
+if(STDLIBX_EXPERIMENTAL_STD)
+    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXPERIMENTAL_STD)
 endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
@@ -44,6 +43,13 @@ endif()
 if(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
     find_package(Lua REQUIRED)
+    add_library(Lua::Lua INTERFACE IMPORTED)
+    set_target_properties(
+        Lua::Lua
+        PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
+        INTERFACE_LINK_LIBRARIES "${LUA_LIBRARIES}"
+    )
     target_link_libraries(stdlibx_stdx PUBLIC Lua::Lua)
 endif()
 
@@ -64,8 +70,5 @@ if(STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
     target_compile_definitions(stdlibx_stdx PRIVATE 
         STDLIBX_NO_RESERVED_STD_MODULE
         STDLIBX_NO_RESERVED_STD_NAMESPACE
-    )
-    target_compile_options(stdlibx_stdx PRIVATE 
-        -Wno-reserved-module-identifier
     )
 endif()

@@ -12,37 +12,18 @@ module;
 
 #include "Macros.hpp"
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:util.ArgumentParser;
 
-import std;
-#else
-export module stdlibx:util.ArgumentParser;
-
-import stdlib;
-#endif
-
-import core;
-
+import :core;
+import :fmt;
+import :io;
 import :util.ArgumentParser.Details;
+import :util.utility;
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
-using std::io::OutputStream;
-using std::fmt::FormatContext;
-using std::fmt::FormatParseContext;
-using std::fmt::Formatter;
-
-namespace fmt = std::fmt;
-namespace ranges = std::ranges;
-#else
-using stdlib::io::OutputStream;
-using stdlib::fmt::FormatContext;
-using stdlib::fmt::FormatParseContext;
-using stdlib::fmt::Formatter;
-
-namespace fmt = stdlib::fmt;
-namespace ranges = stdlib::ranges;
-#endif
+using stdx::io::OutputStream;
+using stdx::fmt::FormatContext;
+using stdx::fmt::FormatParseContext;
+using stdx::fmt::Formatter;
 
 #if 0
 
@@ -50,11 +31,7 @@ namespace ranges = stdlib::ranges;
  * @namespace stdx::util
  * @brief Wrapper namespace for standard library extension utility operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::util {
-#else
-export namespace stdlibx::util {
-#endif
 
 class ArgumentParser;
 
@@ -153,7 +130,7 @@ private:
 public:
     template <usize N>
     explicit Argument(StringView prefix_chars, Array<StringView, N>&& a):
-        Argument(prefix_chars, core::util::move(a), make_index_sequence<N>{}) {}
+        Argument(prefix_chars, stdx::util::move(a), make_index_sequence<N>{}) {}
 };
 
 }
@@ -173,13 +150,13 @@ struct Formatter<Argument::NArgsRange> {
     static FormatContext::iterator format(const Argument::NArgsRange& range, FormatContext& ctx) const {
         if (range.is_exact()) {
             if (range.get_min() != 0 && range.get_min() != 1) {
-                return fmt::format_to(ctx.out(), "[nargs: {}] ", range.get_min());
+                return stdx::fmt::format_to(ctx.out(), "[nargs: {}] ", range.get_min());
             }
         } else {
             if (!range.is_right_bounded()) {
-                return fmt::format_to(ctx.out(), "[nargs: {} or more] ", range.get_min());
+                return stdx::fmt::format_to(ctx.out(), "[nargs: {} or more] ", range.get_min());
             } else {
-                return fmt::format_to(ctx.out(), "[nargs={}..{}] ", range.get_min(), range.get_max());
+                return stdx::fmt::format_to(ctx.out(), "[nargs={}..{}] ", range.get_min(), range.get_max());
             }
         }
         return ctx.out();
@@ -187,4 +164,3 @@ struct Formatter<Argument::NArgsRange> {
 };
 
 #endif
-

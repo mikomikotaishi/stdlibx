@@ -37,3 +37,7 @@ export import :text;
 export import :tuple;
 export import :util;
 export import :variant;
+
+#if defined(STDLIBX_NO_STD) || defined(STDLIBX_NO_ALLOC)
+STDLIBX_CORE_MODULE_EXPORT_CORE();
+#endif

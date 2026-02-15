@@ -9,11 +9,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.netinet;
-#else
-export module stdlibx:os.linux.netinet;
-#endif
 
 export import :os.linux.netinet.ether;
 export import :os.linux.netinet.icmp6;

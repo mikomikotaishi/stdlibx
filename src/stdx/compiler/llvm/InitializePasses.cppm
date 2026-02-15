@@ -11,17 +11,9 @@ module;
 #include <llvm/PassRegistry.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:compiler.llvm.InitializePasses;
-#else
-export module stdlibx:compiler.llvm.InitializePasses;
-#endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::compiler::llvm {
-#else 
-export namespace stdlibx::compiler::llvm {
-#endif
 #ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY
     using ::llvm::PassRegistry;
     using ::llvm::initializeCore;

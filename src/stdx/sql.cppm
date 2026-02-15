@@ -8,11 +8,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:sql;
-#else
-export module stdlibx:sql;
-#endif
 
 export import :sql.Connection;
 export import :sql.DriverManager;

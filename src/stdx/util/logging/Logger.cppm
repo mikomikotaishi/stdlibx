@@ -11,58 +11,32 @@ module;
 
 #include <vector>
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:util.logging.Logger;
 
-import std;
-#else
-export module stdlibx:util.logging.Logger;
-
-import stdlib;
-#endif
-
-import core;
-
+import :core;
+import :collections;
+import :fmt;
+import :mem;
+import :meta;
+import :time;
 import :util.logging.Level;
 import :util.logging.Sinks;
+import :util.utility;
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
-using std::collections::Vector;
-using std::fmt::FormatString;
-using std::mem::SharedPointer;
-using std::meta::SourceLocation;
-using std::time::LocalTime;
-using std::time::SystemClock;
-using std::time::TimePoint;
-using std::time::temporal::Seconds;
-
-namespace fmt = std::fmt;
-namespace mem = std::mem;
-namespace time = std::time;
-#else
-using stdlib::collections::Vector;
-using stdlib::fmt::FormatString;
-using stdlib::mem::SharedPointer;
-using stdlib::meta::SourceLocation;
-using stdlib::time::LocalTime;
-using stdlib::time::SystemClock;
-using stdlib::time::TimePoint;
-using stdlib::time::temporal::Seconds;
-
-namespace fmt = stdlib::fmt;
-namespace mem = stdlib::mem;
-namespace time = stdlib::time;
-#endif
+using stdx::collections::Vector;
+using stdx::fmt::FormatString;
+using stdx::mem::SharedPointer;
+using stdx::meta::SourceLocation;
+using stdx::time::LocalTime;
+using stdx::time::SystemClock;
+using stdx::time::TimePoint;
+using stdx::time::temporal::Seconds;
 
 /**
  * @namespace stdx::util::logging
  * @brief Wrapper namespace for standard library extension utility operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::util::logging {
-#else
-export namespace stdlibx::util::logging {
-#endif
 
 /**
  * @class Logger
@@ -82,8 +56,8 @@ private:
     [[nodiscard]]
     static String current_time_as_string() {
         TimePoint<SystemClock> now = SystemClock::now();
-        LocalTime<Seconds> currentTime = time::current_zone()->to_local(time::floor<Seconds>(now));
-        return fmt::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
+        LocalTime<Seconds> currentTime = stdx::time::current_zone()->to_local(stdx::time::floor<Seconds>(now));
+        return stdx::fmt::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
     }
 public:
     /**
@@ -102,7 +76,7 @@ public:
      * @param sink The sink to add
      */
     Logger& add_sink(SharedPointer<ILogSink> sink) {
-        sinks.emplace_back(core::util::move(sink));
+        sinks.emplace_back(stdx::util::move(sink));
         return *this;
     }
 
@@ -136,7 +110,7 @@ public:
      */
     template <typename... Args>
     void log(Level level, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(level, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+        log(level, fmt, SourceLocation::current(), stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -155,11 +129,11 @@ public:
         const SourceLocation& location,
         Args&&... args
     ) const {
-        if (core::util::to_underlying(level) < core::util::to_underlying(minLevel)) {
+        if (stdx::util::to_underlying(level) < stdx::util::to_underlying(minLevel)) {
             return;
         }
 
-        String message = fmt::format(fmt, core::util::forward<Args>(args)...);
+        String message = stdx::fmt::format(fmt, stdx::util::forward<Args>(args)...);
         String timestamp = current_time_as_string();
 
         for (const SharedPointer<ILogSink>& sink: sinks) {
@@ -176,7 +150,7 @@ public:
      */
     template <typename... Args>
     void trace(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::TRACE, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+        log(Level::TRACE, fmt, SourceLocation::current(), stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -189,7 +163,7 @@ public:
      */
     template <typename... Args>
     void trace(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::TRACE, fmt, location, core::util::forward<Args>(args)...);
+        log(Level::TRACE, fmt, location, stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -201,7 +175,7 @@ public:
      */
     template <typename... Args>
     void debug(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::DEBUG, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+        log(Level::DEBUG, fmt, SourceLocation::current(), stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -214,7 +188,7 @@ public:
      */
     template <typename... Args>
     void debug(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::DEBUG, fmt, location, core::util::forward<Args>(args)...);
+        log(Level::DEBUG, fmt, location, stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -226,7 +200,7 @@ public:
      */
     template <typename... Args>
     void info(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::INFO, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+        log(Level::INFO, fmt, SourceLocation::current(), stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -239,7 +213,7 @@ public:
      */
     template <typename... Args>
     void info(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::INFO, fmt, location, core::util::forward<Args>(args)...);
+        log(Level::INFO, fmt, location, stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -251,7 +225,7 @@ public:
      */
     template <typename... Args>
     void warn(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::WARNING, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+        log(Level::WARNING, fmt, SourceLocation::current(), stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -264,7 +238,7 @@ public:
      */
     template <typename... Args>
     void warn(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::WARNING, fmt, location, core::util::forward<Args>(args)...);
+        log(Level::WARNING, fmt, location, stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -276,7 +250,7 @@ public:
      */
     template <typename... Args>
     void error(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::ERROR, fmt, SourceLocation::current(), core::util::forward<Args>(args)...);
+        log(Level::ERROR, fmt, SourceLocation::current(), stdx::util::forward<Args>(args)...);
     }
 
     /**
@@ -289,7 +263,7 @@ public:
      */
     template <typename... Args>
     void error(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::ERROR, fmt, location, core::util::forward<Args>(args)...);
+        log(Level::ERROR, fmt, location, stdx::util::forward<Args>(args)...);
     }
 
     /**

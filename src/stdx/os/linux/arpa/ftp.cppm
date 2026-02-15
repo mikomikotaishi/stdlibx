@@ -9,21 +9,15 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.arpa.ftp;
-#else
-export module stdlibx:os.linux.arpa.ftp;
-#endif
+
+import :core;
 
 /**
  * @namespace stdx::os::linux::arpa
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::arpa {
-#else 
-export namespace stdlibx::os::linux::arpa {
-#endif
     // Reply codes
     inline constexpr int PRELIM = 1; ///< positive preliminary
     inline constexpr int COMPLETE = 2; ///< positive completion
@@ -37,28 +31,28 @@ export namespace stdlibx::os::linux::arpa {
     inline constexpr int TYPE_I = 3; ///< image
     inline constexpr int TYPE_L = 4; ///< local byte size
 
-    const char* TypeNames[] = {"0", "ASCII", "EBCDIC", "Image", "Local" };
+    inline constexpr Array<const char*, 5> TypeNames = {"0", "ASCII", "EBCDIC", "Image", "Local" };
 
     // Form codes
     inline constexpr int FORM_N = 1; ///< non-print
     inline constexpr int FORM_T = 2; ///< telnet format effectors
     inline constexpr int FORM_C = 3; ///< carriage control (ASA)
 
-    const char* FormNames[] =  {"0", "Nonprint", "Telnet", "Carriage-control" };
+    inline constexpr Array<const char*, 4> FormNames = {"0", "Nonprint", "Telnet", "Carriage-control" };
 
     // Structure codes
     inline constexpr int STRU_F = 1; ///< file (no record structure)
     inline constexpr int STRU_R = 2; ///< record structure
     inline constexpr int STRU_P = 3; ///< page structure
 
-    const char* StruNames[] =  {"0", "File", "Record", "Page" };
+    inline constexpr Array<const char*, 4> StruNames = {"0", "File", "Record", "Page" };
 
     // Mode types
     inline constexpr int MODE_S = 1; ///< stream
     inline constexpr int MODE_B = 2; ///< block
     inline constexpr int MODE_C = 3; ///< compressed 
 
-    const char* ModeNames[] =  {"0", "Stream", "Block", "Compressed" };
+    inline constexpr Array<const char*, 4> ModeNames = {"0", "Stream", "Block", "Compressed" };
 
     // Record Tokens
     inline constexpr char REC_ESC = '\377'; ///< Record-mode Escape

@@ -9,21 +9,13 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.asmgeneric.errno;
-#else
-export module stdlibx:os.linux.asmgeneric.errno;
-#endif
 
 /**
- * @namespace stdx::os::linux::arpa
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @namespace stdx::os::linux::asmgeneric
+ * @brief Wrapper namespace for Linux asm-generic error number operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::asmgeneric {
-#else 
-export namespace stdlibx::os::linux::asmgeneric {
-#endif
     inline constexpr int EPERM = 1; ///< Operation not permitted
     inline constexpr int ENOENT = 2; ///< No such file or directory
     inline constexpr int ESRCH = 3; ///< No such process

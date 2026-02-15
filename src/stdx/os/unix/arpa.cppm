@@ -9,10 +9,6 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.arpa;
-#else
-export module stdlibx:os.unix.arpa;
-#endif
 
 export import :os.unix.arpa.inet;

@@ -14,23 +14,14 @@ module;
 #include <net/if.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.net.if_header;
-#else
-export module stdlibx:os.unix.net.if_header;
-#endif
 
 /**
  * @namespace stdx::os::unix::net
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix::net {
-#else 
-export namespace stdlibx::os::unix::net {
-#endif
     #ifdef __unix__
-
     using InterfaceAddress = ::ifaddr;
     using InterfaceMap = ::ifmap;
     using InterfaceRequest = ::ifreq;

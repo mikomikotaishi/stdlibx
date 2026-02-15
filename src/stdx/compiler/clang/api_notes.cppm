@@ -15,17 +15,9 @@ module;
 #include <clang/APINotes/Types.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:compiler.clang.api_notes;
-#else
-export module stdlibx:compiler.clang.api_notes;
-#endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::compiler::clang {
-#else 
-export namespace stdlibx::compiler::clang {
-#endif
 #ifdef STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY
     using ::clang::APINotesOptions;
 

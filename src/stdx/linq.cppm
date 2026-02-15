@@ -8,10 +8,6 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:linq;
-#else
-export module stdlibx:linq;
-#endif
 
 export import :linq.Query;

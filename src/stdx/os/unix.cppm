@@ -8,12 +8,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix;
-#else
-export module stdlibx:os.unix;
-#endif
-
 
 export import :os.unix.aio;
 export import :os.unix.arpa;

@@ -13,46 +13,37 @@ module;
 #include <sys/capability.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.sys.capability;
-#else
-export module stdlibx:os.linux.sys.capability;
-#endif
 
 /**
  * @namespace stdx::os::linux::sys
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::sys {
-#else 
-export namespace stdlibx::os::linux::sys {
-#endif
     #ifdef __linux__
-
-    using Capability_t = ::cap_t;
-    using CapabilityValue_t = ::cap_value_t;
+    using Capability = ::cap_t;
+    using CapabilityValue = ::cap_value_t;
     
-    enum class CapabilityFlag {
+    enum class CapabilityFlag: unsigned char {
         EFFECTIVE = 0, ///< Specifies the effective flag
         PERMITTED = 1, ///< Specifies the permitted flag
         INHERITABLE = 2 ///< Specifies the inheritable flag
     };
 
-    enum class CapabilityIABVector {
+    enum class CapabilityIABVector: unsigned char {
         INH = 2,
         AMB = 3,
         BOUND = 4
     };
 
-    enum class CapFlagValue {
+    enum class CapFlagValue: unsigned char {
         CLEAR = 0, ///< The flag is cleared/disabled
         SET = 1 ///< The flag is set/enabled
     };
 
-    using CapabilityIABStruct = ::cap_iab_s;
-    using CapabilityIAB = ::cap_iab_t;
-    using CapabilityMode_t = ::cap_mode_t;
+    using CapabilityIabStruct = ::cap_iab_s;
+    using CapabilityIab = ::cap_iab_t;
+    using CapabilityMode = ::cap_mode_t;
     using CapabilityLaunchStruct = ::cap_launch_s;
     using CapabilityLaunch = ::cap_launch_t;
     using CapabilityUserHeader = ::cap_user_header_t;

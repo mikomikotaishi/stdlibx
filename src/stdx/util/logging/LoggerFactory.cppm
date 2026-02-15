@@ -11,51 +11,30 @@ module;
 
 #include <string>
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:util.logging.LoggerFactory;
 
-import std;
-#else
-export module stdlibx:util.logging.LoggerFactory;
-
-import stdlib;
-#endif
-
+import :core;
+import :collections;
+import :fs;
+import :io;
+import :mem;
+import :sync;
 import :util.logging.Level;
 import :util.logging.Logger;
 import :util.logging.Sinks;
 
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
-using std::collections::HashMap;
-using std::collections::Vector;
-using std::io::OpenMode;
-using std::mem::SharedPointer;
-using std::sync::Mutex;
-using std::sync::ScopedLock;
-
-namespace fs = std::fs;
-namespace mem = std::mem;
-#else
-using stdlib::collections::HashMap;
-using stdlib::collections::Vector;
-using stdlib::io::OpenMode;
-using stdlib::mem::SharedPointer;
-using stdlib::sync::Mutex;
-using stdlib::sync::ScopedLock;
-
-namespace fs = stdlib::fs;
-namespace mem = stdlib::mem;
-#endif
+using stdx::collections::HashMap;
+using stdx::collections::Vector;
+using stdx::io::OpenMode;
+using stdx::mem::SharedPointer;
+using stdx::sync::Mutex;
+using stdx::sync::ScopedLock;
 
 /**
  * @namespace stdx::util::logging
  * @brief Wrapper namespace for standard library extension utility operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::util::logging {
-#else
-export namespace stdlibx::util::logging {
-#endif
 
 /**
  * @class LoggerFactory
@@ -165,7 +144,7 @@ public:
             return it->second;
         }
 
-        SharedPointer<Logger> logger = mem::make_shared<Logger>(key, defaultLevel, enableSourceLocation);
+        SharedPointer<Logger> logger = stdx::mem::make_shared<Logger>(key, defaultLevel, enableSourceLocation);
         
         for (const SharedPointer<ILogSink>& sink: globalSinks) {
             logger->add_sink(sink);
@@ -182,12 +161,12 @@ public:
      * @param enableConsole Whether to also log to console
      */
     void init(StringView logFilePath = "./userdata/debug.txt", bool enableConsole = false) {
-        fs::create_directories("./userdata");
-        SharedPointer<FileSink> fileSink = mem::make_shared<FileSink>(logFilePath, OpenMode::TRUNCATE);
+        stdx::fs::create_directories("./userdata");
+        SharedPointer<FileSink> fileSink = stdx::mem::make_shared<FileSink>(logFilePath, OpenMode::TRUNCATE);
         add_global_sink(fileSink);
 
         if (enableConsole) {
-            SharedPointer<ConsoleSink> consoleSink = mem::make_shared<ConsoleSink>(true);
+            SharedPointer<ConsoleSink> consoleSink = stdx::mem::make_shared<ConsoleSink>(true);
             add_global_sink(consoleSink);
         }
 

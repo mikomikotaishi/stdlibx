@@ -12,4 +12,9 @@ export import :collections;
 export import :mem;
 export import :ranges;
 export import :string;
+export import :tags;
 export import :text;
+
+#if defined(STDLIBX_NO_STD) && defined(STDLIBX_IMPLICIT_USING_CORE)
+STDLIBX_ALLOC_MODULE_EXPORT_CORE();
+#endif

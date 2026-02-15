@@ -11,25 +11,15 @@ module;
 
 #include "Macros.hpp"
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:sql.SQLException;
 
-import std;
-#else
-export module stdlibx:sql.SQLException;
-
-import stdlib;
-#endif
+import :core;
 
 /**
  * @namespace stdx::sql
  * @brief Wrapper namespace for standard library extension SQL operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::sql {
-#else
-export namespace stdlibx::sql {
-#endif
 
 /**
  * @class SQLException

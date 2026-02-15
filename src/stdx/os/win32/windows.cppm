@@ -49,11 +49,7 @@ module;
 #undef InterlockedCompareExchange128
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.win32.windows;
-#else
-export module stdlibx:os.win32.windows;
-#endif
 
 import :os.win32.windows.constants;
 import :os.win32.windows.windows_base;
@@ -62,11 +58,7 @@ import :os.win32.windows.windows_base;
  * @namespace stdx::os::win32
  * @brief Wrapper namespace for Windows API operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::win32 {
-#else 
-export namespace stdlibx::os::win32 {
-#endif
     #ifdef _WIN32
     using TagThreadEntry32 = ::tagTHREADENTRY32;
     using PThreadEntry32 = ::PTHREADENTRY32;
@@ -114,7 +106,6 @@ export namespace stdlibx::os::win32 {
     using InterlockedDecrement = ::_InterlockedDecrement;
     using InterlockedIncrement = ::_InterlockedIncrement;
     using InterlockedCompareExchange = ::_InterlockedCompareExchange;
-
 
     #ifdef _AMD64_
     using InterlockedExchange64 = ::_InterlockedExchange64;

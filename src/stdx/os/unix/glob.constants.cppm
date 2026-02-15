@@ -9,21 +9,13 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.glob.constants;
-#else
-export module stdlibx:os.unix.glob.constants;
-#endif
 
 /**
  * @namespace stdx::os::unix
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix {
-#else 
-export namespace stdlibx::os::unix {
-#endif
     inline constexpr int GLOB_ERR = (1 << 0); ///< Return on read errors.
     inline constexpr int GLOB_MARK = (1 << 1); ///< Append a slash to each name.
     inline constexpr int GLOB_NOSORT = (1 << 2); ///< Don't sort the names.

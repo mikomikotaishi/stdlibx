@@ -29,6 +29,8 @@ import :limits;
 import :optional;
 import :string_view;
 import :system_error;
+import :math.cmath;
+import :text.cctype;
 import :text.charconv;
 
 /**
@@ -89,7 +91,6 @@ export namespace core {
 
     using NullPointer = std::nullptr_t;
 
-
     using Void = void;
 
     #include "Numbers.inl"
@@ -106,7 +107,3 @@ export namespace core {
     constexpr decltype(_detail::core::Null) NULL = _detail::core::Null;
     constexpr decltype(_detail::core::RandMax) RAND_MAX = _detail::core::RandMax;
 }
-
-#if (defined(STDLIBX_NO_STD) || defined(STDLIBX_NO_ALLOC)) && defined(STDLIBX_IMPLICIT_USING_CORE)
-STDLIBX_CORE_MODULE_EXPORT_CORE();
-#endif

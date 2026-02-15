@@ -9,21 +9,13 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.termios.constants;
-#else
-export module stdlibx:os.unix.termios.constants;
-#endif
 
 /**
  * @namespace stdx::os::unix
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix::sys {
-#else 
-export namespace stdlibx::os::unix::sys {
-#endif
     // Baud rates (c_cflag bit meanings)
     inline constexpr unsigned int B0 = 0000000; ///< Hang up
     inline constexpr unsigned int B50 = 0000001;

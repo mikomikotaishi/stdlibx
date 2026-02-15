@@ -13,29 +13,19 @@ module;
 #include <netinet/in.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.netinet.in;
-#else
-export module stdlibx:os.unix.netinet.in;
-#endif
 
 /**
  * @namespace stdx::os::unix::netinet
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix::netinet {
-#else 
-export namespace stdlibx::os::unix::netinet {
-#endif
     #ifdef __unix__
-
     using InternetAddress = ::in_addr;
     using Internet6Address = ::in6_addr;
 
     using ::in6addr_any;
     using ::in6addr_loopback;
-
 
     using IpMulticastRequest = ::ip_mreq;
     using IpMulticastRequestN = ::ip_mreqn;

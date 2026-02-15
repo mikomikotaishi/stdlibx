@@ -12,29 +12,16 @@ module;
 #include <lua.hpp>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:lua.lua;
-#else
-export module stdlibx:lua.lua;
-#endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
-import std;
-#else
-import stdlib;
-#endif
-
-import core;
+import :core;
+import :util.utility;
 
 /**
  * @namespace stdx::lua
  * @brief Wrapper namespace for standard library extension Lua libraries.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::lua {
-#else
-export namespace stdlibx::lua {
-#endif
 #ifdef STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY
     constexpr i32 OK = LUA_OK;
     constexpr i32 YIELD = LUA_YIELD;
@@ -320,7 +307,7 @@ export namespace stdlibx::lua {
         return String(lua_pushvfstring(
             l,
             fmt.data(),
-            core::util::forward<decltype(args)>(args)...
+            stdx::util::forward<decltype(args)>(args)...
         ));
     }
 
@@ -329,7 +316,7 @@ export namespace stdlibx::lua {
         return String(lua_pushvfstring(
             l,
             fmt.data(),
-            core::util::forward<decltype(args)>(args)...
+            stdx::util::forward<decltype(args)>(args)...
         ));
     }
 
@@ -503,7 +490,7 @@ export namespace stdlibx::lua {
         return lua_gc(
             l,
             what,
-            core::util::forward<decltype(args)>(args)...
+            stdx::util::forward<decltype(args)>(args)...
         );
     }
 
@@ -755,7 +742,7 @@ export namespace stdlibx::lua {
             return luaL_error(
                 l,
                 fmt.data(),
-                core::util::forward<decltype(args)>(args)...
+                stdx::util::forward<decltype(args)>(args)...
             );
         }
 

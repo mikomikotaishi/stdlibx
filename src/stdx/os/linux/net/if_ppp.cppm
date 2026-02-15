@@ -13,23 +13,14 @@ module;
 #include <net/if_ppp.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.net.if_ppp;
-#else
-export module stdlibx:os.linux.net.if_ppp;
-#endif
 
 /**
  * @namespace stdx::os::linux::net
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::net {
-#else 
-export namespace stdlibx::os::linux::net {
-#endif
     #ifdef __linux__
-
     using NetworkProtocolIOControl = ::npioctl;
     using PppOptionData = ::ppp_option_data;
     using IfPppStatsReq = ::ifpppstatsreq;

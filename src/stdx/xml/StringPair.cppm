@@ -32,25 +32,15 @@ distribution.
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:xml.StringPair;
 
-import std;
-#else
-export module stdlibx:xml.StringPair;
-
-import stdlib;
-#endif
+import :core;
 
 /**
  * @namespace stdx::xml
  * @brief Wrapper namespace for standard library extension XML operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::xml {
-#else
-export namespace stdlibx::xml {
-#endif
 
 class StringPair {
 private:

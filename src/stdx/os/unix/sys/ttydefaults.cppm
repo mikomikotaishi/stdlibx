@@ -9,11 +9,7 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.sys.ttydefaults;
-#else
-export module stdlibx:os.unix.sys.ttydefaults;
-#endif
 
 import :os.unix.termios;
 
@@ -21,18 +17,15 @@ import :os.unix.termios;
  * @namespace stdx::os::unix::sys
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::unix::sys {
-#else 
-export namespace stdlibx::os::unix::sys {
-#endif
     inline constexpr int TTYDEF_IFLAG = (BRKINT | ISTRIP | ICRNL | IMAXBEL | IXON | IXANY);
     inline constexpr int TTYDEF_OFLAG = (OPOST | ONLCR | XTABS);
     inline constexpr int TTYDEF_LFLAG = (ECHO | ICANON | ISIG | IEXTEN | ECHOE | ECHOKE | ECHOCTL);
     inline constexpr int TTYDEF_CFLAG = (CREAD | CS7 | PARENB | HUPCL);
     inline constexpr int TTYDEF_SPEED = B9600;
     
-    inline constexpr unsigned char CTRL(char x) { 
+    [[nodiscard]]
+    inline constexpr unsigned char CTRL(char x) noexcept {
         return x & 037; 
     }
     

@@ -1,18 +1,21 @@
 /**
  * @file math.cppm
  * @module stdx:math
- * @brief Import of mathematics modules.
+ * @brief Module file for standard library mathematical operations.
  *
- * This file imports the modules for the mathematics library.
+ * This file contains the imports for the mathematical operations in the standard library.
  */
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:math;
-#else
-export module stdlibx:math;
-#endif
 
-export import :math.BigDecimal;
-export import :math.BigInteger;
+export import :math.algorithm;
+export import :math.bit;
+export import :math.cmath;
+export import :math.complex;
+export import :math.cstddef;
+export import :math.numbers;
+export import :math.numeric;
+export import :math.random;
+export import :math.ratio;

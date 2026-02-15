@@ -11,69 +11,35 @@ module;
 
 #include "Macros.hpp"
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:linq.Query;
-#else
-export module stdlibx:linq.Query;
-#endif
-
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
-import std;
-#else
-import stdlib;
-#endif
 
 import :core;
+import :collections;
+import :mem;
+import :meta;
+import :ranges;
+import :util;
 
-#ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
-using std::collections::Vector;
-using std::mem::SharedPointer;
-using std::meta::ConditionalType;
-using std::meta::IsLvalueReferenceValue;
-using std::meta::RemoveConstVolatileReferenceType;
-using std::meta::TrueType;
-using std::ranges::Begin;
-using std::ranges::End;
-using std::ranges::ForwardRange;
-using std::ranges::RangeDifference;
-using std::ranges::RangeValue;
-using std::ranges::ViewableRange;
+using stdx::collections::Vector;
+using stdx::mem::SharedPointer;
+using stdx::meta::ConditionalType;
+using stdx::meta::IsLvalueReferenceValue;
+using stdx::meta::RemoveConstVolatileReferenceType;
+using stdx::meta::TrueType;
+using stdx::ranges::Begin;
+using stdx::ranges::End;
+using stdx::ranges::ForwardRange;
+using stdx::ranges::RangeDifference;
+using stdx::ranges::RangeValue;
+using stdx::ranges::ViewableRange;
 
-namespace mem = std::mem;
-namespace ranges = std::ranges;
-namespace util = std::util;
-
-using namespace std::ranges::views;
-#else
-using stdlib::collections::Vector;
-using stdlib::mem::SharedPointer;
-using stdlib::meta::ConditionalType;
-using stdlib::meta::IsLvalueReferenceValue;
-using stdlib::meta::RemoveConstVolatileReferenceType;
-using stdlib::meta::TrueType;
-using stdlib::ranges::Begin;
-using stdlib::ranges::End;
-using stdlib::ranges::ForwardRange;
-using stdlib::ranges::RangeDifference;
-using stdlib::ranges::RangeValue;
-using stdlib::ranges::ViewableRange;
-
-namespace mem = stdlib::mem;
-namespace ranges = stdlib::ranges;
-namespace util = stdlib::util;
-
-using namespace stdlib::ranges::views;
-#endif
+using namespace stdx::ranges::views;
 
 /**
  * @namespace stdx::linq
  * @brief Wrapper namespace for standard library extension LINQ libraries.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::linq {
-#else
-export namespace stdlibx::linq {
-#endif
 
 /**
  * @concept Filterable
@@ -84,7 +50,7 @@ export namespace stdlibx::linq {
  */
 template <typename Ran, typename Pred>
 concept Filterable = requires (const Ran& r, Pred&& p) {
-    { Filter(r, util::forward<Pred>(p)) };
+    { Filter(r, stdx::util::forward<Pred>(p)) };
 };
 
 /**
@@ -96,7 +62,7 @@ concept Filterable = requires (const Ran& r, Pred&& p) {
  */
 template <typename Ran, typename Func>
 concept Transformable = requires (const Ran& r, Func&& f) {
-    { Transform(r, util::forward<Func>(f)) };
+    { Transform(r, stdx::util::forward<Func>(f)) };
 };
 
 /**
@@ -109,7 +75,7 @@ concept Transformable = requires (const Ran& r, Func&& f) {
  */
 template <typename Ran, typename KeySelector, typename Collection = Vector<RangeValue<Ran>>>
 concept Sortable = ForwardRange<Ran> && requires (Collection c, KeySelector&& k) {
-    { ranges::sort(c, Less<>{}, util::forward<KeySelector>(k)) };
+    { stdx::ranges::sort(c, Less<>{}, stdx::util::forward<KeySelector>(k)) };
 };
 
 /**
@@ -121,8 +87,8 @@ concept Sortable = ForwardRange<Ran> && requires (Collection c, KeySelector&& k)
  */
 template <typename Ran, typename Collection = Vector<RangeValue<Ran>>>
 concept Distinguishable = ForwardRange<Ran> &&
-    requires (Collection c) { { ranges::sort(c) }; } &&
-    requires (Collection c) { { ranges::unique(c) }; };
+    requires (Collection c) { { stdx::ranges::sort(c) }; } &&
+    requires (Collection c) { { stdx::ranges::unique(c) }; };
 
 /**
  * @concept AnyOfQueryable
@@ -133,7 +99,7 @@ concept Distinguishable = ForwardRange<Ran> &&
  */
 template <typename Ran, typename Pred>
 concept AnyOfQueryable = requires (const Ran& r, Pred&& p) {
-    { ranges::any_of(r, util::forward<Pred>(p)) };
+    { stdx::ranges::any_of(r, stdx::util::forward<Pred>(p)) };
 };
 
 /**
@@ -145,7 +111,7 @@ concept AnyOfQueryable = requires (const Ran& r, Pred&& p) {
  */
 template <typename Ran, typename Pred>
 concept AllOfQueryable = requires (const Ran& r, Pred&& p) {
-    { ranges::all_of(r, util::forward<Pred>(p)) };
+    { stdx::ranges::all_of(r, stdx::util::forward<Pred>(p)) };
 };
 
 /**
@@ -157,7 +123,7 @@ concept AllOfQueryable = requires (const Ran& r, Pred&& p) {
  */
 template <typename Ran, typename Pred>
 concept CountIfQueryable = requires (const Ran& r, Pred&& p) {
-    { ranges::count_if(r, util::forward<Pred>(p)) };
+    { stdx::ranges::count_if(r, stdx::util::forward<Pred>(p)) };
 };
 
 /**
@@ -186,7 +152,7 @@ private:
     template <typename T>
     static SharedPointer<RemoveConstVolatileReferenceType<T>> make_owner(T&& r) {
         using U = RemoveConstVolatileReferenceType<T>;
-        return mem::make_shared<U>(util::forward<T>(r));
+        return stdx::mem::make_shared<U>(stdx::util::forward<T>(r));
     }
 public:
     template <typename T>
@@ -208,7 +174,7 @@ public:
      * @param r The range to query.
      */
     constexpr explicit Query(Ran&& r) noexcept:
-        range{util::forward<Ran>(r)} {}
+        range{stdx::util::forward<Ran>(r)} {}
 
     /**
      * @brief Constructs a Query from an object and marks it as owned.
@@ -218,8 +184,8 @@ public:
      */
     template <typename T>
     constexpr explicit Query(T&& t, TrueType):
-        owner{make_owner(util::forward<T>(t))},
-        range{*mem::static_pointer_cast<RemoveConstVolatileReferenceType<T>>(owner)} {}
+        owner{make_owner(stdx::util::forward<T>(t))},
+        range{*stdx::mem::static_pointer_cast<RemoveConstVolatileReferenceType<T>>(owner)} {}
 
     /**
      * @brief Returns an iterator to the beginning of the range.
@@ -227,7 +193,7 @@ public:
      * @return Iterator to the beginning.
      */
     [[nodiscard]]
-    constexpr ranges::access::Begin begin() const noexcept {
+    constexpr stdx::ranges::access::Begin begin() const noexcept {
         return Begin(range);
     }
 
@@ -237,7 +203,7 @@ public:
      * @return Iterator to the end.
      */
     [[nodiscard]]
-    constexpr ranges::access::End end() const noexcept {
+    constexpr stdx::ranges::access::End end() const noexcept {
         return End(range);
     }
 
@@ -250,9 +216,9 @@ public:
      */
     template <typename Pred>
         requires Filterable<Ran, Pred>
-    constexpr auto where(Pred&& pred) noexcept -> Query<decltype(Filter(range, util::forward<Pred>(pred)))> {
-        auto newRange = Filter(range, util::forward<Pred>(pred));
-        Query<decltype(newRange)> q(util::move(newRange));
+    constexpr auto where(Pred&& pred) noexcept -> Query<decltype(Filter(range, stdx::util::forward<Pred>(pred)))> {
+        auto newRange = Filter(range, stdx::util::forward<Pred>(pred));
+        Query<decltype(newRange)> q(stdx::util::move(newRange));
         q.owner = owner;
         return q;
     }
@@ -266,9 +232,9 @@ public:
      */
     template <typename Func>
         requires Transformable<Ran, Func>
-    constexpr auto select(Func&& func) noexcept -> Query<decltype(Transform(range, util::forward<Func>(func)))> {
-        auto newRange = Transform(range, util::forward<Func>(func));
-        Query<decltype(newRange)> q(util::move(newRange));
+    constexpr auto select(Func&& func) noexcept -> Query<decltype(Transform(range, stdx::util::forward<Func>(func)))> {
+        auto newRange = Transform(range, stdx::util::forward<Func>(func));
+        Query<decltype(newRange)> q(stdx::util::move(newRange));
         q.owner = owner;
         return q;
     }
@@ -281,7 +247,7 @@ public:
      */
     constexpr auto skip(RangeDifference<Ran> n) noexcept -> Query<decltype(Drop(range, n))> {
         auto newRange = Drop(range, n);
-        Query<decltype(newRange)> q(util::move(newRange));
+        Query<decltype(newRange)> q(stdx::util::move(newRange));
         q.owner = owner;
         return q;
     }
@@ -294,7 +260,7 @@ public:
      */
     constexpr auto take(RangeDifference<Ran> n) noexcept -> Query<decltype(Take(range, n))> {
         auto newRange = Take(range, n);
-        Query<decltype(newRange)> q(util::move(newRange));
+        Query<decltype(newRange)> q(stdx::util::move(newRange));
         q.owner = owner;
         return q;
     }
@@ -311,8 +277,8 @@ public:
         requires Sortable<Ran, KeySelector, Collection>
     constexpr auto order_by(KeySelector&& keySelector) noexcept -> Query<Collection> {
         Collection temp(begin(), end());
-        ranges::sort(temp, Less<>{}, util::forward<KeySelector>(keySelector));
-        return Query<Collection>(util::move(temp), TrueType{});
+        stdx::ranges::sort(temp, Less<>{}, stdx::util::forward<KeySelector>(keySelector));
+        return Query<Collection>(stdx::util::move(temp), TrueType{});
     }
 
     /**
@@ -325,10 +291,10 @@ public:
         requires Distinguishable<Ran, Collection>
     constexpr auto distinct() noexcept -> Query<Collection> {
         Collection temp(begin(), end());
-        ranges::sort(temp);
-        auto last = ranges::unique(temp);
+        stdx::ranges::sort(temp);
+        auto last = stdx::ranges::unique(temp);
         temp.erase(last.begin(), temp.end());
-        return Query<Collection>(util::move(temp), TrueType{});
+        return Query<Collection>(stdx::util::move(temp), TrueType{});
     }
 
     /**
@@ -374,7 +340,7 @@ public:
     template <typename Pred>
         requires AnyOfQueryable<Ran, Pred>
     constexpr bool any(Pred&& pred) const noexcept {
-        return ranges::any_of(range, util::forward<Pred>(pred));
+        return stdx::ranges::any_of(range, stdx::util::forward<Pred>(pred));
     }
 
     /**
@@ -387,7 +353,7 @@ public:
     template <typename Pred>
         requires AllOfQueryable<Ran, Pred>
     constexpr bool all(Pred&& pred) const noexcept {
-        return ranges::all_of(range, util::forward<Pred>(pred));
+        return stdx::ranges::all_of(range, stdx::util::forward<Pred>(pred));
     }
 
     /**
@@ -409,7 +375,7 @@ public:
     template <typename Pred>
         requires CountIfQueryable<Ran, Pred>
     constexpr usize count(Pred&& pred) const noexcept {
-        return ranges::count_if(range, util::forward<Pred>(pred));
+        return stdx::ranges::count_if(range, stdx::util::forward<Pred>(pred));
     }
 
     /**
@@ -419,7 +385,7 @@ public:
      */
     constexpr auto reverse() noexcept -> Query<decltype(Reverse(range))> {
         auto newRange = Reverse(range);
-        Query<decltype(newRange)> q(util::move(newRange));
+        Query<decltype(newRange)> q(stdx::util::move(newRange));
         q.owner = owner;
         return q;
     }
@@ -516,9 +482,9 @@ public:
     [[nodiscard]]
     static constexpr QueryFrom<T> from(T&& t) noexcept {
         if constexpr (IsLvalueReferenceValue<T>) {
-            return Query(util::forward<T>(t));
+            return Query(stdx::util::forward<T>(t));
         } else {
-            return Query<T>(util::forward<T>(t));
+            return Query<T>(stdx::util::forward<T>(t));
         }
     }
 };

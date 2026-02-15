@@ -9,10 +9,6 @@
 
 module;
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.unix.net;
-#else
-export module stdlibx:os.unix.net;
-#endif
 
 export import :os.unix.net.if_header;

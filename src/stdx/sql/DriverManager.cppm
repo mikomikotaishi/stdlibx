@@ -11,38 +11,20 @@ module;
 
 #include "Macros.hpp"
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:sql.DriverManager;
 
-import std;
-#else
-export module stdlibx:sql.DriverManager;
-
-import stdlib;
-#endif
-
+import :fmt;
+import :mem;
 import :sql.SQLException;
 import :sql.Connection;
 
-#ifdef STDLIBX_NO_RESERVED_STD_NAMESPACE
-using std::mem::UniquePointer;
-
-namespace fmt = std::fmt;
-#else
-using stdlib::mem::UniquePointer;
-
-namespace fmt = stdlib::fmt;
-#endif
+using stdx::mem::UniquePointer;
 
 /**
  * @namespace stdx::sql
  * @brief Wrapper namespace for standard library extension SQL operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::sql {
-#else
-export namespace stdlibx::sql {
-#endif
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
 
@@ -86,7 +68,7 @@ public:
      */
     [[nodiscard]]
     static Connection get_connection(StringView dsn, StringView username, StringView password) throws (SQLException) {
-        String conn_str = fmt::format("DSN={};Uid={};Pwd={};", dsn, username, password);
+        String conn_str = stdx::fmt::format("DSN={};Uid={};Pwd={};", dsn, username, password);
         return Connection(conn_str);
     }
 
@@ -102,7 +84,7 @@ public:
      */
     [[nodiscard]]
     static Connection get_sql_server_connection(StringView server, StringView database, StringView username, StringView password) throws (SQLException) {
-        String conn_str = fmt::format("Driver={{SQL Server}};Server={};Database={};Uid={};Pwd={};", server, database, username, password);
+        String conn_str = stdx::fmt::format("Driver={{SQL Server}};Server={};Database={};Uid={};Pwd={};", server, database, username, password);
         return Connection(conn_str);
     }
 
@@ -119,7 +101,7 @@ public:
      */
     [[nodiscard]]
     static Connection get_postgre_sql_connection(StringView server, StringView database, StringView username, StringView password, int port = 5432) throws (SQLException) {
-        String conn_str = fmt::format("Driver={{PostgreSQL Unicode}};Server={};Port={};Database={};Uid={};Pwd={};", server, port, database, username, password);
+        String conn_str = stdx::fmt::format("Driver={{PostgreSQL Unicode}};Server={};Port={};Database={};Uid={};Pwd={};", server, port, database, username, password);
         return Connection(conn_str);
     }
 
@@ -134,8 +116,9 @@ public:
      * @return A Connection object.
      * @throws SQLException if the connection fails.
      */
-    [[nodiscard]] static Connection get_mysql_connection(StringView server, StringView database, StringView username, StringView password, int port = 3306) throws (SQLException) {
-        String conn_str = fmt::format("Driver={{MySQL ODBC 8.0 Unicode Driver}};Server={};Port={};Database={};User={};Password={};", server, port, database, username, password);
+    [[nodiscard]]
+    static Connection get_mysql_connection(StringView server, StringView database, StringView username, StringView password, int port = 3306) throws (SQLException) {
+        String conn_str = stdx::fmt::format("Driver={{MySQL ODBC 8.0 Unicode Driver}};Server={};Port={};Database={};User={};Password={};", server, port, database, username, password);
         return Connection(conn_str);
     }
 };

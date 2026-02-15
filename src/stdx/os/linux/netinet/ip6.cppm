@@ -13,33 +13,25 @@ module;
 #include <netinet/ip6.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.netinet.ip6;
-#else
-export module stdlibx:os.linux.netinet.ip6;
-#endif
 
 /**
  * @namespace stdx::os::linux::netinet
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::netinet {
-#else 
-export namespace stdlibx::os::linux::netinet {
-#endif
     #ifdef __linux__
-    using IP6Hdr = ::ip6_hdr;
-    using IP6Ext = ::ip6_ext;
-    using IP6HBH = ::ip6_hbh;
-    using IP6Dest = ::ip6_dest;
-    using IP6RtHdr = ::ip6_rthdr;
-    using IP6RtHdr0 = ::ip6_rthdr0;
-    using IP6Frag = ::ip6_frag;
-    using IP6Opt = ::ip6_opt;
-    using IP6OptJumbo = ::ip6_opt_jumbo;
-    using IP6OptNSAP = ::ip6_opt_nsap;
-    using IP6OptTunnel = ::ip6_opt_tunnel;
-    using IP6OptRouter = ::ip6_opt_router;
+    using Ip6Header = ::ip6_hdr;
+    using Ip6Extension = ::ip6_ext;
+    using Ip6HopByHop = ::ip6_hbh;
+    using Ip6Destination = ::ip6_dest;
+    using Ip6RoutingHeader = ::ip6_rthdr;
+    using Ip6Type0RoutingHeader = ::ip6_rthdr0;
+    using Ip6Fragment = ::ip6_frag;
+    using Ip6Options = ::ip6_opt;
+    using Ip6OptionJumbo = ::ip6_opt_jumbo;
+    using Ip6OptionNsap = ::ip6_opt_nsap;
+    using Ip6OptionTunnel = ::ip6_opt_tunnel;
+    using Ip6OptionRouter = ::ip6_opt_router;
     #endif
 }

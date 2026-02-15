@@ -13,25 +13,17 @@ module;
 #include <netinet/ip.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.linux.netinet.ip;
-#else
-export module stdlibx:os.linux.netinet.ip;
-#endif
 
 /**
  * @namespace stdx::os::linux::netinet
  * @brief Wrapper namespace for Unix POSIX operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::linux::netinet {
-#else 
-export namespace stdlibx::os::linux::netinet {
-#endif
     #ifdef __linux__
     using TimeStamp = ::timestamp;
-    using IPHdr = ::iphdr;
-    using IP = ::ip;
-    using IPTimeStamp = ::ip_timestamp;
+    using IpHeader = ::iphdr;
+    using Ip = ::ip;
+    using IpTimeStamp = ::ip_timestamp;
     #endif
 }

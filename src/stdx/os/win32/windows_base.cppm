@@ -13,21 +13,13 @@ module;
 #include <windows_base.h>
 #endif
 
-#if defined(STDLIBX_NO_RESERVED_STD_MODULE) || defined(DOXYGEN)
 export module stdx:os.win32.windows.windows_base;
-#else
-export module stdlibx:os.win32.windows.windows_base;
-#endif
 
 /**
  * @namespace stdx::os::win32
  * @brief Wrapper namespace for Windows API operations.
  */
-#if defined(STDLIBX_NO_RESERVED_STD_NAMESPACE) || defined(DOXYGEN)
 export namespace stdx::os::win32 {
-#else 
-export namespace stdlibx::os::win32 {
-#endif
     [[nodiscard]]
     constexpr bool HResultIsWin32(long x) noexcept {
         return ((((x) >> 16) & 0xFFFF) == 0x8);
@@ -54,118 +46,118 @@ export namespace stdlibx::os::win32 {
     }
 
     #ifdef _WIN32
-    using Bool = ::BOOL;
-    using Char = ::CHAR;
-    using Short = ::SHORT; // Renamed
-    using Int = ::INT;
-    using Long = ::LONG; // Renamed
-    using UChar = ::UCHAR;
-    using UShort = ::USHORT;
-    using UInt = ::UINT;
-    using ULong = ::ULONG;
-    using Byte = ::BYTE; // Renamed
-    using Word = ::WORD;
-    using DWord = ::DWORD;
-    using WChar = ::WCHAR;
-    using PWChar = ::PWCHAR;
-    using Atom = ::ATOM;
-    using ULong32 = ::ULONG32;
-    using DWord64 = ::DWORD64;
-    using ULong64 = ::ULONG64;
-    using Int32 = ::INT32;
-    using Int64 = ::INT64;
-    using DWordLong = ::DWORDLONG;
+    using Win32Bool = ::BOOL;
+    using Win32Char = ::CHAR;
+    using Win32Short = ::SHORT;
+    using Win32Int = ::INT;
+    using Win32Long = ::LONG;
+    using Win32UChar = ::UCHAR;
+    using Win32UShort = ::USHORT;
+    using Win32UInt = ::UINT;
+    using Win32ULong = ::ULONG;
+    using Win32Byte = ::BYTE;
+    using Win32Word = ::WORD;
+    using Win32DWord = ::DWORD;
+    using Win32WChar = ::WCHAR;
+    using Win32PWChar = ::PWCHAR;
+    using Win32Atom = ::ATOM;
+    using Win32ULong32 = ::ULONG32;
+    using Win32DWord64 = ::DWORD64;
+    using Win32ULong64 = ::ULONG64;
+    using Win32Int32 = ::INT32;
+    using Win32Int64 = ::INT64;
+    using Win32DWordLong = ::DWORDLONG;
 
-    using PChar = ::PCHAR;
-    using PULong = ::PULONG;
-    using PULong64 = ::PULONG64;
-    using PDWord64 = ::PDWORD64;
+    using Win32PChar = ::PCHAR;
+    using Win32PULong = ::PULONG;
+    using Win32PULong64 = ::PULONG64;
+    using Win32PDWord64 = ::PDWORD64;
 
-    using LongLong = ::LONGLONG; // Renamed
-    using ULongLong = ::ULONGLONG;
+    using Win32LongLong = ::LONGLONG;
+    using Win32ULongLong = ::ULONGLONG;
 
-    using Void = ::VOID; // Renamed
-    using PVoid = ::PVOID;
-    using LPVoid = ::LPVOID;
-    using PBool = ::PBOOL;
-    using LPBool = ::LPBOOL;
-    using PWord = ::PWORD;
-    using PLong = ::PLONG;
-    using LPLong = ::LPLONG;
-    using PDWord = ::PDWORD;
+    using Win32Void = ::VOID;
+    using Win32PVoid = ::PVOID;
+    using Win32LPVoid = ::LPVOID;
+    using Win32PBool = ::PBOOL;
+    using Win32LPBool = ::LPBOOL;
+    using Win32PWord = ::PWORD;
+    using Win32PLong = ::PLONG;
+    using Win32LPLong = ::LPLONG;
+    using Win32PDWord = ::PDWORD;
 
-    using Handle = ::HANDLE;
-    using HInstance = ::HINSTANCE;
-    using HWnd = ::HWND;
-    using HModule = ::HMODULE;
-    using HDc = ::HDC;
-    using HGlrc = ::HGLRC;
-    using HMenu = ::HMENU;
-    using PHandle = ::PHANDLE;
-    using LPHandle = ::LPHANDLE;
+    using Win32Handle = ::HANDLE;
+    using Win32HInstance = ::HINSTANCE;
+    using Win32HWnd = ::HWND;
+    using Win32HModule = ::HMODULE;
+    using Win32HDc = ::HDC;
+    using Win32HGlrc = ::HGLRC;
+    using Win32HMenu = ::HMENU;
+    using Win32PHandle = ::PHANDLE;
+    using Win32LPHandle = ::LPHANDLE;
 
-    using PWStr = ::PWSTR;
-    using LPByte = ::LPBYTE;
-    using LPDWord = ::LPDWORD;
-    using LPCVoid = ::LPCVOID;
+    using Win32PWStr = ::PWSTR;
+    using Win32LPByte = ::LPBYTE;
+    using Win32LPDWord = ::LPDWORD;
+    using Win32LPCVoid = ::LPCVOID;
 
-    using IntPtr = ::INT_PTR;
-    using LongPtr = ::LONG_PTR;
-    using UIntPtr = ::UINT_PTR;
-    using ULongPtr = ::ULONG_PTR;
-    using DWordPtr = ::DWORD_PTR;
-    using PDWordPtr = ::PDWORD_PTR;
+    using Win32IntPtr = ::INT_PTR;
+    using Win32LongPtr = ::LONG_PTR;
+    using Win32UIntPtr = ::UINT_PTR;
+    using Win32ULongPtr = ::ULONG_PTR;
+    using Win32DWordPtr = ::DWORD_PTR;
+    using Win32PDWordPtr = ::PDWORD_PTR;
 
-    using Size_t = ::SIZE_T;
-    using SSize_t = ::SSIZE_T;
+    using Win32Size = ::SIZE_T;
+    using Win32SSize = ::SSIZE_T;
 
-    using LPStr = ::LPSTR;
-    using LPWStr = ::LPWSTR;
-    using LPCStr = ::LPCStTR;
-    using LPCWStr = ::LPCWSTR;
-    using TChar = ::TCHAR;
-    using TByte = ::TBYTE;
-    using LPCTStr = ::LPCTSTR;
-    using LPTStr = ::LPTSTR;
+    using Win32LPStr = ::LPSTR;
+    using Win32LPWStr = ::LPWSTR;
+    using Win32LPCStr = ::LPCSTR;
+    using Win32LPCWStr = ::LPCWSTR;
+    using Win32TChar = ::TCHAR;
+    using Win32TByte = ::TBYTE;
+    using Win32LPCTStr = ::LPCTSTR;
+    using Win32LPTStr = ::LPTSTR;
 
-    using FarProc = ::FARPROC;
-    using NearProc = ::NEARPROC;
-    using Proc = ::PROC;
+    using Win32FarProc = ::FARPROC;
+    using Win32NearProc = ::NEARPROC;
+    using Win32Proc = ::PROC;
 
-    using AccessMask = ::ACCESS_MASK;
-    using PAccessMask = ::PACCESS_MASK;
+    using Win32AccessMask = ::ACCESS_MASK;
+    using Win32PAccessMask = ::PACCESS_MASK;
 
-    using HIcon = ::HICON;
-    using HBrush = ::HBRUSH;
-    using HCursor = ::HCURSOR;
+    using Win32HIcon = ::HICON;
+    using Win32HBrush = ::HBRUSH;
+    using Win32HCursor = ::HCURSOR;
 
-    using HResult = ::HRESULT;
-    using LResult = ::LRESULT;
-    using LParam = ::LPARAM;
-    using WParam = ::WPARAM;
+    using Win32HResult = ::HRESULT;
+    using Win32LResult = ::LRESULT;
+    using Win32LParam = ::LPARAM;
+    using Win32WParam = ::WPARAM;
 
-    using HGdiObj = ::HGDIOBJ;
+    using Win32HGdiObj = ::HGDIOBJ;
 
-    using HKey = ::HKEY;
-    using PHKey = ::PHKEY;
-    using RegSam = ::REGSAM;
+    using Win32HKey = ::HKEY;
+    using Win32PHKey = ::PHKEY;
+    using Win32RegSam = ::REGSAM;
     
-    using Overlapped = ::OVERLAPPED;
-    using LPOverlapped = ::LPOVERLAPPED;
+    using Win32Overlapped = ::OVERLAPPED;
+    using Win32LPOverlapped = ::LPOVERLAPPED;
 
-    using SecurityAttributes = ::SECURITY_ATTRIBUTES;
-    using PSecurityAttributes = ::PSECURITY_ATTRIBUTES;
-    using LPSecurityAttributes = ::LPSECURITY_ATTRIBUTES;
+    using Win32SecurityAttributes = ::SECURITY_ATTRIBUTES;
+    using Win32PSecurityAttributes = ::PSECURITY_ATTRIBUTES;
+    using Win32LPSecurityAttributes = ::LPSECURITY_ATTRIBUTES;
 
-    using LargeInteger = ::LARGE_INTEGER;
-    using PLargeInteger = ::PLARGE_INTEGER;
-    using ULargeInteger = ::ULARGE_INTEGER;
-    using PULargeInteger = ::PULARGE_INTEGER;
+    using Win32LargeInteger = ::LARGE_INTEGER;
+    using Win32PLargeInteger = ::PLARGE_INTEGER;
+    using Win32ULargeInteger = ::ULARGE_INTEGER;
+    using Win32PULargeInteger = ::PULARGE_INTEGER;
 
-    using FileTime = ::FILETIME;
-    using PFileTime = ::PFILETIME;
-    using LPFileTime = ::LPFILETIME;
+    using Win32FileTime = ::FILETIME;
+    using Win32PFileTime = ::PFILETIME;
+    using Win32LPFileTime = ::LPFILETIME;
     
-    using GUID = ::GUID;
+    using Win32Guid = ::GUID;
     #endif
 }
