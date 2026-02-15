@@ -130,15 +130,6 @@ export namespace stdx::lua {
         return lua_newthread(l);
     }
 
-    void close(State* l) noexcept {
-        lua_close(l);
-    }
-
-    [[nodiscard]]
-    State* new_thread(State* l) noexcept {
-        return lua_newthread(l);
-    }
-
     i32 close_thread(State* l, State* from) noexcept {
         return lua_closethread(l, from);
     }
@@ -153,7 +144,7 @@ export namespace stdx::lua {
     }
 
     [[nodiscard]]
-    Number version(State* l) noexcept {
+    LuaNumber version(State* l) noexcept {
         return lua_version(l);
     }
 
@@ -675,13 +666,13 @@ export namespace stdx::lua {
         }
 
         [[nodiscard]]
-        String check_lstring(State* l, i32 arg, usize* l) noexcept {
-            return String(luaL_checklstring(l, arg, l));
+        String check_lstring(State* l, i32 arg, usize* len) noexcept {
+            return String(luaL_checklstring(l, arg, len));
         }
 
         [[nodiscard]]
-        String opt_lstring(State* l, i32 arg, StringView def, usize* l) noexcept {
-            return String(luaL_optlstring(l, arg, def.data(), l));
+        String opt_lstring(State* l, i32 arg, StringView def, usize* len) noexcept {
+            return String(luaL_optlstring(l, arg, def.data(), len));
         }
 
         [[nodiscard]]
@@ -801,9 +792,10 @@ export namespace stdx::lua {
             return luaL_len(l, idx);
         }
 
-        void add_gsub(State* l, StringView name, CFunction f) noexcept {
-            luaL_addgsub(l, name.data(), "%s+", "_", f);
-        }
+        // TODO: Fix this function - luaL_addgsub signature doesn't match
+        // void add_gsub(State* l, StringView name, CFunction f) noexcept {
+        //     luaL_addgsub(l, name.data(), "%s+", "_", f);
+        // }
 
         [[nodiscard]]
         String gsub(State* l, StringView s, StringView p, StringView r) noexcept {
@@ -857,7 +849,7 @@ export namespace stdx::lua {
         }
 
         [[nodiscard]]
-        String buff_init_size(State* l, Buffer* b, usize sz) noexcept {
+        String buff_init_size(State* l, LuaBuffer* b, usize sz) noexcept {
             return String(luaL_buffinitsize(l, b, sz));
         }
     }

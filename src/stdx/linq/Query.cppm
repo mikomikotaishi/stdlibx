@@ -33,6 +33,7 @@ using stdx::ranges::RangeDifference;
 using stdx::ranges::RangeValue;
 using stdx::ranges::ViewableRange;
 
+using namespace stdx::core;
 using namespace stdx::ranges::views;
 
 /**

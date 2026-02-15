@@ -9,6 +9,12 @@
 
 module;
 
+#if defined(__GNUC__) && !defined(__clang__)
+#include <ios>
+#include <new>
+#include <system_error>
+#endif
+
 #include "Macros.hpp"
 
 export module stdx:util.logging.Sinks;
@@ -32,6 +38,8 @@ using stdx::mem::UniquePointer;
 using stdx::meta::SourceLocation;
 using stdx::sync::Mutex;
 using stdx::sync::ScopedLock;
+
+using namespace stdx::core;
 
 /**
  * @namespace stdx::util::logging

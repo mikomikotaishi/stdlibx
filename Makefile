@@ -103,27 +103,36 @@ help:
 # Configure CMake build system
 .PHONY: configure
 configure:
-	@printf "$(BOLD)$(BLUE)Configuring CMake build system...$(RESET)\n"
-	@if [ "$(ENABLE_SANITIZERS)" = "ON" ]; then \
+	@START_TIME=$$(date +%s); \
+	printf "$(BOLD)$(BLUE)Configuring CMake build system...$(RESET)\n"; \
+	if [ "$(ENABLE_SANITIZERS)" = "ON" ]; then \
 		printf "$(BOLD)$(MAGENTA)Sanitisers enabled:$(RESET) $(SANITIZERS)\n"; \
 		printf "$(YELLOW)Building in Debug mode for sanitiser support$(RESET)\n"; \
-	fi
-	@if [ "$(BUILD_TESTS)" = "ON" ]; then \
+	fi; \
+	if [ "$(BUILD_TESTS)" = "ON" ]; then \
 		printf "$(BOLD)$(CYAN)Tests enabled$(RESET)\n"; \
-	fi
+	fi; \
 	cmake -S . -B $(BUILD_DIR) -G $(CMAKE_GENERATOR) \
 		-DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) \
 		-DENABLE_SANITIZERS=$(ENABLE_SANITIZERS) \
 		$(CMAKE_BUILD_FLAGS) \
-		$(CMAKE_SANITIZER_FLAGS)
-	@printf "$(GREEN)✓ Configuration complete$(RESET)\n"
+		$(CMAKE_SANITIZER_FLAGS); \
+	END_TIME=$$(date +%s); ELAPSED=$$(($$END_TIME - $$START_TIME)); \
+	printf "$(GREEN)✓ Configuration complete in $${ELAPSED}s$(RESET)\n"
 
 # Build the library
 .PHONY: build
 build: configure
-	@printf "$(BOLD)$(BLUE)Building $(PROJECT_NAME) library...$(RESET)\n"
-	cmake --build $(BUILD_DIR)
-	@printf "$(GREEN)✓ Build complete$(RESET)\n"
+	@START_TIME=$$(date +%s); \
+	printf "$(BOLD)$(BLUE)Building $(PROJECT_NAME) library...$(RESET)\n"; \
+	cmake --build $(BUILD_DIR); \
+	END_TIME=$$(date +%s); ELAPSED=$$(($$END_TIME - $$START_TIME)); \
+	if [ $$ELAPSED -ge 60 ]; then \
+		MINUTES=$$(($$ELAPSED / 60)); SECONDS=$$(($$ELAPSED % 60)); \
+		printf "$(GREEN)✓ Build complete in $${MINUTES}m $${SECONDS}s$(RESET)\n"; \
+	else \
+		printf "$(GREEN)✓ Build complete in $${ELAPSED}s$(RESET)\n"; \
+	fi
 
 # Build with tests enabled
 .PHONY: test-build
@@ -133,25 +142,39 @@ test-build:
 # Clean build directory
 .PHONY: clean
 clean:
-	@printf "$(BOLD)$(YELLOW)Cleaning build directory...$(RESET)\n"
-	@if [ -d "$(BUILD_DIR)" ]; then \
+	@START_TIME=$$(date +%s); \
+	printf "$(BOLD)$(YELLOW)Cleaning build directory...$(RESET)\n"; \
+	if [ -d "$(BUILD_DIR)" ]; then \
 		rm -rf $(BUILD_DIR); \
-		printf "$(GREEN)✓ Build directory cleaned$(RESET)\n"; \
+		END_TIME=$$(date +%s); ELAPSED=$$(($$END_TIME - $$START_TIME)); \
+		printf "$(GREEN)✓ Build directory cleaned in $${ELAPSED}s$(RESET)\n"; \
 	else \
 		printf "$(YELLOW)Build directory doesn't exist$(RESET)\n"; \
 	fi
 
 # Clean and rebuild
 .PHONY: rebuild
-rebuild: clean build
+rebuild:
+	@START_TIME=$$(date +%s); \
+	$(MAKE) clean; \
+	$(MAKE) build; \
+	END_TIME=$$(date +%s); ELAPSED=$$(($$END_TIME - $$START_TIME)); \
+	if [ $$ELAPSED -ge 60 ]; then \
+		MINUTES=$$(($$ELAPSED / 60)); SECONDS=$$(($$ELAPSED % 60)); \
+		printf "$(GREEN)✓ Rebuild complete in $${MINUTES}m $${SECONDS}s$(RESET)\n"; \
+	else \
+		printf "$(GREEN)✓ Rebuild complete in $${ELAPSED}s$(RESET)\n"; \
+	fi
 
 # Build and run tests
 .PHONY: test
 test:
 	@$(MAKE) build BUILD_TESTS=ON
-	@printf "$(BOLD)$(BLUE)Running tests...$(RESET)\n"
-	@cd $(BUILD_DIR) && ctest --output-on-failure
-	@printf "$(GREEN)✓ Tests complete$(RESET)\n"
+	@START_TIME=$$(date +%s); \
+	printf "$(BOLD)$(BLUE)Running tests...$(RESET)\n"; \
+	cd $(BUILD_DIR) && ctest --output-on-failure; \
+	END_TIME=$$(date +%s); ELAPSED=$$(($$END_TIME - $$START_TIME)); \
+	printf "$(GREEN)✓ Tests complete in $${ELAPSED}s$(RESET)\n"
 
 # Format code
 .PHONY: format

@@ -12,6 +12,8 @@ module;
 
 export module stdx:os.win32.windows.constants;
 
+using usize = std::size_t;
+
 /**
  * @namespace stdx::os::win32
  * @brief Wrapper namespace for Windows API operations.
@@ -20,15 +22,15 @@ export namespace stdx::os::win32 {
     constexpr size_t PATH_MAX = 260;
     constexpr size_t MAX_PATH = 260;
 
-    constexpr char MINCHAR = 0x80;
-    constexpr char MAXCHAR = 0x7f;
-    constexpr short MINSHORT = 0x8000;
-    constexpr short MAXSHORT = 0x7fff;
-    constexpr short MINLONG = 0x80000000;
-    constexpr short MAXLONG = 0x7fffffff;
-    constexpr short MAXBYTE = 0xff;
-    constexpr short MAXWORD = 0xffff;
-    constexpr short MAXDWORD = 0xffffffff;
+    constexpr unsigned char MINCHAR = 0x80;
+    constexpr unsigned char MAXCHAR = 0x7f;
+    constexpr unsigned short MINSHORT = 0x8000;
+    constexpr unsigned short MAXSHORT = 0x7fff;
+    constexpr unsigned int MINLONG = 0x80000000;
+    constexpr unsigned int MAXLONG = 0x7fffffff;
+    constexpr unsigned char MAXBYTE = 0xff;
+    constexpr unsigned short MAXWORD = 0xffff;
+    constexpr unsigned long MAXDWORD = 0xffffffff;
 
     constexpr long ERROR_SUCCESS = 0L;
     constexpr long ERROR_FILE_NOT_FOUND = 2L;

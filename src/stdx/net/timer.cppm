@@ -9,7 +9,7 @@
 
 module;
 
-#if __has_include(<experimental/timer>)
+#if __has_include(<experimental/timer>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
 #include <experimental/timer>
 #endif
 
@@ -20,7 +20,7 @@ export module stdx:net.timer;
  * @brief Wrapper namespace for (experimental) standard library networking operations.
  */
 export namespace stdx::net {
-    #if __has_include(<experimental/timer>)
+    #if __has_include(<experimental/timer>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
     template <typename Clock>
     using WaitTraits = std::experimental::net::wait_traits<Clock>;
 

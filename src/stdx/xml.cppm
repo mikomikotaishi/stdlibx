@@ -33,35 +33,3 @@ distribution.
 module;
 
 export module stdx:xml;
-
-import :xml.StringPair;
-
-/**
- * @namespace stdx::xml
- * @brief Wrapper namespace for standard library extension XML operations.
- */
-export namespace stdx::xml {
-
-class Attr;
-class Comment;
-class ConstHandle;
-class Declaration;
-class Document;
-class Element;
-class Handle;
-class Node;
-class Printer;
-class Text;
-class Unknown;
-class Visitor;
-
-class Node {
-private:
-    friend class Document;
-    friend class Element;
-};
-
-
-
-}
-

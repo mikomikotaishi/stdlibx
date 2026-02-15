@@ -20,18 +20,6 @@ using core::Identity;
 using core::Semiregular;
 using core::meta::ConditionalType;
 
-namespace {
-    template <typename T>
-    concept Has_iterator = requires {
-        typename T::iterator;
-    };
-
-    template <typename T>
-    concept Has_Iterator = requires {
-        typename T::Iterator;
-    };
-}
-
 /**
  * @namespace core::iter
  * @brief Wrapper namespace for standard library iterator operations.
@@ -121,7 +109,6 @@ export namespace core::iter {
     template <typename Iter, typename Comp = std::ranges::less, typename Proj = Identity>
     concept Sortable = std::sortable<Iter, Comp, Proj>;
 
-
     template <typename Fn, typename... Is>
     using IndirectResult = std::indirect_result_t<Fn, Is...>;
 
@@ -133,7 +120,6 @@ export namespace core::iter {
 
     template <typename T>
     using IndirectlyReadableTraits = std::indirectly_readable_traits<T>;
-
 
     template <typename T>
     using IteratorValue = std::iter_value_t<T>;
@@ -167,9 +153,11 @@ export namespace core::iter {
     using IIterator = std::iterator<Category, T, Distance, Pointer, Reference>;
 
     template <typename Iterable>
-        requires Has_iterator<Iterable> || Has_Iterator<Iterable>
+        requires
+            (requires { typename Iterable::iterator; }) ||
+            (requires { typename Iterable::Iterator; })
     using Iterator = ConditionalType<
-        Has_Iterator<Iterable>,
+        (requires { typename Iterable::Iterator; }),
         typename Iterable::Iterator,
         typename Iterable::iterator
     >;

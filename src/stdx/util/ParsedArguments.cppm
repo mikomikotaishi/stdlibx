@@ -18,6 +18,8 @@ import :collections;
 using stdx::collections::HashMap;
 using stdx::collections::Vector;
 
+using namespace stdx::core;
+
 #if 0
 
 /**

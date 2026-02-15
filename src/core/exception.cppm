@@ -41,7 +41,6 @@ export namespace core {
     
     using TerminateHandler = std::terminate_handler;
 
-
     using ExceptionPointer = std::exception_ptr;
 
     using std::uncaught_exceptions;

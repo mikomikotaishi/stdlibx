@@ -9,6 +9,10 @@
 
 module;
 
+#if defined(__GNUC__) && !defined(__clang__)
+#include <chrono>
+#endif
+
 #include <vector>
 
 export module stdx:util.logging.Logger;
@@ -27,10 +31,12 @@ using stdx::collections::Vector;
 using stdx::fmt::FormatString;
 using stdx::mem::SharedPointer;
 using stdx::meta::SourceLocation;
+using stdx::time::Instant;
 using stdx::time::LocalTime;
 using stdx::time::SystemClock;
-using stdx::time::TimePoint;
 using stdx::time::temporal::Seconds;
+
+using namespace stdx::core;
 
 /**
  * @namespace stdx::util::logging
@@ -55,7 +61,7 @@ private:
      */
     [[nodiscard]]
     static String current_time_as_string() {
-        TimePoint<SystemClock> now = SystemClock::now();
+        Instant<SystemClock> now = SystemClock::now();
         LocalTime<Seconds> currentTime = stdx::time::current_zone()->to_local(stdx::time::floor<Seconds>(now));
         return stdx::fmt::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
     }

@@ -8,9 +8,11 @@
 
 module;
 
-#if __has_include(<experimental/buffer>)
+#if __has_include(<experimental/buffer>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
 #include <experimental/buffer>
 #endif
+
+#undef EOF
 
 export module stdx:net.buffer;
 
@@ -19,7 +21,7 @@ export module stdx:net.buffer;
  * @brief Wrapper namespace for (experimental) standard library networking operations.
  */
 export namespace stdx::net {
-    #if __has_include(<experimental/buffer>)
+    #if __has_include(<experimental/buffer>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
     using ConstBuffer = std::experimental::net::const_buffer;
     using MutableBuffer = std::experimental::net::mutable_buffer;
 
@@ -32,5 +34,27 @@ export namespace stdx::net {
     using TransferAll = std::experimental::net::transfer_all;
     using TransferAtLeast = std::experimental::net::transfer_at_least;
     using TransferExactly = std::experimental::net::transfer_exactly;
+
+    class [[nodiscard]] StreamErrc {
+    public:
+        using Self = std::experimental::net::stream_errc;
+
+        static constexpr Self SUCCESS = std::experimental::net::stream_errc();
+        static constexpr Self EOF = std::experimental::net::stream_errc::eof;
+        static constexpr Self NOT_FOUND = std::experimental::net::stream_errc::not_found;
+    private:
+        Self value;
+    public:
+        constexpr StreamErrc(Self value = SUCCESS) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
+    };
+
+    using std::experimental::net::stream_category;
+    using std::experimental::net::make_error_code;
+    using std::experimental::net::make_error_condition;
     #endif
 }

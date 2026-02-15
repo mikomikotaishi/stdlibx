@@ -31,7 +31,6 @@ export namespace stdx::execution {
     using ParallelUnsequencedPolicy = std::execution::parallel_unsequenced_policy;
     using UnsequencedPolicy = std::execution::unsequenced_policy;
 
-
     inline constexpr SequencedPolicy SEQUENCED = std::execution::seq;
     inline constexpr ParallelPolicy PARALLEL = std::execution::par;
     inline constexpr ParallelUnsequencedPolicy PARALLEL_UNSEQUENCED = std::execution::par_unseq;

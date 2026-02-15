@@ -24,6 +24,8 @@ import :sql.SQLException;
 
 using stdx::collections::Vector;
 
+using namespace stdx::core;
+
 /**
  * @namespace stdx::sql
  * @brief Wrapper namespace for standard library extension SQL operations.

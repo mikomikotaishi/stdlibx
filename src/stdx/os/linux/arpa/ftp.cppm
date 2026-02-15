@@ -13,6 +13,8 @@ export module stdx:os.linux.arpa.ftp;
 
 import :core;
 
+using namespace stdx::core;
+
 /**
  * @namespace stdx::os::linux::arpa
  * @brief Wrapper namespace for Unix POSIX operations.

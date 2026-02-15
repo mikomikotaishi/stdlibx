@@ -9,8 +9,11 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     # Create executable
     add_executable(${TEST_NAME} ${TEST_SOURCE})
     
-    # Link against the stdlibx library
-    target_link_libraries(${TEST_NAME} PRIVATE stdlibx::stdlibx)
+    # Link directly to stdx module (which transitively includes core and alloc)
+    target_link_libraries(${TEST_NAME} PRIVATE stdlibx::stdx)
+    
+    # Force test to wait for stdx and its dependencies to be completely built
+    add_dependencies(${TEST_NAME} stdlibx::stdx)
     
     # Set C++ standard and properties
     set_target_properties(${TEST_NAME} PROPERTIES

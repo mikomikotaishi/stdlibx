@@ -26,7 +26,6 @@ export namespace stdx::thread {
     template <typename Callback>
     using StopCallback = std::stop_callback<Callback>;
 
-
     using NoStopStateTag = std::nostopstate_t;
     inline constexpr NoStopStateTag NoStopState = std::nostopstate;
 

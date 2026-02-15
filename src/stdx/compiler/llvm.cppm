@@ -4,7 +4,7 @@
  * @brief Module file for LLVM operations.
  *
  * This file contains the imports for the LLVM operations,
- * located in all <llvm/*.h> files.
+ * located in all <llvm/ *.h> files.
  */
 
 module;

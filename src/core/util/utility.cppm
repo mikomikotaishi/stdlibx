@@ -8,13 +8,13 @@
 
 module;
 
+#include <cstddef>
 #include <utility>
 
 export module core:util.utility;
 
-import :cstddef;
-
-using core::usize;
+// Necessary for resolving a GCC bug
+using usize = std::size_t;
 
 /**
  * @namespace core::util

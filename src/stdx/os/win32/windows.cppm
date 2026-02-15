@@ -51,8 +51,8 @@ module;
 
 export module stdx:os.win32.windows;
 
-import :os.win32.windows.constants;
-import :os.win32.windows.windows_base;
+export import :os.win32.windows.constants;
+export import :os.win32.windows.base;
 
 /**
  * @namespace stdx::os::win32

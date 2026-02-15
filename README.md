@@ -2,8 +2,7 @@
 
 > **WARNING:** As this library is still under development, many features do not yet work, or requires inelegant workarounds or even inclusion of headers to resolve. These issues will only be resolved as development continues.
 
-> **WARNING:** This library has only been tested for Clang, and may not work with GCC or MSVC. 
-> Recent tests with GCC caused compiler crashes, likely due to poor module support. As such we only recommend using Clang.
+> **WARNING:** This library has only been tested for Clang. For whatever reason, it crashes with an internal compiler error on GCC.
 
 ## Overview
 This is a project that re-exports the entire C++ standard library as modules, in an API more consistent with standard libraries of other languages. The main purpose is to create a standard library experience that is more enjoyable and familiar to use, while remaining compatible (to some degree) with the original standard library.

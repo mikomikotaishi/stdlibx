@@ -35,11 +35,9 @@ export namespace core::io {
     using IOSBase = std::ios_base;
     using IOS = std::ios;
 
-    class OpenMode {
+    class [[nodiscard]] OpenMode final {
     public:
         using Self = std::ios::openmode;
-
-        OpenMode() = delete;
 
         static constexpr Self APPEND = std::ios::app;
         static constexpr Self BINARY = std::ios::binary;
@@ -50,13 +48,20 @@ export namespace core::io {
         static constexpr Self TRUNCATE = std::ios::trunc;
         static constexpr Self AT_END = std::ios::ate;
         static constexpr Self NO_REPLACE = std::ios::noreplace;
+    private:
+        Self value;
+    public:
+        constexpr OpenMode(Self value = Self()) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
-    class FormatFlags {
+    class [[nodiscard]] FormatFlags final {
     public:
         using Self = std::ios::fmtflags;
-
-        FormatFlags() = delete;
 
         static constexpr Self DECIMAL = std::ios::dec;
         static constexpr Self OCTAL = std::ios::oct;
@@ -76,13 +81,20 @@ export namespace core::io {
         static constexpr Self SKIP_WHITESPACE = std::ios::skipws;
         static constexpr Self UNIT_BUFFER = std::ios::unitbuf;
         static constexpr Self UPPERCASE = std::ios::uppercase;
+    private:
+        Self value;
+    public:
+        constexpr FormatFlags(Self value = Self()) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
-    class IOState {
+    class [[nodiscard]] IOState final {
     public:
         using Self = std::ios::iostate;
-
-        IOState() = delete;
 
         static constexpr Self GOOD_BIT = std::ios::goodbit;
         static constexpr Self BAD_BIT = std::ios::badbit;
@@ -92,28 +104,51 @@ export namespace core::io {
         static constexpr Self STREAM_ERROR = std::ios::badbit;
         static constexpr Self IO_OPERATION_FAIL = std::ios::failbit;
         static constexpr Self END_OF_FILE = std::ios::eofbit;
+    private:
+        Self value;
+    public:
+        constexpr IOState(Self value = Self()) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
-    class SeekingDirection {
+    class [[nodiscard]] SeekingDirection final {
     public:
         using Self = std::ios::seekdir;
-
-        SeekingDirection() = delete;
 
         static constexpr Self BEGINNING = std::ios::beg;
         static constexpr Self ENDING = std::ios::end;
         static constexpr Self CURRENT = std::ios::cur;
+    private:
+        Self value;
+    public:
+        constexpr SeekingDirection(Self value = Self()) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
-    class IOEvent {
+    class [[nodiscard]] IOEvent final {
     public:
         using Self = std::ios::event;
-
-        IOEvent() = delete;
 
         static constexpr Self ERASE_EVENT = std::ios::event::erase_event;
         static constexpr Self IMBUE_EVENT = std::ios::event::imbue_event;
         static constexpr Self COPY_FORMAT_EVENT = std::ios::event::copyfmt_event;
+    private:
+        Self value;
+    public:
+        constexpr IOEvent(Self value = Self()) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
     
     using IOEventCallback = std::ios::event_callback;
@@ -126,28 +161,33 @@ export namespace core::io {
     using std::operator&=;
     using std::operator^=;
 
-
     using WideIOS = std::wios;
 
     template <typename StateT>
     using FilePosition = std::fpos<StateT>;
 
-    class IOErrc {
+    class [[nodiscard]] IOErrc final {
     public:
         using Self = std::io_errc;
 
-        IOErrc() = delete;
-
+        static constexpr Self SUCCESS = std::io_errc();
         static constexpr Self STREAM = std::io_errc::stream;
+    private:
+        Self value;
+    public:
+        constexpr IOErrc(Self value = SUCCESS) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
     template <typename T>
     using IsErrorCodeEnum = std::is_error_code_enum<T>;
 
-
     using StreamOffset = std::streamoff;
     using StreamSize = std::streamsize;
-
 
     using IOException = std::ios_base::failure;
 

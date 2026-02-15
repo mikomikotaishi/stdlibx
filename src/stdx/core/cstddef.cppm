@@ -52,6 +52,8 @@ export namespace stdx::core {
     using ::core::f128;
     using ::core::usize;
     using ::core::isize;
+    using ::core::intmax;
+    using ::core::uintmax;
 
     using ::core::byte;
     using ::core::char8;
@@ -64,7 +66,6 @@ export namespace stdx::core {
     using ::core::c128;
 
     using ::core::ByteUnit;
-
 
     using ::core::NullPointer;
     using ::core::Void;

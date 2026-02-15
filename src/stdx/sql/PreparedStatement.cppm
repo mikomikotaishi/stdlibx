@@ -11,6 +11,10 @@ module;
 
 #include "Macros.hpp"
 
+#if defined(__GNUC__) && !defined(__clang__)
+#include <new>
+#endif
+
 #ifdef STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
 #include <sql.h>
 #include <sqlext.h>
@@ -25,6 +29,8 @@ import :sql.ResultSet;
 import :util.utility;
 
 using stdx::collections::Vector;
+
+using namespace stdx::core;
 
 /**
  * @namespace stdx::sql

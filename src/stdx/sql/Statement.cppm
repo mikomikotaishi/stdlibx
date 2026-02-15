@@ -24,6 +24,8 @@ import :sql.ResultSet;
 
 using stdx::mem::UniquePointer;
 
+using namespace stdx::core;
+
 /**
  * @namespace stdx::sql
  * @brief Wrapper namespace for standard library extension SQL operations.

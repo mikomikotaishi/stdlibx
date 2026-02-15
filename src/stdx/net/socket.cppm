@@ -6,21 +6,22 @@
  * This file contains the implementation of the (experimental) networking socket operations in the standard library.
  */
 
-
 module;
 
-#if __has_include(<experimental/socket>)
+#if __has_include(<experimental/socket>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
 #include <experimental/socket>
 #endif
 
 export module stdx:net.socket;
+
+import :net.buffer;
 
 /**
  * @namespace stdx::net
  * @brief Wrapper namespace for (experimental) standard library networking operations.
  */
 export namespace stdx::net {
-    #if __has_include(<experimental/socket>)
+    #if __has_include(<experimental/socket>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
     using SocketBase = std::experimental::net::socket_base;
 
     template <typename Protocol>

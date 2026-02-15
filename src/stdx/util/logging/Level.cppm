@@ -20,6 +20,8 @@ using stdx::fmt::FormatContext;
 using stdx::fmt::FormatParseContext;
 using stdx::fmt::Formatter;
 
+using namespace stdx::core;
+
 /**
  * @namespace stdx::util::logging
  * @brief Wrapper namespace for standard library extension utility operations.
@@ -45,7 +47,7 @@ enum class Level: u8 {
 using stdx::util::logging::Level;
 
 template <>
-struct Formatter<Level> {
+struct stdx::fmt::Formatter<Level> {
     static constexpr const char* parse(FormatParseContext& ctx) noexcept {
         return ctx.begin();
     }

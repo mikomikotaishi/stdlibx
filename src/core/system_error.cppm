@@ -22,11 +22,9 @@ export namespace core {
     using ErrorCondition = std::error_condition;
     using ErrorCode = std::error_code;
 
-    class Errc {
+    class [[nodiscard]] Errc final {
     public:
         using Self = std::errc;
-
-        Errc() = delete;;
 
         static constexpr Self SUCCESS = std::errc();
         static constexpr Self ADDRESS_FAMILY_NOT_SUPPORTED = std::errc::address_family_not_supported;
@@ -96,6 +94,15 @@ export namespace core {
         static constexpr Self TOO_MANY_SYMBOLIC_LINK_LEVELS = std::errc::too_many_symbolic_link_levels;
         static constexpr Self VALUE_TOO_LARGE = std::errc::value_too_large;
         static constexpr Self WRONG_PROTOCOL_TYPE = std::errc::wrong_protocol_type;
+    private:
+        Self value;
+    public:
+        constexpr Errc(Self value = SUCCESS) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
     using SystemException = std::system_error;

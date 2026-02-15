@@ -1,6 +1,6 @@
 /**
- * @file windows_base.cppm
- * @module stdx:os.win32.windows.windows_base
+ * @file windows.base.cppm
+ * @module stdx:os.win32.windows.windows.base
  * @brief Module file for Win32 operations.
  *
  * This file contains the implementation of the Windows operations from the Windows API libraries,
@@ -13,7 +13,7 @@ module;
 #include <windows_base.h>
 #endif
 
-export module stdx:os.win32.windows.windows_base;
+export module stdx:os.win32.windows.base;
 
 /**
  * @namespace stdx::os::win32

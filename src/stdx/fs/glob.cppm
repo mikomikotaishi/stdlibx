@@ -31,14 +31,14 @@ using stdx::ranges::views::Join;
 using stdx::ranges::views::Transform;
 using stdx::text::Regex;
 
+using namespace stdx::core;
+
 /**
  * @namespace stdx::fs
  * @brief Wrapper namespace for standard library file system operations.
  */
 namespace stdx::fs {
-
-namespace {
-    static bool string_replace(String& s, const String& from, const String& to) noexcept {
+    bool string_replace(String& s, const String& from, const String& to) noexcept {
         usize start = s.find(from);
         if (start == String::npos) {
             return false;
@@ -48,7 +48,7 @@ namespace {
     }
 
     [[nodiscard]]
-    static String translate(const String& pattern) noexcept {
+    String translate(const String& pattern) noexcept {
         usize i = 0;
         usize j = 0;
         usize n = pattern.length();
@@ -151,16 +151,16 @@ namespace {
     }
 
     [[nodiscard]]
-    static Regex compile_pattern(const String& pattern) {
+    Regex compile_pattern(const String& pattern) {
         return Regex(translate(pattern), Regex::ECMAScript);
     }
 
-    static bool filename_match(const Path& name, const String& pattern) {
+    bool filename_match(const Path& name, const String& pattern) {
         return stdx::text::regex_match(name.string(), compile_pattern(pattern));
     }
 
     [[nodiscard]]
-    static Vector<Path> filter(const Vector<Path>& names, const String& pattern) noexcept {
+    Vector<Path> filter(const Vector<Path>& names, const String& pattern) noexcept {
         return names |
             Filter([&pattern](const Path& name) -> bool {
                 return filename_match(name, pattern);
@@ -169,13 +169,13 @@ namespace {
     }
 
     [[nodiscard]]
-    static String get_env_var(StringView var) noexcept {
+    String get_env_var(StringView var) noexcept {
         const char* v = stdx::sys::getenv(var.data());
         return String(v ? v : "");
     }
 
     [[nodiscard]]
-    static Optional<Path> expand_tilde(Path p) noexcept {
+    Optional<Path> expand_tilde(Path p) noexcept {
         if (p.empty()) {
             return p;
         }
@@ -197,22 +197,22 @@ namespace {
     }
 
     [[nodiscard]]
-    static bool has_magic(const String& p) {
+    bool has_magic(const String& p) {
         return stdx::text::regex_search(p, Regex("([*?[])"));
     }
 
     [[nodiscard]]
-    static bool is_hidden(const String& p) {
+    bool is_hidden(const String& p) {
         return stdx::text::regex_match(p, Regex("^(.*\\/)*\\.[^\\.\\/]+\\/*$"));
     }
 
     [[nodiscard]]
-    static bool is_recursive(const String& pattern) noexcept {
+    bool is_recursive(const String& pattern) noexcept {
         return pattern == "**";
     }
 
     [[nodiscard]]
-    static Vector<Path> iterate_over_directory(const Path& dir, bool dironly) noexcept {
+    Vector<Path> iterate_over_directory(const Path& dir, bool dironly) noexcept {
         Vector<Path> result;
         Path current = dir;
         if (current.empty()) {
@@ -236,7 +236,7 @@ namespace {
     }
 
     [[nodiscard]]
-    static Vector<Path> listdir_recursive(const Path& dir, bool dironly) noexcept {
+    Vector<Path> listdir_recursive(const Path& dir, bool dironly) noexcept {
         Vector<Path> result;
         Vector<Path> names = iterate_over_directory(dir, dironly);
         for (Path& p: names) {
@@ -251,7 +251,7 @@ namespace {
     }
 
     [[nodiscard]]
-    static Vector<Path> glob_relative_pathnames(const Path& dir, [[maybe_unused]] const String& pattern, bool dironly) noexcept {
+    Vector<Path> glob_relative_pathnames(const Path& dir, [[maybe_unused]] const String& pattern, bool dironly) noexcept {
         (void)pattern;
         Vector<Path> result;
         if (exists(dir)) {
@@ -264,7 +264,7 @@ namespace {
     }
 
     [[nodiscard]]
-    static Vector<Path> glob_over_pattern(const Path& dir, const String& pattern, bool dironly) noexcept {
+    Vector<Path> glob_over_pattern(const Path& dir, const String& pattern, bool dironly) noexcept {
         Vector<Path> names = iterate_over_directory(dir, dironly);
         Vector<Path> filtered;
         for (Path& name: names) {
@@ -276,7 +276,7 @@ namespace {
     }
 
     [[nodiscard]]
-    static Vector<Path> glob_over_base(const Path& dir, const Path& base, [[maybe_unused]] bool dironly) noexcept {
+    Vector<Path> glob_over_base(const Path& dir, const Path& base, [[maybe_unused]] bool dironly) noexcept {
         Vector<Path> result;
         if (base.empty()) {
             if (is_directory(dir)) {
@@ -348,8 +348,6 @@ namespace {
         }
         return result;
     }
-
-}
 
 }
 

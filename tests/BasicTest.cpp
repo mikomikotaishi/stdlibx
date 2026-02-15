@@ -6,11 +6,11 @@ using stdx::collections::Vector;
 using stdx::fs::DirectoryEntry;
 using stdx::fs::DirectoryIterator;
 using stdx::fs::Path;
-using stdx::io::OpenMode;
+using stdx::io::File;
 using stdx::io::IOException;
 using stdx::io::IOState;
+using stdx::io::OpenMode;
 using stdx::io::OutputFileStream;
-using stdx::io::Stderr;
 using stdx::linq::Query;
 using stdx::mem::SharedPointer;
 using stdx::mem::UniquePointer;
@@ -62,11 +62,11 @@ void testLogging() {
 int main() {
     Thread t;
     if (t.joinable()) {
-        std::io::println("t.joinable() returned true");
+        stdx::io::println("t.joinable() returned true");
     }
 
     String s = "This is a test string";
-    std::io::println("{}", s);
+    stdx::io::println("{}", s);
 
     Vector<i32> v{1, 2, 3, 4, 5};
     for (usize i = 0; i < v.size(); ++i) {
@@ -81,7 +81,7 @@ int main() {
     try {
         stdx::io::println(*file, "Here is some text");
     } catch (const IOException& e) {
-        stdx::io::println(Stderr, "Failed to write!");
+        stdx::io::println(File::stderr(), "Failed to write!");
     }
 
     // Path dir = stdx::fs::current_path();

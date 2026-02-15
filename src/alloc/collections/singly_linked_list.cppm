@@ -32,7 +32,6 @@ export namespace alloc::collections {
             IsSameValue<typename Alloc::value_type, T>
     using SinglyLinkedList = std::forward_list<T, Alloc>;
 
-
     /**
      * @namespace pmr
      * @brief Namespace for operations on polymorphic memory resources.
@@ -40,7 +39,6 @@ export namespace alloc::collections {
     namespace pmr {
         template <typename T>
         using SinglyLinkedList = std::pmr::forward_list<T>;
-
     }
 
     using std::erase;

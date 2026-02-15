@@ -15,6 +15,8 @@ export module stdx:sql.SQLException;
 
 import :core;
 
+using namespace stdx::core;
+
 /**
  * @namespace stdx::sql
  * @brief Wrapper namespace for standard library extension SQL operations.

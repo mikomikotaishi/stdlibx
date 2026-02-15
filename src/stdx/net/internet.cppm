@@ -8,11 +8,16 @@
 
 module;
 
-#if __has_include(<experimental/internet>)
+#if __has_include(<experimental/internet>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
 #include <experimental/internet>
 #endif
 
 export module stdx:net.internet;
+
+import :io;
+
+using stdx::io::IOException;
+using stdx::io::InterruptedIOException;
 
 /**
  * @namespace stdx::net
@@ -20,11 +25,155 @@ export module stdx:net.internet;
  */
 export namespace stdx::net {
     /**
+     * @class UnknownHostException
+     * @brief Exception class for handling unknown host errors.
+     *
+     * @extends IOException
+     * 
+     * The UnknownHostException class is used to represent an exception that occurs when a host cannot be resolved.
+     */
+    class UnknownHostException: public IOException {
+    public:
+        /**
+        * @brief Constructor that initialises the exception with a message.
+        * @param msg The exception message.
+        */
+        explicit UnknownHostException(const String& msg = ""):
+            IOException(msg) {}
+    };
+
+    /**
+     * @class UnknownServiceException
+     * @brief Exception class for handling unknown service errors.
+     *
+     * @extends IOException
+     * 
+     * The UnknownServiceException class is used to represent an exception that occurs when a service cannot be resolved.
+     */
+    class UnknownServiceException: public IOException {
+    public:
+        /**
+        * @brief Constructor that initialises the exception with a message.
+        * @param msg The exception message.
+        */
+        explicit UnknownServiceException(const String& msg = ""):
+            IOException(msg) {}
+    };
+
+    /**
+     * @class ProtocolException
+     * @brief Exception class for handling protocol errors.
+     *
+     * @extends IOException
+     * 
+     * The ProtocolException class is used to represent an exception that occurs when a protocol error happens.
+     */
+    class ProtocolException: public IOException {
+    public:
+        /**
+        * @brief Constructor that initialises the exception with a message.
+        * @param msg The exception message.
+        */
+        explicit ProtocolException(const String& msg = ""):
+            IOException(msg) {}
+    };
+
+    /**
+     * @class SocketException
+     * @brief Exception class for handling socket errors.
+     *
+     * @extends IOException
+     * 
+     * The SocketException class is used to represent an exception that occurs when a socket operation fails.
+     */
+    class SocketException: public IOException {
+    public:
+        /**
+         * @brief Constructor that initialises the exception with a message.
+         * @param msg The exception message.
+         */
+        explicit SocketException(const String& msg = ""):
+            IOException(msg) {}
+    };
+
+    /**
+     * @class SocketException
+     * @brief Exception class for handling socket timeout errors.
+     *
+     * @extends InterruptedIOException
+     * 
+     * The SocketTimeoutException class is used to represent an exception that occurs when a socket operation times out.
+     */
+    class SocketTimeoutException: public InterruptedIOException {
+    public:
+        /**
+         * @brief Constructor that initialises the exception with a message.
+         * @param msg The exception message.
+         */
+        explicit SocketTimeoutException(const String& msg = ""):
+            InterruptedIOException(msg) {}
+    };
+
+    /**
+     * @class PortUnreachableException
+     * @brief Exception class for handling port unreachable errors.
+     *
+     * @extends SocketException
+     * 
+     * The PortUnreachableException class is used to represent an exception that occurs when a port is unreachable.
+     */
+    class PortUnreachableException: public SocketException {
+    public:
+        /**
+         * @brief Constructor that initialises the exception with a message.
+         * @param msg The exception message.
+         */
+        explicit PortUnreachableException(const String& msg = ""):
+            SocketException(msg) {}
+    };
+
+    /**
+     * @class BindException
+     * @brief Exception class for handling bind errors.
+     *
+     * @extends SocketException
+     * 
+     * The BindException class is used to represent an exception that occurs when a socket cannot be bound to a local address and port.
+     */
+    class BindException: public SocketException {
+    public:
+        /**
+         * @brief Constructor that initialises the exception with a message.
+         * @param msg The exception message.
+         */
+        explicit BindException(const String& msg = ""):
+            SocketException(msg) {}
+    };
+
+    /**
+     * @class NoRouteToHostException
+     * @brief Exception class for handling no route to host errors.
+     *
+     * @extends SocketException
+     * 
+     * The NoRouteToHostException class is used to represent an exception that occurs when there is no route to a host.
+     */
+    class NoRouteToHostException: public SocketException {
+    public:
+        /**
+         * @brief Constructor that initialises the exception with a message.
+         * @param msg The exception message.
+         */
+        explicit NoRouteToHostException(const String& msg = ""):
+            SocketException(msg) {}
+    };
+
+    /**
      * @namespace ip
      * @brief Namespace for operations IP addresses.
      */
     namespace ip {
-        #if __has_include(<experimental/internet>)
+        #if __has_include(<experimental/internet>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
         using IPv4Address = std::experimental::net::ip::address_v4;
         using IPv6Address = std::experimental::net::ip::address_v6;
         using Address = std::experimental::net::ip::address;
@@ -56,7 +205,7 @@ export namespace stdx::net {
          * @brief Namespace for operations on unicast.
          */
         namespace unicast {
-            #if __has_include(<experimental/internet>)
+            #if __has_include(<experimental/internet>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
             using Hops = std::experimental::net::ip::unicast::hops;
             #endif
         }
@@ -66,7 +215,7 @@ export namespace stdx::net {
          * @brief Namespace for operations on multicast.
          */
         namespace multicast {
-            #if __has_include(<experimental/internet>)
+            #if __has_include(<experimental/internet>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
             using JoinGroup = std::experimental::net::ip::multicast::join_group;
             using LeaveGroup = std::experimental::net::ip::multicast::leave_group;
             using OutboundInterface = std::experimental::net::ip::multicast::outbound_interface;

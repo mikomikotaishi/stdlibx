@@ -128,6 +128,4 @@ export namespace stdx::os::unix::sys {
     inline constexpr int TIOCPKT_NOSTOP = 16;
     inline constexpr int TIOCPKT_DOSTOP = 32;
     inline constexpr int TIOCPKT_IOCTL = 64;
-
-    inline constexpr int TIOCSER_TEMT = 0x01;
 }

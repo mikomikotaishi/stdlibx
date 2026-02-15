@@ -9,6 +9,10 @@
 
 module;
 
+#if defined(__GNUC__) && !defined(__clang__)
+#include <memory>
+#endif
+
 #include <string>
 
 export module stdx:util.logging.LoggerFactory;
@@ -29,6 +33,8 @@ using stdx::io::OpenMode;
 using stdx::mem::SharedPointer;
 using stdx::sync::Mutex;
 using stdx::sync::ScopedLock;
+
+using namespace stdx::core;
 
 /**
  * @namespace stdx::util::logging

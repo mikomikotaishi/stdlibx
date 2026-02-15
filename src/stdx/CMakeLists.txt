@@ -1,6 +1,11 @@
 file(GLOB_RECURSE STDX_MODULES *.cppm)
 
-add_library(stdlibx_stdx)
+if(BUILD_STATIC_LIBS)
+    add_library(stdlibx_stdx STATIC)
+else()
+    add_library(stdlibx_stdx SHARED)
+endif()
+
 target_sources(stdlibx_stdx
     PUBLIC
     FILE_SET CXX_MODULES FILES
@@ -34,6 +39,10 @@ if(STDLIBX_EXPERIMENTAL_STD)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXPERIMENTAL_STD)
 endif()
 
+if(STDLIBX_COMPILE_EXPERIMENTAL_HEADERS)
+    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_COMPILE_EXPERIMENTAL_HEADERS)
+endif()
+
 if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
     find_package(LLVM REQUIRED)
@@ -41,7 +50,7 @@ if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
 endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
-    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
+    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
     find_package(Lua REQUIRED)
     add_library(Lua::Lua INTERFACE IMPORTED)
     set_target_properties(
@@ -62,8 +71,7 @@ endif()
 set_target_properties(stdlibx_stdx PROPERTIES 
     CXX_STANDARD 23 
     CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF 
-    CXX_MODULE_DYNDEP OFF
+    CXX_EXTENSIONS OFF
 )
 
 if(STDLIBX_USE_RESERVED_STD_IDENTIFIERS)

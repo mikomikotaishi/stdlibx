@@ -40,11 +40,11 @@ import :text.charconv;
  * Detail namespace - not to be exported for external use
  */
 namespace _detail::core {
-    constexpr decltype(EXIT_SUCCESS) ExitSuccess = EXIT_SUCCESS;
-    constexpr decltype(EXIT_FAILURE) ExitFailure = EXIT_FAILURE;
-    const decltype(MB_CUR_MAX) MultibyteCurrentMax = MB_CUR_MAX;
-    constexpr decltype(NULL) Null = NULL;
-    constexpr decltype(RAND_MAX) RandMax = RAND_MAX;
+    constexpr auto ExitSuccess = EXIT_SUCCESS;
+    constexpr auto ExitFailure = EXIT_FAILURE;
+    const auto MultibyteCurrentMax = MB_CUR_MAX;
+    constexpr auto Null = NULL;
+    constexpr auto RandMax = RAND_MAX;
 }
 
 #undef EXIT_SUCCESS
@@ -76,6 +76,8 @@ export namespace core {
     using f128 = long double;
     using usize = std::size_t;
     using isize = std::intptr_t;
+    using intmax = std::intmax_t;
+    using uintmax = std::uintmax_t;
 
     using byte = unsigned char;
     using char8 = char8_t;
@@ -101,9 +103,9 @@ export namespace core {
     using IntegerMaxDiv = std::imaxdiv_t;
     using MaximumAlignment = std::max_align_t;
 
-    constexpr decltype(_detail::core::ExitSuccess) EXIT_SUCCESS = _detail::core::ExitSuccess;
-    constexpr decltype(_detail::core::ExitFailure) EXIT_FAILURE = _detail::core::ExitFailure;
-    const decltype(_detail::core::MultibyteCurrentMax) MB_CUR_MAX = _detail::core::MultibyteCurrentMax;
-    constexpr decltype(_detail::core::Null) NULL = _detail::core::Null;
-    constexpr decltype(_detail::core::RandMax) RAND_MAX = _detail::core::RandMax;
+    constexpr auto EXIT_SUCCESS = _detail::core::ExitSuccess;
+    constexpr auto EXIT_FAILURE = _detail::core::ExitFailure;
+    const auto MB_CUR_MAX = _detail::core::MultibyteCurrentMax;
+    constexpr auto NULL = _detail::core::Null;
+    constexpr auto RAND_MAX = _detail::core::RandMax;
 }

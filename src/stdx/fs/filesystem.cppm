@@ -33,11 +33,9 @@ export namespace stdx::fs {
     using RecursiveDirectoryIterator = std::filesystem::recursive_directory_iterator;
     using SpaceInfo = std::filesystem::space_info;
 
-    class FileType {
+    class [[nodiscard]] FileType final {
     public:
         using Self = std::filesystem::file_type;
-
-        FileType() = delete;
 
         static constexpr Self NONE = std::filesystem::file_type::none;
         static constexpr Self NOT_FOUND = std::filesystem::file_type::not_found;
@@ -49,13 +47,20 @@ export namespace stdx::fs {
         static constexpr Self FIFO = std::filesystem::file_type::fifo;
         static constexpr Self SOCKET = std::filesystem::file_type::socket;
         static constexpr Self UNKNOWN = std::filesystem::file_type::unknown;
+    private:
+        Self value;
+    public:
+        constexpr FileType(Self value = NONE) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
-    class CopyOptions {
+    class [[nodiscard]] CopyOptions final {
     public:
         using Self = std::filesystem::copy_options;
-
-        CopyOptions() = delete;
 
         static constexpr Self NONE = std::filesystem::copy_options::none;
         static constexpr Self SKIP_EXISTING = std::filesystem::copy_options::skip_existing;
@@ -67,13 +72,20 @@ export namespace stdx::fs {
         static constexpr Self DIRECTORIES_ONLY = std::filesystem::copy_options::directories_only;
         static constexpr Self CREATE_SYMLINKS = std::filesystem::copy_options::create_symlinks;
         static constexpr Self CREATE_HARD_LINKS = std::filesystem::copy_options::create_hard_links;
+    private:
+        Self value;
+    public:
+        constexpr CopyOptions(Self value = NONE) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
-    class Permissions {
+    class [[nodiscard]] Permissions final {
     public:
         using Self = std::filesystem::perms;
-
-        Permissions() = delete;
 
         static constexpr Self NONE = std::filesystem::perms::none;
         static constexpr Self OWNER_READ = std::filesystem::perms::owner_read;
@@ -94,32 +106,54 @@ export namespace stdx::fs {
         static constexpr Self STICKY_BIT = std::filesystem::perms::sticky_bit;
         static constexpr Self MASK = std::filesystem::perms::mask;
         static constexpr Self UNKNOWN = std::filesystem::perms::unknown;
+    private:
+        Self value;
+    public:
+        constexpr Permissions(Self value = NONE) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
-    class PermissionOptions {
+    class [[nodiscard]] PermissionOptions final {
     public:
         using Self = std::filesystem::perm_options;
-
-        PermissionOptions() = delete;
 
         static constexpr Self REPLACE = std::filesystem::perm_options::replace;
         static constexpr Self ADD = std::filesystem::perm_options::add;
         static constexpr Self REMOVE = std::filesystem::perm_options::remove;
         static constexpr Self NO_FOLLOW = std::filesystem::perm_options::nofollow;
-    };
+    private:
+        Self value;
+    public:
+        constexpr PermissionOptions(Self value = REPLACE) noexcept:
+            value{value} {}
 
+        operator Self() const noexcept {
+            return value;
+        }
+    };
 
     using FileStatus = std::filesystem::file_status;
 
-    class DirectoryOptions {
+    class [[nodiscard]] DirectoryOptions final {
     public:
         using Self = std::filesystem::directory_options;
-
-        DirectoryOptions() = delete;
 
         static constexpr Self NONE = std::filesystem::directory_options::none;
         static constexpr Self FOLLOW_DIRECTORY_SYMLINK = std::filesystem::directory_options::follow_directory_symlink;
         static constexpr Self SKIP_PERMISSION_DENIED = std::filesystem::directory_options::skip_permission_denied;
+    private:
+        Self value;
+    public:
+        constexpr DirectoryOptions(Self value = NONE) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
     using FileTimeType = std::filesystem::file_time_type;

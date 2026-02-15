@@ -1,70 +1,144 @@
 /**
- * @file csignal.cppm
- * @module core:sys.csignal
- * @brief Module file for standard library C-style signal operations.
+ * @internal
+ * @file csignal.signal.cppm
+ * @module core:sys.csignal.signal
+ * @brief Module file for signal handling in the standard library C-style signal operations.
  *
- * This file contains the implementation of the C-style signal operations in the standard library.
+ * This file contains the implementation of the constants of the C-style signal operations in the standard library.
  */
 
 module;
 
-export module core:sys.csignal;
+#include <csignal>
 
-import :sys.csignal.constants;
+// Define fallback values for POSIX signals if not provided by the platform
+#ifndef SIGHUP
+#define SIGHUP 1
+#endif
 
-using _detail::core::sys::Handler;
+#ifndef SIGQUIT
+#define SIGQUIT 3
+#endif
+
+#ifndef SIGTRAP
+#define SIGTRAP 5
+#endif
+
+#ifndef SIGBUS
+#define SIGBUS 7
+#endif
+
+#ifndef SIGKILL
+#define SIGKILL 9
+#endif
+
+#ifndef SIGUSR1
+#define SIGUSR1 10
+#endif
+
+#ifndef SIGUSR2
+#define SIGUSR2 12
+#endif
+
+#ifndef SIGPIPE
+#define SIGPIPE 13
+#endif
+
+#ifndef SIGALRM
+#define SIGALRM 14
+#endif
+
+#ifndef SIGSTKFLT
+#define SIGSTKFLT 16
+#endif
+
+#ifndef SIGCHLD
+#define SIGCHLD 17
+#endif
+
+#ifndef SIGCONT
+#define SIGCONT 18
+#endif
+
+#ifndef SIGSTOP
+#define SIGSTOP 19
+#endif
+
+#ifndef SIGTSTP
+#define SIGTSTP 20
+#endif
+
+#ifndef SIGTTIN
+#define SIGTTIN 21
+#endif
+
+#ifndef SIGTTOU
+#define SIGTTOU 22
+#endif
+
+#ifndef SIGURG
+#define SIGURG 23
+#endif
+
+#ifndef SIGXCPU
+#define SIGXCPU 24
+#endif
+
+#ifndef SIGXFSZ
+#define SIGXFSZ 25
+#endif
+
+#ifndef SIGVTALRM
+#define SIGVTALRM 26
+#endif
+
+#ifndef SIGPROF
+#define SIGPROF 27
+#endif
+
+#ifndef SIGWINCH
+#define SIGWINCH 28
+#endif
+
+#ifndef SIGPOLL
+#define SIGPOLL 29
+#endif
+
+#ifndef SIGPWR
+#define SIGPWR 30
+#endif
+
+#ifndef SIGSYS
+#define SIGSYS 31
+#endif
+
+#ifndef SIGIO
+#define SIGIO SIGPOLL
+#endif
+
+#ifndef SIGIOT
+#define SIGIOT SIGABRT
+#endif
+
+#ifndef SIGCLD
+#define SIGCLD SIGCHLD
+#endif
+
+export module core:sys.csignal.signal;
 
 /**
- * @namespace core::sys
+ * @internal
+ * @namespace _detail::core::sys
  * @brief Wrapper namespace for standard library system operations.
+ * Detail namespace - not to be exported for external use
  */
 export namespace core::sys {
-    constexpr int SIGHUP = _detail::core::sys::C_SIGHUP; ///< Hangup.
-    constexpr int SIGINT = _detail::core::sys::C_SIGINT; ///< Interactive attention signal.
-    constexpr int SIGQUIT = _detail::core::sys::C_SIGQUIT; ///< Quit.
-    constexpr int SIGILL = _detail::core::sys::C_SIGILL; ///< Illegal instruction.
-    constexpr int SIGTRAP = _detail::core::sys::C_SIGTRAP; ///< Trace/breakpoint trap.
-    constexpr int SIGABRT = _detail::core::sys::C_SIGABRT; ///< Abnormal termination.
-    constexpr int SIGBUS = _detail::core::sys::C_SIGBUS; ///< Bus error.
-    constexpr int SIGFPE = _detail::core::sys::C_SIGFPE; ///< Erroneous arithmetic operation.
-    constexpr int SIGKILL = _detail::core::sys::C_SIGKILL; ///< Killed.
-    constexpr int SIGUSR1 = _detail::core::sys::C_SIGUSR1; ///< User-defined signal 1.
-    constexpr int SIGSEGV = _detail::core::sys::C_SIGSEGV; ///< Invalid access to storage.
-    constexpr int SIGUSR2 = _detail::core::sys::C_SIGUSR2; ///< User-defined signal 2.
-    constexpr int SIGPIPE = _detail::core::sys::C_SIGPIPE; ///< Broken pipe.
-    constexpr int SIGALRM = _detail::core::sys::C_SIGALRM; ///< Alarm clock.
-    constexpr int SIGTERM = _detail::core::sys::C_SIGTERM; ///< Termination request.
-    constexpr int SIGSTKFLT = _detail::core::sys::C_SIGSTKFLT; ///< Stack fault (obsolete).
-    constexpr int SIGCHLD = _detail::core::sys::C_SIGCHLD; ///< Child terminated or stopped.
-    constexpr int SIGCONT = _detail::core::sys::C_SIGCONT; ///< Continue.
-    constexpr int SIGSTOP = _detail::core::sys::C_SIGSTOP; ///< Stop, unblockable.
-    constexpr int SIGTSTP = _detail::core::sys::C_SIGTSTP; ///< Keyboard stop.
-    constexpr int SIGTTIN = _detail::core::sys::C_SIGTTIN; ///< Background read from control terminal.
-    constexpr int SIGTTOU = _detail::core::sys::C_SIGTTOU; ///< Background write to control terminal.
-    constexpr int SIGURG = _detail::core::sys::C_SIGURG; ///< Urgent data is available at a socket.
-    constexpr int SIGXCPU = _detail::core::sys::C_SIGXCPU; ///< CPU time limit exceeded.
-    constexpr int SIGXFSZ = _detail::core::sys::C_SIGXFSZ; ///< File size limit exceeded.
-    constexpr int SIGVTALRM = _detail::core::sys::C_SIGVTALRM; ///< Virtual timer expired.
-    constexpr int SIGPROF = _detail::core::sys::C_SIGPROF; ///< Profiling timer expired.
-    constexpr int SIGWINCH = _detail::core::sys::C_SIGWINCH; ///< Window size change (4.3 BSD, Sun).
-    constexpr int SIGPOLL = _detail::core::sys::C_SIGPOLL; ///< Pollable event occurred (System V).
-    constexpr int SIGPWR = _detail::core::sys::C_SIGPWR; ///< Power failure imminent.
-    constexpr int SIGSYS = _detail::core::sys::C_SIGSYS; ///< Bad system call.
-
-    // Historical signals and archaic names for compatibility
-    constexpr int SIGIO = _detail::core::sys::C_SIGIO; ///< I/O now possible (4.2 BSD).
-    constexpr int SIGIOT = _detail::core::sys::C_SIGIOT; ///< IOT instruction, abort() on a PDP-11.
-    constexpr int SIGCLD = _detail::core::sys::C_SIGCLD; ///< Old System V name for SIGCHLD.
-
-    inline const Handler SIG_DFL = _detail::core::sys::C_SIG_DFL; ///< Default signal handler.
-    inline const Handler SIG_IGN = _detail::core::sys::C_SIG_IGN; ///< Ignore signal handler.
-    inline const Handler SIG_ERR = _detail::core::sys::C_SIG_ERR; ///< Error return value.
-
+    using Handler = void (*)(int);    
     
-    using _detail::core::sys::SignalAtomic;
+    using SignalAtomic = std::sig_atomic_t;
 
-    using _detail::core::sys::signal;
-    using _detail::core::sys::raise;
+    using std::signal;
+    using std::raise;
 
     /**
      * @class Signal

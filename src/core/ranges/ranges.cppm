@@ -112,7 +112,7 @@ export namespace core::ranges {
     concept ConstantRange = std::ranges::constant_range<T>;
 
     using std::ranges::to;
-
+    using std::ranges::get;
 
     template <typename T>
     using RangeIterator = std::ranges::iterator_t<T>;
@@ -150,17 +150,29 @@ export namespace core::ranges {
     template <typename Derived>
     using ViewInterface = std::ranges::view_interface<Derived>;
 
-    enum class SubrangeKind: bool {
-        Unsized = static_cast<bool>(std::ranges::subrange_kind::unsized),
-        Sized = static_cast<bool>(std::ranges::subrange_kind::sized)
+    class [[nodiscard]] SubrangeKind final {
+    public:
+        using Self = std::ranges::subrange_kind;
+
+        static constexpr Self UNSIZED = std::ranges::subrange_kind::unsized;
+        static constexpr Self SIZED = std::ranges::subrange_kind::sized;
+
+        Self value;
+
+        constexpr SubrangeKind(Self value = Self()) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
     };
 
     template <
         InputOrOutputIterator Iter, 
         SentinelFor<Iter> Sent = Iter, 
-        SubrangeKind K = SizedSentinelFor<Sent, Iter> ? SubrangeKind::Sized : SubrangeKind::Unsized
+        SubrangeKind K = SizedSentinelFor<Sent, Iter> ? SubrangeKind::SIZED : SubrangeKind::UNSIZED
     >
-    using Subrange = std::ranges::subrange<Iter, Sent, static_cast<std::ranges::subrange_kind>(K)>;
+    using Subrange = std::ranges::subrange<Iter, Sent, K>;
 
     using Dangling = std::ranges::dangling;
 
@@ -226,7 +238,6 @@ export namespace core::ranges {
 
     template <typename Derived>
     using RangeAdaptorClosure = std::ranges::range_adaptor_closure<Derived>;
-
 
     template <Range R>
     using ReferenceView = std::ranges::ref_view<R>;
@@ -361,7 +372,6 @@ export namespace core::ranges {
 
     using std::tuple_size;
     using std::tuple_element;
-    using std::ranges::get;
     using FromRangeTag = std::from_range_t;
     inline constexpr FromRangeTag FromRange = std::from_range;
     #endif

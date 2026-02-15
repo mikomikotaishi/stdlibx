@@ -4,7 +4,7 @@
  * @brief Module file for Clang operations.
  *
  * This file contains the imports for the Clang operations,
- * located in all <clang/*.h> files.
+ * located in all <clang/ *.h> files.
  */
 
 module;

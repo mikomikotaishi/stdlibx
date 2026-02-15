@@ -4,7 +4,7 @@
  * @brief Module file for Unix asm-generic operations.
  *
  * This file contains the implementation of the Unix asm-generic operations from the POSIX libraries,
- * located in all <asm-generic/*.h> files.
+ * located in all <asm-generic/ *.h> files.
  */
 
 module;

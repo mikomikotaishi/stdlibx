@@ -10,6 +10,7 @@ export module core:sys;
 
 export import :sys.cinttypes;
 export import :sys.csetjmp;
-export import :sys.csignal;
+export import :sys.csignal.constants;
+export import :sys.csignal.signal;
 export import :sys.cstdlib;
 export import :sys.utility;

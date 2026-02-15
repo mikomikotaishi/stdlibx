@@ -15,6 +15,27 @@ module;
 
 export module stdx:os.linux.sys.platform.x86;
 
+namespace __detail::stdx::os::linux::sys::platform {
+    [[nodiscard]]
+    inline bool x86_cpu_cet_active_ext(unsigned int index) noexcept {
+        #ifdef __x86_64__
+        unsigned int feature1 = 0;
+        # ifdef __LP64__
+        asm ("mov %%fs:72, %0" : "=r" (feature1));
+        # else
+        asm ("mov %%fs:40, %0" : "=r" (feature1));
+        # endif
+        if (index == x86_cpu_IBT) {
+            return feature1 & x86_feature_1_ibt;
+        } else {
+            return feature1 & x86_feature_1_shstk;
+        }
+        #else
+        return false;
+        #endif
+    }
+}
+
 /**
  * @namespace stdx::os::linux::sys::platform
  * @brief Wrapper namespace for Unix POSIX operations.
@@ -46,7 +67,7 @@ export namespace stdx::os::linux::sys::platform {
     [[nodiscard]]
     inline bool x86_cpu_active(unsigned int index) noexcept {
         if (index == x86_cpu_IBT || index == x86_cpu_SHSTK) {
-            return x86_cpu_cet_active(index);
+            return __detail::stdx::os::linux::sys::platform::x86_cpu_cet_active_ext(index);
         }
 
         constexpr unsigned int BITS_PER_UINT = 8 * sizeof(unsigned int);

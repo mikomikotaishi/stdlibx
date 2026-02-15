@@ -4,7 +4,7 @@
  * @brief Module file for Unix system operations.
  *
  * This file contains the implementation of the Unix system operations from the POSIX libraries,
- * located in all <sys/*.h> files.
+ * located in all <sys/ *.h> files.
  */
 
 module;

@@ -1,5 +1,11 @@
 file(GLOB_RECURSE CORE_MODULES *.cppm)
-add_library(stdlibx_core)
+
+if(BUILD_STATIC_LIBS)
+    add_library(stdlibx_core STATIC)
+else()
+    add_library(stdlibx_core SHARED)
+endif()
+
 target_sources(stdlibx_core
     PUBLIC
     FILE_SET CXX_MODULES FILES
@@ -27,15 +33,10 @@ if(STDLIBX_IMPLICIT_USING_CORE)
     target_compile_definitions(stdlibx_core INTERFACE STDLIBX_IMPLICIT_USING_CORE)
 endif()
 
-if(STDLIBX_ENABLE_COMPAT_NAMES)
-    target_compile_definitions(stdlibx_core PRIVATE STDLIBX_ENABLE_COMPAT_NAMES)
-endif()
-
 set_target_properties(stdlibx_core PROPERTIES 
     CXX_STANDARD 23 
     CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF 
-    CXX_MODULE_DYNDEP OFF
+    CXX_EXTENSIONS OFF
 )
 
 if(STDLIBX_NO_RESERVED_STD_MODULE)

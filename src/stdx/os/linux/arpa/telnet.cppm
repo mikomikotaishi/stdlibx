@@ -19,6 +19,8 @@ export module stdx:os.linux.arpa.telnet;
 
 import :core;
 
+using namespace stdx::core;
+
 /**
  * @namespace stdx::os::linux::arpa
  * @brief Wrapper namespace for Unix POSIX operations.
