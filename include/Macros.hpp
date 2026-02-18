@@ -31,6 +31,13 @@
 #define STDLIBX_CORE_MODULE_EXPORT_CORE() export using namespace core;
 
 /**
+ * @brief Utility macro to prepare the stdx::core namespace for export.
+ */
+#define STDLIBX_PREPARE_EXPORT_CORE() \
+    namespace stdx::core {} \
+    using namespace stdx::core;
+
+/**
  * @brief Automatically generate an implicit constructor for a class Derived
  * which extends Base.
  *

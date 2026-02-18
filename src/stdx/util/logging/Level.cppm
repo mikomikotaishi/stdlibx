@@ -12,9 +12,7 @@ module;
 
 export module stdx:util.logging.Level;
 
-import :core;
-import :fmt;
-import :sys;
+import :main;
 
 using stdx::fmt::FormatContext;
 using stdx::fmt::FormatParseContext;

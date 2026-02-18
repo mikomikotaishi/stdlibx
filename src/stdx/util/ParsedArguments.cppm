@@ -12,8 +12,7 @@ module;
 
 export module stdx:util.ParsedArguments;
 
-import :core;
-import :collections;
+import :main;
 
 using stdx::collections::HashMap;
 using stdx::collections::Vector;

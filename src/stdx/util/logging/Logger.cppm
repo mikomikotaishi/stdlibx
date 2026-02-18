@@ -9,23 +9,11 @@
 
 module;
 
-#if defined(__GNUC__) && !defined(__clang__)
-#include <chrono>
-#endif
-
-#include <vector>
-
 export module stdx:util.logging.Logger;
 
-import :core;
-import :collections;
-import :fmt;
-import :mem;
-import :meta;
-import :time;
+import :main;
 import :util.logging.Level;
 import :util.logging.Sinks;
-import :util.utility;
 
 using stdx::collections::Vector;
 using stdx::fmt::FormatString;

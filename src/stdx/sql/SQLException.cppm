@@ -13,7 +13,7 @@ module;
 
 export module stdx:sql.SQLException;
 
-import :core;
+import :main;
 
 using namespace stdx::core;
 

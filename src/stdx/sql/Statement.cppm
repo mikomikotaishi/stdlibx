@@ -18,7 +18,7 @@ module;
 
 export module stdx:sql.Statement;
 
-import :mem;
+import :main;
 import :sql.SQLException;
 import :sql.ResultSet;
 

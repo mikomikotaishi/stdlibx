@@ -13,12 +13,7 @@ module;
 
 export module stdx:linq.Query;
 
-import :core;
-import :collections;
-import :mem;
-import :meta;
-import :ranges;
-import :util;
+import :main;
 
 using stdx::collections::Vector;
 using stdx::mem::SharedPointer;

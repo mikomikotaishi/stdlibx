@@ -22,11 +22,9 @@ module;
 
 export module stdx:sql.PreparedStatement;
 
-import :core;
-import :collections;
+import :main;
 import :sql.SQLException;
 import :sql.ResultSet;
-import :util.utility;
 
 using stdx::collections::Vector;
 

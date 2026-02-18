@@ -13,8 +13,7 @@ module;
 
 export module stdx:sql.DriverManager;
 
-import :fmt;
-import :mem;
+import :main;
 import :sql.SQLException;
 import :sql.Connection;
 

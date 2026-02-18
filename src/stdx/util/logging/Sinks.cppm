@@ -9,22 +9,11 @@
 
 module;
 
-#if defined(__GNUC__) && !defined(__clang__)
-#include <ios>
-#include <new>
-#include <system_error>
-#endif
-
 #include "Macros.hpp"
 
 export module stdx:util.logging.Sinks;
 
-import :core;
-import :fs;
-import :io;
-import :mem;
-import :meta;
-import :sync;
+import :main;
 import :util.logging.Level;
 
 using stdx::fs::Path;

@@ -2,7 +2,7 @@
 
 > **WARNING:** As this library is still under development, many features do not yet work, or requires inelegant workarounds or even inclusion of headers to resolve. These issues will only be resolved as development continues.
 
-> **WARNING:** This library has only been tested for Clang. For whatever reason, it crashes with an internal compiler error on GCC.
+> **WARNING:** This library is primarily tested with Clang and GCC, and MSVC support is not yet confirmed.
 
 ## Overview
 This is a project that re-exports the entire C++ standard library as modules, in an API more consistent with standard libraries of other languages. The main purpose is to create a standard library experience that is more enjoyable and familiar to use, while remaining compatible (to some degree) with the original standard library.
@@ -11,7 +11,8 @@ The motivation for creating this was that at the time, support for `import std;`
 
 The main features of this repackaging of the standard library are:
 - Symbols follow Rust naming conventions (object type names in PascalCase, constants in UPPER_SNAKE_CASE, variables and methods in snake_case)
-    - While I personally would have preferred methods to be in camelCase (like in Java), this would have been too much work to rename existing functions and methods, for very little gain
+    - While I personally would have preferred methods to be in camelCase (like in Java), this would have been too much work to rename existing functions and methods, for very little gain.
+    - Perhaps in the future I might wrap all standard library classes using private inheritance, but this may be a gargantuan effort and not in the scope of the project at the present.
 - Splitting the standard library into sub-namespaces (in constrast to the ISO C++ `std::` namespace which is largely flat). 
     - The divisions try to follow the Rust standard library modules, but also take inspiration from the Java standard library.
 - Option to use only `core` and `alloc` modules instead of the full standard library, similar to Rust
@@ -24,7 +25,7 @@ Cons:
 - Non-standard, obviously. Features are obviously dependent on what is supported by vendors, and different compilers may have different challenges building this library.
 - This library is developed independently. While we accept feature requests, pull requests, and improvements from everyone, do note that support is limited due to the limited resources.
 - Often relies on cutting or bleeding-edge features, which may not be suitable for stability-priority projects.
-- Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size.
+- Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 30 seconds to build on my (modest) hardware on both Clang and GCC.
 
 Requires a minimum of C++23. 
 
@@ -107,23 +108,3 @@ XMake:
 ```sh
 xmake
 ```
-
-## Known issues
-Most of these issues are believed to be possible to resolve using header units, however at the current time header units are not supported by CMake.
-
-- The library is known to fail when trying to use foreach loops with containers such as `Vector`. It is not known why this happens. It can only be solved by including `<vector>`.
-```cpp
-#include <vector> // necessary (for some reason?)
-
-import stdx;
-
-using stdx::collections::Vector;
-
-// ...
-Vector<i32> v{1, 2, 3, 4, 5};
-for (int i: v) {
-    stdx::io::println("{}", i);
-}
-```
-- A problem with `stdx::core::String` requiring inclusion of `<string>`
-- A problem with `stdx::fs::DirectoryIterator` requiring inclusion of `<filesystem>`

@@ -18,7 +18,7 @@ module;
 
 export module stdx:sql.Connection;
 
-import :mem;
+import :main;
 import :sql.SQLException;
 import :sql.Statement;
 import :sql.PreparedStatement;

@@ -18,8 +18,7 @@ module;
 
 export module stdx:sql.ResultSet;
 
-import :core;
-import :collections;
+import :main;
 import :sql.SQLException;
 
 using stdx::collections::Vector;

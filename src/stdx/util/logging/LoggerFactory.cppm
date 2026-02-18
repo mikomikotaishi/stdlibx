@@ -9,20 +9,9 @@
 
 module;
 
-#if defined(__GNUC__) && !defined(__clang__)
-#include <memory>
-#endif
-
-#include <string>
-
 export module stdx:util.logging.LoggerFactory;
 
-import :core;
-import :collections;
-import :fs;
-import :io;
-import :mem;
-import :sync;
+import :main;
 import :util.logging.Level;
 import :util.logging.Logger;
 import :util.logging.Sinks;

@@ -17,7 +17,7 @@ module;
 
 export module stdx:os.linux.arpa.telnet;
 
-import :core;
+import :main;
 
 using namespace stdx::core;
 

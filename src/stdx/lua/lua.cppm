@@ -14,8 +14,9 @@ module;
 
 export module stdx:lua.lua;
 
-import :core;
-import :util.utility;
+import :main;
+
+using namespace stdx::core;
 
 /**
  * @namespace stdx::lua

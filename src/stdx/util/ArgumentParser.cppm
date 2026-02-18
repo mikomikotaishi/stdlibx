@@ -14,14 +14,7 @@ module;
 
 export module stdx:util.ArgumentParser;
 
-import :core;
-import :collections;
-import :io;
-import :iter;
-import :meta;
-import :ranges;
-import :text;
-import :util.utility;
+import :main;
 
 using stdx::collections::TreeMap;
 using stdx::collections::Vector;

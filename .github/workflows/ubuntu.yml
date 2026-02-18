@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         compiler:
-          - { name: GCC, cc: gcc-15, cxx: g++-15 }
+          - { name: GCC, cc: gcc-14, cxx: g++-14 }
           - { name: Clang, cc: clang-19, cxx: clang++-19 }
         build_type: [Debug, Release]
     
@@ -26,7 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build wget software-properties-common cmake
+        sudo apt-get install -y ninja-build wget software-properties-common cmake unixodbc unixodbc-dev
         
         # Install compilers
         if [[ "${{ matrix.compiler.cxx }}" == g++* ]]; then

@@ -21,6 +21,8 @@ using stdx::util::logging::Level;
 using stdx::util::logging::Logger;
 using stdx::util::logging::LoggerFactory;
 
+using namespace stdx::core;
+
 void testLogging() {
     LoggerFactory::instance().init("./userdata/test_log.txt", true);
 

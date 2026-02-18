@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.28 FATAL_ERROR)
 
 set(CMAKE_CXX_STANDARD 23)
-# set(CMAKE_CXX_MODULE_STD ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_MODULE_STD ON)
+
+set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
 
 option(BUILD_STATIC_LIBS "Build static libraries instead of shared" OFF)
 
@@ -29,6 +32,8 @@ project(stdlibx
     LANGUAGES CXX
     VERSION 0.0.1
 )
+
+set(CMAKE_CXX_MODULE_STD 1)
 
 function(configure_cpp_module_target target)
     set_target_properties(${target} PROPERTIES 
@@ -183,7 +188,7 @@ set_target_properties(stdlibx PROPERTIES
     EXPORT_NAME stdlibx
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF
+    CXX_EXTENSIONS ON
 )
 
 if(COMMAND configure_cpp_module_target)

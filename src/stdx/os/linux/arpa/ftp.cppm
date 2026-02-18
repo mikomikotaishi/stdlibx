@@ -11,7 +11,7 @@ module;
 
 export module stdx:os.linux.arpa.ftp;
 
-import :core;
+import :main;
 
 using namespace stdx::core;
 

@@ -12,7 +12,7 @@ module;
 
 export module stdx:os.win32.windows.constants;
 
-using usize = std::size_t;
+using std::size_t;
 
 /**
  * @namespace stdx::os::win32
