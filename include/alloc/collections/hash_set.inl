@@ -10,10 +10,10 @@ using alloc::mem::Allocator;
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace alloc::collections {
-    template <typename Key, typename HashFn = std::hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Key>>
+    template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Key>>
     using HashSet = std::unordered_set<Key, HashFn, Predicate, Alloc>;
 
-    template <typename Key, typename HashFn = std::hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Key>>
+    template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Key>>
     using HashMultiset = std::unordered_multiset<Key, HashFn, Predicate, Alloc>;
 
 
@@ -22,10 +22,10 @@ export namespace alloc::collections {
      * @brief Namespace for operations on polymorphic memory resources.
      */
     namespace pmr {
-        template <typename Key, typename HashFn = std::hash<Key>, typename Predicate = EqualTo<Key>>
+        template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
         using HashSet = std::pmr::unordered_set<Key, HashFn, Predicate>;
 
-        template <typename Key, typename HashFn = std::hash<Key>, typename Predicate = EqualTo<Key>>
+        template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
         using HashMultiset = std::pmr::unordered_multiset<Key, HashFn, Predicate>;
 
     }

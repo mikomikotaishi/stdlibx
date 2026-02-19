@@ -1,9 +1,9 @@
 /**
- * @file UnsupportedOperationException.cppm
- * @module stdx:core.UnsupportedOperationException
- * @brief Implementation of the UnsupportedOperationException class.
+ * @file lua.cppm
+ * @module stdx:lua
+ * @brief Implementation of the Lua extension library.
  *
- * This file contains the implementation of the UnsupportedOperationException class, which is used to handle unsupported operation exceptions.
+ * This file contains the implementation of the Lua extension library, which is used to provide Lua functionality within the standard library.
  */
 
 module;
@@ -12,7 +12,7 @@ module;
 #include <lua.hpp>
 #endif
 
-export module stdx:lua.lua;
+export module stdx:lua;
 
 import :main;
 

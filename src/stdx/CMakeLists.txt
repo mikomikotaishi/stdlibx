@@ -43,29 +43,36 @@ if(STDLIBX_COMPILE_EXPERIMENTAL_HEADERS)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_COMPILE_EXPERIMENTAL_HEADERS)
 endif()
 
-if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
+find_package(LLVM QUIET)
+if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY AND LLVM_FOUND)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
-    find_package(LLVM REQUIRED)
     target_link_libraries(stdlibx_stdx PUBLIC LLVMSupport LLVMCore)
+elseif(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
+    message(WARNING "LLVM not found. Skipping compiler extension.")
 endif()
 
-if(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
+find_package(Lua QUIET)
+if(Lua_FOUND)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
-    find_package(Lua REQUIRED)
-    add_library(Lua::Lua INTERFACE IMPORTED)
-    set_target_properties(
-        Lua::Lua
-        PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
-        INTERFACE_LINK_LIBRARIES "${LUA_LIBRARIES}"
-    )
+
+    if(NOT TARGET Lua::Lua)
+        add_library(Lua::Lua INTERFACE IMPORTED)
+        set_target_properties(Lua::Lua PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
+            INTERFACE_LINK_LIBRARIES "${LUA_LIBRARIES}"
+        )
+    endif()
     target_link_libraries(stdlibx_stdx PUBLIC Lua::Lua)
+else()
+    message(WARNING "Lua not found. Skipping Lua extension.")
 endif()
 
-if(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
+find_package(ODBC QUIET)
+if(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY AND ODBC_FOUND)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
-    find_package(ODBC REQUIRED)
     target_link_libraries(stdlibx_stdx PUBLIC ODBC::ODBC)
+elseif(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
+    message(WARNING "ODBC not found. Skipping SQL extension.")
 endif()
 
 set_target_properties(stdlibx_stdx PROPERTIES 

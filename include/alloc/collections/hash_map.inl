@@ -11,10 +11,10 @@ using alloc::mem::Allocator;
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace alloc::collections {
-    template <typename Key, typename Value, typename HashFn = std::hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
+    template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
     using HashMap = std::unordered_map<Key, Value, HashFn, Predicate, Alloc>;
 
-    template <typename Key, typename Value, typename HashFn = std::hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
+    template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
     using HashMultimap = std::unordered_multimap<Key, Value, HashFn, Predicate, Alloc>;
 
 
@@ -23,10 +23,10 @@ export namespace alloc::collections {
      * @brief Namespace for operations on polymorphic memory resources.
      */
     namespace pmr {
-        template <typename Key, typename Value, typename HashFn = std::hash<Key>, typename Predicate = EqualTo<Key>>
+        template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
         using HashMap = std::pmr::unordered_map<Key, Value, HashFn, Predicate>;
 
-        template <typename Key, typename Value, typename HashFn = std::hash<Key>, typename Predicate = EqualTo<Key>>
+        template <typename Key, typename Value, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
         using HashMultimap = std::pmr::unordered_multimap<Key, Value, HashFn, Predicate>;
     }
 

@@ -23,10 +23,12 @@ export import :ffi;
 export import :fs.glob;
 export import :json;
 export import :linq;
+export import :lua;
 export import :os;
 export import :process;
 export import :sql;
 export import :util;
+export import :util.logging;
 export import :xml;
 export import :zip;
 

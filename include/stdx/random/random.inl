@@ -128,5 +128,5 @@ export namespace stdx::random {
     using std::rand;
     using std::srand;
 
-    constexpr auto RAND_MAX = _detail::stdx::random::RandMax;
+    constexpr auto RAND_MAX = ::_detail::stdx::random::RandMax;
 }

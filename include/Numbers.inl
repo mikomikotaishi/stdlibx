@@ -1,12 +1,29 @@
 #pragma once
 
 /**
+ * @internal
+ * @namespace _unicode_detail
+ * @brief Detail namespace - not to be exported for external use
+ */
+namespace _unicode_detail {
+    #include "Unicode/UnicodeBlock.inl"
+    #include "Unicode/UnicodeNames.inl"
+    #include "Unicode/UnicodeScript.inl"
+}
+
+template <typename T, typename Derived>
+concept HasGet = requires (const Derived& d) {
+    { d.get() } -> ConvertibleTo<T>;
+};
+
+/**
  * @class Number
  * @brief Abstract class representing a numeric type for wrapper classes.
  * 
- * @tparam T 
+ * @tparam T The underlying numeric type (e.g., int, float, double).
+ * @tparam Derived The derived class that inherits from Number.
  */
-template <typename T>
+export template <typename T, typename Derived>
     requires Integral<T> || FloatingPoint<T>
 class [[nodiscard]] Number {
 protected:
@@ -31,150 +48,136 @@ public:
     constexpr Number& operator=(Number&&) noexcept = default;
 
     [[nodiscard]]
-    constexpr Number operator+(T v) const noexcept {
-        return Number{value + v};
+    constexpr Derived operator+(T v) const noexcept {
+        return Derived{static_cast<const Derived&>(*this).get() + v};
     }
 
     [[nodiscard]]
-    constexpr Number operator-(T v) const noexcept {
-        return Number{value - v};
+    constexpr Derived operator-(T v) const noexcept {
+        return Derived{static_cast<const Derived&>(*this).get() - v};
     }
 
     [[nodiscard]]
-    constexpr Number operator*(T v) const noexcept {
-        return Number{value * v};
+    constexpr Derived operator*(T v) const noexcept {
+        return Derived{static_cast<const Derived&>(*this).get() * v};
     }
 
     [[nodiscard]]
-    constexpr Number operator/(T v) const noexcept {
-        return Number{value / v};
+    constexpr Derived operator/(T v) const noexcept {
+        return Derived{static_cast<const Derived&>(*this).get() / v};
     }
 
     [[nodiscard]]
-    constexpr Number operator%(T v) const noexcept 
+    constexpr Derived operator%(T v) const noexcept 
         requires Integral<T> && Integral<decltype(value)> {
-        return Number{value % v};
+        return Derived{static_cast<const Derived&>(*this).get() % v};
     }
 
-    constexpr Number& operator+=(T v) noexcept {
+    constexpr Derived& operator+=(T v) noexcept {
         value += v;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
-    constexpr Number& operator-=(T v) noexcept {
+    constexpr Derived& operator-=(T v) noexcept {
         value -= v;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
-    constexpr Number& operator*=(T v) noexcept {
+    constexpr Derived& operator*=(T v) noexcept {
         value *= v;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
-    constexpr Number& operator/=(T v) noexcept {
+    constexpr Derived& operator/=(T v) noexcept {
         value /= v;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
-    constexpr Number& operator%=(T v) noexcept 
+    constexpr Derived& operator%=(T v) noexcept 
         requires Integral<T> && Integral<decltype(value)> {
         value %= v;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
-    constexpr Number& operator++() noexcept {
+    constexpr Derived& operator++() noexcept {
         ++value;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
-    constexpr Number operator++([[maybe_unused]] int _) noexcept {
-        (void)_;
-        Number temp = *this;
-        ++value;
-        return temp;
-    }
-
-    constexpr Number& operator--() noexcept {
+    constexpr Derived& operator--() noexcept {
         --value;
-        return *this;
-    }
-
-    constexpr Number operator--([[maybe_unused]] int _) noexcept {
-        (void)_;
-        Number temp = *this;
-        --value;
-        return temp;
+        return static_cast<Derived&>(*this);
     }
 
     [[nodiscard]]
-    constexpr Number operator~() const noexcept 
+    constexpr Derived operator~() const noexcept 
         requires Integral<T> {
-        return Number{~value};
+        return Derived{~static_cast<const Derived&>(*this).get()};
     }
 
     [[nodiscard]]
-    constexpr Number operator&(T v) const noexcept 
+    constexpr Derived operator&(T v) const noexcept 
         requires Integral<T> {
-        return Number{value & v};
+        return Derived{static_cast<const Derived&>(*this).get() & v};
     }
 
     [[nodiscard]]
-    constexpr Number operator|(T v) const noexcept 
+    constexpr Derived operator|(T v) const noexcept 
         requires Integral<T> {
-        return Number{value | v};
+        return Derived{static_cast<const Derived&>(*this).get() | v};
     }
 
     [[nodiscard]]
-    constexpr Number operator^(T v) const noexcept 
+    constexpr Derived operator^(T v) const noexcept 
         requires Integral<T> {
-        return Number{value ^ v};
+        return Derived{static_cast<const Derived&>(*this).get() ^ v};
     }
 
-    constexpr Number& operator&=(T v) noexcept 
+    constexpr Derived& operator&=(T v) noexcept 
         requires Integral<T> {
         value &= v;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
-    constexpr Number& operator|=(T v) noexcept 
+    constexpr Derived& operator|=(T v) noexcept 
         requires Integral<T> {
         value |= v;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
-    constexpr Number& operator^=(T v) noexcept 
+    constexpr Derived& operator^=(T v) noexcept 
         requires Integral<T> {
         value ^= v;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
     [[nodiscard]]
-    constexpr Number operator-() const noexcept {
-        return Number{-value};
+    constexpr Derived operator-() const noexcept {
+        return Derived{-static_cast<const Derived&>(*this).get()};
     }
 
     [[nodiscard]]
-    constexpr Number operator<<(int shift) const noexcept 
+    constexpr Derived operator<<(int shift) const noexcept 
         requires Integral<T> {
-        return Number{value << shift};
+        return Derived{static_cast<const Derived&>(*this).get() << shift};
     }
 
     [[nodiscard]]
-    constexpr Number operator>>(int shift) const noexcept 
+    constexpr Derived operator>>(int shift) const noexcept 
         requires Integral<T> {
-        return Number{value >> shift};
+        return Derived{static_cast<const Derived&>(*this).get() >> shift};
     }
 
-    constexpr Number& operator<<=(int shift) noexcept 
+    constexpr Derived& operator<<=(int shift) noexcept 
         requires Integral<T> {
         value <<= shift;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
-    constexpr Number& operator>>=(int shift) noexcept 
+    constexpr Derived& operator>>=(int shift) noexcept 
         requires Integral<T> {
         value >>= shift;
-        return *this;
+        return static_cast<Derived&>(*this);
     }
 
     [[nodiscard]]
@@ -308,74 +311,118 @@ public:
     #endif
 };
 
-template <CharacterLike Ch>
-class [[nodiscard]] CharacterBase: public Number<Ch> {
+/**
+ * @class CharacterBase
+ * @brief A base class for character types, providing common character-related methods.
+ * 
+ * @tparam Ch The character type (e.g., char, wchar, char16, char32).
+ * @tparam Derived The derived class that inherits from CharacterBase.
+ */
+template <CharacterLike Ch, typename Derived>
+class [[nodiscard]] CharacterBase {
 public:
     [[nodiscard]]
-    bool is_alphanumeric() const noexcept {
-        return ::core::text::isalnum(static_cast<unsigned char>(this->value));
+    bool is_alphanumeric() const noexcept requires HasGet<Ch, Derived> {
+        return ::core::text::isalnum(
+            static_cast<unsigned char>(
+                static_cast<const Derived&>(*this).get()
+            )
+        );
     }
 
     [[nodiscard]]
-    bool is_alphabetic() const noexcept {
-        return ::core::text::isalpha(static_cast<unsigned char>(this->value));
+    bool is_alphabetic() const noexcept requires HasGet<Ch, Derived> {
+        return ::core::text::isalpha(
+            static_cast<unsigned char>(
+                static_cast<const Derived&>(*this).get()
+            )
+        );
     }
 
     [[nodiscard]]
-    bool is_lower_case() const noexcept {
-        return ::core::text::islower(static_cast<unsigned char>(this->value));
+    bool is_lower_case() const noexcept requires HasGet<Ch, Derived> {
+        return ::core::text::islower(
+            static_cast<unsigned char>(
+                static_cast<const Derived&>(*this).get()
+            )
+        );
     }
 
     [[nodiscard]]
-    bool is_upper_case() const noexcept {
-        return ::core::text::isupper(static_cast<unsigned char>(this->value));
+    bool is_upper_case() const noexcept requires HasGet<Ch, Derived> {
+        return ::core::text::isupper(
+            static_cast<unsigned char>(
+                static_cast<const Derived&>(*this).get()
+            )
+        );
     }
 
     [[nodiscard]]
-    bool is_digit() const noexcept {
-        return ::core::text::isdigit(static_cast<unsigned char>(this->value));
+    bool is_digit() const noexcept requires HasGet<Ch, Derived> {
+        return ::core::text::isdigit(
+            static_cast<unsigned char>(
+                static_cast<const Derived&>(*this).get()
+            )
+        );
     }
 
     [[nodiscard]]
-    bool is_whitespace() const noexcept {
-        return ::core::text::isspace(static_cast<unsigned char>(this->value));
+    bool is_whitespace() const noexcept requires HasGet<Ch, Derived> {
+        return ::core::text::isspace(
+            static_cast<unsigned char>(
+                static_cast<const Derived&>(*this).get()
+            )
+        );
     }
 
     [[nodiscard]]
-    bool is_control() const noexcept {
-        return ::core::text::iscntrl(static_cast<unsigned char>(this->value));
+    bool is_control() const noexcept requires HasGet<Ch, Derived> {
+        return ::core::text::iscntrl(
+            static_cast<unsigned char>(
+                static_cast<const Derived&>(*this).get()
+            )
+        );
     }
 
     [[nodiscard]]
-    bool is_printable() const noexcept {
-        return ::core::text::isprint(static_cast<unsigned char>(this->value));
+    bool is_printable() const noexcept requires HasGet<Ch, Derived> {
+        return ::core::text::isprint(static_cast<unsigned char>(
+            static_cast<const Derived&>(*this).get()
+        ));
     }
 };
 
-template <FloatingPoint F>
-class [[nodiscard]] FloatingPointBase: public Number<F> {
+/**
+ * @class FloatingPointBase
+ * @brief A base class for floating-point types, providing common methods for handling special floating-point values like NaN and infinity.
+ * 
+ * @tparam F The floating-point type (e.g., float, double, long double).
+ * @tparam Derived The derived class that inherits from FloatingPointBase.
+ */
+template <FloatingPoint F, typename Derived>
+class [[nodiscard]] FloatingPointBase {
 public:
     static constexpr F POSITIVE_INFINITY = NumericLimits<F>::infinity(); ///< A constant representing positive infinity for the floating-point type.
     static constexpr F NEGATIVE_INFINITY = -NumericLimits<F>::infinity(); ///< A constant representing negative infinity for the floating-point type.
     static constexpr F NaN = NumericLimits<F>::quiet_NaN(); ///< A constant representing Not-a-Number (NaN) for the floating-point type.
 
     [[nodiscard]]
-    bool is_nan() const noexcept {
-        return ::core::math::isnan(this->value);
+    bool is_nan() const noexcept requires HasGet<F, Derived> {
+        return ::core::math::isnan(static_cast<const Derived&>(*this).get());
     }
 
     [[nodiscard]]
-    bool is_infinite() const noexcept {
-        return ::core::math::isinf(this->value);
+    bool is_infinite() const noexcept requires HasGet<F, Derived> {
+        return ::core::math::isinf(static_cast<const Derived&>(*this).get());
     }
 
     [[nodiscard]]
-    bool is_finite() const noexcept {
-        return ::core::math::isfinite(this->value);
+    bool is_finite() const noexcept requires HasGet<F, Derived> {
+        return ::core::math::isfinite(static_cast<const Derived&>(*this).get());
     }
 };
 
-class [[nodiscard]] Boolean final {
+export class [[nodiscard]] Boolean final {
 private:
     bool value = false;
 public:
@@ -451,7 +498,7 @@ public:
     #endif
 };
 
-class [[nodiscard]] SignedByte final: public Number<i8> {
+export class [[nodiscard]] SignedByte final: public Number<i8, SignedByte> {
 public:
     [[nodiscard]]
     constexpr operator i8() const noexcept {
@@ -459,7 +506,7 @@ public:
     }
 };
 
-class [[nodiscard]] Byte final: public Number<u8> {
+export class [[nodiscard]] Byte final: public Number<u8, Byte> {
 public:
     [[nodiscard]]
     constexpr operator u8() const noexcept {
@@ -467,7 +514,7 @@ public:
     }
 };
 
-class [[nodiscard]] Short final: public Number<i16> {
+export class [[nodiscard]] Short final: public Number<i16, Short> {
 public:
     [[nodiscard]]
     constexpr operator i16() const noexcept {
@@ -475,7 +522,7 @@ public:
     }
 };
 
-class [[nodiscard]] Integer final: public Number<i32> {
+export class [[nodiscard]] Integer final: public Number<i32, Integer> {
 public:
     [[nodiscard]]
     constexpr operator i32() const noexcept {
@@ -483,7 +530,7 @@ public:
     }
 };
 
-class [[nodiscard]] Long final: public Number<i64> {
+export class [[nodiscard]] Long final: public Number<i64, Long> {
 public:
     [[nodiscard]]
     constexpr operator i64() const noexcept {
@@ -491,7 +538,7 @@ public:
     }
 };
 
-class [[nodiscard]] UnsignedShort final: public Number<u16> {
+export class [[nodiscard]] UnsignedShort final: public Number<u16, UnsignedShort> {
 public:
     [[nodiscard]]
     constexpr operator u16() const noexcept {
@@ -499,7 +546,7 @@ public:
     }
 };
 
-class [[nodiscard]] UnsignedInteger final: public Number<u32> {
+export class [[nodiscard]] UnsignedInteger final: public Number<u32, UnsignedInteger> {
 public:
     [[nodiscard]]
     constexpr operator u32() const noexcept {
@@ -507,7 +554,7 @@ public:
     }
 };
 
-class [[nodiscard]] UnsignedLong final: public Number<u64> {
+export class [[nodiscard]] UnsignedLong final: public Number<u64, UnsignedLong> {
 public:
     [[nodiscard]]
     constexpr operator u64() const noexcept {
@@ -515,55 +562,79 @@ public:
     }
 };
 
-class [[nodiscard]] Character final: public CharacterBase<char> {
+export class [[nodiscard]] Character final: public Number<char, Character>, private CharacterBase<char, Character> {
 public:
+    using UnicodeBlock = _unicode_detail::UnicodeBlock;
+    using UnicodeNames = _unicode_detail::UnicodeNames;
+    using UnicodeScript = _unicode_detail::UnicodeScript;
+
     [[nodiscard]]
     constexpr operator char() const noexcept {
         return value;
     }
 };
 
-class [[nodiscard]] UnsignedCharacter final: public CharacterBase<unsigned char> {
+export class [[nodiscard]] UnsignedCharacter final: public Number<unsigned char, UnsignedCharacter>, private CharacterBase<unsigned char, UnsignedCharacter> {
 public:
+    using UnicodeBlock = _unicode_detail::UnicodeBlock;
+    using UnicodeNames = _unicode_detail::UnicodeNames;
+    using UnicodeScript = _unicode_detail::UnicodeScript;
+
     [[nodiscard]]
     constexpr operator unsigned char() const noexcept {
         return value;
     }
 };
 
-class [[nodiscard]] Character8 final: public CharacterBase<char8> {
+export class [[nodiscard]] Character8 final: public Number<char8, Character8>, private CharacterBase<char8, Character8> {
 public:
+    using UnicodeBlock = _unicode_detail::UnicodeBlock;
+    using UnicodeNames = _unicode_detail::UnicodeNames;
+    using UnicodeScript = _unicode_detail::UnicodeScript;
+
     [[nodiscard]]
     constexpr operator char8() const noexcept {
         return value;
     }
 };
 
-class [[nodiscard]] Character16 final: public CharacterBase<char16> {
+export class [[nodiscard]] Character16 final: public Number<char16, Character16>, private CharacterBase<char16, Character16> {
 public:
+    using UnicodeBlock = _unicode_detail::UnicodeBlock;
+    using UnicodeNames = _unicode_detail::UnicodeNames;
+    using UnicodeScript = _unicode_detail::UnicodeScript;
+
     [[nodiscard]]
     constexpr operator char16() const noexcept {
         return value;
     }
 };
 
-class [[nodiscard]] Character32 final: public CharacterBase<char32> {
+export class [[nodiscard]] Character32 final: public Number<char32, Character32>, private CharacterBase<char32, Character32> {
 public:
+    using UnicodeBlock = _unicode_detail::UnicodeBlock;
+    using UnicodeNames = _unicode_detail::UnicodeNames;
+    using UnicodeScript = _unicode_detail::UnicodeScript;
+
     [[nodiscard]]
     constexpr operator char32() const noexcept {
         return value;
     }
 };
 
-class [[nodiscard]] WideCharacter final: public CharacterBase<wchar> {
+export class [[nodiscard]] WideCharacter final: public Number<wchar, WideCharacter>, private CharacterBase<wchar, WideCharacter> {
 public:
+    using UnicodeBlock = _unicode_detail::UnicodeBlock;
+    using UnicodeNames = _unicode_detail::UnicodeNames;
+    using UnicodeScript = _unicode_detail::UnicodeScript;
+
     [[nodiscard]]
     constexpr operator wchar() const noexcept {
         return value;
     }
 };
 
-class [[nodiscard]] SignedSize final: public Number<isize> {
+export class [[nodiscard]] SignedSize final: public Number<isize, SignedSize> {
 public:
     [[nodiscard]]
     constexpr operator isize() const noexcept {
@@ -571,7 +642,7 @@ public:
     }
 };
 
-class [[nodiscard]] UnsignedSize final: public Number<usize> {
+export class [[nodiscard]] UnsignedSize final: public Number<usize, UnsignedSize> {
 public:
     [[nodiscard]]
     constexpr operator usize() const noexcept {
@@ -579,7 +650,27 @@ public:
     }
 };
 
-class [[nodiscard]] Float final: public FloatingPointBase<f32> {
+#ifdef __STDCPP_FLOAT16_T__
+export class [[nodiscard]] Half final: public Number<f16, Half>, private FloatingPointBase<f16, Half> {
+public:
+    [[nodiscard]]
+    constexpr operator f16() const noexcept {
+        return value;
+    }
+};
+#endif
+
+#ifdef __STDCPP_BFLOAT16_T__
+export class [[nodiscard]] BrainHalf final: public Number<bf16, BrainHalf>, private FloatingPointBase<bf16, BrainHalf> {
+public:
+    [[nodiscard]]
+    constexpr operator bf16() const noexcept {
+        return value;
+    }
+};
+#endif
+
+export class [[nodiscard]] Float final: public Number<f32, Float>, private FloatingPointBase<f32, Float> {
 public:
     [[nodiscard]]
     constexpr operator f32() const noexcept {
@@ -587,7 +678,7 @@ public:
     }
 };
 
-class [[nodiscard]] Double final: public FloatingPointBase<f64> {
+export class [[nodiscard]] Double final: public Number<f64, Double>, private FloatingPointBase<f64, Double> {
 public:
     [[nodiscard]]
     constexpr operator f64() const noexcept {
@@ -595,7 +686,7 @@ public:
     }
 };
 
-class [[nodiscard]] LongDouble final: public FloatingPointBase<f128> {
+export class [[nodiscard]] Quad final: public Number<f128, Quad>, private FloatingPointBase<f128, Quad> {
 public:
     [[nodiscard]]
     constexpr operator f128() const noexcept {
@@ -603,18 +694,20 @@ public:
     }
 };
 
-using Integer8 = SignedByte;
-using Integer16 = Short;
-using Integer32 = Integer;
-using Integer64 = Long;
-using UnsignedInteger8 = Byte;
-using UnsignedInteger16 = UnsignedShort;
-using UnsignedInteger32 = UnsignedInteger;
-using UnsignedInteger64 = UnsignedLong;
-using Float32 = Float;
-using Float64 = Double;
-using Float128 = LongDouble;
-// using Float16 = std::float16;
-// using Float32 = std::float32;
-// using Float64 = std::float64;
-// using Float128 = std::float128;
+export using Integer8 = SignedByte;
+export using Integer16 = Short;
+export using Integer32 = Integer;
+export using Integer64 = Long;
+export using UnsignedInteger8 = Byte;
+export using UnsignedInteger16 = UnsignedShort;
+export using UnsignedInteger32 = UnsignedInteger;
+export using UnsignedInteger64 = UnsignedLong;
+#ifdef __STDCPP_FLOAT16_T__
+export using Float16 = Half;
+#endif
+#ifdef __STDCPP_BFLOAT16_T__
+export using BrainFloat16 = BrainHalf;
+#endif
+export using Float32 = Float;
+export using Float64 = Double;
+export using Float128 = Quad;

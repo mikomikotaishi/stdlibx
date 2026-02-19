@@ -163,6 +163,7 @@ export namespace core {
         static constexpr auto _8 = std::placeholders::_8;
         static constexpr auto _9 = std::placeholders::_9;
         static constexpr auto _10 = std::placeholders::_10;
+        #if defined(_MSVC_STL_VERSION) || defined(__GLIBCXX__)
         static constexpr auto _11 = std::placeholders::_11;
         static constexpr auto _12 = std::placeholders::_12;
         static constexpr auto _13 = std::placeholders::_13;
@@ -173,6 +174,7 @@ export namespace core {
         static constexpr auto _18 = std::placeholders::_18;
         static constexpr auto _19 = std::placeholders::_19;
         static constexpr auto _20 = std::placeholders::_20;
+        #if defined(__GLIBCXX__)
         static constexpr auto _21 = std::placeholders::_21;
         static constexpr auto _22 = std::placeholders::_22;
         static constexpr auto _23 = std::placeholders::_23;
@@ -182,6 +184,8 @@ export namespace core {
         static constexpr auto _27 = std::placeholders::_27;
         static constexpr auto _28 = std::placeholders::_28;
         static constexpr auto _29 = std::placeholders::_29;
+        #endif
+        #endif
     };
 
     /**

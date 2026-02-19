@@ -2,6 +2,7 @@
 
 using alloc::String;
 
+using core::ConvertibleTo;
 using core::Errc;
 using core::FloatingPoint;
 using core::Integral;
@@ -15,6 +16,6 @@ using core::nullopt;
  * @namespace stdx::core
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace stdx::core {
+namespace stdx::core {
     #include "Numbers.inl"
 }
