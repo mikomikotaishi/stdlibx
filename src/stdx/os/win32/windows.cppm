@@ -9,6 +9,8 @@
 
 module;
 
+#define NOMINMAX
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -78,6 +80,11 @@ export namespace stdx::os::win32 {
     using ::SymFromAddrW;
     using ::SymFunctionTableAccess64;
     using ::SymGetModuleBase64;
+    
+    // for the moment
+    using ::GetConsoleMode;
+    using ::SetConsoleMode;
+    using ::GetStdHandle;
     
     using PSymEnumerateSymbolsCallback = PSYM_ENUMERATESYMBOLS_CALLBACK;
     using PSymEnumerateSymbolsCallbackW = PSYM_ENUMERATESYMBOLS_CALLBACKW;

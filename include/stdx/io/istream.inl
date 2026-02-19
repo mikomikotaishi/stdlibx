@@ -12,8 +12,8 @@ export namespace stdx::io {
     using WideInputStream = std::wistream;
 
     template <typename CharT>
-    using BasicIOStream = std::basic_iostream<CharT>;
+    using BasicInputOutputStream = std::basic_iostream<CharT>;
     
-    using IOStream = std::iostream;
-    using WideIOStream = std::wiostream;
+    using InputOutputStream = std::iostream;
+    using WideInputOutputStream = std::wiostream;
 }

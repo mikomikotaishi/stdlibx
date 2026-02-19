@@ -71,19 +71,19 @@ export namespace stdx::ranges {
     using ::core::ranges::Dangling;
     using ::core::ranges::BorrowedIteratorType;
     using ::core::ranges::BorrowedSubrangeType;
-    using alloc::ranges::ElementsOf;
+    using ::alloc::ranges::ElementsOf;
     using ::core::ranges::EmptyView;
     using ::core::ranges::SingleView;
     using ::core::ranges::IotaView;
     using ::core::ranges::RepeatView;
-    using alloc::ranges::BasicInputStreamView;
+    using ::alloc::ranges::BasicInputStreamView;
 
     namespace types {
         using ::core::ranges::types::Empty;
         using ::core::ranges::types::Single;
         using ::core::ranges::types::Iota;
         using ::core::ranges::types::Repeat;
-        using alloc::ranges::types::InputStream;
+        using ::alloc::ranges::types::InputStream;
         using ::core::ranges::types::All;
         using ::core::ranges::types::AsRvalue;
         using ::core::ranges::types::Filter;
@@ -153,7 +153,7 @@ export namespace stdx::ranges {
         using ::core::ranges::views::Single;
         using ::core::ranges::views::Iota;
         using ::core::ranges::views::Repeat;
-        using alloc::ranges::views::InputStream;
+        using ::alloc::ranges::views::InputStream;
         using ::core::ranges::views::AllTag;
         using ::core::ranges::views::All;
         using ::core::ranges::views::AsRvalue;

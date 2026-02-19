@@ -5,10 +5,7 @@
  * @brief Namespace for operations on polymorphic memory resources.
  */
 export namespace alloc::mem::pmr {
-    template <typename T>
-    using PolymorphicAllocator = std::pmr::polymorphic_allocator<T>;
-
-    using IMemoryResource = std::pmr::memory_resource;
+    using MemoryResource = std::pmr::memory_resource;
     using PoolOptions = std::pmr::pool_options;
     using SynchronizedPoolResource = std::pmr::synchronized_pool_resource;
     using UnsynchronizedPoolResource = std::pmr::unsynchronized_pool_resource;

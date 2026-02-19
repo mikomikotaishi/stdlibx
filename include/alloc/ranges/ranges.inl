@@ -5,8 +5,8 @@ using core::Movable;
 using core::ranges::Range;
 #endif
 
+using alloc::Allocator;
 using alloc::CharTraits;
-using alloc::mem::Allocator;
 
 /**
  * @namespace core::ranges

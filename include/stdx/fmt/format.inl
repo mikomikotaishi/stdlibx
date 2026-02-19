@@ -8,23 +8,23 @@ export namespace stdx::fmt {
     #if __has_include(<format>)
     using std::formatter;
 
-    template <typename T, typename CharT>
-    concept Formattable = std::formattable<T, CharT>;
+    template <typename T, typename Char>
+    concept Formattable = std::formattable<T, Char>;
 
     using FormatException = std::format_error;
 
-    template <typename T, typename CharT = char>
-    struct Formatter: std::formatter<T, CharT> {};
+    template <typename T, typename Char = char>
+    struct Formatter: std::formatter<T, Char> {};
 
-    template <typename CharT>
-    using BasicFormatParseContext = std::basic_format_parse_context<CharT>;
+    template <typename Char>
+    using BasicFormatParseContext = std::basic_format_parse_context<Char>;
 
     using FormatParseContext = std::format_parse_context;
 
     using WideFormatParseContext = std::wformat_parse_context;
 
-    template <typename Out, typename CharT>
-    using BasicFormatContext = std::basic_format_context<Out, CharT>;
+    template <typename Out, typename Char>
+    using BasicFormatContext = std::basic_format_context<Out, Char>;
 
     using FormatContext = std::format_context;
 
@@ -38,10 +38,6 @@ export namespace stdx::fmt {
 
     using FormatArgs = std::format_args;
 
-    #ifdef NDEBUG
-    using WFormatArgs = std::wformat_args;
-    #endif
-
     using WideFormatArgs = std::wformat_args;
 
     template <typename CharT, typename... Args>
@@ -49,11 +45,6 @@ export namespace stdx::fmt {
 
     template <typename... Args>
     using FormatString = std::format_string<Args...>;
-
-    #ifdef NDEBUG
-    template <typename... Args>
-    using WFormatString = std::wformat_string<Args...>;
-    #endif
 
     template <typename... Args>
     using WideFormatString = std::wformat_string<Args...>;

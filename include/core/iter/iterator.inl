@@ -130,7 +130,7 @@ export namespace core::iter {
     using ContiguousIteratorTag = std::contiguous_iterator_tag;
 
     template <typename Category, typename T, typename Distance = ptrdiff, typename Pointer = T*, typename Reference = T&>
-    using IIterator = std::iterator<Category, T, Distance, Pointer, Reference>;
+    using IteratorBase = std::iterator<Category, T, Distance, Pointer, Reference>;
 
     template <typename Iterable>
         requires

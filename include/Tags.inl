@@ -26,9 +26,9 @@ public:
     using SortedEquivalent = ::alloc::collections::SortedEquivalentTag;
     using SortedUnique = ::alloc::collections::SortedUniqueTag;
     #endif
-    using AllocatorArgument = ::alloc::mem::AllocatorArgumentTag;
-    using DestroyingDelete = ::alloc::mem::DestroyingDeleteTag;
-    using NoThrow = ::alloc::mem::NoThrowTag;
+    using AllocatorArgument = ::alloc::AllocatorArgumentTag;
+    using DestroyingDelete = ::alloc::DestroyingDeleteTag;
+    using NoThrow = ::alloc::NoThrowTag;
     #ifndef STDLIBX_NO_STD_FEATURES
     using AdoptLock = ::stdx::sync::AdoptLockTag;
     using DeferLock = ::stdx::sync::DeferLockTag;
@@ -36,7 +36,7 @@ public:
     #if __has_include(<stop_token>)
     using NoStopState = ::stdx::thread::NoStopStateTag;
     #endif
-    using Last = ::stdx::time::chrono::LastSpecifier;
+    using Last = ::stdx::time::LastSpecifier;
     #endif
     #endif
 
@@ -55,9 +55,9 @@ public:
     static constexpr SortedEquivalent SORTED_EQUIVALENT = ::alloc::collections::SortedEquivalent;
     static constexpr SortedUnique SORTED_UNIQUE = ::alloc::collections::SortedUnique;
     #endif
-    static constexpr AllocatorArgument ALLOCATOR_ARGUMENT = ::alloc::mem::AllocatorArgument;
-    static constexpr DestroyingDelete DESTROYING_DELETE = ::alloc::mem::DestroyingDelete;
-    static constexpr NoThrow NO_THROW = ::alloc::mem::NoThrow;
+    static constexpr AllocatorArgument ALLOCATOR_ARGUMENT = ::alloc::AllocatorArgument;
+    static constexpr DestroyingDelete DESTROYING_DELETE = ::alloc::DestroyingDelete;
+    static constexpr NoThrow NO_THROW = ::alloc::NoThrow;
     #ifndef STDLIBX_NO_STD_FEATURES
     static constexpr AdoptLock ADOPT_LOCK = ::stdx::sync::AdoptLock;
     static constexpr DeferLock DEFER_LOCK = ::stdx::sync::DeferLock;
@@ -65,7 +65,7 @@ public:
     #if __has_include(<stop_token>)
     static constexpr NoStopState NO_STOP_STATE = ::stdx::thread::NoStopState;
     #endif
-    static constexpr Last LAST = ::stdx::time::chrono::Last;
+    static constexpr Last LAST = ::stdx::time::Last;
     #endif
     #endif
 };

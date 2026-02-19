@@ -83,6 +83,9 @@ import std;
 #include "core/text/cctype.inl"
 #include "core/text/charconv.inl"
 #include "core/text/cstdlib.inl"
+#include "core/text/cuchar.inl"
+#include "core/text/cwchar.inl"
+#include "core/text/cwctype.inl"
 #include "core/text/string/cstring.inl"
 #include "core/text/string/string_view.inl"
 

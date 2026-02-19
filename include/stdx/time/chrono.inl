@@ -99,6 +99,22 @@ export namespace stdx::time {
     using AmbiguousLocalTimeException = ::std::chrono::ambiguous_local_time;
     using NonexistentLocalTimeException = ::std::chrono::nonexistent_local_time;
 
+    using LastSpecifier = ::std::chrono::last_spec;
+    inline constexpr LastSpecifier Last = ::std::chrono::last;
+    using WeekdayIndexed = ::std::chrono::weekday_indexed;
+    using WeekdayLast = ::std::chrono::weekday_last;
+    using MonthDayLast = ::std::chrono::month_day_last;
+    using MonthWeekday = ::std::chrono::month_weekday;
+    using MonthWeekdayLast = ::std::chrono::month_weekday_last;
+    using YearMonthDayLast = ::std::chrono::year_month_day_last;
+    using YearMonthWeekday = ::std::chrono::year_month_weekday;
+    using YearMonthWeekdayLast = ::std::chrono::year_month_weekday_last;
+    
+    using Choose = ::std::chrono::choose;
+
+    template <typename Duration>
+    using TimeOfDay = ::std::chrono::hh_mm_ss<Duration>;
+
     using ::std::chrono::duration_cast;
     using ::std::chrono::time_point_cast;
     using ::std::chrono::floor;
@@ -112,6 +128,14 @@ export namespace stdx::time {
 
     using ::std::chrono::get_leap_second_info;
 
+    using ::std::chrono::is_am;
+    using ::std::chrono::is_pm;
+    using ::std::chrono::make12;
+    using ::std::chrono::make24;
+
+    using ::std::chrono::from_stream;
+    using ::std::chrono::parse;
+
     using ::std::hash;
     using ::std::formatter;
 
@@ -120,35 +144,9 @@ export namespace stdx::time {
      * @brief Wrapper namespace for standard library chronological operations
      */
     namespace chrono {
-        using LastSpecifier = ::std::chrono::last_spec;
-        inline constexpr LastSpecifier Last = ::std::chrono::last;
-        using WeekdayIndexed = ::std::chrono::weekday_indexed;
-        using WeekdayLast = ::std::chrono::weekday_last;
-        using MonthDayLast = ::std::chrono::month_day_last;
-        using MonthWeekday = ::std::chrono::month_weekday;
-        using MonthWeekdayLast = ::std::chrono::month_weekday_last;
-        using YearMonthDayLast = ::std::chrono::year_month_day_last;
-        using YearMonthWeekday = ::std::chrono::year_month_weekday;
-        using YearMonthWeekdayLast = ::std::chrono::year_month_weekday_last;
-        
-        using Choose = ::std::chrono::choose;
-    }
+        class Chronology {
 
-    /**
-     * @namespace fmt
-     * @brief Wrapper namespace for standard library time formatting operations
-     */
-    namespace fmt {
-        using ::std::chrono::is_am;
-        using ::std::chrono::is_pm;
-        using ::std::chrono::make12;
-        using ::std::chrono::make24;
-
-        template <typename Duration>
-        using TimeOfDay = ::std::chrono::hh_mm_ss<Duration>;
-
-        using ::std::chrono::from_stream;
-        using ::std::chrono::parse;
+        };
     }
 
     /**

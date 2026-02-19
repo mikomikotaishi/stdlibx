@@ -19,14 +19,15 @@ export namespace stdx::core {
     using ::core::u16;
     using ::core::u32;
     using ::core::u64;
-    // using ::core::f16;
-    // using ::core::f32;
-    // using ::core::f64;
-    // using ::core::f128;
-    // using ::core::bf16;
+    #ifdef __STDCPP_FLOAT16_T__
+    using ::core::f16;
+    #endif
     using ::core::f32;
     using ::core::f64;
     using ::core::f128;
+    #ifdef __STDCPP_BFLOAT16_T__
+    using ::core::bf16;
+    #endif
     using ::core::usize;
     using ::core::isize;
     using ::core::intmax;

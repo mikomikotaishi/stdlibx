@@ -4,7 +4,7 @@ using core::Less;
 using core::Pair;
 using core::meta::IsSameValue;
 
-using alloc::mem::Allocator;
+using alloc::Allocator;
 
 /**
  * @namespace alloc::collections

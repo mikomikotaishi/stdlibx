@@ -3,7 +3,7 @@
 using core::meta::IsSameValue;
 using core::meta::RemoveConstVolatile;
 
-using alloc::mem::Allocator;
+using alloc::Allocator;
 
 /**
  * @namespace alloc::collections

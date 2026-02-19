@@ -1,6 +1,6 @@
 #pragma once
 
-using alloc::mem::Allocator;
+using alloc::Allocator;
 
 /**
  * @namespace alloc::text::string

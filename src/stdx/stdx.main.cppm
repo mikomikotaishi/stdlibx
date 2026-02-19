@@ -40,6 +40,8 @@ import std;
 
 export import :constants;
 
+import :os;
+
 import core;
 import alloc;
 
@@ -65,6 +67,17 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/core/system_error.inl"
 #include "stdx/core/tuple.inl"
 #include "stdx/core/variant.inl"
+
+#include "stdx/util/algorithm.inl"
+#include "stdx/util/cstdlib.inl"
+#include "stdx/util/numeric.inl"
+#include "stdx/util/utility.inl"
+
+#include "stdx/alloc/cstdlib.inl"
+#include "stdx/alloc/memory.inl"
+#include "stdx/alloc/memory_resource.inl"
+#include "stdx/alloc/new.inl"
+#include "stdx/alloc/scoped_allocator.inl"
 
 #include "stdx/collections/bitset.inl"
 #include "stdx/collections/deque.inl"
@@ -122,11 +135,11 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/math/random.inl"
 #include "stdx/math/ratio.inl"
 
-#include "stdx/mem/cstdlib.inl"
+#include "stdx/mem/cstring.inl"
+#include "stdx/mem/cwchar.inl"
 #include "stdx/mem/memory.inl"
 #include "stdx/mem/memory_resource.inl"
 #include "stdx/mem/new.inl"
-#include "stdx/mem/scoped_allocator.inl"
 
 #include "stdx/io/cstdio.inl"
 
@@ -167,6 +180,9 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/text/cctype.inl"
 #include "stdx/text/charconv.inl"
 #include "stdx/text/cstdlib.inl"
+#include "stdx/text/cuchar.inl"
+#include "stdx/text/cwchar.inl"
+#include "stdx/text/cwctype.inl"
 #include "stdx/text/regex.inl"
 #include "stdx/text/string/cstring.inl"
 #include "stdx/text/string/string.inl"
@@ -177,10 +193,5 @@ STDLIBX_PREPARE_EXPORT_CORE();
 
 #include "stdx/time/chrono.inl"
 #include "stdx/time/ctime.inl"
-
-#include "stdx/util/algorithm.inl"
-#include "stdx/util/cstdlib.inl"
-#include "stdx/util/numeric.inl"
-#include "stdx/util/utility.inl"
 
 #include "stdx/core/tags.inl"

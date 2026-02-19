@@ -27,7 +27,7 @@ Cons:
 - Often relies on cutting or bleeding-edge features, which may not be suitable for stability-priority projects.
 - Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 30 seconds to build on my (modest) hardware on both Clang and GCC.
 
-Requires a minimum of C++23. 
+Requires a minimum of C++23. This library is tested with libstdc++ (GCC) as the default standard library, and has not yet been tested with libc++ (Clang) or MSVC STL.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -108,3 +108,6 @@ XMake:
 ```sh
 xmake
 ```
+
+## Contributing
+Pull requests are always welcome - if you like this library and wish to contribute or solve bugs, feel free to make improvements.

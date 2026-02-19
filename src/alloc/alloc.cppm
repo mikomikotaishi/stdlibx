@@ -20,11 +20,17 @@ import core;
 
 using namespace core;
 
-#include "alloc/mem/cstdlib.inl"
+#include "alloc/cstdlib.inl"
+#include "alloc/memory.inl"
+#include "alloc/memory_resource.inl"
+#include "alloc/new.inl"
+#include "alloc/scoped_allocator.inl"
+
+#include "alloc/mem/cstring.inl"
+#include "alloc/mem/cwchar.inl"
 #include "alloc/mem/memory.inl"
 #include "alloc/mem/memory_resource.inl"
 #include "alloc/mem/new.inl"
-#include "alloc/mem/scoped_allocator.inl"
 
 #include "alloc/text/regex.inl"
 #include "alloc/text/string/string.inl"

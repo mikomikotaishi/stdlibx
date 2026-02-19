@@ -4,7 +4,7 @@ using core::iter::IteratorTraits;
 using core::meta::IsSameValue;
 using core::meta::UnderlyingTypeType;
 
-using alloc::mem::Allocator;
+using alloc::Allocator;
 
 /**
  * @namespace alloc::text

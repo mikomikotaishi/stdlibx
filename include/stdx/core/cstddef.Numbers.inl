@@ -1,20 +1,21 @@
 #pragma once
 
-using alloc::String;
-
-using core::Errc;
-using core::FloatingPoint;
-using core::Integral;
-using core::NumericLimits;
-using core::Optional;
-using core::StringView;
-using core::StrongOrdering;
-using core::nullopt;
+using stdx::core::Array;
+using stdx::core::ConvertibleTo;
+using stdx::core::Errc;
+using stdx::core::FloatingPoint;
+using stdx::core::Integral;
+using stdx::core::NumericLimits;
+using stdx::core::Optional;
+using stdx::core::String;
+using stdx::core::StringView;
+using stdx::core::StrongOrdering;
+using stdx::core::nullopt;
 
 /**
  * @namespace stdx::core
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace stdx::core {
+namespace stdx::core {
     #include "Numbers.inl"
 }

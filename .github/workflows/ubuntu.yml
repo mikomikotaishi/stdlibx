@@ -16,7 +16,7 @@ jobs:
       matrix:
         compiler:
           - { name: GCC, cc: gcc-14, cxx: g++-14 }
-          - { name: Clang, cc: clang-19, cxx: clang++-19 }
+          - { name: Clang, cc: clang-21, cxx: clang++-21 }
         build_type: [Debug, Release]
     
     steps:
@@ -26,7 +26,14 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build wget software-properties-common cmake unixodbc unixodbc-dev
+        sudo apt-get install -y ninja-build wget software-properties-common unixodbc unixodbc-dev libstdc++6
+
+        # Install CMake (4.2.3)
+        wget https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-linux-x86_64.tar.gz
+        tar -xzf cmake-4.2.3-linux-x86_64.tar.gz
+        sudo mv cmake-4.2.3-linux-x86_64 /opt/cmake-4.2.3
+        echo "/opt/cmake-4.2.3/bin" >> $GITHUB_PATH
+        export PATH=/opt/cmake-4.2.3/bin:$PATH
         
         # Install compilers
         if [[ "${{ matrix.compiler.cxx }}" == g++* ]]; then
@@ -36,9 +43,9 @@ jobs:
         elif [[ "${{ matrix.compiler.cxx }}" == clang++* ]]; then
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 19
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-19 100
+          sudo ./llvm.sh 21
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-21 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-21 100
         fi
         
         # Verify installations

@@ -5,17 +5,23 @@
 
 # Project configuration
 PROJECT_NAME := stdlibx
-BUILD_DIR := build
+BUILD_DIR ?= build
 CMAKE_GENERATOR := Ninja
 CMAKE_BUILD_TYPE := Release
 
 # Build options
 BUILD_TESTS ?= OFF
+STDLIB ?= default
 CMAKE_BUILD_FLAGS :=
 
 # Process build options
 ifneq ($(BUILD_TESTS),OFF)
 	CMAKE_BUILD_FLAGS += -DSTDLIBX_BUILD_TESTS=ON
+endif
+
+# Process standard library selection
+ifneq ($(STDLIB),default)
+	CMAKE_BUILD_FLAGS += -DSTDLIB=$(STDLIB)
 endif
 
 # Sanitiser configuration (can be overridden with make SANITIZERS="address undefined")
@@ -87,6 +93,8 @@ help:
 	@printf "$(BOLD)Build Options:$(RESET)\n"
 	@printf "  $(YELLOW)BUILD_TESTS$(RESET)   - Enable test building (OFF/ON)\n"
 	@printf "    Example: make build BUILD_TESTS=ON\n"
+	@printf "  $(YELLOW)STDLIB$(RESET)        - Choose C++ standard library (default/libstdc++/libc++)\n"
+	@printf "    Example: make build STDLIB=libc++\n"
 	@printf "\n"
 	@printf "$(BOLD)Sanitiser Options:$(RESET)\n"
 	@printf "  $(YELLOW)SANITIZERS$(RESET)    - Enable sanitisers (builds in Debug mode)\n"
@@ -105,6 +113,9 @@ help:
 configure:
 	@START_TIME=$$(date +%s); \
 	printf "$(BOLD)$(BLUE)Configuring CMake build system...$(RESET)\n"; \
+	if [ "$(STDLIB)" != "default" ]; then \
+		printf "$(BOLD)$(CYAN)Standard library:$(RESET) $(STDLIB)\n"; \
+	fi; \
 	if [ "$(ENABLE_SANITIZERS)" = "ON" ]; then \
 		printf "$(BOLD)$(MAGENTA)Sanitisers enabled:$(RESET) $(SANITIZERS)\n"; \
 		printf "$(YELLOW)Building in Debug mode for sanitiser support$(RESET)\n"; \
@@ -218,6 +229,7 @@ info:
 	@printf "$(BOLD)Build Dir:$(RESET)    $(BUILD_DIR)\n"
 	@printf "$(BOLD)Generator:$(RESET)    $(CMAKE_GENERATOR)\n"
 	@printf "$(BOLD)Build Type:$(RESET)   $(CMAKE_BUILD_TYPE)\n"
+	@printf "$(BOLD)Stdlib:$(RESET)       $(STDLIB)\n"
 	@printf "$(BOLD)Tests:$(RESET)        $(BUILD_TESTS)\n"
 	@printf "$(BOLD)Sanitisers:$(RESET)   $(if $(SANITIZERS),$(SANITIZERS),None)\n"
 	@printf "\n"

@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace alloc::mem
- * @brief Wrapper namespace for standard library memory operations.
+ * @namespace alloc
+ * @brief Wrapper namespace for standard library allocation operations.
  */
-export namespace alloc::mem {
+export namespace alloc {
     using std::malloc;
     using std::aligned_alloc;
     using std::calloc;

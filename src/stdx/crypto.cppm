@@ -9,5 +9,3 @@
 module;
 
 export module stdx:crypto;
-
-export import :crypto.Cipher;
