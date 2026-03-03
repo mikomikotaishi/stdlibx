@@ -8,14 +8,13 @@
 
 module;
 
+// Needed for feature testing macros
+#include <version>
+
 #include <csignal>
 
 #ifdef __clang__
 #include <type_traits>
-#endif
-
-#if __has_include(<experimental/contract>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
-#include <experimental/contract>
 #endif
 
 #include "Macros.hpp"
@@ -28,6 +27,7 @@ export module core:main;
 import std;
 
 #include "core/array.inl"
+#include "core/clocale.inl"
 #include "core/compare.inl"
 #include "core/concepts.inl"
 #include "core/contracts.inl"
@@ -40,6 +40,7 @@ import std;
 #include "core/pair.inl"
 #include "core/sequence.inl"
 #include "core/span.inl"
+#include "core/mdspan.inl"
 #include "core/system_error.inl"
 #include "core/tuple.inl"
 #include "core/variant.inl"
@@ -56,6 +57,7 @@ import std;
 #include "core/math/cmath.inl"
 #include "core/math/complex.inl"
 #include "core/math/cstddef.inl"
+#include "core/math/linalg.inl"
 #include "core/math/numbers.inl"
 #include "core/math/numeric.inl"
 #include "core/math/ratio.inl"
@@ -86,15 +88,18 @@ import std;
 #include "core/text/cuchar.inl"
 #include "core/text/cwchar.inl"
 #include "core/text/cwctype.inl"
+#include "core/text/text_encoding.inl"
 #include "core/text/string/cstring.inl"
 #include "core/text/string/string_view.inl"
 
 #include "core/util/algorithm.inl"
 #include "core/util/cstdlib.inl"
+#include "core/util/debugging.inl"
 #include "core/util/numeric.inl"
 #include "core/util/utility.inl"
 
 // appears at end
+#include "core/locale.inl"
 #include "core/string_view.inl"
 #include "core/cstddef.Numbers.inl"
 #include "core/expected.inl"

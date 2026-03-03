@@ -3,7 +3,6 @@
  * @brief Wrapper namespace for standard library numerical constants (for compatibility).
  */
 export namespace core::math {
-    #if __has_include(<numbers>)
     class Numbers final {
     public:
         Numbers() = delete;
@@ -38,5 +37,4 @@ export namespace core::math {
         inline constexpr double E_GAMMA = Numbers::E_GAMMA; ///< Euler-Mascheroni constant
         inline constexpr double PHI = Numbers::PHI; ///< Golden ratio (1+sqrt(5))/2
     }
-    #endif
 }

@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for standard library ranges operations.
  */
 export namespace stdx::ranges {
-    #if __has_include(<ranges>)
     namespace access {
         using ::core::ranges::access::Begin;
         using ::core::ranges::access::End;
@@ -196,7 +195,6 @@ export namespace stdx::ranges {
 
     using ::core::ranges::tuple_size;
     using ::core::ranges::tuple_element;
-    #endif
 }
 
 export namespace stdx {

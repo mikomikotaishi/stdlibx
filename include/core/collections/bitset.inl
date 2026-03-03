@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace core::collections {
-    template <std::size_t N>
+    template <usize N>
     using BitSet = std::bitset<N>;
 
     using std::operator&;

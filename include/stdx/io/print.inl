@@ -46,7 +46,7 @@ namespace _detail {
  * @brief Wrapper namespace for standard library input/output operations.
  */
 export namespace stdx::io {
-    #if __has_include(<print>)
+    #ifdef __cpp_lib_print
     using std::print;
     using std::println;
     using std::vprint_unicode;

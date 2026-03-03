@@ -1,9 +1,7 @@
 #pragma once
 
 using core::Movable;
-#if __has_include(<ranges>)
 using core::ranges::Range;
-#endif
 
 using alloc::Allocator;
 using alloc::CharTraits;
@@ -13,7 +11,6 @@ using alloc::CharTraits;
  * @brief Wrapper namespace for standard library ranges operations.
  */
 export namespace alloc::ranges {
-    #if __has_include(<ranges>)
     template <Range R, typename Alloc = Allocator<std::byte>>
     using ElementsOf = std::ranges::elements_of<R, Alloc>;
 
@@ -29,11 +26,8 @@ export namespace alloc::ranges {
         template <typename T>
         inline constexpr types::InputStream<T> InputStream = std::ranges::views::istream<T>;
     }
-    #endif
 }
 
 export namespace alloc {
-    #if __has_include(<ranges>)
     namespace views = alloc::ranges;
-    #endif
 }

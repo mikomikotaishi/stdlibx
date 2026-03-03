@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for standard library format operations.
  */
 export namespace stdx::fmt {
-    #if __has_include(<format>)
     using std::formatter;
 
     template <typename T, typename Char>
@@ -57,5 +56,4 @@ export namespace stdx::fmt {
     using std::vformat_to;
     using std::make_format_args;
     using std::make_wformat_args;
-    #endif
 }

@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for standard library mathematical operations.
  */
 export namespace stdx::math {
-    #if __has_include(<numbers>)
     using ::core::math::Numbers;
 
     inline namespace numbers {
@@ -23,5 +22,4 @@ export namespace stdx::math {
         inline constexpr double E_GAMMA = Numbers::E_GAMMA; ///< Euler-Mascheroni constant
         inline constexpr double PHI = Numbers::PHI; ///< Golden ratio (1+sqrt(5))/2
     }
-    #endif
 }

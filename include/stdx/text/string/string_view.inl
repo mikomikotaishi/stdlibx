@@ -38,11 +38,3 @@ export namespace stdx::text::string {
 export namespace stdx::inline literals::inline string_view_literals {
     using ::core::literals::string_view_literals::operator""sv;
 }
-
-#ifdef __GLIBCXX__
-export namespace __gnu_cxx {
-    using __gnu_cxx::__normal_iterator;
-    using __gnu_cxx::operator==;
-    using __gnu_cxx::operator<=>;
-}
-#endif

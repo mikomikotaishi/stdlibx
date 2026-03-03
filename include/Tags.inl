@@ -10,10 +10,10 @@ private:
 public:
     Tags() = delete;
 
+    #ifdef __cpp_lib_expected
     using Unexpect = ::core::UnexpectTag;
-    #if __has_include(<ranges>)
-    using FromRange = ::core::ranges::FromRangeTag;
     #endif
+    using FromRange = ::core::ranges::FromRangeTag;
     template <usize I>
     using InPlaceIndex = ::core::util::InPlaceIndexTag<I>;
     using InPlace = ::core::util::InPlaceTag;
@@ -21,8 +21,21 @@ public:
     using InPlaceType = ::core::util::InPlaceTypeTag<T>;
     using PiecewiseConstruct = ::core::util::PiecewiseConstructTag;
 
+    #ifdef __cpp_lib_linalg
+    using ColumnMajor = ::core::math::linalg::ColumnMajorTag;
+    using RowMajor = ::core::math::linalg::RowMajorTag;
+    using UpperTriangle = ::core::math::linalg::UpperTriangleTag;
+    using LowerTriangle = ::core::math::linalg::LowerTriangleTag;
+    using ImplicitUnitDiagonal = ::core::math::linalg::ImplicitUnitDiagonalTag;
+    using ExplicitDiagonal = ::core::math::linalg::ExplicitDiagonalTag;
+    #endif
+
+    #ifdef __cpp_lib_mdspan
+    using FullExtent = ::core::mdspan::FullExtentTag;
+    #endif
+
     #ifndef STDLIBX_NO_STD_NO_ALLOC_FEATURES
-    #if __has_include(<flat_map>)
+    #ifdef __cpp_lib_flat_map
     using SortedEquivalent = ::alloc::collections::SortedEquivalentTag;
     using SortedUnique = ::alloc::collections::SortedUniqueTag;
     #endif
@@ -33,25 +46,34 @@ public:
     using AdoptLock = ::stdx::sync::AdoptLockTag;
     using DeferLock = ::stdx::sync::DeferLockTag;
     using TryToLock = ::stdx::sync::TryToLockTag;
-    #if __has_include(<stop_token>)
     using NoStopState = ::stdx::thread::NoStopStateTag;
-    #endif
     using Last = ::stdx::time::LastSpecifier;
     #endif
     #endif
 
+    #ifdef __cpp_lib_expected
     static constexpr Unexpect UNEXPECT = ::core::Unexpect;
-    #if __has_include(<ranges>)
-    static constexpr FromRange FROM_RANGE = ::core::ranges::FromRange;
     #endif
+    static constexpr FromRange FROM_RANGE = ::core::ranges::FromRange;
     static constexpr InPlace IN_PLACE = ::core::util::InPlace;
     template <usize I>
     static constexpr InPlaceIndex<I> IN_PLACE_INDEX = ::core::util::InPlaceIndex<I>;
     template <typename T>
     static constexpr InPlaceType<T> IN_PLACE_TYPE = ::core::util::InPlaceType<T>;
     static constexpr PiecewiseConstruct PIECEWISE_CONSTRUCT = ::core::util::PiecewiseConstruct;
+    #ifdef __cpp_lib_linalg
+    static constexpr ColumnMajor COLUMN_MAJOR = ::core::math::linalg::ColumnMajor;
+    static constexpr RowMajor ROW_MAJOR = ::core::math::linalg::RowMajor;
+    static constexpr UpperTriangle UPPER_TRIANGLE = ::core::math::linalg::UpperTriangle;
+    static constexpr LowerTriangle LOWER_TRIANGLE = ::core::math::linalg::LowerTriangle;
+    static constexpr ImplicitUnitDiagonal IMPLICIT_UNIT_DIAGONAL = ::core::math::linalg::ImplicitUnitDiagonal;
+    static constexpr ExplicitDiagonal EXPLICIT_DIAGONAL = ::core::math::linalg::ExplicitDiagonal;
+    #endif
+    #ifdef __cpp_lib_mdspan
+    static constexpr FullExtent FULL_EXTENT = ::core::mdspan::FullExtent;
+    #endif
     #ifndef STDLIBX_NO_STD_NO_ALLOC_FEATURES
-    #if __has_include(<flat_map>)
+    #ifdef __cpp_lib_flat_map
     static constexpr SortedEquivalent SORTED_EQUIVALENT = ::alloc::collections::SortedEquivalent;
     static constexpr SortedUnique SORTED_UNIQUE = ::alloc::collections::SortedUnique;
     #endif
@@ -62,9 +84,7 @@ public:
     static constexpr AdoptLock ADOPT_LOCK = ::stdx::sync::AdoptLock;
     static constexpr DeferLock DEFER_LOCK = ::stdx::sync::DeferLock;
     static constexpr TryToLock TRY_TO_LOCK = ::stdx::sync::TryToLock;
-    #if __has_include(<stop_token>)
     static constexpr NoStopState NO_STOP_STATE = ::stdx::thread::NoStopState;
-    #endif
     static constexpr Last LAST = ::stdx::time::Last;
     #endif
     #endif

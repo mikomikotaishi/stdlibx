@@ -8,6 +8,7 @@
 
 module;
 
+#include <clocale>
 #include <cmath>
 #include <csignal>
 #include <cstdlib>
@@ -21,6 +22,13 @@ export module core:constants;
  * @brief Detail namespace - not to be exported for external use
  */
 namespace _detail {
+    constexpr auto LcAll = LC_ALL;
+    constexpr auto LcCollate = LC_COLLATE;
+    constexpr auto LcCType = LC_CTYPE;
+    constexpr auto LcMonetary = LC_MONETARY;
+    constexpr auto LcNumeric = LC_NUMERIC;
+    constexpr auto LcTime = LC_TIME;
+
     constexpr auto HugeVal = HUGE_VAL;
     constexpr auto HugeValF = HUGE_VALF;
     constexpr auto HugeValL = HUGE_VALL;
@@ -79,6 +87,13 @@ namespace _detail {
     inline const auto SigIgn = SIG_IGN;
     inline const auto SigErr = SIG_ERR;
 }
+
+#undef LC_ALL
+#undef LC_COLLATE
+#undef LC_CTYPE
+#undef LC_MONETARY
+#undef LC_NUMERIC
+#undef LC_TIME
 
 #undef HUGE_VAL
 #undef HUGE_VALF
@@ -143,10 +158,17 @@ namespace _detail {
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace core {
+    constexpr auto LC_ALL = _detail::LcAll;
+    constexpr auto LC_COLLATE = _detail::LcCollate;
+    constexpr auto LC_CTYPE = _detail::LcCType;
+    constexpr auto LC_MONETARY = _detail::LcMonetary;
+    constexpr auto LC_NUMERIC = _detail::LcNumeric;
+    constexpr auto LC_TIME = _detail::LcTime;
+
     constexpr auto EXIT_SUCCESS = _detail::ExitSuccess;
     constexpr auto EXIT_FAILURE = _detail::ExitFailure;
     const auto MB_CUR_MAX = _detail::MultibyteCurrentMax;
-    constexpr void* const NULL = (void*)0;
+    constexpr const void* const NULL = (void*)0;
     constexpr auto RAND_MAX = _detail::RandMax;
 
     class Placeholders final {

@@ -8,6 +8,9 @@
 
 module;
 
+// Needed for feature testing macros
+#include <version>
+
 #if __has_include(<experimental/buffer>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
 #include <experimental/buffer>
 #endif
@@ -51,6 +54,7 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/core/string_view.inl"
 #include "stdx/core/any.inl"
 #include "stdx/core/array.inl"
+#include "stdx/core/clocale.inl"
 #include "stdx/core/compare.inl"
 #include "stdx/core/concepts.inl"
 #include "stdx/core/contracts.inl"
@@ -60,6 +64,8 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/core/functional.inl"
 #include "stdx/core/initializer_list.inl"
 #include "stdx/core/limits.inl"
+#include "stdx/core/locale.inl"
+#include "stdx/core/mdspan.inl"
 #include "stdx/core/optional.inl"
 #include "stdx/core/pair.inl"
 #include "stdx/core/sequence.inl"
@@ -70,6 +76,7 @@ STDLIBX_PREPARE_EXPORT_CORE();
 
 #include "stdx/util/algorithm.inl"
 #include "stdx/util/cstdlib.inl"
+#include "stdx/util/debugging.inl"
 #include "stdx/util/numeric.inl"
 #include "stdx/util/utility.inl"
 
@@ -80,11 +87,13 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/alloc/scoped_allocator.inl"
 
 #include "stdx/collections/bitset.inl"
+#include "stdx/collections/colony.inl"
 #include "stdx/collections/deque.inl"
 #include "stdx/collections/flat_map.inl"
 #include "stdx/collections/flat_set.inl"
 #include "stdx/collections/hash_map.inl"
 #include "stdx/collections/hash_set.inl"
+#include "stdx/collections/inplace_vector.inl"
 #include "stdx/collections/linked_list.inl"
 #include "stdx/collections/queue.inl"
 #include "stdx/collections/singly_linked_list.inl"
@@ -130,10 +139,12 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/math/cmath.inl"
 #include "stdx/math/complex.inl"
 #include "stdx/math/cstddef.inl"
+#include "stdx/math/linalg.inl"
 #include "stdx/math/numbers.inl"
 #include "stdx/math/numeric.inl"
 #include "stdx/math/random.inl"
 #include "stdx/math/ratio.inl"
+#include "stdx/math/simd.inl"
 
 #include "stdx/mem/cstring.inl"
 #include "stdx/mem/cwchar.inl"
@@ -162,6 +173,7 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/ranges/iterator.inl"
 #include "stdx/ranges/memory.inl"
 #include "stdx/ranges/ranges.inl"
+#include "stdx/ranges/random.inl"
 
 #include "stdx/sync/atomic.inl"
 #include "stdx/sync/barrier.inl"
@@ -184,10 +196,12 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/text/cwchar.inl"
 #include "stdx/text/cwctype.inl"
 #include "stdx/text/regex.inl"
+#include "stdx/text/text_encoding.inl"
 #include "stdx/text/string/cstring.inl"
 #include "stdx/text/string/string.inl"
 #include "stdx/text/string/string_view.inl"
 
+#include "stdx/thread/hazard_pointer.inl"
 #include "stdx/thread/stop_token.inl"
 #include "stdx/thread/thread.inl"
 

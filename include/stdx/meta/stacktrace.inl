@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for standard library metaprogramming operations.
  */
 export namespace stdx::meta {
-    #if __has_include(<stacktrace>)
+    #ifdef __cpp_lib_stacktrace
     using ::core::meta::StackTraceEntry;
     using ::core::meta::BasicStackTrace;
     using ::core::meta::StackTrace;

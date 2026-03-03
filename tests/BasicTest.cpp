@@ -18,6 +18,19 @@ using stdx::thread::Thread;
 
 using namespace stdx::core;
 
+enum class Status {
+    SUCCESS,
+    FAILURE,
+};
+
+Expected<u32, Status> perform_operation(bool succeed) {
+    if (succeed) {
+        return 42;
+    } else {
+        return Unexpected(Status::FAILURE);
+    }
+}
+
 int main() {
     Thread t;
     if (t.joinable()) {
@@ -33,6 +46,12 @@ int main() {
     }
     for (int i: v) {
         stdx::io::println("i = {}", i);
+    }
+
+    if (auto result = perform_operation(true)) {
+        stdx::io::println("Operation succeeded");
+    } else {
+        stdx::io::println("Operation failed");
     }
 
     UniquePointer<OutputFileStream> file = stdx::mem::make_unique<OutputFileStream>(Path("./example.txt"));

@@ -25,25 +25,30 @@ export namespace stdx::random {
     using LinearCongruentialEngine = std::linear_congruential_engine<UIntType, a, c, m>;
 
     template <
-        typename UIntType, std::size_t w, std::size_t n, std::size_t m, std::size_t r,
-        UIntType a, std::size_t u, std::size_t d, std::size_t s,
-        UIntType b, std::size_t t, std::size_t c, std::size_t l, 
+        typename UIntType, usize w, usize n, usize m, usize r,
+        UIntType a, usize u, usize d, usize s,
+        UIntType b, usize t, usize c, usize l, 
         UIntType f
     >
     using MersenneTwisterEngine = std::mersenne_twister_engine<UIntType, w, n, m, r, a, u, d, s, b, t, c, l, f>;
 
-    template <typename UIntType, std::size_t w, std::size_t s, std::size_t r>
+    template <typename UIntType, usize w, usize s, usize r>
     using SubtractWithCarryEngine = std::subtract_with_carry_engine<UIntType, w, s, r>;
 
     // Adaptors
-    template <typename RandomNumberEngine, std::size_t p, std::size_t r>
+    template <typename RandomNumberEngine, usize p, usize r>
     using DiscardBlockEngine = std::discard_block_engine<RandomNumberEngine, p, r>;
 
-    template <typename RandomNumberEngine, std::size_t w, typename UIntType>
+    template <typename RandomNumberEngine, usize w, typename UIntType>
     using IndependentBitsEngine = std::independent_bits_engine<RandomNumberEngine, w, UIntType>;
 
-    template <typename RandomNumberEngine, std::size_t k>
+    template <typename RandomNumberEngine, usize k>
     using ShuffleOrderEngine = std::shuffle_order_engine<RandomNumberEngine, k>;
+
+    #ifdef __cpp_lib_philox_engine
+    template <typename UIntType, usize w, usize n, usize r, UIntType... consts>
+    using PhiloxEngine = std::philox_engine<UIntType, w, n, r, consts...>;
+    #endif
 
     // Predefined Generators
     using MinimalStandardRandom0 = std::minstd_rand0;
@@ -55,6 +60,11 @@ export namespace stdx::random {
     using Ranlux24Engine = std::ranlux24;
     using Ranlux48Engine = std::ranlux48;
     using KnuthBGenerator = std::knuth_b;
+
+    #ifdef __cpp_lib_philox_engine
+    using Philox4x32 = std::philox4x32;
+    using Philox4x64 = std::philox4x64;
+    #endif
 
     // Non-deterministic random numbers
     using RandomDevice = std::random_device;

@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace core {
-    #if __has_include(<span>)
     template <typename T>
     concept ThreeWayComparable = std::three_way_comparable<T>;
 
@@ -44,5 +43,4 @@ export namespace core {
     using std::is_lteq;
     using std::is_gt;
     using std::is_gteq;
-    #endif
 }

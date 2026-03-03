@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace core {
-    #if __has_include(<span>)
     inline constexpr usize DYNAMIC_EXTENT = std::dynamic_extent;
 
     template <typename T, usize Extent = DYNAMIC_EXTENT>
@@ -26,5 +25,4 @@ export namespace core {
     using std::ssize;
     using std::empty;
     using std::data;
-    #endif
 }

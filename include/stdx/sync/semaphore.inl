@@ -5,9 +5,7 @@
  * @brief Wrapper namespace for standard library synchronisation operations.
  */
 export namespace stdx::sync {
-    #if __has_include(<semaphore>)
-    using CountingSemaphore = std::counting_semaphore<>;
-
+    template <ptrdiff LeastMaxValue = std::counting_semaphore<>::max()>
+    using CountingSemaphore = std::counting_semaphore<LeastMaxValue>;
     using BinarySemaphore = std::binary_semaphore;
-    #endif
 }

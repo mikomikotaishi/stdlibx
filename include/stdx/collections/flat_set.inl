@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace stdx::collections {
-    #if __has_include(<flat_set>)
+    #ifdef __cpp_lib_flat_set
     using ::alloc::collections::FlatSet;
     using ::alloc::collections::FlatMultiset;
 

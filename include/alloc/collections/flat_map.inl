@@ -11,7 +11,7 @@ using alloc::Allocator;
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace alloc::collections {
-    #if __has_include(<flat_map>)
+    #ifdef __cpp_lib_flat_map
     template <typename Key, typename Value, typename Compare = Less<Key>, typename KeyContainer = Vector<Key>, typename ValueContainer = Vector<Value>>
         requires
             IsSameValue<Key, typename KeyContainer::value_type> && 

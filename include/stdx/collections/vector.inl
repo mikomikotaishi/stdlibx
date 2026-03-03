@@ -38,11 +38,3 @@ export namespace stdx::collections {
     using ::alloc::collections::formatter;
     using ::alloc::collections::swap;
 }
-
-#ifdef __GLIBCXX__
-export namespace __gnu_cxx {
-    using __gnu_cxx::__normal_iterator;
-    using __gnu_cxx::operator==;
-    using __gnu_cxx::operator<=>;
-}
-#endif

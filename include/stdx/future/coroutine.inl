@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for standard library concurrency operations.
  */
 export namespace stdx::future {
-    #if __has_include(<coroutine>)
     // template <typename R, typename... Args>
     // using CoroutineTraits = std::coroutine_traits<R(Args...)>;
 
@@ -26,5 +25,4 @@ export namespace stdx::future {
     using std::noop_coroutine;
 
     using std::hash;
-    #endif
 }

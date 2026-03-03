@@ -9,8 +9,6 @@ export namespace stdx::sync {
         void operator()() const noexcept {}
     };
 
-    #if __has_include(<barrier>)
     template <typename CompletionFunction = EmptyCompletion>
     using Barrier = std::barrier<CompletionFunction>;
-    #endif
 }

@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for standard library metaprogramming operations.
  */
 export namespace core::meta {
-    #if __has_include(<stacktrace>)
+    #ifdef __cpp_lib_stacktrace
     using StackTraceEntry = std::stacktrace_entry;
 
     template <typename Allocator>

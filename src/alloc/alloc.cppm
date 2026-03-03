@@ -8,6 +8,9 @@
 
 module;
 
+// Needed for feature testing macros
+#include <version>
+
 #include "Macros.hpp"
 
 #define STDLIBX_NO_STD_FEATURES
@@ -40,12 +43,14 @@ using namespace core;
 #include "alloc/ranges/memory.inl"
 #include "alloc/ranges/ranges.inl"
 
+#include "alloc/collections/colony.inl"
 #include "alloc/collections/vector.inl"
 #include "alloc/collections/deque.inl"
 #include "alloc/collections/flat_map.inl"
 #include "alloc/collections/flat_set.inl"
 #include "alloc/collections/hash_map.inl"
 #include "alloc/collections/hash_set.inl"
+#include "alloc/collections/inplace_vector.inl"
 #include "alloc/collections/linked_list.inl"
 #include "alloc/collections/queue.inl"
 #include "alloc/collections/singly_linked_list.inl"

@@ -65,11 +65,3 @@ export namespace alloc {
 export namespace core::inline literals::inline string_literals {
     using ::alloc::literals::string_literals::operator""s;
 }
-
-#ifdef __GLIBCXX__
-export namespace __gnu_cxx {
-    using __gnu_cxx::__normal_iterator;
-    using __gnu_cxx::operator==;
-    using __gnu_cxx::operator<=>;
-}
-#endif

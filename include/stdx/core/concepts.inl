@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    #if __has_include(<concepts>)
     using ::core::SameAs;
     using ::core::DerivedFrom;
     using ::core::ConvertibleTo;
@@ -38,5 +37,4 @@ export namespace stdx::core {
     using ::core::EquivalenceRelation;
     using ::core::StrictWeakOrder;
     using ::core::CharacterLike;
-    #endif
 }

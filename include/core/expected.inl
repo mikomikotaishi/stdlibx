@@ -7,7 +7,7 @@ using core::meta::DecayType;
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace core {
-    #if __has_include(<expected>)
+    #ifdef __cpp_lib_expected
     template <typename T, typename E>
     using Expected = std::expected<T, E>;
 

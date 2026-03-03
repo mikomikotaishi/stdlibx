@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for standard library ranges operations.
  */
 export namespace stdx::ranges {
-    #if __has_include(<generator>)
+    #ifdef __cpp_lib_generator
     using ::core::ranges::Generator;
 
     /**

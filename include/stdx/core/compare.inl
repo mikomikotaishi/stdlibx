@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    #if __has_include(<compare>)
     using ::core::ThreeWayComparable;
     using ::core::ThreeWayComparableWith;
 
@@ -37,5 +36,4 @@ export namespace stdx::core {
     using ::core::is_lteq;
     using ::core::is_gt;
     using ::core::is_gteq;
-    #endif
 }

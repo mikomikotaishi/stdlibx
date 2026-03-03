@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace stdx::collections {
-    #if __has_include(<flat_map>)
+    #ifdef __cpp_lib_flat_map
     using ::alloc::collections::FlatMap;
     using ::alloc::collections::FlatMultimap;
 

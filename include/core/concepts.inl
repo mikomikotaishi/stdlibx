@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace core {
-    #if __has_include(<concepts>)
     template <typename T, typename U>
     concept SameAs = std::same_as<T, U>;
 
@@ -106,5 +105,4 @@ export namespace core {
         || SameAs<T, char16_t>
         || SameAs<T, char32_t>
         || SameAs<T, wchar_t>;
-    #endif
 }

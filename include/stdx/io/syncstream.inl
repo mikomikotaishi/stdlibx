@@ -5,7 +5,6 @@
  * @brief Wrapper namespace for standard library IO operations.
  */
 export namespace stdx::io {
-    #if __has_include(<syncstream>)
     template <typename CharT>
     using BasicSyncBuffer = std::basic_syncbuf<CharT>;
 
@@ -18,5 +17,4 @@ export namespace stdx::io {
     using WideOutputSyncStream = std::wosyncstream;
 
     using std::swap;
-    #endif
 }

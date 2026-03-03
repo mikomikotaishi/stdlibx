@@ -11,6 +11,7 @@ using alloc::Allocator;
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace alloc::collections {
+    #ifdef __cpp_lib_flat_set
     template <typename Key, typename Compare = Less<Key>, typename Container = Vector<Key>>
         requires
             IsSameValue<Key, typename Container::value_type> &&
@@ -29,4 +30,5 @@ export namespace alloc::collections {
     inline constexpr SortedUniqueTag SortedUnique = std::sorted_unique;
     using SortedEquivalentTag = std::sorted_equivalent_t;
     inline constexpr SortedEquivalentTag SortedEquivalent = std::sorted_equivalent;
+    #endif
 }

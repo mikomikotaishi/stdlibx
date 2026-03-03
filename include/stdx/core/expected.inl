@@ -5,6 +5,7 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
+    #ifdef __cpp_lib_expected
     using ::core::Expected;
     using ::core::Unexpected;
     using ::core::UnexpectTag;
@@ -16,4 +17,5 @@ export namespace stdx::core {
 
     using ::core::Ok;
     using ::core::Err;
+    #endif
 }
