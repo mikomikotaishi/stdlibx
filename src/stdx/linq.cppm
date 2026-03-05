@@ -176,7 +176,7 @@ public:
      * @param r The range to query.
      */
     template <typename R>
-        requires stdx::core::SameAs<RemoveConstVolatileReferenceType<R>, RemoveConstVolatileReferenceType<Ran>>
+        requires SameAs<RemoveConstVolatileReferenceType<R>, RemoveConstVolatileReferenceType<Ran>>
     constexpr explicit Query(R&& r) noexcept:
         range{stdx::util::forward<R>(r)} {}
 
@@ -210,6 +210,8 @@ public:
     constexpr auto end() noexcept -> decltype(End(range)) {
         return End(range);
     }
+
+    
 
     /**
      * @brief Filters the range using a predicate.
@@ -254,6 +256,22 @@ public:
     [[nodiscard]]
     constexpr auto skip(RangeDifference<Ran> n) noexcept -> Query<decltype(Drop(range, n))> {
         auto newRange = Drop(range, n);
+        Query<decltype(newRange)> q(stdx::util::move(newRange));
+        q.owner = owner;
+        return q;
+    }
+
+    /**
+     * @brief Skips elements from the range while the predicate is true.
+     *
+     * @tparam Pred The predicate type.
+     * @param pred The predicate function.
+     * @return A Query representing the range with elements skipped while the predicate is satisfied.
+     */
+    template <typename Pred>
+    [[nodiscard]]
+    constexpr auto skip_while(Pred&& pred) noexcept -> Query<decltype(SkipWhile(range, stdx::util::forward<Pred>(pred)))> {
+        auto newRange = SkipWhile(range, stdx::util::forward<Pred>(pred));
         Query<decltype(newRange)> q(stdx::util::move(newRange));
         q.owner = owner;
         return q;

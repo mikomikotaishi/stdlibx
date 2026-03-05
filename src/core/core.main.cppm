@@ -54,6 +54,7 @@ import std;
 
 #include "core/math/algorithm.inl"
 #include "core/math/bit.inl"
+#include "core/math/cfenv.inl"
 #include "core/math/cmath.inl"
 #include "core/math/complex.inl"
 #include "core/math/cstddef.inl"
@@ -102,5 +103,6 @@ import std;
 #include "core/locale.inl"
 #include "core/string_view.inl"
 #include "core/cstddef.Numbers.inl"
+#include "core/core.Math.inl"
 #include "core/expected.inl"
 #include "core/tags.inl"

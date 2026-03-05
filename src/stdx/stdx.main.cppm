@@ -93,11 +93,11 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/collections/flat_set.inl"
 #include "stdx/collections/hash_map.inl"
 #include "stdx/collections/hash_set.inl"
-#include "stdx/collections/inplace_vector.inl"
 #include "stdx/collections/linked_list.inl"
 #include "stdx/collections/queue.inl"
 #include "stdx/collections/singly_linked_list.inl"
 #include "stdx/collections/stack.inl"
+#include "stdx/collections/static_vector.inl"
 #include "stdx/collections/tree_map.inl"
 #include "stdx/collections/tree_set.inl"
 #include "stdx/collections/valarray.inl"
@@ -136,6 +136,7 @@ STDLIBX_PREPARE_EXPORT_CORE();
 
 #include "stdx/math/algorithm.inl"
 #include "stdx/math/bits.inl"
+#include "stdx/math/cfenv.inl"
 #include "stdx/math/cmath.inl"
 #include "stdx/math/complex.inl"
 #include "stdx/math/cstddef.inl"
@@ -145,6 +146,8 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/math/random.inl"
 #include "stdx/math/ratio.inl"
 #include "stdx/math/simd.inl"
+
+#include "stdx/core/core.Math.inl"
 
 #include "stdx/mem/cstring.inl"
 #include "stdx/mem/cwchar.inl"
@@ -175,6 +178,8 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/ranges/ranges.inl"
 #include "stdx/ranges/random.inl"
 
+#include "stdx/core/core.Random.inl"
+
 #include "stdx/sync/atomic.inl"
 #include "stdx/sync/barrier.inl"
 #include "stdx/sync/condition_variable.inl"
@@ -200,6 +205,8 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/text/string/cstring.inl"
 #include "stdx/text/string/string.inl"
 #include "stdx/text/string/string_view.inl"
+
+#include "stdx/fs/glob.inl"
 
 #include "stdx/thread/hazard_pointer.inl"
 #include "stdx/thread/stop_token.inl"

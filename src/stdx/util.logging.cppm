@@ -16,9 +16,6 @@ import :main;
 
 using stdx::collections::HashMap;
 using stdx::collections::Vector;
-using stdx::fmt::FormatContext;
-using stdx::fmt::FormatParseContext;
-using stdx::fmt::FormatString;
 using stdx::fmt::Formatter;
 using stdx::fs::Path;
 using stdx::io::IOException;
@@ -63,39 +60,40 @@ enum class Level: u8 {
 
 using stdx::util::logging::Level;
 
-template <>
-struct stdx::fmt::Formatter<Level> {
-    static constexpr const char* parse(FormatParseContext& ctx) noexcept {
-        return ctx.begin();
-    }
-
-    static FormatContext::iterator format(Level lvl, FormatContext& ctx) {
-        StringView name;
-        switch (lvl) {
-            case Level::TRACE:
-                name = "[TRACE]:";
-                break;
-            case Level::DEBUG:
-                name = "[DEBUG]:";
-                break;
-            case Level::INFO:
-                name = "[INFO]:";
-                break;
-            case Level::WARNING:
-                name = "[WARNING]:";
-                break;
-            case Level::ERROR:
-                name = "[ERROR]:";
-                break;
-            default:
-                stdx::sys::unreachable();
+namespace stdx::fmt {
+    template <>
+    struct Formatter<Level> {
+        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+            return ctx.begin();
         }
-        return stdx::fmt::format_to(ctx.out(), "{:11}", name);
-    }
-};
 
-template <>
-struct stdx::fmt::formatter<Level> : public Formatter<Level> {};
+        static FormatContext::iterator format(Level lvl, FormatContext& ctx) {
+            StringView name;
+            switch (lvl) {
+                case Level::TRACE:
+                    name = "[TRACE]:";
+                    break;
+                case Level::DEBUG:
+                    name = "[DEBUG]:";
+                    break;
+                case Level::INFO:
+                    name = "[INFO]:";
+                    break;
+                case Level::WARNING:
+                    name = "[WARNING]:";
+                    break;
+                case Level::ERROR:
+                    name = "[ERROR]:";
+                    break;
+                default:
+                    stdx::sys::unreachable();
+            }
+            return stdx::fmt::format_to(ctx.out(), "{:11}", name);
+        }
+    };
+}
+
+SPECIALIZE_FORMATTER(Level);
 
 /**
  * @namespace stdx::util::logging

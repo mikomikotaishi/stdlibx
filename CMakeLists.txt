@@ -41,6 +41,8 @@ project(stdlibx
     VERSION 0.0.1
 )
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
 function(configure_cpp_module_target target)
     set_target_properties(${target} PROPERTIES 
         CXX_EXTENSIONS OFF 
@@ -161,14 +163,49 @@ include(FetchContent)
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
-option(STDLIBX_NO_STD "Disable the stdx.* modules and only use core.* and alloc.*" OFF)
-option(STDLIBX_NO_ALLOC "Disable the alloc.* modules and only use core.*" OFF)
-option(STDLIBX_IMPLICIT_USING_CORE "Make stdx.core.* modules implicitly load symbols into scope by importing" ON)
+option(STDLIBX_NO_STD "Disable the stdx::* namespace and only use core::* and alloc::*" OFF)
+option(STDLIBX_NO_ALLOC "Disable the alloc::* namespace and only use core::*" OFF)
+option(STDLIBX_IMPLICIT_USING_CORE "Make the stdx::core::* namespace implicitly load symbols into scope at import" ON)
 option(STDLIBX_COMPILE_EXPERIMENTAL_HEADERS "Enable experimental standard library headers" OFF)
-option(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY "Enable compiler header modules in stdx.compiler.*" OFF)
-option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx.lua.*" ON)
-option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules in stdx.sql.*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY "Enable architecture intrinsics header modules in stdx::arch::*" OFF)
+option(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY "Enable compiler header modules in stdx::compiler::*" OFF)
+option(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY "Enable libsodium modules in stdx::crypto::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx::lua::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY "Enable GNU Multiple Precision Arithmetic modules in stdx::math::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY "Enable operating system header modules in stdx::os::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules in stdx::sql::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY "Enable ZIP/zlib wrapper modules in stdx::zip::*" ON)
 option(STDLIBX_BUILD_TESTS "Build the tests for stdlibx" ON)
+
+set(COMPILER_APPLE_CLANG OFF)
+set(COMPILER_CLANG OFF)
+set(COMPILER_GCC OFF)
+set(COMPILER_MSVC OFF)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    set(COMPILER_APPLE_CLANG ON)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(COMPILER_CLANG ON)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(COMPILER_GCC ON)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(COMPILER_MSVC ON)
+endif()
+
+set(ARCH_X86_64 OFF)
+set(ARCH_X86 OFF)
+set(ARCH_ARM64 OFF)
+set(ARCH_ARM OFF)
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
+    set(ARCH_X86_64 ON)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i386|x86")
+    set(ARCH_X86 ON)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(ARCH_ARM64 ON)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|armv7l")
+    set(ARCH_ARM ON)
+endif()
 
 if(STDLIBX_NO_STD)
     set(STDLIBX_USE_RESERVED_STD_IDENTIFIERS OFF CACHE BOOL "Disabled because STDLIBX_NO_STD is ON" FORCE)
@@ -187,6 +224,26 @@ target_include_directories(stdlibx
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
+
+if(COMPILER_APPLE_CLANG)
+    target_compile_definitions(stdlibx INTERFACE COMPILER_APPLE_CLANG)
+elseif(COMPILER_CLANG)
+    target_compile_definitions(stdlibx INTERFACE COMPILER_CLANG)
+elseif(COMPILER_GCC)
+    target_compile_definitions(stdlibx INTERFACE COMPILER_GCC)
+elseif(COMPILER_MSVC)
+    target_compile_definitions(stdlibx INTERFACE COMPILER_MSVC)
+endif()
+
+if(ARCH_X86_64)
+    target_compile_definitions(stdlibx INTERFACE ARCH_X86_64)
+elseif(ARCH_X86)
+    target_compile_definitions(stdlibx INTERFACE ARCH_X86)
+elseif(ARCH_ARM64)
+    target_compile_definitions(stdlibx INTERFACE ARCH_ARM64)
+elseif(ARCH_ARM)
+    target_compile_definitions(stdlibx INTERFACE ARCH_ARM)
+endif()
 
 if(STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
@@ -208,16 +265,36 @@ if(STDLIBX_COMPILE_EXPERIMENTAL_HEADERS)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_COMPILE_EXPERIMENTAL_HEADERS)
 endif()
 
+if(STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY)
+endif()
+
 if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY)
 endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
 endif()
 
+if(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY)
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY)
+endif()
+
 if(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
 endif()
 
 set_target_properties(stdlibx PROPERTIES 

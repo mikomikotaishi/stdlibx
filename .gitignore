@@ -60,6 +60,9 @@ modules_cache/
 gcm.cache/
 run-clang-tidy.py
 
+# Test-generated files
+example.txt
+
 # Build systems
 /.xmake
 /.cache

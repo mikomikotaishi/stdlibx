@@ -105,4 +105,7 @@ export namespace core {
         || SameAs<T, char16_t>
         || SameAs<T, char32_t>
         || SameAs<T, wchar_t>;
+
+    template <typename T>
+    concept Numeric = Integral<T> || FloatingPoint<T>;
 }

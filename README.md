@@ -21,15 +21,26 @@ Pros:
 - A clean (in my opinion) API that is more in line with what C++ style should be (in my opinion), and other languages.
 - More features that ought to be part of the standard library, in a clean, C++-style interface.
 - Consistently updated (but is currently in-development and may be subject to unstable, API-breaking changes).
+
 Cons:
 - Non-standard, obviously. Features are obviously dependent on what is supported by vendors, and different compilers may have different challenges building this library.
 - This library is developed independently. While we accept feature requests, pull requests, and improvements from everyone, do note that support is limited due to the limited resources.
 - Often relies on cutting or bleeding-edge features, which may not be suitable for stability-priority projects.
-- Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 30 seconds to build on my (modest) hardware on both Clang and GCC.
+- Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 20-30 seconds to build on my (modest) hardware on both Clang and GCC.
 
-Requires a minimum of C++23. This library is tested with libstdc++ (GCC) as the default standard library, and has not yet been tested with libc++ (Clang) or MSVC STL.
+Requires a minimum of C++23. This library is tested with libstdc++ (GCC) as the default standard library, and has not yet been tested with libc++ (Clang) or MSVC STL. This library expects a minimum of C++23 features, and only provides feature-test macro guarding for features added in C++26 and onward.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+### Features
+- Everything included in the C++ standard library
+- Additional ease-of-use classes and Java-style utility classes (`stdx::core::Integer`, `stdx::core::Character`, `stdx::core::Math`)
+- Minimal wrappers over the GNU C library, Win32 API, and Linux headers, where possible (in `stdx::os`)
+- A JDBC-style ODBC wrapper (with `stdx::sql`)
+- LINQ-style queries (`stdx::linq`), wrapping over `std::views::*`
+- Logging (`stdx::util::logging`)
+- Minimal wrappers over Lua headers (`stdx::lua`)
+- And more!
 
 ## Libraries
 The `stdlibx` library offers the following namespaces/modules:
@@ -50,7 +61,7 @@ Disabled when `STDLIBX_NO_STD` (or `STDLIBX_NO_ALLOC`) are enabled.
 > **NOTE:** Some parts of this library may be third-party or re-exports of existing libraries, and thus not entirely original code. Code that originates from third party will be adequately attributed, but if there are any issues or concerns, please do not hesitate to contact me.
 
 Some third-party libraries used here include:
-- TinyXML-2
+- [gmplib](https://gmplib.org/)
 - [p-ranav/glob](https://github.com/p-ranav/glob)
 
 ## Example

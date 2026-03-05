@@ -41,8 +41,8 @@ export namespace stdx::sql {
 class SQLException : public Exception {
 private:
     String msg;
-    String state;
-    Optional<i32> code;
+    String sql_state;
+    Optional<i32> error_code;
 public:
     /**
      * @brief Constructs a SQLException with a message.
@@ -50,7 +50,7 @@ public:
      * @param message The error message.
      */
     explicit SQLException(StringView message):
-        Exception(), msg{message}, state{"HY000"}, code{} {}
+        Exception(), msg{message}, sql_state{"HY000"}, error_code{} {}
 
     /**
      * @brief Constructs a SQLException with a message and SQLSTATE.
@@ -59,7 +59,7 @@ public:
      * @param state The SQLSTATE code.
      */
     SQLException(StringView message, StringView state):
-        Exception(), msg{message}, state{state}, code{} {}
+        Exception(), msg{message}, sql_state{state}, error_code{} {}
 
     /**
      * @brief Constructs a SQLException with a message, SQLSTATE, and error code.
@@ -69,7 +69,7 @@ public:
      * @param code The native database error code.
      */
     SQLException(StringView message, StringView state, i32 code):
-        Exception(), msg{message}, state{state}, code{code} {}
+        Exception(), msg{message}, sql_state{state}, error_code{code} {}
 
     /**
      * @brief Gets the error message.
@@ -87,8 +87,8 @@ public:
      * @return The SQLSTATE code.
      */
     [[nodiscard]]
-    const String& sql_state() const noexcept {
-        return state;
+    const String& state() const noexcept {
+        return sql_state;
     }
 
     /**
@@ -97,8 +97,8 @@ public:
      * @return Optional containing the error code if available.
      */
     [[nodiscard]]
-    Optional<i32> error_code() const noexcept {
-        return code;
+    Optional<i32> code() const noexcept {
+        return error_code;
     }
 };
 

@@ -36,4 +36,11 @@ export namespace stdx::core {
     using ::core::is_lteq;
     using ::core::is_gt;
     using ::core::is_gteq;
+
+    using ::core::operator==;
+    using ::core::operator<;
+    using ::core::operator>;
+    using ::core::operator<=;
+    using ::core::operator>=;
+    using ::core::operator<=>;
 }

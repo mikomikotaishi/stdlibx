@@ -9,12 +9,10 @@ using stdx::fs::Path;
 using stdx::io::File;
 using stdx::io::IOException;
 using stdx::io::IOState;
-using stdx::io::OpenMode;
 using stdx::io::OutputFileStream;
-using stdx::linq::Query;
 using stdx::mem::SharedPointer;
 using stdx::mem::UniquePointer;
-using stdx::thread::Thread;
+using stdx::thread::JoiningThread;
 
 using namespace stdx::core;
 
@@ -32,7 +30,7 @@ Expected<u32, Status> perform_operation(bool succeed) {
 }
 
 int main() {
-    Thread t;
+    JoiningThread t;
     if (t.joinable()) {
         stdx::io::println("t.joinable() returned true");
     }
@@ -53,6 +51,16 @@ int main() {
     } else {
         stdx::io::println("Operation failed");
     }
+
+    stdx::io::println("sin(1) = {}, cos(1) = {}, ζ(2) = {}", Math::sin(1), Math::cos(1), Math::riemann_zeta(2));
+
+    Random rng;
+    stdx::io::println("Random integer between 1 and 10: {}", rng.next(1, 11));
+    stdx::io::println("Random decimal between 0.0 and 10.0: {}", rng.next(0.0, 10.0));
+    stdx::io::println("Random number between 0.0 and 1.0: {}", rng.next_unit());
+    stdx::io::println("Random number from Gaussian distribution: {}", rng.next_gaussian());
+    rng.shuffle(v);
+    stdx::io::println("Shuffled vector: {}", v);
 
     UniquePointer<OutputFileStream> file = stdx::mem::make_unique<OutputFileStream>(Path("./example.txt"));
     file->exceptions(IOState::STREAM_ERROR | IOState::IO_OPERATION_FAIL);

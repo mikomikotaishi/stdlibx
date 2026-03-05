@@ -26,7 +26,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build wget software-properties-common unixodbc unixodbc-dev libstdc++6
+        sudo apt-get install -y ninja-build wget software-properties-common \
+          unixodbc unixodbc-dev libstdc++6 libgmp-dev libsodium-dev zlib1g-dev
 
         # Install CMake (4.2.3)
         wget https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-linux-x86_64.tar.gz

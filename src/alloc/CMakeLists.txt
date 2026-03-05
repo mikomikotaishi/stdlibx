@@ -23,6 +23,26 @@ target_include_directories(stdlibx_alloc
 
 add_library(stdlibx::alloc ALIAS stdlibx_alloc)
 
+if(COMPILER_APPLE_CLANG)
+    target_compile_definitions(stdlibx_alloc PRIVATE COMPILER_APPLE_CLANG)
+elseif(COMPILER_CLANG)
+    target_compile_definitions(stdlibx_alloc PRIVATE COMPILER_CLANG)
+elseif(COMPILER_GCC)
+    target_compile_definitions(stdlibx_alloc PRIVATE COMPILER_GCC)
+elseif(COMPILER_MSVC)
+    target_compile_definitions(stdlibx_alloc PRIVATE COMPILER_MSVC)
+endif()
+
+if(ARCH_X86_64)
+    target_compile_definitions(stdlibx_alloc PRIVATE ARCH_X86_64)
+elseif(ARCH_X86)
+    target_compile_definitions(stdlibx_alloc PRIVATE ARCH_X86)
+elseif(ARCH_ARM64)
+    target_compile_definitions(stdlibx_alloc PRIVATE ARCH_ARM64)
+elseif(ARCH_ARM)
+    target_compile_definitions(stdlibx_alloc PRIVATE ARCH_ARM)
+endif()
+
 if(STDLIBX_NO_STD)
     target_compile_definitions(stdlibx_alloc PRIVATE STDLIBX_NO_STD)
 endif()
