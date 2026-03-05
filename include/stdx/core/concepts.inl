@@ -37,4 +37,5 @@ export namespace stdx::core {
     using ::core::EquivalenceRelation;
     using ::core::StrictWeakOrder;
     using ::core::CharacterLike;
+    using ::core::Numeric;
 }

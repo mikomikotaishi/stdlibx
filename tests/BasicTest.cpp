@@ -54,6 +54,8 @@ int main() {
         stdx::io::println("Operation failed");
     }
 
+    stdx::io::println("sin(1) = {}, cos(1) = {}, ζ(2) = {}", Math::sin(1), Math::cos(1), Math::riemann_zeta(2));
+
     UniquePointer<OutputFileStream> file = stdx::mem::make_unique<OutputFileStream>(Path("./example.txt"));
     file->exceptions(IOState::STREAM_ERROR | IOState::IO_OPERATION_FAIL);
     try {

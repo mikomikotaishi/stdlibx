@@ -136,6 +136,7 @@ STDLIBX_PREPARE_EXPORT_CORE();
 
 #include "stdx/math/algorithm.inl"
 #include "stdx/math/bits.inl"
+#include "stdx/math/cfenv.inl"
 #include "stdx/math/cmath.inl"
 #include "stdx/math/complex.inl"
 #include "stdx/math/cstddef.inl"
@@ -145,6 +146,8 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/math/random.inl"
 #include "stdx/math/ratio.inl"
 #include "stdx/math/simd.inl"
+
+#include "stdx/core/core.Math.inl"
 
 #include "stdx/mem/cstring.inl"
 #include "stdx/mem/cwchar.inl"

@@ -23,7 +23,7 @@ using namespace stdx::core;
  * @brief Wrapper namespace for standard library extension Lua libraries.
  */
 export namespace stdx::lua {
-#ifdef STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY
+    #ifdef STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY
     constexpr i32 OK = LUA_OK;
     constexpr i32 YIELD = LUA_YIELD;
     constexpr i32 ERRRUN = LUA_ERRRUN;
@@ -854,5 +854,5 @@ export namespace stdx::lua {
             return String(luaL_buffinitsize(l, b, sz));
         }
     }
-#endif
+    #endif
 }

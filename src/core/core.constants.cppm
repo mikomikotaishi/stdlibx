@@ -8,6 +8,7 @@
 
 module;
 
+#include <cfenv>
 #include <clocale>
 #include <cmath>
 #include <csignal>
@@ -22,6 +23,20 @@ export module core:constants;
  * @brief Detail namespace - not to be exported for external use
  */
 namespace _detail {
+    constexpr auto FeAllExcept = FE_ALL_EXCEPT;
+    constexpr auto FeDivByZero = FE_DIVBYZERO;
+    constexpr auto FeInexact = FE_INEXACT;
+    constexpr auto FeInvalid = FE_INVALID;
+    constexpr auto FeOverflow = FE_OVERFLOW;
+    constexpr auto FeUnderflow = FE_UNDERFLOW;
+
+    constexpr auto FeDownward = FE_DOWNWARD;
+    constexpr auto FeToNearest = FE_TONEAREST;
+    constexpr auto FeTowardZero = FE_TOWARDZERO;
+    constexpr auto FeUpward = FE_UPWARD;
+
+    const auto FeDflEnv = FE_DFL_ENV;
+
     constexpr auto LcAll = LC_ALL;
     constexpr auto LcCollate = LC_COLLATE;
     constexpr auto LcCType = LC_CTYPE;
@@ -87,6 +102,20 @@ namespace _detail {
     inline const auto SigIgn = SIG_IGN;
     inline const auto SigErr = SIG_ERR;
 }
+
+#undef FE_ALL_EXCEPT
+#undef FE_DIVBYZERO
+#undef FE_INEXACT
+#undef FE_INVALID
+#undef FE_OVERFLOW
+#undef FE_UNDERFLOW
+
+#undef FE_DOWNWARD
+#undef FE_TONEAREST
+#undef FE_TOWARDZERO
+#undef FE_UPWARD
+
+#undef FE_DFL_ENV
 
 #undef LC_ALL
 #undef LC_COLLATE
@@ -215,6 +244,20 @@ export namespace core {
      * @brief Wrapper namespace for standard library mathematical operations.
      */
     namespace math {
+        constexpr auto FE_ALL_EXCEPT = _detail::FeAllExcept;
+        constexpr auto FE_DIVBYZERO = _detail::FeDivByZero;
+        constexpr auto FE_INEXACT = _detail::FeInexact;
+        constexpr auto FE_INVALID = _detail::FeInvalid;
+        constexpr auto FE_OVERFLOW = _detail::FeOverflow;
+        constexpr auto FE_UNDERFLOW = _detail::FeUnderflow;
+
+        constexpr auto FE_DOWNWARD = _detail::FeDownward;
+        constexpr auto FE_TONEAREST = _detail::FeToNearest;
+        constexpr auto FE_TOWARDZERO = _detail::FeTowardZero;
+        constexpr auto FE_UPWARD = _detail::FeUpward;
+
+        const auto FE_DFL_ENV = _detail::FeDflEnv;
+
         constexpr auto HUGE_VAL = _detail::HugeVal;
         constexpr auto HUGE_VALF = _detail::HugeValF;
         constexpr auto HUGE_VALL = _detail::HugeValL;

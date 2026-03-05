@@ -4,6 +4,7 @@ using stdx::collections::Vector;
 using stdx::fs::DirectoryEntry;
 using stdx::fs::DirectoryIterator;
 using stdx::fs::Path;
+using stdx::io::File;
 using stdx::linq::Query;
 using stdx::mem::SharedPointer;
 using stdx::mem::UniquePointer;
@@ -21,7 +22,7 @@ void test_basic_operations() {
     for (i32 x : evens) {
         stdx::io::print("{} ", x);
     }
-    stdx::io::println("");
+    stdx::io::println();
     
     // Test select (map/transform) - using explicit type syntax
     Vector<i32> squares = Query(numbers)
@@ -31,7 +32,18 @@ void test_basic_operations() {
     for (i32 x : squares) {
         stdx::io::print("{} ", x);
     }
-    stdx::io::println("");
+    stdx::io::println();
+
+
+    // Test select (map/transform) - using explicit type syntax and from() method
+    Vector<i32> incremented = Query<Vector<i32>>::from(numbers)
+        .select([](i32 x) -> i32 { return x + 1; })
+        .to<Vector>();
+    stdx::io::print("Incremented: ");
+    for (i32 x : incremented) {
+        stdx::io::print("{} ", x);
+    }
+    stdx::io::println();
     
     // Test skip
     Vector<i32> skipped = Query(numbers)
@@ -41,7 +53,7 @@ void test_basic_operations() {
     for (i32 x : skipped) {
         stdx::io::print("{} ", x);
     }
-    stdx::io::println("");
+    stdx::io::println();
     
     // Test take
     Vector<i32> taken = Query(numbers)
@@ -51,7 +63,7 @@ void test_basic_operations() {
     for (i32 x : taken) {
         stdx::io::print("{} ", x);
     }
-    stdx::io::println("");
+    stdx::io::println();
 }
 
 void test_chaining() {
@@ -68,12 +80,12 @@ void test_chaining() {
     for (i32 x : result) {
         stdx::io::print("{} ", x);
     }
-    stdx::io::println("");
+    stdx::io::println();
 }
 
 void test_aggregation() {
     Vector<i32> numbers = {1, 2, 3, 4, 5};
-    auto query = Query(numbers);
+    Query query(numbers);
     
     // Test any (no predicate)
     bool hasElements = query.any();
@@ -132,7 +144,7 @@ void test_sorting() {
     for (i32 x : sorted) {
         stdx::io::print("{} ", x);
     }
-    stdx::io::println("");
+    stdx::io::println();
     
     // Test distinct
     Vector<i32> unique = Query(numbers)
@@ -142,7 +154,7 @@ void test_sorting() {
     for (i32 x : unique) {
         stdx::io::print("{} ", x);
     }
-    stdx::io::println("");
+    stdx::io::println();
     
     // Test reverse
     Vector<i32> reversed = Query(numbers)
@@ -152,7 +164,7 @@ void test_sorting() {
     for (i32 x : reversed) {
         stdx::io::print("{} ", x);
     }
-    stdx::io::println("");
+    stdx::io::println();
 }
 
 void test_error_cases() {
@@ -160,16 +172,16 @@ void test_error_cases() {
     
     // Test first on empty (should throw)
     try {
-        auto _ = Query(empty).first();
-        stdx::io::println("ERROR: first() should have thrown!");
+        i32 _ = Query(empty).first();
+        stdx::io::println(File::stderr(), "ERROR: first() should have thrown!");
     } catch (const InvalidOperationException& e) {
         stdx::io::println("✓ first() on empty threw: {}", e.what());
     }
     
     // Test single on empty (should throw)
     try {
-        auto _ = Query(empty).single();
-        stdx::io::println("ERROR: single() should have thrown!");
+        i32 _ = Query(empty).single();
+        stdx::io::println(File::stderr(), "ERROR: single() should have thrown!");
     } catch (const InvalidOperationException& e) {
         stdx::io::println("✓ single() on empty threw: {}", e.what());
     }
@@ -177,8 +189,8 @@ void test_error_cases() {
     // Test single on multiple elements (should throw)
     Vector<i32> multiple = {1, 2};
     try {
-        auto _ = Query(multiple).single();
-        stdx::io::println("ERROR: single() on multiple elements should have thrown!");
+        i32 _ = Query(multiple).single();
+        stdx::io::println(File::stderr(), "ERROR: single() on multiple elements should have thrown!");
     } catch (const InvalidOperationException& e) {
         stdx::io::println("✓ single() on multiple elements threw: {}", e.what());
     }
@@ -196,7 +208,7 @@ void test_with_strings() {
     for (const String& word : aWords) {
         stdx::io::print("{} ", word);
     }
-    stdx::io::println("");
+    stdx::io::println();
     
     // Get lengths of words
     Vector<usize> lengths = Query(words)
@@ -207,7 +219,7 @@ void test_with_strings() {
     for (usize len : lengths) {
         stdx::io::print("{} ", len);
     }
-    stdx::io::println("");
+    stdx::io::println();
 }
 
 void test_file_system() {

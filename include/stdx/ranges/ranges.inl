@@ -53,6 +53,10 @@ export namespace stdx::ranges {
     using ::core::ranges::CommonRange;
     using ::core::ranges::ViewableRange;
     using ::core::ranges::ConstantRange;
+    #ifdef __cpp_lib_ranges_reserve_hint
+    using ::core::ranges::ApproximatelySizedRange;
+    #endif
+
     using ::core::ranges::RangeIterator;
     using ::core::ranges::RangeConstIterator;
     using ::core::ranges::RangeSentinel;
@@ -95,6 +99,9 @@ export namespace stdx::ranges {
         using ::core::ranges::types::JoinWith;
         using ::core::ranges::types::LazySplit;
         using ::core::ranges::types::Split;
+        #ifdef __cpp_lib_ranges_concat
+        using ::core::ranges::types::Concat;
+        #endif
         using ::core::ranges::types::Counted;
         using ::core::ranges::types::Common;
         using ::core::ranges::types::Reverse;
@@ -114,6 +121,12 @@ export namespace stdx::ranges {
         using ::core::ranges::types::ChunkBy;
         using ::core::ranges::types::Stride;
         using ::core::ranges::types::CartesianProduct;
+        #ifdef __cpp_lib_ranges_cache_latest
+        using ::core::ranges::types::CacheLatest;
+        #endif
+        #ifdef __cpp_lib_ranges_to_input
+        using ::core::ranges::types::ToInput;
+        #endif
     }
 
     using ::core::ranges::RangeAdaptorClosure;
@@ -130,6 +143,9 @@ export namespace stdx::ranges {
     using ::core::ranges::JoinWithView;
     using ::core::ranges::LazySplitView;
     using ::core::ranges::SplitView;
+    #ifdef __cpp_lib_ranges_concat
+    using ::core::ranges::ConcatView;
+    #endif
     using ::core::ranges::CommonView;
     using ::core::ranges::ReverseView;
     using ::core::ranges::AsConstView;
@@ -146,6 +162,12 @@ export namespace stdx::ranges {
     using ::core::ranges::ChunkByView;
     using ::core::ranges::StrideView;
     using ::core::ranges::CartesianProductView;
+    #ifdef __cpp_lib_ranges_cache_latest
+    using ::core::ranges::CacheLatestView;
+    #endif
+    #ifdef __cpp_lib_ranges_to_input
+    using ::core::ranges::ToInputView;
+    #endif
 
     namespace views {
         using ::core::ranges::views::Empty;
@@ -166,6 +188,9 @@ export namespace stdx::ranges {
         using ::core::ranges::views::JoinWith;
         using ::core::ranges::views::LazySplit;
         using ::core::ranges::views::Split;
+        #ifdef __cpp_lib_ranges_concat
+        using ::core::ranges::views::Concat;
+        #endif
         using ::core::ranges::views::Counted;
         using ::core::ranges::views::Common;
         using ::core::ranges::views::Reverse;
@@ -185,6 +210,12 @@ export namespace stdx::ranges {
         using ::core::ranges::views::ChunkBy;
         using ::core::ranges::views::Stride;
         using ::core::ranges::views::CartesianProduct;
+        #ifdef __cpp_lib_ranges_cache_latest
+        using ::core::ranges::views::CacheLatest;
+        #endif
+        #ifdef __cpp_lib_ranges_to_input
+        using ::core::ranges::views::ToInput;
+        #endif
     }
 
     using ::core::ranges::to;

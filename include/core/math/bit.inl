@@ -5,7 +5,23 @@
  * @brief Wrapper namespace for standard library mathematical operations.
  */
 export namespace core::math {
-    using Endian = std::endian;
+    class [[nodiscard]] Endian final {
+    public:
+        using Self = std::endian;
+
+        static constexpr Self LITTLE = std::endian::little;
+        static constexpr Self BIG = std::endian::big;
+        static constexpr Self NATIVE = std::endian::native;
+    private:
+        Self value;
+    public:
+        constexpr Endian(Self value = Self()) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
+    };
 
     using std::bit_cast;
     using std::byteswap;

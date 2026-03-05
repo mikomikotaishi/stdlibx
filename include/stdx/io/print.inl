@@ -52,6 +52,18 @@ export namespace stdx::io {
     using std::vprint_unicode;
     using std::vprint_nonunicode;
 
+    #if 0
+    template <typename... Args>
+    void printf(FormatString<Args...> fmt, Args&&... args) {
+        
+    }
+
+    template <typename... Args>
+    void printf(File* stream, FormatString<Args...> fmt, Args&&... args) {
+        
+    }
+    #endif
+
     class TextStyle {
     public:
         enum class Color: u32 {
@@ -249,15 +261,36 @@ export namespace stdx::io {
     };
 
     #if 0
+
     // Implementations for text style will go here
     template <typename... Args>
-    void print(FormatString<Args...> fmt, Args&&... args) {
+    void print(TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
 
     }
 
     template <typename... Args>
-    void println(FormatString<Args...> fmt, Args&&... args) {
+    void print(File* stream, TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
 
+    }
+
+    template <typename... Args>
+    void println(TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
+
+    }
+
+    template <typename... Args>
+    void println(File* stream, TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
+
+    }
+
+    template <typename... Args>
+    void printf(TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
+        
+    }
+
+    template <typename... Args>
+    void printf(File* stream, TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
+        
     }
     #endif
     #endif
