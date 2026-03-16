@@ -1,6 +1,7 @@
 import stdx;
 
 using stdx::io::OpenMode;
+using stdx::mem::Pointers;
 using stdx::mem::SharedPointer;
 using stdx::util::logging::ConsoleSink;
 using stdx::util::logging::FileSink;
@@ -8,10 +9,14 @@ using stdx::util::logging::Level;
 using stdx::util::logging::Logger;
 using stdx::util::logging::LoggerFactory;
 
+#ifdef __GNUC__
 using namespace stdx::core;
+#endif
 
 int main() {
-    LoggerFactory::instance().init("./userdata/test_log.txt", true);
+    LoggerFactory::instance()
+        .trace_source(true)
+        .init("./userdata/test_log.txt", true);
 
     SharedPointer<Logger> logger = LoggerFactory::instance().of("TestLogger");
     
@@ -30,15 +35,15 @@ int main() {
     filteredLogger->error("This ERROR SHOULD appear");
 
     SharedPointer<Logger> customLogger = LoggerFactory::instance().of("CustomLogger");
-    SharedPointer<FileSink> customSink = stdx::mem::make_shared<FileSink>("./userdata/custom_log.txt", OpenMode::TRUNCATE);
+    SharedPointer<FileSink> customSink = Pointers::shared<FileSink>("./userdata/custom_log.txt", OpenMode::TRUNCATE);
     customLogger->add_sink(customSink);
 
     customLogger->info("This message goes to both global and custom sinks");
     customLogger->debug("Custom sink test with value: {}", 99);
     customSink->flush();
 
-    SharedPointer<Logger> consoleLogger = stdx::mem::make_shared<Logger>("ConsoleOnly", Level::DEBUG, false);
-    SharedPointer<ConsoleSink> consoleSink = stdx::mem::make_shared<ConsoleSink>(false);
+    SharedPointer<Logger> consoleLogger = Pointers::shared<Logger>("ConsoleOnly", Level::DEBUG, false);
+    SharedPointer<ConsoleSink> consoleSink = Pointers::shared<ConsoleSink>(false);
     consoleLogger->add_sink(consoleSink);
     
     consoleLogger->info("This message should appear on stdout");

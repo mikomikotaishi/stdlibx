@@ -5,8 +5,8 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::InitializerList;
+    using ::core::prelude::InitializerList;
 
-    using ::core::begin;
-    using ::core::end;
+    using ::core::prelude::begin;
+    using ::core::prelude::end;
 }

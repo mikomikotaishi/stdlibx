@@ -21,11 +21,13 @@ export import :os.constants;
 
 import core;
 
-using namespace core;
+using namespace core::prelude;
 
 #include "stdx/os/unix/aio.inl"
 #include "stdx/os/unix/dirent.inl"
 #include "stdx/os/unix/dlfcn.inl"
+#include "stdx/os/unix/errno.inl"
+#include "stdx/os/unix/fcntl.inl"
 #include "stdx/os/unix/fmtmsg.inl"
 #include "stdx/os/unix/fnmatch.inl"
 #include "stdx/os/unix/ftw.inl"
@@ -45,7 +47,9 @@ using namespace core;
 #include "stdx/os/unix/sched.inl"
 #include "stdx/os/unix/search.inl"
 #include "stdx/os/unix/semaphore.inl"
+#include "stdx/os/unix/signal.inl"
 #include "stdx/os/unix/spawn.inl"
+#include "stdx/os/unix/stdlib.inl"
 #include "stdx/os/unix/strings.inl"
 #include "stdx/os/unix/termios.inl"
 #include "stdx/os/unix/unistd.inl"

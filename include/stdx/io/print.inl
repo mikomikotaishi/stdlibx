@@ -1,44 +1,58 @@
 #pragma once
 
-using stdx::fmt::FormatString;
+using core::meta::IsConvertibleValue;
+using core::meta::TypeIdentityType;
 
-namespace _detail {
+using stdx::fmt::FormatException;
+using stdx::fmt::FormatString;
+using stdx::fmt::Formatter;
+using stdx::fmt::PrintfString;
+
+using namespace stdx::os;
+using namespace stdx::os::win32;
+
+namespace stdx::io {
     [[nodiscard]]
     bool should_use_color() noexcept {
         #if defined(_WIN32)
-        if (!stdx::os::windows::_isatty(stdx::os::windows::_fileno(stdout))) {
+        if (!win32::_isatty(win32::_fileno(stdout))) {
             return false;
         }
 
-        HANDLE h = stdx::os::windows::GetStdHandle(stdx::os::windows::STD_OUTPUT_HANDLE);
-        if (h == stdx::os::windows::INVALID_HANDLE_VALUE) {
+        Handle h = win32::GetStdHandle(win32::STD_OUTPUT_HANDLE);
+        if (h == win32::INVALID_HANDLE_VALUE) {
             return false;
         }
 
-        DWORD mode = 0;
-        if (!stdx::os::windows::GetConsoleMode(h, &mode)) {
+        DWord mode = 0;
+        if (!win32::GetConsoleMode(h, &mode)) {
             return false;
         }
 
-        mode |= stdx::os::windows::ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-        if (!stdx::os::windows::SetConsoleMode(h, mode)) {
+        mode |= win32::ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        if (!win32::SetConsoleMode(h, mode)) {
             return false;
         }
 
         return true;
         #else
-        if (!stdx::os::unix::isatty(stdx::os::unix::STDOUT_FILENO)) {
+        if (!unix::isatty(unix::STDOUT_FILENO)) {
             return false;
         }
 
-        const char* term = core::sys::getenv("TERM");
-        if (!term || stdx::core::StringView(term) == "dumb") {
+        StringView term = ::core::sys::getenv("TERM");
+        if (!term.empty() || term == "dumb") {
             return false;
         }
 
         return true;
         #endif
     }
+
+    // Maps Emphasis bit index (0–7) to ANSI SGR code.
+    // BOLD=bit0->1, FAINT=bit1->2, ITALIC=bit2->3, UNDERLINE=bit3->4,
+    // BLINK=bit4->5, REVERSE=bit5->7, CONCEAL=bit6->8, STRIKETHROUGH=bit7->9
+    inline constexpr Array<u8, 8> EMPHASIS_ANSI_CODES = {1, 2, 3, 4, 5, 7, 8, 9};
 }
 
 /**
@@ -52,18 +66,18 @@ export namespace stdx::io {
     using std::vprint_unicode;
     using std::vprint_nonunicode;
 
-    #if 0
-    template <typename... Args>
-    void printf(FormatString<Args...> fmt, Args&&... args) {
-        
-    }
-
-    template <typename... Args>
-    void printf(File* stream, FormatString<Args...> fmt, Args&&... args) {
-        
-    }
-    #endif
-
+    /**
+     * @class TextStyle
+     * @brief Terminal text styling: foreground/background color and emphasis attributes.
+     *
+     * Supports both a fluent builder API and fmtlib-style pipe composition:
+     * @code
+     *   // Fluent
+     *   TextStyle s = TextStyle().fg(TextStyle::Color::RED).bold().italic();
+     *   // Pipe (free functions)
+     *   TextStyle s = fg(TextStyle::Color::RED) | emphasis(TextStyle::Emphasis::BOLD);
+     * @endcode
+     */
     class TextStyle {
     public:
         enum class Color: u32 {
@@ -229,7 +243,7 @@ export namespace stdx::io {
             BRIGHT_WHITE,
         };
 
-        enum class Emphasis {
+        enum class Emphasis: u8 {
             BOLD = 1,
             FAINT = 1 << 1,
             ITALIC = 1 << 2,
@@ -240,58 +254,427 @@ export namespace stdx::io {
             STRIKETHROUGH = 1 << 7,
         };
 
-        struct RGB {
+        struct [[nodiscard]] RGB {
             u8 r;
             u8 g;
             u8 b;
 
             constexpr RGB(u8 r = 0, u8 g = 0, u8 b = 0) noexcept:
                 r{r}, g{g}, b{b} {}
+
             constexpr RGB(u32 hex) noexcept:
                 r{static_cast<u8>((hex >> 16) & 0xFF)},
                 g{static_cast<u8>((hex >> 8) & 0xFF)},
                 b{static_cast<u8>(hex & 0xFF)} {}
+
             constexpr RGB(Color color) noexcept:
                 RGB(stdx::util::to_underlying(color)) {}
         };
+
     private:
-        // 
+        static constexpr String ANSI_RESET = "\033[0m";
+
+        // Color is stored as a packed u32 value alongside a type tag.
+        // RGB: (r<<16)|(g<<8)|b  — reuses the same layout as Color enum values.
+        // TerminalColor: the raw ANSI code (30–37, 90–97).
+        enum class ColorType: u8 {
+            NONE,
+            RGB_COLOR,
+            TERMINAL_COLOR
+        };
+
+        struct ColorEntry {
+            ColorType type = ColorType::NONE;
+            u32 value = 0;
+
+            constexpr ColorEntry() noexcept = default;
+            constexpr explicit ColorEntry(RGB c) noexcept:
+                type{ColorType::RGB_COLOR}, value{
+                    (static_cast<u32>(c.r) << 16) | (static_cast<u32>(c.g) << 8) | static_cast<u32>(c.b)
+                } {}
+
+            constexpr explicit ColorEntry(TerminalColor c) noexcept:
+                type{ColorType::TERMINAL_COLOR}, value{stdx::util::to_underlying(c)} {}
+
+            [[nodiscard]]
+            constexpr bool has_color() const noexcept {
+                return type != ColorType::NONE;
+            }
+
+            [[nodiscard]]
+            constexpr RGB as_rgb() const noexcept {
+                return RGB(
+                    static_cast<u8>(value >> 16),
+                    static_cast<u8>(value >> 8),
+                    static_cast<u8>(value)
+                );
+            }
+
+            [[nodiscard]]
+            constexpr u8 as_terminal_code() const noexcept {
+                return static_cast<u8>(value);
+            }
+        };
+
+        ColorEntry fore = {};
+        ColorEntry back = {};
+        u8 emph = 0;
+
     public:
-        
+        constexpr TextStyle() noexcept = default;
+
+        [[nodiscard]]
+        constexpr TextStyle fg(RGB c) const noexcept {
+            TextStyle s = *this;
+            s.fore = ColorEntry{c};
+            return s;
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle fg(Color c) const noexcept {
+            return fg(RGB{c});
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle fg(TerminalColor c) const noexcept {
+            TextStyle s = *this;
+            s.fore = ColorEntry{c};
+            return s;
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle bg(RGB c) const noexcept {
+            TextStyle s = *this;
+            s.back = ColorEntry{c};
+            return s;
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle bg(Color c) const noexcept {
+            return bg(RGB{c});
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle bg(TerminalColor c) const noexcept {
+            TextStyle s = *this;
+            s.back = ColorEntry{c};
+            return s;
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle with(Emphasis e) const noexcept {
+            TextStyle s = *this;
+            s.emph |= static_cast<u8>(stdx::util::to_underlying(e));
+            return s;
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle bold() const noexcept {
+            return with(Emphasis::BOLD);
+        }
+
+        [[nodiscard]] constexpr TextStyle faint() const noexcept {
+            return with(Emphasis::FAINT);
+        }
+
+        [[nodiscard]] 
+        constexpr TextStyle italic() const noexcept {
+            return with(Emphasis::ITALIC);
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle underline() const noexcept {
+            return with(Emphasis::UNDERLINE);
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle blink() const noexcept {
+            return with(Emphasis::BLINK);
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle reverse() const noexcept {
+            return with(Emphasis::REVERSE);
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle conceal() const noexcept {
+            return with(Emphasis::CONCEAL);
+        }
+
+        [[nodiscard]]
+        constexpr TextStyle strikethrough() const noexcept {
+            return with(Emphasis::STRIKETHROUGH);
+        }
+
+        // Right-hand side wins for colors; emphasis flags are OR-ed.
+        [[nodiscard]]
+        constexpr TextStyle operator|(const TextStyle& rhs) const noexcept {
+            TextStyle result = *this;
+            if (rhs.fore.has_color()) {
+                result.fore = rhs.fore;
+            }
+            if (rhs.back.has_color()) {
+                result.back = rhs.back;
+            }
+            result.emph |= rhs.emph;
+            return result;
+        }
+
+        [[nodiscard]]
+        constexpr bool has_fg() const noexcept {
+            return fore.has_color();
+        }
+
+        [[nodiscard]]
+        constexpr bool has_bg() const noexcept {
+            return back.has_color();
+        }
+
+        [[nodiscard]]
+        constexpr bool has_emphasis() const noexcept {
+            return emph != 0;
+        }
+
+        [[nodiscard]]
+        constexpr bool has_emphasis(Emphasis e) const noexcept {
+            return (emph & static_cast<u8>(stdx::util::to_underlying(e))) != 0;
+        }
+
+        // Returns the opening ANSI SGR escape sequence, or empty if no style is set.
+        [[nodiscard]]
+        String ansi_open() const {
+            if (!has_fg() && !has_bg() && !has_emphasis()) {
+                return ""s;
+            }
+
+            String s;
+            s.reserve(32);
+            s += "\033[";
+            bool first = true;
+            auto sep = [&]() -> void {
+                if (!first) {
+                    s += ';';
+                }
+                first = false;
+            };
+
+            for (u8 i = 0; i < 8; ++i) {
+                if (emph & (1u << i)) {
+                    sep();
+                    s += Byte::to_string(EMPHASIS_ANSI_CODES[i]);
+                }
+            }
+
+            if (fore.type == ColorType::RGB_COLOR) {
+                RGB c = fore.as_rgb();
+                sep();
+                s += stdx::fmt::format("38;2;{};{};{}", c.r, c.g, c.b);
+            } else if (fore.type == ColorType::TERMINAL_COLOR) {
+                sep();
+                s += Byte::to_string(fore.as_terminal_code());
+            }
+
+            if (back.type == ColorType::RGB_COLOR) {
+                RGB c = back.as_rgb();
+                sep();
+                s += stdx::fmt::format("48;2;{};{};{}", c.r, c.g, c.b);
+            } else if (back.type == ColorType::TERMINAL_COLOR) {
+                sep();
+                s += Byte::to_string(static_cast<u32>(back.as_terminal_code()) + 10u);
+            }
+
+            s += 'm';
+            return s;
+        }
+
+        // The SGR reset sequence.
+        [[nodiscard]]
+        static constexpr StringView ansi_reset() noexcept {
+            return "\033[0m";
+        }
+
+        template <typename... Args>
+        friend void print(const TextStyle& ts, FormatString<Args...> fmt, Args&&... args);
+
+        template <typename... Args>
+        friend void println(const TextStyle& ts, FormatString<Args...> fmt, Args&&... args);
+
+        template <typename... Args>
+        friend void printf(const TextStyle& ts, PrintfString<Args...> fmt, Args&&... args);
     };
 
-    #if 0
+    [[nodiscard]]
+    constexpr TextStyle fg(TextStyle::RGB c) noexcept {
+        return TextStyle().fg(c);
+    }
 
-    // Implementations for text style will go here
-    template <typename... Args>
-    void print(TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
+    [[nodiscard]]
+    constexpr TextStyle fg(TextStyle::Color c) noexcept {
+        return TextStyle().fg(c);
+    }
 
+    [[nodiscard]]
+    constexpr TextStyle fg(TextStyle::TerminalColor c) noexcept {
+        return TextStyle().fg(c);
+    }
+
+    [[nodiscard]] constexpr TextStyle bg(TextStyle::RGB c) noexcept {
+        return TextStyle().bg(c);
+    }
+
+    [[nodiscard]]
+    constexpr TextStyle bg(TextStyle::Color c) noexcept {
+        return TextStyle().bg(c);
+    }
+
+    [[nodiscard]]
+    constexpr TextStyle bg(TextStyle::TerminalColor c) noexcept {
+        return TextStyle().bg(c);
+    }
+
+    [[nodiscard]]
+    constexpr TextStyle emphasis(TextStyle::Emphasis e) noexcept {
+        return TextStyle().with(e);
     }
 
     template <typename... Args>
-    void print(File* stream, TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
-
+    void print(const TextStyle& ts, FormatString<Args...> fmt, Args&&... args) {
+        String body = stdx::fmt::vformat(fmt.get(), stdx::fmt::make_format_args(args...));
+        String open = should_use_color() ? ts.ansi_open() : ""s;
+        String reset = should_use_color() ? TextStyle::ANSI_RESET : ""s;
+        std::print("{}{}{}", open, body, reset);
     }
 
     template <typename... Args>
-    void println(TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
+    void println(const TextStyle& ts, FormatString<Args...> fmt, Args&&... args) {
+        String body = stdx::fmt::vformat(fmt.get(), stdx::fmt::make_format_args(args...));
+        String open = should_use_color() ? ts.ansi_open() : ""s;
+        String reset = should_use_color() ? TextStyle::ANSI_RESET : ""s;
+        std::println("{}{}{}", open, body, reset);
+    }
 
+    // printf to stdout
+    void printf(File::Handle* stream, PrintfString<> fmt) {
+        String converted = stdx::fmt::printf_to_fmt(fmt.get());
+        print(stream, "{}", converted);
+    }
+
+    void printf(OutputStream& stream, PrintfString<> fmt) {
+        String converted = stdx::fmt::printf_to_fmt(fmt.get());
+        print(stream, "{}", converted);
     }
 
     template <typename... Args>
-    void println(File* stream, TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
-
+    void printf(File::Handle* stream, TypeIdentityType<PrintfString<Args...>> fmt, Args&&... args) {
+        String converted = stdx::fmt::printf_to_fmt(fmt.get());
+        String body = stdx::fmt::vformat(converted, stdx::fmt::make_format_args(args...));
+        print(stream, "{}", body);
     }
 
     template <typename... Args>
-    void printf(TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
-        
+    void printf(OutputStream& stream, TypeIdentityType<PrintfString<Args...>> fmt, Args&&... args) {
+        String converted = stdx::fmt::printf_to_fmt(fmt.get());
+        String body = stdx::fmt::vformat(converted, stdx::fmt::make_format_args(args...));
+        print(stream, "{}", body);
     }
 
     template <typename... Args>
-    void printf(File* stream, TextStyle ts, FormatString<Args...> fmt, Args&&... args) {
-        
+    void printf(TypeIdentityType<PrintfString<Args...>> fmt, Args&&... args) {
+        String converted = stdx::fmt::printf_to_fmt(fmt.get());
+        String body = stdx::fmt::vformat(converted, stdx::fmt::make_format_args(args...));
+        print("{}", body);
     }
-    #endif
-    #endif
+
+    // printf to stdout with TextStyle
+    template <typename... Args>
+    void printf(const TextStyle& ts, TypeIdentityType<PrintfString<Args...>> fmt, Args&&... args) {
+        String converted = stdx::fmt::printf_to_fmt(fmt.get());
+        String body = stdx::fmt::vformat(converted, stdx::fmt::make_format_args(args...));
+        String open = should_use_color() ? ts.ansi_open() : ""s;
+        String reset = should_use_color() ? TextStyle::ANSI_RESET : ""s;
+        print("{}{}{}", open, body, reset);
+    }
+
+    template <typename T>
+    void print(T&& x) {
+        print("{}", stdx::util::forward<T>(x));
+    }
+
+    void printf(StringView fmt) {
+        String converted = stdx::fmt::printf_to_fmt(fmt);
+        print("{}", converted);
+    }
+
+    template <typename T>
+        requires (!IsConvertibleValue<T, StringView>)
+    void printf(T&& x) {
+        print("{}", stdx::util::forward<T>(x));
+    }
+
+    template <typename T>
+    void println(T&& x) {
+        println("{}", stdx::util::forward<T>(x));
+    }
+
+    template <typename T>
+    void print(File::Handle* stream, T&& x) {
+        print(stream, "{}", stdx::util::forward<T>(x));
+    }
+
+    template <typename T>
+    void print(OutputStream& stream, T&& x) {
+        print(stream, "{}", stdx::util::forward<T>(x));
+    }
+
+    void printf(File::Handle* stream, StringView fmt) {
+        String converted = stdx::fmt::printf_to_fmt(fmt);
+        print(stream, "{}", converted);
+    }
+
+    template <typename T>
+        requires (!IsConvertibleValue<T, StringView>)
+    void printf(File::Handle* stream, T&& x) {
+        print(stream, "{}", stdx::util::forward<T>(x));
+    }
+
+    void printf(OutputStream& stream, StringView fmt) {
+        String converted = stdx::fmt::printf_to_fmt(fmt);
+        print(stream, "{}", converted);
+    }
+
+    template <typename T>
+        requires (!IsConvertibleValue<T, StringView>)
+    void printf(OutputStream& stream, T&& x) {
+        print(stream, "{}", stdx::util::forward<T>(x));
+    }
+
+    template <typename T>
+    void println(File::Handle* stream, T&& x) {
+        println(stream, "{}", stdx::util::forward<T>(x));
+    }
+
+    template <typename T>
+    void println(OutputStream& stream, T&& x) {
+        println(stream, "{}", stdx::util::forward<T>(x));
+    }
+    #endif // __cpp_lib_print
 }
+
+using stdx::io::TextStyle;
+
+namespace stdx::fmt {
+    template <>
+    struct Formatter<TextStyle> {
+        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+            return ctx.begin();
+        }
+
+        static FormatContext::iterator format(const TextStyle& ts, FormatContext& ctx) {
+            String seq = stdx::io::should_use_color() ? ts.ansi_open() : ""s;
+            return format_to(ctx.out(), "{}", seq);
+        }
+    };
+}
+
+SPECIALIZE_FORMATTER(TextStyle);

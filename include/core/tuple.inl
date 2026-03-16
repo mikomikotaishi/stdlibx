@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace core::prelude {
     template <typename... Elements>
     using Tuple = std::tuple<Elements...>;
 
@@ -19,6 +19,9 @@ export namespace core {
 
     template <usize I, typename T>
     using TupleElementType = std::tuple_element_t<I, T>;
+
+    using IgnoreType = decltype(std::ignore);
+    constexpr auto IGNORE = std::ignore;
 
     using std::operator==;
     using std::operator<=>;

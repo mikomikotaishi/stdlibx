@@ -7,14 +7,26 @@ set(CMAKE_CXX_MODULE_STD ON)
 
 if(CMAKE_VERSION VERSION_LESS_EQUAL "3.31.7")
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "0e5b6991-d74f-4b3d-a41c-cf096e0b2508")
-elseif(CMAKE_VERSION VERSION_LESS "4.3")
+elseif(CMAKE_VERSION VERSION_LESS_EQUAL "4.2.3")
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
+else()
+    set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
 endif()
 
 option(BUILD_STATIC_LIBS "Build static libraries instead of shared" OFF)
 
 set(STDLIB "default" CACHE STRING "C++ standard library to use (default, libstdc++, libc++)")
 set_property(CACHE STDLIB PROPERTY STRINGS "default" "libstdc++" "libc++")
+
+# CXX compile flags must be set BEFORE project() so that CMake's import-std
+# detection finds the correct standard library module source (e.g. libc++'s
+# std.cppm instead of libstdc++'s std.cc). Linker flags are applied after
+# project() to avoid breaking the C compiler test.
+if(STDLIB STREQUAL "libc++")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+elseif(STDLIB STREQUAL "libstdc++")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+endif()
 
 if(BUILD_STATIC_LIBS)
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
@@ -44,8 +56,8 @@ project(stdlibx
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 function(configure_cpp_module_target target)
-    set_target_properties(${target} PROPERTIES 
-        CXX_EXTENSIONS OFF 
+    set_target_properties(${target} PROPERTIES
+        CXX_EXTENSIONS OFF
         CXX_MODULE_BMI_DIRECTORY "${CMAKE_CXX_MODULE_BMI_DIRECTORY}"
         CMAKE_CXX_STANDARD 23
         CMAKE_CXX_MODULE_STD ON
@@ -119,11 +131,9 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if(STDLIB STREQUAL "libc++")
         message(STATUS "Standard library: libc++")
-        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>)
         add_link_options(-stdlib=libc++)
     elseif(STDLIB STREQUAL "libstdc++")
         message(STATUS "Standard library: libstdc++")
-        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libstdc++>)
         add_link_options(-stdlib=libstdc++)
     else()
         if(APPLE)
@@ -163,18 +173,22 @@ include(FetchContent)
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
-option(STDLIBX_NO_STD "Disable the stdx::* namespace and only use core::* and alloc::*" OFF)
+option(STDLIBX_NO_STDX "Disable the stdx::* namespace and only use core::* and alloc::*" OFF)
 option(STDLIBX_NO_ALLOC "Disable the alloc::* namespace and only use core::*" OFF)
-option(STDLIBX_IMPLICIT_USING_CORE "Make the stdx::core::* namespace implicitly load symbols into scope at import" ON)
+option(STDLIBX_EXPORT_IMPORT_STD "Enable export import std" OFF)
+option(STDLIBX_IMPLICIT_USING_CORE "Make the stdx::core::* namespace implicitly imported at module import" ON)
+option(STDLIBX_IMPLICIT_USING_LITERALS "Make the stdx::literals::* namespace implicitly imported at module import" ON)
 option(STDLIBX_COMPILE_EXPERIMENTAL_HEADERS "Enable experimental standard library headers" OFF)
 option(STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY "Enable architecture intrinsics header modules in stdx::arch::*" OFF)
-option(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY "Enable compiler header modules in stdx::compiler::*" OFF)
+option(STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY "Enable Clang header modules in stdx::compiler::clang::*" OFF)
+option(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY "Enable LLVM header modules in stdx::compiler::llvm::*" OFF)
 option(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY "Enable libsodium modules in stdx::crypto::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY "Enable Microsoft Guidelines Support Library modules in stdx::core::gsl::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx::lua::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY "Enable GNU Multiple Precision Arithmetic modules in stdx::math::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY "Enable operating system header modules in stdx::os::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules in stdx::sql::*" ON)
-option(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY "Enable ZIP/zlib wrapper modules in stdx::zip::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY "Enable ZIP (zlib) wrapper modules in stdx::zip::*" ON)
 option(STDLIBX_BUILD_TESTS "Build the tests for stdlibx" ON)
 
 set(COMPILER_APPLE_CLANG OFF)
@@ -207,12 +221,24 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|armv7l")
     set(ARCH_ARM ON)
 endif()
 
-if(STDLIBX_NO_STD)
+if(STDLIBX_NO_STD AND STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
     set(STDLIBX_USE_RESERVED_STD_IDENTIFIERS OFF CACHE BOOL "Disabled because STDLIBX_NO_STD is ON" FORCE)
 endif()
 
-if(STDLIBX_NO_ALLOC)
+if(STDLIBX_NO_ALLOC AND NOT STDLIBX_NO_STD)
     set(STDLIBX_NO_STD ON CACHE BOOL "Implied because STDLIBX_NO_ALLOC disables stdx.*" FORCE)
+endif()
+
+if(COMPILER_GCC AND NOT STDLIBX_EXPORT_IMPORT_STD)
+    set(STDLIBX_EXPORT_IMPORT_STD ON CACHE BOOL "export import std is forced on GCC due to compiler bugs" FORCE)
+endif()
+
+if((NOT COMPILER_APPLE_CLANG OR NOT COMPILER_CLANG) AND STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY)
+    set(STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY OFF CACHE BOOL "Disabled because compiler is not Clang" FORCE)
+endif()
+
+if((NOT COMPILER_APPLE_CLANG OR NOT COMPILER_CLANG) AND STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY)
+    set(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY OFF CACHE BOOL "Disabled because compiler is not Clang" FORCE)
 endif()
 
 add_library(stdlibx INTERFACE)
@@ -249,16 +275,24 @@ if(STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
 endif()
 
-if(STDLIBX_NO_STD)
-    target_compile_definitions(stdlibx INTERFACE STDLIBX_NO_STD)
+if(STDLIBX_NO_STDX)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_NO_STDX)
 endif()
 
 if(STDLIBX_NO_ALLOC)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_NO_ALLOC)
 endif()
 
+if(STDLIBX_NO_EXPORT_IMPORT_STD)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_NO_EXPORT_IMPORT_STD)
+endif()
+
 if(STDLIBX_IMPLICIT_USING_CORE)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_IMPLICIT_USING_CORE)
+endif()
+
+if(STDLIBX_IMPLICIT_USING_LITERALS)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_IMPLICIT_USING_LITERALS)
 endif()
 
 if(STDLIBX_COMPILE_EXPERIMENTAL_HEADERS)
@@ -269,8 +303,12 @@ if(STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY)
 endif()
 
-if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
-    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
+if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY)
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY)
 endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY)

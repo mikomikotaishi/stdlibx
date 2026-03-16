@@ -6,17 +6,17 @@
  */
 export namespace stdx::io {
     #if __has_include(<spanstream>)
-    template <typename CharT>
-    using BasicSpanBuffer = std::basic_spanbuf<CharT>;
+    template <typename Char>
+    using BasicSpanBuffer = std::basic_spanbuf<Char>;
 
-    template <typename CharT>
-    using BasicInputSpanStream = std::basic_ispanstream<CharT>;
+    template <typename Char>
+    using BasicInputSpanStream = std::basic_ispanstream<Char>;
 
-    template <typename CharT>
-    using BasicOutputSpanStream = std::basic_ospanstream<CharT>;
+    template <typename Char>
+    using BasicOutputSpanStream = std::basic_ospanstream<Char>;
 
-    template <typename CharT>
-    using BasicSpanStream = std::basic_spanstream<CharT>;
+    template <typename Char>
+    using BasicSpanStream = std::basic_spanstream<Char>;
 
     using SpanBuffer = std::spanbuf;
     using WideSpanBuffer = std::wspanbuf;

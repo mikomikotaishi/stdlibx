@@ -275,7 +275,7 @@ export namespace core::text {
     private:
         Self value;
     public:
-        constexpr TextEncodingId(Self value = Self()) noexcept:
+        constexpr TextEncodingId(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {

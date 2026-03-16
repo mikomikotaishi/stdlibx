@@ -324,12 +324,22 @@ public:
     }
 
     [[nodiscard]]
+    static bool is_alphanumeric(Ch c) noexcept {
+        return ::core::text::isalnum(static_cast<unsigned char>(c));
+    }
+
+    [[nodiscard]]
     bool is_alphabetic() const noexcept requires HasGet<Ch, Derived> {
         return ::core::text::isalpha(
             static_cast<unsigned char>(
                 static_cast<const Derived&>(*this).get()
             )
         );
+    }
+
+    [[nodiscard]]
+    static bool is_alphabetic(Ch c) noexcept {
+        return ::core::text::isalpha(static_cast<unsigned char>(c));
     }
 
     [[nodiscard]]
@@ -342,12 +352,22 @@ public:
     }
 
     [[nodiscard]]
+    static bool is_lower_case(Ch c) noexcept {
+        return ::core::text::islower(static_cast<unsigned char>(c));
+    }
+
+    [[nodiscard]]
     bool is_upper_case() const noexcept requires HasGet<Ch, Derived> {
         return ::core::text::isupper(
             static_cast<unsigned char>(
                 static_cast<const Derived&>(*this).get()
             )
         );
+    }
+
+    [[nodiscard]]
+    static bool is_upper_case(Ch c) noexcept {
+        return ::core::text::isupper(static_cast<unsigned char>(c));
     }
 
     [[nodiscard]]
@@ -360,12 +380,22 @@ public:
     }
 
     [[nodiscard]]
+    static bool is_digit(Ch c) noexcept {
+        return ::core::text::isdigit(static_cast<unsigned char>(c));
+    }
+
+    [[nodiscard]]
     bool is_whitespace() const noexcept requires HasGet<Ch, Derived> {
         return ::core::text::isspace(
             static_cast<unsigned char>(
                 static_cast<const Derived&>(*this).get()
             )
         );
+    }
+
+    [[nodiscard]]
+    static bool is_whitespace(Ch c) noexcept {
+        return ::core::text::isspace(static_cast<unsigned char>(c));
     }
 
     [[nodiscard]]
@@ -378,6 +408,11 @@ public:
     }
 
     [[nodiscard]]
+    static bool is_control(Ch c) noexcept {
+        return ::core::text::iscntrl(static_cast<unsigned char>(c));
+    }
+
+    [[nodiscard]]
     bool is_printable() const noexcept requires HasGet<Ch, Derived> {
         return ::core::text::isprint(static_cast<unsigned char>(
             static_cast<const Derived&>(*this).get()
@@ -385,9 +420,19 @@ public:
     }
 
     [[nodiscard]]
+    static bool is_printable(Ch c) noexcept {
+        return ::core::text::isprint(static_cast<unsigned char>(c));
+    }
+
+    [[nodiscard]]
     bool is_valid_code_point() const noexcept requires HasGet<Ch, Derived> {
         auto c = static_cast<const Derived&>(*this).get() >> 16;
         return c < 17;
+    }
+
+    [[nodiscard]]
+    static bool is_valid_code_point(Ch c) noexcept {
+        return (c >> 16) < 17;
     }
 };
 
@@ -511,6 +556,12 @@ public:
     constexpr operator u8() const noexcept {
         return value;
     }
+
+    template <typename Int>
+    [[nodiscard]]
+    static constexpr Int to_integer(ByteUnit b) noexcept {
+        return ::core::math::to_integer<Int>(b);
+    }
 };
 
 export class [[nodiscard]] Short final: public Number<i16, Short> {
@@ -561,7 +612,7 @@ public:
     }
 };
 
-export class [[nodiscard]] Character final: public Number<char, Character>, private CharacterBase<char, Character> {
+export class [[nodiscard]] Character final: public Number<char, Character>, public CharacterBase<char, Character> {
 public:
     using UnicodeBlock = CharacterBase::UnicodeBlock;
     using UnicodeNames = CharacterBase::UnicodeNames;
@@ -573,7 +624,7 @@ public:
     }
 };
 
-export class [[nodiscard]] UnsignedCharacter final: public Number<unsigned char, UnsignedCharacter>, private CharacterBase<unsigned char, UnsignedCharacter> {
+export class [[nodiscard]] UnsignedCharacter final: public Number<unsigned char, UnsignedCharacter>, public CharacterBase<unsigned char, UnsignedCharacter> {
 public:
     using UnicodeBlock = CharacterBase::UnicodeBlock;
     using UnicodeNames = CharacterBase::UnicodeNames;
@@ -585,7 +636,7 @@ public:
     }
 };
 
-export class [[nodiscard]] Character8 final: public Number<char8, Character8>, private CharacterBase<char8, Character8> {
+export class [[nodiscard]] Character8 final: public Number<char8, Character8>, public CharacterBase<char8, Character8> {
 public:
     using UnicodeBlock = CharacterBase::UnicodeBlock;
     using UnicodeNames = CharacterBase::UnicodeNames;
@@ -597,7 +648,7 @@ public:
     }
 };
 
-export class [[nodiscard]] Character16 final: public Number<char16, Character16>, private CharacterBase<char16, Character16> {
+export class [[nodiscard]] Character16 final: public Number<char16, Character16>, public CharacterBase<char16, Character16> {
 public:
     using UnicodeBlock = CharacterBase::UnicodeBlock;
     using UnicodeNames = CharacterBase::UnicodeNames;
@@ -609,7 +660,7 @@ public:
     }
 };
 
-export class [[nodiscard]] Character32 final: public Number<char32, Character32>, private CharacterBase<char32, Character32> {
+export class [[nodiscard]] Character32 final: public Number<char32, Character32>, public CharacterBase<char32, Character32> {
 public:
     using UnicodeBlock = CharacterBase::UnicodeBlock;
     using UnicodeNames = CharacterBase::UnicodeNames;
@@ -621,7 +672,7 @@ public:
     }
 };
 
-export class [[nodiscard]] WideCharacter final: public Number<wchar, WideCharacter>, private CharacterBase<wchar, WideCharacter> {
+export class [[nodiscard]] WideCharacter final: public Number<wchar, WideCharacter>, public CharacterBase<wchar, WideCharacter> {
 public:
     using UnicodeBlock = CharacterBase::UnicodeBlock;
     using UnicodeNames = CharacterBase::UnicodeNames;

@@ -8,15 +8,6 @@ export namespace stdx::collections {
     using ::alloc::collections::HashSet;
     using ::alloc::collections::HashMultiset;
 
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using ::alloc::collections::pmr::HashSet;
-        using ::alloc::collections::pmr::HashMultiset;
-    }
-
     using ::alloc::collections::erase_if;
 
     using ::alloc::collections::operator==;

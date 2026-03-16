@@ -3,8 +3,6 @@
 using core::meta::IsSameValue;
 using core::meta::RemoveConstVolatile;
 
-using alloc::Allocator;
-
 /**
  * @namespace alloc::collections
  * @brief Wrapper namespace for standard library collection operations.

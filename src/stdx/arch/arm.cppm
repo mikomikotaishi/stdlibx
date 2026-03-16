@@ -8,6 +8,9 @@
 
 module;
 
+#ifdef __ARM_FP
+#include <arm_neon.h>
+#endif
+
 export module stdx:arch.arm;
 
-export import :arch.arm.arm_neon;

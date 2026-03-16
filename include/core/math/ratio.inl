@@ -1,11 +1,13 @@
 #pragma once
 
+using namespace core::prelude;
+
 /**
  * @namespace core::math::ratio
  * @brief Wrapper namespace for standard library ratio operations.
  */
 export namespace core::math::inline ratio {
-    template <std::intmax_t Num, std::intmax_t Denom = 1>
+    template <intmax Num, intmax Denom = 1>
     using Ratio = std::ratio<Num, Denom>;
 
     template <typename R1, typename R2>

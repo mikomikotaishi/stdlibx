@@ -6,11 +6,11 @@
  */
 export namespace stdx::core {
     #ifdef __cpp_lib_contracts
-    using ::core::AssertionKind;
-    using ::core::EvaluationSemantic;
-    using ::core::DetectionMode;
-    using ::core::ContractViolation;
+    using ::core::prelude::AssertionKind;
+    using ::core::prelude::EvaluationSemantic;
+    using ::core::prelude::DetectionMode;
+    using ::core::prelude::ContractViolation;
 
-    using ::core::invoke_default_contract_violation_handler;
+    using ::core::prelude::invoke_default_contract_violation_handler;
     #endif
 }

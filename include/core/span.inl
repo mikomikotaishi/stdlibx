@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace core::prelude {
     inline constexpr usize DYNAMIC_EXTENT = std::dynamic_extent;
 
     template <typename T, usize Extent = DYNAMIC_EXTENT>

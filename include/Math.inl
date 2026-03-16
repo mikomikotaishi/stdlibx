@@ -4,51 +4,49 @@ class Math final {
 public:
     Math() = delete;
 
-    static constexpr double E = ::core::math::numbers::E; ///< e
-    static constexpr double LOG_2_E = ::core::math::numbers::LOG_2_E; ///< log_2 e
-    static constexpr double LOG_10_E = ::core::math::numbers::LOG_10_E; ///< log_10 e
-    static constexpr double PI = ::core::math::numbers::PI; ///< pi
-    static constexpr double INV_PI = ::core::math::numbers::INV_PI; ///< 1/pi
-    static constexpr double INV_SQRT_PI = ::core::math::numbers::INV_SQRT_PI; ///< 1/sqrt(pi)
-    static constexpr double LN_2 = ::core::math::numbers::LN_2; ///< log_e 2
-    static constexpr double LN_10 = ::core::math::numbers::LN_10; ///< log_e 10
-    static constexpr double SQRT_2 = ::core::math::numbers::SQRT_2; ///< sqrt(2)
-    static constexpr double SQRT_3 = ::core::math::numbers::SQRT_3; ///< sqrt(3)
-    static constexpr double INV_SQRT_3 = ::core::math::numbers::INV_SQRT_3; ///< 1/sqrt(3)
-    static constexpr double E_GAMMA = ::core::math::numbers::E_GAMMA; ///< Euler-Mascheroni constant
-    static constexpr double PHI = ::core::math::numbers::PHI; ///< Golden ratio (1+sqrt(5))/2
+    static constexpr f64 E = ::core::math::numbers::E; ///< e
+    static constexpr f64 LOG_2_E = ::core::math::numbers::LOG_2_E; ///< log_2 e
+    static constexpr f64 LOG_10_E = ::core::math::numbers::LOG_10_E; ///< log_10 e
+    static constexpr f64 PI = ::core::math::numbers::PI; ///< pi
+    static constexpr f64 INV_PI = ::core::math::numbers::INV_PI; ///< 1/pi
+    static constexpr f64 INV_SQRT_PI = ::core::math::numbers::INV_SQRT_PI; ///< 1/sqrt(pi)
+    static constexpr f64 LN_2 = ::core::math::numbers::LN_2; ///< log_e 2
+    static constexpr f64 LN_10 = ::core::math::numbers::LN_10; ///< log_e 10
+    static constexpr f64 SQRT_2 = ::core::math::numbers::SQRT_2; ///< sqrt(2)
+    static constexpr f64 SQRT_3 = ::core::math::numbers::SQRT_3; ///< sqrt(3)
+    static constexpr f64 INV_SQRT_3 = ::core::math::numbers::INV_SQRT_3; ///< 1/sqrt(3)
+    static constexpr f64 E_GAMMA = ::core::math::numbers::E_GAMMA; ///< Euler-Mascheroni constant
+    static constexpr f64 PHI = ::core::math::numbers::PHI; ///< Golden ratio (1+sqrt(5))/2
 
-    #ifndef STDLIBX_NO_STD_CORE_FEATURES
-    static constexpr auto HUGE_VAL = ::stdx::math::HUGE_VAL;
-    static constexpr auto HUGE_VALF = ::stdx::math::HUGE_VALF;
-    static constexpr auto HUGE_VALL = ::stdx::math::HUGE_VALL;
-    static constexpr auto INFINITY = ::stdx::math::INFINITY;
-    static constexpr auto NAN = ::stdx::math::NAN;
-    static constexpr auto MATH_ERRHANDLING = ::stdx::math::MATH_ERRHANDLING;
-    static constexpr auto MATH_ERRNO = ::stdx::math::MATH_ERRNO;
-    static constexpr auto MATH_ERREXCEPT = ::stdx::math::MATH_ERREXCEPT;
-    static constexpr auto FP_NORMAL = ::stdx::math::FP_NORMAL;
-    static constexpr auto FP_SUBNORMAL = ::stdx::math::FP_SUBNORMAL;
-    static constexpr auto FP_ZERO = ::stdx::math::FP_ZERO;
-    static constexpr auto FP_INFINITE = ::stdx::math::FP_INFINITE;
-    static constexpr auto FP_NAN = ::stdx::math::FP_NAN;
+    static constexpr auto HUGE_VAL = ::core::math::HUGE_VAL;
+    static constexpr auto HUGE_VALF = ::core::math::HUGE_VALF;
+    static constexpr auto HUGE_VALL = ::core::math::HUGE_VALL;
+    static constexpr auto INFINITY = ::core::math::INFINITY;
+    static constexpr auto NAN = ::core::math::NAN;
+    static constexpr auto MATH_ERRHANDLING = ::core::math::MATH_ERRHANDLING;
+    static constexpr auto MATH_ERRNO = ::core::math::MATH_ERRNO;
+    static constexpr auto MATH_ERREXCEPT = ::core::math::MATH_ERREXCEPT;
+    static constexpr auto FP_NORMAL = ::core::math::FP_NORMAL;
+    static constexpr auto FP_SUBNORMAL = ::core::math::FP_SUBNORMAL;
+    static constexpr auto FP_ZERO = ::core::math::FP_ZERO;
+    static constexpr auto FP_INFINITE = ::core::math::FP_INFINITE;
+    static constexpr auto FP_NAN = ::core::math::FP_NAN;
 
-    static constexpr auto RAND_MAX = ::stdx::random::RAND_MAX;
+    static constexpr auto RAND_MAX = ::core::random::RAND_MAX;
 
-    static constexpr auto FE_ALL_EXCEPT = ::stdx::math::FE_ALL_EXCEPT;
-    static constexpr auto FE_DIVBYZERO = ::stdx::math::FE_DIVBYZERO;
-    static constexpr auto FE_INEXACT = ::stdx::math::FE_INEXACT;
-    static constexpr auto FE_INVALID = ::stdx::math::FE_INVALID;
-    static constexpr auto FE_OVERFLOW = ::stdx::math::FE_OVERFLOW;
-    static constexpr auto FE_UNDERFLOW = ::stdx::math::FE_UNDERFLOW;
+    static constexpr auto FE_ALL_EXCEPT = ::core::math::FE_ALL_EXCEPT;
+    static constexpr auto FE_DIVBYZERO = ::core::math::FE_DIVBYZERO;
+    static constexpr auto FE_INEXACT = ::core::math::FE_INEXACT;
+    static constexpr auto FE_INVALID = ::core::math::FE_INVALID;
+    static constexpr auto FE_OVERFLOW = ::core::math::FE_OVERFLOW;
+    static constexpr auto FE_UNDERFLOW = ::core::math::FE_UNDERFLOW;
 
-    static constexpr auto FE_TONEAREST = ::stdx::math::FE_TONEAREST;
-    static constexpr auto FE_DOWNWARD = ::stdx::math::FE_DOWNWARD;
-    static constexpr auto FE_UPWARD = ::stdx::math::FE_UPWARD;
-    static constexpr auto FE_TOWARDZERO = ::stdx::math::FE_TOWARDZERO;
+    static constexpr auto FE_TONEAREST = ::core::math::FE_TONEAREST;
+    static constexpr auto FE_DOWNWARD = ::core::math::FE_DOWNWARD;
+    static constexpr auto FE_UPWARD = ::core::math::FE_UPWARD;
+    static constexpr auto FE_TOWARDZERO = ::core::math::FE_TOWARDZERO;
 
-    static inline const auto FE_DFL_ENV = ::stdx::math::FE_DFL_ENV;
-    #endif
+    static inline const auto FE_DFL_ENV = ::core::math::FE_DFL_ENV;
 
     // Basic operations
 
@@ -185,18 +183,21 @@ public:
     }
 
     template <typename T, typename Compare>
+    [[nodiscard]]
     static constexpr Pair<const T&, const T&> minmax(const T& a, const T& b, Compare c) noexcept {
         using std::minmax;
         return minmax(a, b, c);
     }
 
     template <typename T>
+    [[nodiscard]]
     static constexpr Pair<T, T> minmax(InitializerList<T> list) noexcept {
         using std::minmax;
         return minmax(list);
     }
 
     template <typename T, typename Compare>
+    [[nodiscard]]
     static constexpr Pair<T, T> minmax(InitializerList<T> list, Compare c) noexcept {
         using std::minmax;
         return minmax(list, c);
@@ -652,7 +653,7 @@ public:
         return isunordered(x, y);
     }
 
-    // Special functions
+    #ifdef __cpp_lib_math_special_functions
 
     [[nodiscard]]
     static constexpr Numeric auto assoc_laguerre(u32 n, u32 m, Numeric auto x) noexcept {
@@ -779,6 +780,8 @@ public:
         using std::sph_neumann;
         return sph_neumann(n, x);
     }
+
+    #endif
 
     // Complex number functions
 
@@ -987,7 +990,7 @@ public:
     [[nodiscard]]
     static f64 random() {
         static thread_local MersenneTwister rng{RandomDevice{}()};
-        static thread_local UniformRealDistribution<double> dist(0.0, 1.0);
+        static thread_local UniformRealDistribution<f64> dist(0.0, 1.0);
         return dist(rng);
     }
     #endif

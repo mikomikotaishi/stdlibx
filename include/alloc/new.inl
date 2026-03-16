@@ -1,7 +1,5 @@
 #pragma once
 
-using core::usize;
-
 /**
  * @namespace alloc
  * @brief Wrapper namespace for standard library allocation operations.

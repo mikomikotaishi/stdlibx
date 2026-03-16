@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace core::prelude {
     using i8 = std::int8_t;
     using i16 = std::int16_t;
     using i32 = std::int32_t;

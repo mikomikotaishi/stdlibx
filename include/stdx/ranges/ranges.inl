@@ -105,22 +105,36 @@ export namespace stdx::ranges {
         using ::core::ranges::types::Counted;
         using ::core::ranges::types::Common;
         using ::core::ranges::types::Reverse;
+        #ifdef __cpp_lib_ranges_as_const
         using ::core::ranges::types::AsConst;
+        #endif
         using ::core::ranges::types::Elements;
         using ::core::ranges::types::Keys;
         using ::core::ranges::types::Values;
+        #ifdef __cpp_lib_ranges_enumerate
         using ::core::ranges::types::Enumerate;
+        #endif
         using ::core::ranges::types::Zip;
         using ::core::ranges::types::ZipTransform;
         using ::core::ranges::types::Adjacent;
         using ::core::ranges::types::Pairwise;
         using ::core::ranges::types::AdjacentTransform;
         using ::core::ranges::types::PairwiseTransform;
+        #ifdef __cpp_lib_ranges_chunk
         using ::core::ranges::types::Chunk;
+        #endif
+        #ifdef __cpp_lib_ranges_slide
         using ::core::ranges::types::Slide;
+        #endif
+        #ifdef __cpp_lib_ranges_chunk_by
         using ::core::ranges::types::ChunkBy;
+        #endif
+        #ifdef __cpp_lib_ranges_stride
         using ::core::ranges::types::Stride;
+        #endif
+        #ifdef __cpp_lib_ranges_cartesian_product
         using ::core::ranges::types::CartesianProduct;
+        #endif
         #ifdef __cpp_lib_ranges_cache_latest
         using ::core::ranges::types::CacheLatest;
         #endif
@@ -148,20 +162,34 @@ export namespace stdx::ranges {
     #endif
     using ::core::ranges::CommonView;
     using ::core::ranges::ReverseView;
+    #ifdef __cpp_lib_ranges_as_const
     using ::core::ranges::AsConstView;
+    #endif
     using ::core::ranges::ElementsView;
     using ::core::ranges::KeysView;
     using ::core::ranges::ValuesView;
+    #ifdef __cpp_lib_ranges_enumerate
     using ::core::ranges::EnumerateView;
+    #endif
     using ::core::ranges::ZipView;
     using ::core::ranges::ZipTransformView;
     using ::core::ranges::AdjacentView;
     using ::core::ranges::AdjacentTransformView;
+    #ifdef __cpp_lib_ranges_chunk
     using ::core::ranges::ChunkView;
+    #endif
+    #ifdef __cpp_lib_ranges_slide
     using ::core::ranges::SlideView;
+    #endif
+    #ifdef __cpp_lib_ranges_chunk_by
     using ::core::ranges::ChunkByView;
+    #endif
+    #ifdef __cpp_lib_ranges_stride
     using ::core::ranges::StrideView;
+    #endif
+    #ifdef __cpp_lib_ranges_cartesian_product
     using ::core::ranges::CartesianProductView;
+    #endif
     #ifdef __cpp_lib_ranges_cache_latest
     using ::core::ranges::CacheLatestView;
     #endif
@@ -185,7 +213,9 @@ export namespace stdx::ranges {
         using ::core::ranges::views::Drop;
         using ::core::ranges::views::DropWhile;
         using ::core::ranges::views::Join;
+        #ifdef __cpp_lib_ranges_join_with
         using ::core::ranges::views::JoinWith;
+        #endif
         using ::core::ranges::views::LazySplit;
         using ::core::ranges::views::Split;
         #ifdef __cpp_lib_ranges_concat
@@ -198,18 +228,30 @@ export namespace stdx::ranges {
         using ::core::ranges::views::Elements;
         using ::core::ranges::views::Keys;
         using ::core::ranges::views::Values;
+        #ifdef __cpp_lib_ranges_enumerate
         using ::core::ranges::views::Enumerate;
+        #endif
         using ::core::ranges::views::Zip;
         using ::core::ranges::views::ZipTransform;
         using ::core::ranges::views::Adjacent;
         using ::core::ranges::views::Pairwise;
         using ::core::ranges::views::AdjacentTransform;
         using ::core::ranges::views::PairwiseTransform;
+        #ifdef __cpp_lib_ranges_chunk
         using ::core::ranges::views::Chunk;
+        #endif
+        #ifdef __cpp_lib_ranges_slide
         using ::core::ranges::views::Slide;
+        #endif
+        #ifdef __cpp_lib_ranges_chunk_by
         using ::core::ranges::views::ChunkBy;
+        #endif
+        #ifdef __cpp_lib_ranges_stride
         using ::core::ranges::views::Stride;
+        #endif
+        #ifdef __cpp_lib_ranges_cartesian_product
         using ::core::ranges::views::CartesianProduct;
+        #endif
         #ifdef __cpp_lib_ranges_cache_latest
         using ::core::ranges::views::CacheLatest;
         #endif

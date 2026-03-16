@@ -1,11 +1,10 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
-    using ::core::text::string::CharTraits;
+export namespace core::prelude {
     using ::core::text::string::BasicStringView;
     using ::core::text::string::StringView;
     using ::core::text::string::Utf8StringView;
@@ -31,12 +30,4 @@ export namespace core {
     using ::core::text::string::data;
 
     using ::core::text::string::hash;
-}
-
-/**
- * @namespace core::literals::string_view_literals
- * @brief String view literals namespace
- */
-export namespace core::inline literals::inline string_view_literals {
-    using ::core::literals::string_view_literals::operator""sv;
 }

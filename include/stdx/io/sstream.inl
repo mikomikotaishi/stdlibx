@@ -5,17 +5,17 @@
  * @brief Wrapper namespace for standard library input/output operations.
  */
 export namespace stdx::io {
-    template <typename CharT>
-    using BasicStringBuffer = std::basic_stringbuf<CharT>;
+    template <typename Char>
+    using BasicStringBuffer = std::basic_stringbuf<Char>;
 
-    template <typename CharT>
-    using BasicStringStream = std::basic_stringstream<CharT>;
+    template <typename Char>
+    using BasicStringStream = std::basic_stringstream<Char>;
 
-    template <typename CharT>
-    using BasicInputStringStream = std::basic_istringstream<CharT>;
+    template <typename Char>
+    using BasicInputStringStream = std::basic_istringstream<Char>;
 
-    template <typename CharT>
-    using BasicOutputStringStream = std::basic_ostringstream<CharT>;
+    template <typename Char>
+    using BasicOutputStringStream = std::basic_ostringstream<Char>;
 
     using StringBuffer = std::stringbuf;
     using WideStringBuffer = std::wstringbuf;

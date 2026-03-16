@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace core::prelude {
     #ifdef __cpp_lib_mdspan
     template <typename IdxT, usize... Exts>
     using Extents = std::extents<IdxT, Exts...>;
@@ -44,7 +44,9 @@ export namespace core {
 
     using FullExtentTag = std::full_extent_t;
     inline constexpr FullExtentTag FullExtent = std::full_extent;
+    #endif
 
+    #ifdef __cpp_lib_submdspan
     using std::submdspan_extents;
     using std::submdspan;
     #endif

@@ -8,15 +8,6 @@ export namespace stdx::collections {
     using ::alloc::collections::TreeMap;
     using ::alloc::collections::TreeMultimap;
 
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using ::alloc::collections::pmr::TreeMap;
-        using ::alloc::collections::pmr::TreeMultimap;
-    }
-
     using ::alloc::collections::erase_if;
 
     using ::alloc::collections::operator==;

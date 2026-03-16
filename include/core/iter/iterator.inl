@@ -151,6 +151,7 @@ export namespace core::iter {
     template <Semiregular Sent>
     using MoveSentinel = std::move_sentinel<Sent>;
 
+    #ifdef __cpp_lib_ranges_as_const
     template <InputIterator Iter>
     using BasicConstIterator = std::basic_const_iterator<Iter>;
 
@@ -159,6 +160,7 @@ export namespace core::iter {
 
     template <Semiregular Sent>
     using ConstSentinel = std::const_sentinel<Sent>;
+    #endif
 
     template <InputOrOutputIterator Iter, SentinelFor<Iter> Sent>
     using CommonIterator = std::common_iterator<Iter, Sent>;
@@ -195,8 +197,10 @@ export namespace core::iter {
 
     using std::make_reverse_iterator;
     using std::make_move_iterator;
+    #ifdef __cpp_lib_ranges_as_const
     using std::make_const_iterator;
     using std::make_const_sentinel;
+    #endif
     using std::front_inserter;
     using std::back_inserter;
     using std::inserter;

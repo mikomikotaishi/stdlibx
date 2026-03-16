@@ -18,23 +18,30 @@ The main features of this repackaging of the standard library are:
 - Option to use only `core` and `alloc` modules instead of the full standard library, similar to Rust
 
 Pros:
-- A clean (in my opinion) API that is more in line with what C++ style should be (in my opinion), and other languages.
+- A clean API that is more in line with what C++ style should be (in my opinion), as well as that of other languages.
 - More features that ought to be part of the standard library, in a clean, C++-style interface.
 - Consistently updated (but is currently in-development and may be subject to unstable, API-breaking changes).
 
 Cons:
 - Non-standard, obviously. Features are obviously dependent on what is supported by vendors, and different compilers may have different challenges building this library.
 - This library is developed independently. While we accept feature requests, pull requests, and improvements from everyone, do note that support is limited due to the limited resources.
+- Because of its limited development resources, bugs are bound to arise in independently-developed parts.
 - Often relies on cutting or bleeding-edge features, which may not be suitable for stability-priority projects.
 - Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 20-30 seconds to build on my (modest) hardware on both Clang and GCC.
+- No support for headers. The library likely will not ever support headers, as it makes extensive use of `using` statements (and is designed to encourage their usage), and any attempt to simultaneously support headers and modules would likely clutter the code with preprocessor directives and ugly macros.
 
-Requires a minimum of C++23. This library is tested with libstdc++ (GCC) as the default standard library, and has not yet been tested with libc++ (Clang) or MSVC STL. This library expects a minimum of C++23 features, and only provides feature-test macro guarding for features added in C++26 and onward.
+Requires a minimum of C++23. This library is tested with libstdc++ (GCC) as the default standard library. and has not yet been tested with or MSVC STL. This library expects a minimum of C++23 features, but provides feature-test macro guarding as appropriate.
+
+> **WARNING:** Clang libc++ support lags behind GCC libstdc++ tremendously, and some feature-test macros are incorrectly activated on libc++ despite incomplete support. As such, it is recommended to use libstdc++.
+
+Note that currently, Clang module support is far superior to that of GCC, and thus more features are supported on Clang due to certain bugs (such as compiler crashes and conflicting definition loads) on GCC. Many of these are beyond my ability to solve unfortunately.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### Features
 - Everything included in the C++ standard library
-- Additional ease-of-use classes and Java-style utility classes (`stdx::core::Integer`, `stdx::core::Character`, `stdx::core::Math`)
+- Additional ease-of-use classes and Java-style utility classes (`stdx::core::System`, `stdx::core::Integer`, `stdx::core::Character`, `stdx::core::Math`)
+- An improved chronology library based on `java.time.chrono`
 - Minimal wrappers over the GNU C library, Win32 API, and Linux headers, where possible (in `stdx::os`)
 - A JDBC-style ODBC wrapper (with `stdx::sql`)
 - LINQ-style queries (`stdx::linq`), wrapping over `std::views::*`
@@ -60,9 +67,11 @@ Disabled when `STDLIBX_NO_STD` (or `STDLIBX_NO_ALLOC`) are enabled.
 
 > **NOTE:** Some parts of this library may be third-party or re-exports of existing libraries, and thus not entirely original code. Code that originates from third party will be adequately attributed, but if there are any issues or concerns, please do not hesitate to contact me.
 
-Some third-party libraries used here include:
+Some third-party libraries used here (as optional dependencies) include:
 - [gmplib](https://gmplib.org/)
+- [libsodium](https://doc.libsodium.org/)
 - [p-ranav/glob](https://github.com/p-ranav/glob)
+- [zlib](https://zlib.net/)
 
 ## Example
 ```cpp
@@ -94,9 +103,9 @@ int main(int argc, char* argv[]) {
 
     if (result) {
         const auto& [path, size] = *result;
-        stdx::io::println("Largest .txt file: {} ({} bytes)", path.string(), size);
+        System::out.println("Largest .txt file: {} ({} bytes)", path.string(), size);
     } else {
-        stdx::io::println("No .txt files found in directory: {}", dir.string());
+        System::out.println("No .txt files found in directory: {}", dir.string());
     }
 }
 ```

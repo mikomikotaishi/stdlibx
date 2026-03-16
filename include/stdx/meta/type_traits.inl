@@ -107,6 +107,24 @@ export namespace stdx::meta {
     using ::core::meta::IsTriviallyMoveConstructibleValue;
     using ::core::meta::IsNothrowMoveConstructible;
     using ::core::meta::IsNothrowMoveConstructibleValue;
+    using ::core::meta::IsAssignable;
+    using ::core::meta::IsAssignableValue;
+    using ::core::meta::IsTriviallyAssignable;
+    using ::core::meta::IsTriviallyAssignableValue;
+    using ::core::meta::IsNothrowAssignable;
+    using ::core::meta::IsNothrowAssignableValue;
+    using ::core::meta::IsCopyAssignable;
+    using ::core::meta::IsCopyAssignableValue;
+    using ::core::meta::IsTriviallyCopyAssignable;
+    using ::core::meta::IsTriviallyCopyAssignableValue;
+    using ::core::meta::IsNothrowCopyAssignable;
+    using ::core::meta::IsNothrowCopyAssignableValue;
+    using ::core::meta::IsMoveAssignable;
+    using ::core::meta::IsMoveAssignableValue;
+    using ::core::meta::IsTriviallyMoveAssignable;
+    using ::core::meta::IsTriviallyMoveAssignableValue;
+    using ::core::meta::IsNothrowMoveAssignable;
+    using ::core::meta::IsNothrowMoveAssignableValue;
     using ::core::meta::IsDestructible;
     using ::core::meta::IsDestructibleValue;
     using ::core::meta::IsTriviallyDestructible;
@@ -123,6 +141,12 @@ export namespace stdx::meta {
     using ::core::meta::IsNothrowSwappableWithValue;
     using ::core::meta::IsNothrowSwappable;
     using ::core::meta::IsNothrowSwappableValue;
+    #ifdef __cpp_lib_reference_from_temporary
+    using ::core::meta::ReferenceConstructsFromTemporary;
+    using ::core::meta::ReferenceConstructsFromTemporaryValue;
+    using ::core::meta::ReferenceConvertsFromTemporary;
+    using ::core::meta::ReferenceConvertsFromTemporaryValue;
+    #endif
     using ::core::meta::AlignmentOf;
     using ::core::meta::AlignmentOfValue;
     using ::core::meta::Rank;
@@ -137,14 +161,20 @@ export namespace stdx::meta {
     using ::core::meta::IsConvertibleValue;
     using ::core::meta::IsNothrowConvertible;
     using ::core::meta::IsNothrowConvertibleValue;
+    #ifdef __cpp_lib_is_layout_compatible
     using ::core::meta::IsLayoutCompatible;
     using ::core::meta::IsLayoutCompatibleValue;
+    #endif
+    #ifdef __cpp_lib_is_pointer_interconvertible
     using ::core::meta::IsPointerInterconvertibleBaseOf;
     using ::core::meta::IsPointerInterconvertibleBaseOfValue;
+    #endif
     using ::core::meta::IsInvocable;
     using ::core::meta::IsInvocableValue;
     using ::core::meta::IsInvocableReturn;
     using ::core::meta::IsInvocableReturnValue;
+    using ::core::meta::IsNothrowInvocable;
+    using ::core::meta::IsNothrowInvocableValue;
     using ::core::meta::IsNothrowInvocableReturn;
     using ::core::meta::IsNothrowInvocableReturnValue;
     using ::core::meta::RemoveConstVolatile;

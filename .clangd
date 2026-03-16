@@ -1,0 +1,4 @@
+If:
+  PathMatch: .*\.inl
+CompileFlags:
+  Add: [-xc++]

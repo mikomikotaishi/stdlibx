@@ -3,8 +3,6 @@
 using core::meta::IsSameValue;
 using core::meta::RemoveConstVolatile;
 
-using alloc::Allocator;
-
 /**
  * @namespace alloc::collections
  * @brief Wrapper namespace for standard library collection operations.
@@ -15,15 +13,6 @@ export namespace alloc::collections {
             IsSameValue<typename RemoveConstVolatile<T>::type, T> &&
             IsSameValue<typename Alloc::value_type, T>
     using SinglyLinkedList = std::forward_list<T, Alloc>;
-
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        template <typename T>
-        using SinglyLinkedList = std::pmr::forward_list<T>;
-    }
 
     using std::erase;
     using std::erase_if;

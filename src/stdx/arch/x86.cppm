@@ -8,7 +8,10 @@
 
 module;
 
+#if defined(__i386__) && defined(__x86_64__)
+#include <immintrin.h>
+#include <x86intrin.h>
+#endif
+
 export module stdx:arch.x86;
 
-export import :arch.x86.immintrin;
-export import :arch.x86.x86intrin;

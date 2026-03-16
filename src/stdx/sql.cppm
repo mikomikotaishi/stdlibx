@@ -20,8 +20,14 @@ export module stdx:sql;
 
 import :main;
 
+using stdx::collections::Queue;
 using stdx::collections::Vector;
-using stdx::mem::UniquePointer;
+using stdx::meta::DecayType;
+using stdx::meta::IsSameValue;
+using stdx::sync::ConditionVariable;
+using stdx::sync::Mutex;
+using stdx::sync::ScopedLock;
+using stdx::sync::UniqueLock;
 
 using namespace stdx::core;
 
@@ -71,6 +77,42 @@ public:
     SQLException(StringView message, StringView state, i32 code):
         Exception(), msg{message}, sql_state{state}, error_code{code} {}
 
+    #ifdef STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
+    /**
+     * @brief Constructs a SQLException by extracting ODBC diagnostic information.
+     *
+     * Calls SQLGetDiagRec to retrieve the actual SQLSTATE, native error code,
+     * and driver error message from the ODBC driver.
+     *
+     * @param handle_type The ODBC handle type (SQL_HANDLE_ENV, SQL_HANDLE_DBC, SQL_HANDLE_STMT).
+     * @param handle The ODBC handle to extract diagnostics from.
+     * @param context A description of the operation that failed.
+     */
+    SQLException(SQLSMALLINT handle_type, SQLHANDLE handle, StringView context):
+        Exception(), sql_state{"HY000"}, error_code{} {
+        SQLCHAR state_buf[6]{};
+        SQLCHAR message_buf[1024]{};
+        SQLINTEGER native_error{};
+        SQLSMALLINT message_length{};
+
+        SQLRETURN diag_ret = SQLGetDiagRec(
+            handle_type, handle, 1,
+            state_buf, &native_error,
+            message_buf, sizeof(message_buf), &message_length
+        );
+
+        if (SQL_SUCCEEDED(diag_ret)) {
+            msg = stdx::fmt::format(
+                "{}: {}", context, reinterpret_cast<char*>(message_buf)
+            );
+            sql_state = String(reinterpret_cast<char*>(state_buf));
+            error_code = static_cast<i32>(native_error);
+        } else {
+            msg = String(context);
+        }
+    }
+    #endif
+
     /**
      * @brief Gets the error message.
      *
@@ -105,6 +147,308 @@ public:
 #ifdef STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
 
 /**
+ * @enum SqlType
+ * @brief Represents SQL data types, mirroring java.sql.Types.
+ */
+enum class SqlType: i32 {
+    UNKNOWN = SQL_UNKNOWN_TYPE,
+    CHAR = SQL_CHAR,
+    VARCHAR = SQL_VARCHAR,
+    LONGVARCHAR = SQL_LONGVARCHAR,
+    NUMERIC = SQL_NUMERIC,
+    DECIMAL = SQL_DECIMAL,
+    INTEGER = SQL_INTEGER,
+    SMALLINT = SQL_SMALLINT,
+    FLOAT = SQL_FLOAT,
+    REAL = SQL_REAL,
+    DOUBLE = SQL_DOUBLE,
+    DATE = SQL_TYPE_DATE,
+    TIME = SQL_TYPE_TIME,
+    TIMESTAMP = SQL_TYPE_TIMESTAMP,
+    BIT = SQL_BIT,
+    TINYINT = SQL_TINYINT,
+    BIGINT = SQL_BIGINT,
+    BINARY = SQL_BINARY,
+    VARBINARY = SQL_VARBINARY,
+    LONGVARBINARY = SQL_LONGVARBINARY,
+};
+
+/**
+ * @enum ColumnNullability
+ * @brief Column nullability status.
+ */
+enum class ColumnNullability: i32 {
+    NO_NULLS = SQL_NO_NULLS,
+    NULLABLE = SQL_NULLABLE,
+    UNKNOWN = SQL_NULLABLE_UNKNOWN,
+};
+
+/**
+ * @enum ResultSetType
+ * @brief Determines cursor scrollability for a ResultSet.
+ */
+enum class ResultSetType: i32 {
+    FORWARD_ONLY = SQL_CURSOR_FORWARD_ONLY,
+    SCROLL_INSENSITIVE = SQL_CURSOR_STATIC,
+    SCROLL_SENSITIVE = SQL_CURSOR_KEYSET_DRIVEN,
+};
+
+/**
+ * @class ResultSetMetaData
+ * @brief Provides information about the columns in a ResultSet.
+ *
+ * Wraps ODBC SQLDescribeCol and SQLColAttribute to expose column metadata
+ * such as type, display size, precision, scale, and nullability.
+ * Mirrors java.sql.ResultSetMetaData.
+ */
+class ResultSetMetaData {
+private:
+    SQLHSTMT stmt;
+    i32 col_count;
+
+    /**
+     * @brief Retrieves a numeric column attribute.
+     *
+     * @param column_index The column index (1-based).
+     * @param attribute The ODBC column attribute identifier.
+     * @return The numeric attribute value.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    SQLLEN numeric_attr(i32 column_index, SQLUSMALLINT attribute) const throws (SQLException) {
+        SQLLEN value;
+        SQLRETURN ret = SQLColAttribute(
+            stmt, static_cast<SQLUSMALLINT>(column_index),
+            attribute, nullptr, 0, nullptr, &value
+        );
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get column attribute");
+        }
+        return value;
+    }
+
+    /**
+     * @brief Retrieves a string column attribute.
+     *
+     * @param column_index The column index (1-based).
+     * @param attribute The ODBC column attribute identifier.
+     * @return The string attribute value.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String string_attr(i32 column_index, SQLUSMALLINT attribute) const throws (SQLException) {
+        SQLCHAR buffer[256]{};
+        SQLSMALLINT length;
+        SQLRETURN ret = SQLColAttribute(
+            stmt, static_cast<SQLUSMALLINT>(column_index),
+            attribute, buffer, sizeof(buffer), &length, nullptr
+        );
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get column attribute");
+        }
+        return String(reinterpret_cast<char*>(buffer));
+    }
+
+    explicit ResultSetMetaData(SQLHSTMT stmt, i32 column_count) noexcept:
+        stmt{stmt}, col_count{column_count} {}
+
+    friend class ResultSet;
+public:
+    /**
+     * @brief Gets the number of columns.
+     *
+     * @return The column count.
+     */
+    [[nodiscard]]
+    i32 column_count() const noexcept {
+        return col_count;
+    }
+
+    /**
+     * @brief Gets the name of a column.
+     *
+     * @param column_index The column index (1-based).
+     * @return The column name.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String column_name(i32 column_index) const throws (SQLException) {
+        return string_attr(column_index, SQL_DESC_NAME);
+    }
+
+    /**
+     * @brief Gets the SQL type of a column.
+     *
+     * @param column_index The column index (1-based).
+     * @return The column's SQL type.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    SqlType column_type(i32 column_index) const throws (SQLException) {
+        return static_cast<SqlType>(numeric_attr(column_index, SQL_DESC_CONCISE_TYPE));
+    }
+
+    /**
+     * @brief Gets the type name of a column as reported by the database.
+     *
+     * @param column_index The column index (1-based).
+     * @return The database-specific type name.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String column_type_name(i32 column_index) const throws (SQLException) {
+        return string_attr(column_index, SQL_DESC_TYPE_NAME);
+    }
+
+    /**
+     * @brief Gets the display size of a column.
+     *
+     * @param column_index The column index (1-based).
+     * @return The maximum number of characters needed to display the column.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    i32 column_display_size(i32 column_index) const throws (SQLException) {
+        return static_cast<i32>(numeric_attr(column_index, SQL_DESC_DISPLAY_SIZE));
+    }
+
+    /**
+     * @brief Gets the precision of a column.
+     *
+     * For numeric types this is the number of digits; for string types
+     * this is the maximum character length.
+     *
+     * @param column_index The column index (1-based).
+     * @return The column precision.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    i32 precision(i32 column_index) const throws (SQLException) {
+        return static_cast<i32>(numeric_attr(column_index, SQL_DESC_PRECISION));
+    }
+
+    /**
+     * @brief Gets the scale of a column (digits to the right of the decimal point).
+     *
+     * @param column_index The column index (1-based).
+     * @return The column scale.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    i32 scale(i32 column_index) const throws (SQLException) {
+        return static_cast<i32>(numeric_attr(column_index, SQL_DESC_SCALE));
+    }
+
+    /**
+     * @brief Gets the nullability of a column.
+     *
+     * @param column_index The column index (1-based).
+     * @return The nullability status.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    ColumnNullability is_nullable(i32 column_index) const throws (SQLException) {
+        return static_cast<ColumnNullability>(numeric_attr(column_index, SQL_DESC_NULLABLE));
+    }
+
+    /**
+     * @brief Gets the designated column's table name.
+     *
+     * @param column_index The column index (1-based).
+     * @return The table name.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String table_name(i32 column_index) const throws (SQLException) {
+        return string_attr(column_index, SQL_DESC_TABLE_NAME);
+    }
+
+    /**
+     * @brief Gets the catalog (database) name for the column's table.
+     *
+     * @param column_index The column index (1-based).
+     * @return The catalog name.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String catalog_name(i32 column_index) const throws (SQLException) {
+        return string_attr(column_index, SQL_DESC_CATALOG_NAME);
+    }
+
+    /**
+     * @brief Gets the schema name for the column's table.
+     *
+     * @param column_index The column index (1-based).
+     * @return The schema name.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String schema_name(i32 column_index) const throws (SQLException) {
+        return string_attr(column_index, SQL_DESC_SCHEMA_NAME);
+    }
+
+    /**
+     * @brief Gets the column's label (alias or name).
+     *
+     * @param column_index The column index (1-based).
+     * @return The column label.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String column_label(i32 column_index) const throws (SQLException) {
+        return string_attr(column_index, SQL_DESC_LABEL);
+    }
+
+    /**
+     * @brief Checks if the column is auto-incrementing.
+     *
+     * @param column_index The column index (1-based).
+     * @return true if the column is auto-increment.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    bool is_auto_increment(i32 column_index) const throws (SQLException) {
+        return numeric_attr(column_index, SQL_DESC_AUTO_UNIQUE_VALUE) == SQL_TRUE;
+    }
+
+    /**
+     * @brief Checks if the column is case-sensitive.
+     *
+     * @param column_index The column index (1-based).
+     * @return true if the column is case-sensitive.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    bool is_case_sensitive(i32 column_index) const throws (SQLException) {
+        return numeric_attr(column_index, SQL_DESC_CASE_SENSITIVE) == SQL_TRUE;
+    }
+
+    /**
+     * @brief Checks if the column can be used in a WHERE clause.
+     *
+     * @param column_index The column index (1-based).
+     * @return true if the column is searchable.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    bool is_searchable(i32 column_index) const throws (SQLException) {
+        return numeric_attr(column_index, SQL_DESC_SEARCHABLE) != SQL_PRED_NONE;
+    }
+
+    /**
+     * @brief Gets the octet (byte) length of the column.
+     *
+     * @param column_index The column index (1-based).
+     * @return The byte length of the column data.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    i32 octet_length(i32 column_index) const throws (SQLException) {
+        return static_cast<i32>(numeric_attr(column_index, SQL_DESC_OCTET_LENGTH));
+    }
+};
+
+/**
  * @class ResultSet
  * @brief Represents a result set from a SQL query.
  *
@@ -115,6 +459,7 @@ private:
     SQLHSTMT stmt;
     SQLLEN last_indicator;
     i16 column_count;
+    bool scrollable;
     bool closed;
 
     /**
@@ -129,32 +474,64 @@ private:
     }
 
     /**
+     * @brief Finds a column index by name.
+     *
+     * @param column_name The column name to search for.
+     * @return The 1-based column index.
+     * @throws SQLException if the column name is not found.
+     */
+    i32 find_column(StringView column_name) const throws (SQLException) {
+        check_closed();
+
+        for (i32 i = 1; i <= static_cast<i32>(column_count); ++i) {
+            SQLCHAR name_buf[256];
+            SQLSMALLINT name_length;
+
+            SQLRETURN ret = SQLDescribeCol(
+                stmt, static_cast<SQLUSMALLINT>(i), name_buf,
+                sizeof(name_buf), &name_length,
+                nullptr, nullptr, nullptr, nullptr
+            );
+
+            if (SQL_SUCCEEDED(ret) &&
+                StringView(reinterpret_cast<char*>(name_buf)) == column_name) {
+                return i;
+            }
+        }
+
+        throw SQLException(stdx::fmt::format("Column not found: {}", column_name));
+    }
+
+    /**
      * @brief Constructs a ResultSet from an ODBC statement handle.
      * @internal This constructor is private and used by Statement and PreparedStatement.
      *
      * @param stmt The ODBC statement handle.
      * @throws SQLException if retrieving column count fails.
      */
-    explicit ResultSet(SQLHSTMT stmt) throws (SQLException):
-        stmt{stmt}, last_indicator{0}, column_count{0}, closed{false} {
+    explicit ResultSet(SQLHSTMT stmt, bool scrollable = false) throws (SQLException):
+        stmt{stmt}, last_indicator{0}, column_count{0}, scrollable{scrollable}, closed{false} {
         SQLSMALLINT col_count;
         SQLRETURN ret = SQLNumResultCols(this->stmt, &col_count);
-        column_count = static_cast<i16>(col_count);
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get column count");
+            throw SQLException(SQL_HANDLE_STMT, this->stmt, "Failed to get column count");
         }
+        column_count = static_cast<i16>(col_count);
     }
 
     friend class Statement;
     friend class PreparedStatement;
+    friend class CallableStatement;
+    friend class DatabaseMetaData;
 
 public:
     /**
      * @brief Move constructor.
      */
     ResultSet(ResultSet&& other) noexcept:
-        stmt{other.stmt}, last_indicator{other.last_indicator}, 
-        column_count{other.column_count}, closed{other.closed} {
+        stmt{other.stmt}, last_indicator{other.last_indicator},
+        column_count{other.column_count}, scrollable{other.scrollable},
+        closed{other.closed} {
         other.stmt = nullptr;
         other.closed = true;
     }
@@ -167,8 +544,9 @@ public:
             close();
             stmt = other.stmt;
             last_indicator = other.last_indicator;
-            closed = other.closed;
             column_count = other.column_count;
+            scrollable = other.scrollable;
+            closed = other.closed;
             other.stmt = nullptr;
             other.closed = true;
         }
@@ -199,13 +577,145 @@ public:
             return false;
         }
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to fetch next row");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to fetch next row");
         }
         return true;
     }
 
     /**
+     * @brief Moves the cursor to the previous row.
+     *
+     * Requires a scrollable result set (created from a scrollable Statement).
+     *
+     * @return true if the previous row is valid, false if before first.
+     * @throws SQLException if not scrollable or on error.
+     */
+    [[nodiscard]]
+    bool previous() throws (SQLException) {
+        check_closed();
+        if (!scrollable) {
+            throw SQLException("ResultSet is not scrollable");
+        }
+        SQLRETURN ret = SQLFetchScroll(stmt, SQL_FETCH_PRIOR, 0);
+        if (ret == SQL_NO_DATA) {
+            return false;
+        }
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to fetch previous row");
+        }
+        return true;
+    }
+
+    /**
+     * @brief Moves the cursor to the first row.
+     *
+     * @return true if the first row is valid, false if the result set is empty.
+     * @throws SQLException if not scrollable or on error.
+     */
+    [[nodiscard]]
+    bool first() throws (SQLException) {
+        check_closed();
+        if (!scrollable) {
+            throw SQLException("ResultSet is not scrollable");
+        }
+        SQLRETURN ret = SQLFetchScroll(stmt, SQL_FETCH_FIRST, 0);
+        if (ret == SQL_NO_DATA) {
+            return false;
+        }
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to fetch first row");
+        }
+        return true;
+    }
+
+    /**
+     * @brief Moves the cursor to the last row.
+     *
+     * @return true if the last row is valid, false if the result set is empty.
+     * @throws SQLException if not scrollable or on error.
+     */
+    [[nodiscard]]
+    bool last() throws (SQLException) {
+        check_closed();
+        if (!scrollable) {
+            throw SQLException("ResultSet is not scrollable");
+        }
+        SQLRETURN ret = SQLFetchScroll(stmt, SQL_FETCH_LAST, 0);
+        if (ret == SQL_NO_DATA) {
+            return false;
+        }
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to fetch last row");
+        }
+        return true;
+    }
+
+    /**
+     * @brief Moves the cursor to the given absolute row number.
+     *
+     * Row numbers are 1-based. A negative value counts from the end
+     * (-1 is the last row).
+     *
+     * @param row The absolute row number.
+     * @return true if the row is valid, false otherwise.
+     * @throws SQLException if not scrollable or on error.
+     */
+    [[nodiscard]]
+    bool absolute(i64 row) throws (SQLException) {
+        check_closed();
+        if (!scrollable) {
+            throw SQLException("ResultSet is not scrollable");
+        }
+        SQLRETURN ret = SQLFetchScroll(stmt, SQL_FETCH_ABSOLUTE, static_cast<SQLLEN>(row));
+        if (ret == SQL_NO_DATA) {
+            return false;
+        }
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to fetch absolute row");
+        }
+        return true;
+    }
+
+    /**
+     * @brief Moves the cursor by a relative number of rows from the current position.
+     *
+     * A positive value moves forward, negative moves backward.
+     *
+     * @param rows The number of rows to move.
+     * @return true if the resulting row is valid, false otherwise.
+     * @throws SQLException if not scrollable or on error.
+     */
+    [[nodiscard]]
+    bool relative(i64 rows) throws (SQLException) {
+        check_closed();
+        if (!scrollable) {
+            throw SQLException("ResultSet is not scrollable");
+        }
+        SQLRETURN ret = SQLFetchScroll(stmt, SQL_FETCH_RELATIVE, static_cast<SQLLEN>(rows));
+        if (ret == SQL_NO_DATA) {
+            return false;
+        }
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to fetch relative row");
+        }
+        return true;
+    }
+
+    /**
+     * @brief Checks if this result set is scrollable.
+     *
+     * @return true if scrollable, false if forward-only.
+     */
+    [[nodiscard]]
+    bool is_scrollable() const noexcept {
+        return scrollable;
+    }
+
+    /**
      * @brief Gets a string value from the specified column.
+     *
+     * Handles strings longer than the internal buffer by looping over
+     * SQLGetData until all data is retrieved.
      *
      * @param column_index The column index (1-based).
      * @return Optional containing the string value, or empty if NULL.
@@ -215,25 +725,89 @@ public:
     Optional<String> get_string(i32 column_index) throws (SQLException) {
         check_closed();
 
+        String result;
         SQLLEN indicator;
         char buffer[4096];
 
         SQLRETURN ret = SQLGetData(
-            stmt, column_index, SQL_C_CHAR, 
+            stmt, column_index, SQL_C_CHAR,
             buffer, sizeof(buffer), &indicator
         );
 
-        if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get string data");
+        if (!SQL_SUCCEEDED(ret) && ret != SQL_SUCCESS_WITH_INFO) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get string data");
         }
-        
+
         last_indicator = indicator;
-        
+
         if (indicator == SQL_NULL_DATA) {
             return {};
         }
-        
-        return String(buffer);
+
+        result.append(buffer);
+
+        while (ret == SQL_SUCCESS_WITH_INFO) {
+            ret = SQLGetData(
+                stmt, column_index, SQL_C_CHAR,
+                buffer, sizeof(buffer), &indicator
+            );
+
+            if (!SQL_SUCCEEDED(ret) && ret != SQL_SUCCESS_WITH_INFO) {
+                throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get string data");
+            }
+
+            result.append(buffer);
+        }
+
+        return result;
+    }
+
+    /**
+     * @copydoc get_string(i32)
+     */
+    [[nodiscard]]
+    Optional<String> get_string(StringView column_name) throws (SQLException) {
+        return get_string(find_column(column_name));
+    }
+
+    /**
+     * @brief Gets a short value from the specified column.
+     *
+     * @param column_index The column index (1-based).
+     * @return Optional containing the short value, or empty if NULL.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    Optional<i16> get_short(i32 column_index) throws (SQLException) {
+        check_closed();
+
+        SQLSMALLINT value;
+        SQLLEN indicator;
+
+        SQLRETURN ret = SQLGetData(
+            stmt, column_index, SQL_C_SSHORT,
+            &value, sizeof(value), &indicator
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get short data");
+        }
+
+        last_indicator = indicator;
+
+        if (indicator == SQL_NULL_DATA) {
+            return {};
+        }
+
+        return static_cast<i16>(value);
+    }
+
+    /**
+     * @copydoc get_short(i32)
+     */
+    [[nodiscard]]
+    Optional<i16> get_short(StringView column_name) throws (SQLException) {
+        return get_short(find_column(column_name));
     }
 
     /**
@@ -246,26 +820,34 @@ public:
     [[nodiscard]]
     Optional<i32> get_int(i32 column_index) throws (SQLException) {
         check_closed();
-        
+
         SQLINTEGER value;
         SQLLEN indicator;
-        
+
         SQLRETURN ret = SQLGetData(
             stmt, column_index, SQL_C_SLONG,
             &value, sizeof(value), &indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get integer data");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get integer data");
         }
-        
+
         last_indicator = indicator;
-        
+
         if (indicator == SQL_NULL_DATA) {
             return {};
         }
-        
+
         return static_cast<i32>(value);
+    }
+
+    /**
+     * @copydoc get_int(i32)
+     */
+    [[nodiscard]]
+    Optional<i32> get_int(StringView column_name) throws (SQLException) {
+        return get_int(find_column(column_name));
     }
 
     /**
@@ -278,26 +860,74 @@ public:
     [[nodiscard]]
     Optional<i64> get_long(i32 column_index) throws (SQLException) {
         check_closed();
-        
+
         SQLBIGINT value;
         SQLLEN indicator;
-        
+
         SQLRETURN ret = SQLGetData(
             stmt, column_index, SQL_C_SBIGINT,
             &value, sizeof(value), &indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get long data");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get long data");
         }
-        
+
         last_indicator = indicator;
-        
+
         if (indicator == SQL_NULL_DATA) {
             return {};
         }
-        
+
         return static_cast<i64>(value);
+    }
+
+    /**
+     * @copydoc get_long(i32)
+     */
+    [[nodiscard]]
+    Optional<i64> get_long(StringView column_name) throws (SQLException) {
+        return get_long(find_column(column_name));
+    }
+
+    /**
+     * @brief Gets a float value from the specified column.
+     *
+     * @param column_index The column index (1-based).
+     * @return Optional containing the float value, or empty if NULL.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    Optional<f32> get_float(i32 column_index) throws (SQLException) {
+        check_closed();
+
+        SQLREAL value;
+        SQLLEN indicator;
+
+        SQLRETURN ret = SQLGetData(
+            stmt, column_index, SQL_C_FLOAT,
+            &value, sizeof(value), &indicator
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get float data");
+        }
+
+        last_indicator = indicator;
+
+        if (indicator == SQL_NULL_DATA) {
+            return {};
+        }
+
+        return static_cast<f32>(value);
+    }
+
+    /**
+     * @copydoc get_float(i32)
+     */
+    [[nodiscard]]
+    Optional<f32> get_float(StringView column_name) throws (SQLException) {
+        return get_float(find_column(column_name));
     }
 
     /**
@@ -310,26 +940,34 @@ public:
     [[nodiscard]]
     Optional<f64> get_double(i32 column_index) throws (SQLException) {
         check_closed();
-        
+
         SQLDOUBLE value;
         SQLLEN indicator;
-        
+
         SQLRETURN ret = SQLGetData(
             stmt, column_index, SQL_C_DOUBLE,
             &value, sizeof(value), &indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get double data");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get double data");
         }
-        
+
         last_indicator = indicator;
-        
+
         if (indicator == SQL_NULL_DATA) {
             return {};
         }
-        
+
         return static_cast<f64>(value);
+    }
+
+    /**
+     * @copydoc get_double(i32)
+     */
+    [[nodiscard]]
+    Optional<f64> get_double(StringView column_name) throws (SQLException) {
+        return get_double(find_column(column_name));
     }
 
     /**
@@ -342,26 +980,135 @@ public:
     [[nodiscard]]
     Optional<bool> get_boolean(i32 column_index) throws (SQLException) {
         check_closed();
-        
+
         SQLCHAR value;
         SQLLEN indicator;
-        
+
         SQLRETURN ret = SQLGetData(
             stmt, column_index, SQL_C_BIT,
             &value, sizeof(value), &indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get boolean data");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get boolean data");
         }
-        
+
         last_indicator = indicator;
-        
+
         if (indicator == SQL_NULL_DATA) {
             return {};
         }
-        
+
         return value != 0;
+    }
+
+    /** @copydoc get_boolean(i32) */
+    [[nodiscard]]
+    Optional<bool> get_boolean(StringView column_name) throws (SQLException) {
+        return get_boolean(find_column(column_name));
+    }
+
+    /**
+     * @brief Gets a byte value from the specified column.
+     *
+     * @param column_index The column index (1-based).
+     * @return Optional containing the byte value, or empty if NULL.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    Optional<u8> get_byte(i32 column_index) throws (SQLException) {
+        check_closed();
+
+        SQLCHAR value;
+        SQLLEN indicator;
+
+        SQLRETURN ret = SQLGetData(
+            stmt, column_index, SQL_C_UTINYINT,
+            &value, sizeof(value), &indicator
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get byte data");
+        }
+
+        last_indicator = indicator;
+
+        if (indicator == SQL_NULL_DATA) {
+            return {};
+        }
+
+        return static_cast<u8>(value);
+    }
+
+    /** @copydoc get_byte(i32) */
+    [[nodiscard]]
+    Optional<u8> get_byte(StringView column_name) throws (SQLException) {
+        return get_byte(find_column(column_name));
+    }
+
+    /**
+     * @brief Gets binary data from the specified column.
+     *
+     * Handles data longer than the internal buffer by looping over
+     * SQLGetData until all data is retrieved.
+     *
+     * @param column_index The column index (1-based).
+     * @return Optional containing the binary data, or empty if NULL.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    Optional<Vector<u8>> get_binary(i32 column_index) throws (SQLException) {
+        check_closed();
+
+        Vector<u8> result;
+        SQLLEN indicator;
+        u8 buffer[4096];
+
+        SQLRETURN ret = SQLGetData(
+            stmt, column_index, SQL_C_BINARY,
+            buffer, sizeof(buffer), &indicator
+        );
+
+        if (!SQL_SUCCEEDED(ret) && ret != SQL_SUCCESS_WITH_INFO) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get binary data");
+        }
+
+        last_indicator = indicator;
+
+        if (indicator == SQL_NULL_DATA) {
+            return {};
+        }
+
+        SQLLEN bytes_to_copy = (ret == SQL_SUCCESS_WITH_INFO)
+            ? static_cast<SQLLEN>(sizeof(buffer))
+            : indicator;
+        result.insert(result.end(), buffer, buffer + bytes_to_copy);
+
+        while (ret == SQL_SUCCESS_WITH_INFO) {
+            ret = SQLGetData(
+                stmt, column_index, SQL_C_BINARY,
+                buffer, sizeof(buffer), &indicator
+            );
+
+            if (!SQL_SUCCEEDED(ret) && ret != SQL_SUCCESS_WITH_INFO) {
+                throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get binary data");
+            }
+
+            bytes_to_copy = (ret == SQL_SUCCESS_WITH_INFO)
+                ? static_cast<SQLLEN>(sizeof(buffer))
+                : indicator;
+            result.insert(result.end(), buffer, buffer + bytes_to_copy);
+        }
+
+        return result;
+    }
+
+    /**
+     * @copydoc get_binary(i32)
+     */
+    [[nodiscard]]
+    Optional<Vector<u8>> get_binary(StringView column_name) throws (SQLException) {
+        return get_binary(find_column(column_name));
     }
 
     /**
@@ -396,21 +1143,33 @@ public:
     [[nodiscard]]
     String get_column_name(i32 column_index) throws (SQLException) {
         check_closed();
-        
+
         SQLCHAR column_name[256];
         SQLSMALLINT name_length;
-        
+
         SQLRETURN ret = SQLDescribeCol(
             stmt, column_index, column_name,
             sizeof(column_name), &name_length,
             nullptr, nullptr, nullptr, nullptr
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get column name");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get column name");
         }
-        
+
         return String(reinterpret_cast<char*>(column_name));
+    }
+
+    /**
+     * @brief Gets the metadata for this result set.
+     *
+     * @return A ResultSetMetaData describing the columns.
+     * @throws SQLException if the result set is closed.
+     */
+    [[nodiscard]]
+    ResultSetMetaData get_meta_data() const throws (SQLException) {
+        check_closed();
+        return ResultSetMetaData(stmt, static_cast<i32>(column_count));
     }
 
     /**
@@ -440,17 +1199,24 @@ public:
  *
  * Provides methods to bind parameters and execute parameterized SQL queries.
  */
+/**
+ * @brief Holds the value and ODBC indicator for a single bound parameter.
+ *
+ * Uses a Variant to store exactly one type per parameter slot, avoiding
+ * the waste of parallel vectors sized for every parameter.
+ */
+struct ParamSlot {
+    Variant<Monostate, i32, i64, f64, String, u8> value;
+    SQLLEN indicator = 0;
+};
+
 class PreparedStatement {
 private:
+    Vector<Vector<ParamSlot>> batch;
+    Vector<ParamSlot> params;
+    String sql;
     SQLHDBC dbc;
     SQLHSTMT stmt;
-    Vector<i32> int_params;
-    Vector<i64> long_params;
-    Vector<f64> double_params;
-    Vector<String> string_params;
-    Vector<u8> bool_params;
-    Vector<i64> indicators;
-    String sql;
     bool closed;
 
     /**
@@ -465,6 +1231,18 @@ private:
     }
 
     /**
+     * @brief Validates a 1-based parameter index.
+     *
+     * @param parameter_index The parameter index (1-based).
+     * @throws SQLException if the index is out of range.
+     */
+    void check_index(i32 parameter_index) const throws (SQLException) {
+        if (parameter_index < 1 || parameter_index > static_cast<i32>(params.size())) {
+            throw SQLException("Invalid parameter index");
+        }
+    }
+
+    /**
      * @brief Constructs a PreparedStatement from an ODBC connection handle.
      * @internal This constructor is private and used by Connection.
      *
@@ -473,47 +1251,40 @@ private:
      * @throws SQLException if statement preparation fails.
      */
     PreparedStatement(SQLHDBC dbc, StringView sql) throws (SQLException):
-        dbc{dbc}, stmt{nullptr}, int_params{}, long_params{}, double_params{}, 
-        string_params{}, bool_params{}, indicators{}, sql{sql}, closed{false} {
+        sql{sql}, dbc{dbc}, stmt{nullptr}, closed{false} {
         SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to allocate statement handle");
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to allocate statement handle");
         }
 
         ret = SQLPrepare(
-            this->stmt, 
+            this->stmt,
             reinterpret_cast<SQLCHAR*>(const_cast<char*>(this->sql.c_str())),
             SQL_NTS
         );
 
         if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_STMT, this->stmt, "Failed to prepare statement");
             SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-            throw SQLException("Failed to prepare statement");
+            throw ex;
         }
 
         SQLSMALLINT param_count;
         SQLNumParams(this->stmt, &param_count);
 
-        int_params.resize(param_count);
-        long_params.resize(param_count);
-        double_params.resize(param_count);
-        string_params.resize(param_count);
-        bool_params.resize(param_count);
-        indicators.resize(param_count);
+        params.resize(param_count);
     }
 
     friend class Connection;
-
 public:
     /**
      * @brief Move constructor.
      */
     PreparedStatement(PreparedStatement&& other) noexcept:
-        dbc{other.dbc}, stmt{other.stmt}, 
-        int_params{stdx::util::move(other.int_params)}, long_params{stdx::util::move(other.long_params)},
-        double_params{stdx::util::move(other.double_params)}, string_params{stdx::util::move(other.string_params)},
-        bool_params{stdx::util::move(other.bool_params)}, indicators{stdx::util::move(other.indicators)},
-        sql{stdx::util::move(other.sql)}, closed{other.closed} {
+        dbc{other.dbc}, stmt{other.stmt},
+        params{System::move(other.params)},
+        batch{System::move(other.batch)},
+        sql{System::move(other.sql)}, closed{other.closed} {
         other.stmt = nullptr;
         other.closed = true;
     }
@@ -526,13 +1297,9 @@ public:
             close();
             dbc = other.dbc;
             stmt = other.stmt;
-            int_params = stdx::util::move(other.int_params);
-            long_params = stdx::util::move(other.long_params);
-            double_params = stdx::util::move(other.double_params);
-            string_params = stdx::util::move(other.string_params);
-            bool_params = stdx::util::move(other.bool_params);
-            indicators = stdx::util::move(other.indicators);
-            sql = stdx::util::move(other.sql);
+            params = System::move(other.params);
+            batch = System::move(other.batch);
+            sql = System::move(other.sql);
             closed = other.closed;
             other.stmt = nullptr;
             other.closed = true;
@@ -559,22 +1326,20 @@ public:
      */
     void set_int(i32 parameter_index, i32 value) throws (SQLException) {
         check_closed();
-        
-        if (parameter_index < 1 || parameter_index > static_cast<i32>(int_params.size())) {
-            throw SQLException("Invalid parameter index");
-        }
-        
-        int_params[parameter_index - 1] = value;
-        indicators[parameter_index - 1] = 0;
-        
+        check_index(parameter_index);
+
+        ParamSlot& slot = params[parameter_index - 1];
+        slot.value = value;
+        slot.indicator = 0;
+
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
-            0, 0, &int_params[parameter_index - 1],
-            0, reinterpret_cast<SQLLEN*>(&indicators[parameter_index - 1])
+            0, 0, &System::get<i32>(slot.value),
+            0, &slot.indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to bind integer parameter");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to bind integer parameter");
         }
     }
 
@@ -587,22 +1352,20 @@ public:
      */
     void set_long(i32 parameter_index, i64 value) throws (SQLException) {
         check_closed();
-        
-        if (parameter_index < 1 || parameter_index > static_cast<i32>(long_params.size())) {
-            throw SQLException("Invalid parameter index");
-        }
-        
-        long_params[parameter_index - 1] = value;
-        indicators[parameter_index - 1] = 0;
-        
+        check_index(parameter_index);
+
+        ParamSlot& slot = params[parameter_index - 1];
+        slot.value = value;
+        slot.indicator = 0;
+
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_SBIGINT, SQL_BIGINT,
-            0, 0, &long_params[parameter_index - 1],
-            0, reinterpret_cast<SQLLEN*>(&indicators[parameter_index - 1])
+            0, 0, &System::get<i64>(slot.value),
+            0, &slot.indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to bind long parameter");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to bind long parameter");
         }
     }
 
@@ -615,22 +1378,20 @@ public:
      */
     void set_double(i32 parameter_index, f64 value) throws (SQLException) {
         check_closed();
-        
-        if (parameter_index < 1 || parameter_index > static_cast<i32>(double_params.size())) {
-            throw SQLException("Invalid parameter index");
-        }
-        
-        double_params[parameter_index - 1] = value;
-        indicators[parameter_index - 1] = 0;
-        
+        check_index(parameter_index);
+
+        ParamSlot& slot = params[parameter_index - 1];
+        slot.value = value;
+        slot.indicator = 0;
+
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE,
-            0, 0, &double_params[parameter_index - 1],
-            0, reinterpret_cast<SQLLEN*>(&indicators[parameter_index - 1])
+            0, 0, &System::get<f64>(slot.value),
+            0, &slot.indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to bind double parameter");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to bind double parameter");
         }
     }
 
@@ -643,22 +1404,21 @@ public:
      */
     void set_string(i32 parameter_index, StringView value) throws (SQLException) {
         check_closed();
-        
-        if (parameter_index < 1 || parameter_index > static_cast<i32>(string_params.size())) {
-            throw SQLException("Invalid parameter index");
-        }
-        
-        string_params[parameter_index - 1] = String(value);
-        indicators[parameter_index - 1] = static_cast<i64>(string_params[parameter_index - 1].size());
-        
+        check_index(parameter_index);
+
+        ParamSlot& slot = params[parameter_index - 1];
+        slot.value = String(value);
+        const String& str = System::get<String>(slot.value);
+        slot.indicator = static_cast<SQLLEN>(str.size());
+
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
-            string_params[parameter_index - 1].size(), 0, const_cast<char*>(string_params[parameter_index - 1].c_str()),
-            string_params[parameter_index - 1].size(), reinterpret_cast<SQLLEN*>(&indicators[parameter_index - 1])
+            str.size(), 0, const_cast<char*>(str.c_str()),
+            str.size(), &slot.indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to bind string parameter");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to bind string parameter");
         }
     }
 
@@ -671,21 +1431,19 @@ public:
      */
     void set_boolean(i32 parameter_index, bool value) throws (SQLException) {
         check_closed();
-        
-        if (parameter_index < 1 || parameter_index > static_cast<i32>(bool_params.size())) {
-            throw SQLException("Invalid parameter index");
-        }
-        
-        bool_params[parameter_index - 1] = value ? 1 : 0;
-        indicators[parameter_index - 1] = 0;
-        
+        check_index(parameter_index);
+
+        ParamSlot& slot = params[parameter_index - 1];
+        slot.value = static_cast<u8>(value ? 1 : 0);
+        slot.indicator = 0;
+
         SQLRETURN ret = SQLBindParameter(
-            stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_BIT, SQL_BIT, 0, 0, 
-            &bool_params[parameter_index - 1], 0, reinterpret_cast<SQLLEN*>(&indicators[parameter_index - 1])
+            stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_BIT, SQL_BIT, 0, 0,
+            &System::get<u8>(slot.value), 0, &slot.indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to bind boolean parameter");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to bind boolean parameter");
         }
     }
 
@@ -697,20 +1455,19 @@ public:
      */
     void set_null(i32 parameter_index) throws (SQLException) {
         check_closed();
-        
-        if (parameter_index < 1 || parameter_index > static_cast<i32>(indicators.size())) {
-            throw SQLException("Invalid parameter index");
-        }
-        
-        indicators[parameter_index - 1] = SQL_NULL_DATA;
-        
+        check_index(parameter_index);
+
+        ParamSlot& slot = params[parameter_index - 1];
+        slot.value = Monostate{};
+        slot.indicator = SQL_NULL_DATA;
+
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
-            0, 0, nullptr, 0, reinterpret_cast<SQLLEN*>(&indicators[parameter_index - 1])
+            0, 0, nullptr, 0, &slot.indicator
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to bind NULL parameter");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to bind NULL parameter");
         }
     }
 
@@ -723,13 +1480,13 @@ public:
     [[nodiscard]]
     ResultSet execute_query() throws (SQLException) {
         check_closed();
-        
+
         SQLRETURN ret = SQLExecute(stmt);
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to execute prepared query");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to execute prepared query");
         }
-        
+
         return ResultSet(stmt);
     }
 
@@ -741,29 +1498,513 @@ public:
      */
     i32 execute_update() throws (SQLException) {
         check_closed();
-        
+
         SQLRETURN ret = SQLExecute(stmt);
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to execute prepared update");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to execute prepared update");
         }
-        
+
         SQLLEN row_count;
         ret = SQLRowCount(stmt, &row_count);
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get row count");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get row count");
         }
-        
+
         return static_cast<i32>(row_count);
     }
 
     /**
-     * @brief Clears all parameter bindings.
+     * @brief Adds the current set of parameters to the batch.
+     *
+     * Saves a snapshot of the current parameter values. After calling this,
+     * new parameters can be set for the next batch entry. Call execute_batch()
+     * to execute all accumulated entries.
+     *
+     * @throws SQLException if the statement is closed.
      */
-    void clear_parameters() {
+    void add_batch() throws (SQLException) {
+        check_closed();
+        batch.push_back(params);
+    }
+
+    /**
+     * @brief Executes all batched parameter sets.
+     *
+     * Iterates over each snapshot added via add_batch(), rebinds parameters,
+     * and executes the statement. Returns the row counts for each execution.
+     * The batch is cleared after execution.
+     *
+     * @return A vector of row counts, one per batch entry.
+     * @throws SQLException on error (execution stops at the first failure).
+     */
+    Vector<i32> execute_batch() throws (SQLException) {
+        check_closed();
+
+        Vector<i32> results;
+        results.reserve(batch.size());
+
+        for (Vector<ParamSlot>& entry : batch) {
+            SQLFreeStmt(stmt, SQL_RESET_PARAMS);
+
+            for (i32 i = 0; i < static_cast<i32>(entry.size()); ++i) {
+                ParamSlot& slot = entry[i];
+                i32 param_index = i + 1;
+
+                System::visit([&](auto& val) -> void {
+                    if constexpr (IsSameValue<DecayType<decltype(val)>, Monostate>) {
+                        slot.indicator = SQL_NULL_DATA;
+                        SQLBindParameter(
+                            stmt, param_index, SQL_PARAM_INPUT,
+                            SQL_C_CHAR, SQL_VARCHAR, 0, 0,
+                            nullptr, 0, &slot.indicator
+                        );
+                    } else if constexpr (IsSameValue<DecayType<decltype(val)>, i32>) {
+                        SQLBindParameter(
+                            stmt, param_index, SQL_PARAM_INPUT,
+                            SQL_C_SLONG, SQL_INTEGER, 0, 0,
+                            &val, 0, &slot.indicator
+                        );
+                    } else if constexpr (IsSameValue<DecayType<decltype(val)>, i64>) {
+                        SQLBindParameter(
+                            stmt, param_index, SQL_PARAM_INPUT,
+                            SQL_C_SBIGINT, SQL_BIGINT, 0, 0,
+                            &val, 0, &slot.indicator
+                        );
+                    } else if constexpr (IsSameValue<DecayType<decltype(val)>, f64>) {
+                        SQLBindParameter(
+                            stmt, param_index, SQL_PARAM_INPUT,
+                            SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
+                            &val, 0, &slot.indicator
+                        );
+                    } else if constexpr (IsSameValue<DecayType<decltype(val)>, String>) {
+                        slot.indicator = static_cast<SQLLEN>(val.size());
+                        SQLBindParameter(
+                            stmt, param_index, SQL_PARAM_INPUT,
+                            SQL_C_CHAR, SQL_VARCHAR,
+                            val.size(), 0, const_cast<char*>(val.c_str()),
+                            val.size(), &slot.indicator
+                        );
+                    } else if constexpr (IsSameValue<DecayType<decltype(val)>, u8>) {
+                        SQLBindParameter(
+                            stmt, param_index, SQL_PARAM_INPUT,
+                            SQL_C_BIT, SQL_BIT, 0, 0,
+                            &val, 0, &slot.indicator
+                        );
+                    }
+                }, slot.value);
+            }
+
+            SQLRETURN ret = SQLExecute(stmt);
+            if (!SQL_SUCCEEDED(ret)) {
+                clear_batch();
+                throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to execute batch entry");
+            }
+
+            SQLLEN row_count;
+            SQLRowCount(stmt, &row_count);
+            results.push_back(static_cast<i32>(row_count));
+        }
+
+        clear_batch();
+        return results;
+    }
+
+    /**
+     * @brief Clears all accumulated batch entries.
+     */
+    void clear_batch() noexcept {
+        batch.clear();
+    }
+
+    /**
+     * @brief Clears all parameter bindings.
+     *
+     * @throws SQLException if the statement is closed.
+     */
+    void clear_parameters() throws (SQLException) {
         check_closed();
         SQLFreeStmt(stmt, SQL_RESET_PARAMS);
+    }
+
+    /**
+     * @brief Closes the statement.
+     */
+    void close() noexcept {
+        if (!closed && stmt != nullptr) {
+            SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+            stmt = nullptr;
+            closed = true;
+        }
+    }
+
+    /**
+     * @brief Checks if the statement is closed.
+     *
+     * @return true if closed, false otherwise.
+     */
+    [[nodiscard]]
+    bool is_closed() const noexcept {
+        return closed;
+    }
+};
+
+/**
+ * @class CallableStatement
+ * @brief Represents a callable statement for executing stored procedures.
+ *
+ * Extends PreparedStatement semantics with support for registering and
+ * retrieving OUT parameters. Uses the ODBC `{call procedure_name(?, ?)}` syntax.
+ * Mirrors java.sql.CallableStatement.
+ */
+class CallableStatement {
+private:
+    SQLHDBC dbc;
+    SQLHSTMT stmt;
+    Vector<ParamSlot> params;
+    Vector<SQLSMALLINT> param_directions;
+    String sql;
+    bool closed;
+
+    void check_closed() const throws (SQLException) {
+        if (closed) {
+            throw SQLException("CallableStatement is closed");
+        }
+    }
+
+    void check_index(i32 parameter_index) const throws (SQLException) {
+        if (parameter_index < 1 || parameter_index > static_cast<i32>(params.size())) {
+            throw SQLException("Invalid parameter index");
+        }
+    }
+
+    /**
+     * @brief Constructs a CallableStatement.
+     * @internal This constructor is private and used by Connection.
+     *
+     * @param dbc The ODBC connection handle.
+     * @param procedure_call The ODBC call syntax, e.g. "{call my_proc(?, ?)}".
+     * @throws SQLException if statement preparation fails.
+     */
+    CallableStatement(SQLHDBC dbc, StringView procedure_call) throws (SQLException):
+        dbc{dbc}, stmt{nullptr}, params{}, param_directions{},
+        sql{procedure_call}, closed{false} {
+        SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to allocate statement handle");
+        }
+
+        ret = SQLPrepare(
+            this->stmt,
+            reinterpret_cast<SQLCHAR*>(const_cast<char*>(this->sql.c_str())),
+            SQL_NTS
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_STMT, this->stmt, "Failed to prepare callable statement");
+            SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+            throw ex;
+        }
+
+        SQLSMALLINT param_count;
+        SQLNumParams(this->stmt, &param_count);
+
+        params.resize(param_count);
+        param_directions.resize(param_count, SQL_PARAM_INPUT);
+    }
+
+    friend class Connection;
+
+public:
+    /**
+     * @brief Move constructor.
+     */
+    CallableStatement(CallableStatement&& other) noexcept:
+        dbc{other.dbc}, stmt{other.stmt},
+        params{stdx::util::move(other.params)},
+        param_directions{stdx::util::move(other.param_directions)},
+        sql{stdx::util::move(other.sql)}, closed{other.closed} {
+        other.stmt = nullptr;
+        other.closed = true;
+    }
+
+    /**
+     * @brief Move assignment operator.
+     */
+    CallableStatement& operator=(CallableStatement&& other) noexcept {
+        if (this != &other) {
+            close();
+            dbc = other.dbc;
+            stmt = other.stmt;
+            params = stdx::util::move(other.params);
+            param_directions = stdx::util::move(other.param_directions);
+            sql = stdx::util::move(other.sql);
+            closed = other.closed;
+            other.stmt = nullptr;
+            other.closed = true;
+        }
+        return *this;
+    }
+
+    CallableStatement(const CallableStatement&) = delete;
+    CallableStatement& operator=(const CallableStatement&) = delete;
+
+    ~CallableStatement() {
+        close();
+    }
+
+    /**
+     * @brief Registers a parameter as an OUT parameter.
+     *
+     * Must be called before execute() for each OUT or INOUT parameter.
+     * The SQL type tells the driver what to expect from the procedure.
+     *
+     * @param parameter_index The parameter index (1-based).
+     * @param type The SQL type of the OUT parameter.
+     * @throws SQLException on error.
+     */
+    void register_out_parameter(i32 parameter_index, SqlType type) throws (SQLException) {
+        check_closed();
+        check_index(parameter_index);
+
+        param_directions[parameter_index - 1] = SQL_PARAM_OUTPUT;
+        ParamSlot& slot = params[parameter_index - 1];
+        slot.indicator = 0;
+
+        SQLSMALLINT c_type = SQL_C_CHAR;
+        SQLULEN col_size = 256;
+
+        switch (type) {
+            case SqlType::INTEGER:
+                slot.value = i32{0};
+                c_type = SQL_C_SLONG;
+                col_size = 0;
+                break;
+            case SqlType::BIGINT:
+                slot.value = i64{0};
+                c_type = SQL_C_SBIGINT;
+                col_size = 0;
+                break;
+            case SqlType::DOUBLE:
+            case SqlType::FLOAT:
+                slot.value = f64{0.0};
+                c_type = SQL_C_DOUBLE;
+                col_size = 0;
+                break;
+            case SqlType::BIT:
+                slot.value = u8{0};
+                c_type = SQL_C_BIT;
+                col_size = 0;
+                break;
+            default:
+                slot.value = String(256, '\0');
+                c_type = SQL_C_CHAR;
+                col_size = 256;
+                slot.indicator = SQL_NTS;
+                break;
+        }
+
+        void* value_ptr = System::visit([](auto& val) -> void* {
+            if constexpr (IsSameValue<DecayType<decltype(val)>, Monostate>) {
+                return nullptr;
+            } else if constexpr (IsSameValue<DecayType<decltype(val)>, String>) {
+                return val.data();
+            } else {
+                return &val;
+            }
+        }, slot.value);
+
+        SQLLEN buffer_len = 0;
+        if (holds_alternative<String>(slot.value)) {
+            buffer_len = static_cast<SQLLEN>(System::get<String>(slot.value).size());
+        }
+
+        SQLRETURN ret = SQLBindParameter(
+            stmt, parameter_index, SQL_PARAM_OUTPUT,
+            c_type, static_cast<SQLSMALLINT>(static_cast<i32>(type)),
+            col_size, 0, value_ptr, buffer_len, &slot.indicator
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to register OUT parameter");
+        }
+    }
+
+    /**
+     * @brief Sets an integer IN parameter.
+     *
+     * @param parameter_index The parameter index (1-based).
+     * @param value The integer value to bind.
+     * @throws SQLException on error.
+     */
+    void set_int(i32 parameter_index, i32 value) throws (SQLException) {
+        check_closed();
+        check_index(parameter_index);
+
+        ParamSlot& slot = params[parameter_index - 1];
+        slot.value = value;
+        slot.indicator = 0;
+        param_directions[parameter_index - 1] = SQL_PARAM_INPUT;
+
+        SQLRETURN ret = SQLBindParameter(
+            stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
+            0, 0, &System::get<i32>(slot.value), 0, &slot.indicator
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to bind integer parameter");
+        }
+    }
+
+    /**
+     * @brief Sets a string IN parameter.
+     *
+     * @param parameter_index The parameter index (1-based).
+     * @param value The string value to bind.
+     * @throws SQLException on error.
+     */
+    void set_string(i32 parameter_index, StringView value) throws (SQLException) {
+        check_closed();
+        check_index(parameter_index);
+
+        ParamSlot& slot = params[parameter_index - 1];
+        slot.value = String(value);
+        const String& str = System::get<String>(slot.value);
+        slot.indicator = static_cast<SQLLEN>(str.size());
+        param_directions[parameter_index - 1] = SQL_PARAM_INPUT;
+
+        SQLRETURN ret = SQLBindParameter(
+            stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
+            str.size(), 0, const_cast<char*>(str.c_str()),
+            str.size(), &slot.indicator
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to bind string parameter");
+        }
+    }
+
+    /**
+     * @brief Executes the callable statement.
+     *
+     * @return true if the result is a ResultSet, false otherwise.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    bool execute() throws (SQLException) {
+        check_closed();
+
+        SQLRETURN ret = SQLExecute(stmt);
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to execute callable statement");
+        }
+
+        SQLSMALLINT col_count;
+        ret = SQLNumResultCols(stmt, &col_count);
+        return SQL_SUCCEEDED(ret) && col_count > 0;
+    }
+
+    /**
+     * @brief Gets the result set from the last execute() call.
+     *
+     * @return A ResultSet containing the query results.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    ResultSet get_result_set() throws (SQLException) {
+        check_closed();
+        return ResultSet(stmt);
+    }
+
+    /**
+     * @brief Gets an integer OUT parameter value.
+     *
+     * @param parameter_index The parameter index (1-based).
+     * @return The integer value.
+     * @throws SQLException if the parameter is not an integer OUT parameter.
+     */
+    [[nodiscard]]
+    i32 get_int(i32 parameter_index) const throws (SQLException) {
+        check_closed();
+        check_index(parameter_index);
+
+        const ParamSlot& slot = params[parameter_index - 1];
+        if (slot.indicator == SQL_NULL_DATA) {
+            throw SQLException("OUT parameter is NULL");
+        }
+        return System::get<i32>(slot.value);
+    }
+
+    /**
+     * @brief Gets a long OUT parameter value.
+     *
+     * @param parameter_index The parameter index (1-based).
+     * @return The long value.
+     * @throws SQLException if the parameter is not a long OUT parameter.
+     */
+    [[nodiscard]]
+    i64 get_long(i32 parameter_index) const throws (SQLException) {
+        check_closed();
+        check_index(parameter_index);
+
+        const ParamSlot& slot = params[parameter_index - 1];
+        if (slot.indicator == SQL_NULL_DATA) {
+            throw SQLException("OUT parameter is NULL");
+        }
+        return System::get<i64>(slot.value);
+    }
+
+    /**
+     * @brief Gets a double OUT parameter value.
+     *
+     * @param parameter_index The parameter index (1-based).
+     * @return The double value.
+     * @throws SQLException if the parameter is not a double OUT parameter.
+     */
+    [[nodiscard]]
+    f64 get_double(i32 parameter_index) const throws (SQLException) {
+        check_closed();
+        check_index(parameter_index);
+
+        const ParamSlot& slot = params[parameter_index - 1];
+        if (slot.indicator == SQL_NULL_DATA) {
+            throw SQLException("OUT parameter is NULL");
+        }
+        return System::get<f64>(slot.value);
+    }
+
+    /**
+     * @brief Gets a string OUT parameter value.
+     *
+     * @param parameter_index The parameter index (1-based).
+     * @return The string value.
+     * @throws SQLException if the parameter is not a string OUT parameter.
+     */
+    [[nodiscard]]
+    String get_string(i32 parameter_index) const throws (SQLException) {
+        check_closed();
+        check_index(parameter_index);
+
+        const ParamSlot& slot = params[parameter_index - 1];
+        if (slot.indicator == SQL_NULL_DATA) {
+            throw SQLException("OUT parameter is NULL");
+        }
+        return System::get<String>(slot.value);
+    }
+
+    /**
+     * @brief Checks if the last OUT parameter read was NULL.
+     *
+     * @param parameter_index The parameter index (1-based).
+     * @return true if the parameter value is NULL.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    bool was_null(i32 parameter_index) const throws (SQLException) {
+        check_closed();
+        check_index(parameter_index);
+        return params[parameter_index - 1].indicator == SQL_NULL_DATA;
     }
 
     /**
@@ -798,14 +2039,15 @@ class Statement {
 private:
     SQLHDBC dbc;
     SQLHSTMT stmt;
+    ResultSetType rs_type;
     bool closed;
 
     /**
      * @brief Checks if the statement is closed.
      *
-     * @throw SQLException if the statement is closed.
+     * @throws SQLException if the statement is closed.
      */
-    void check_closed() const {
+    void check_closed() const throws (SQLException) {
         if (closed) {
             throw SQLException("Statement is closed");
         }
@@ -816,13 +2058,13 @@ private:
      * @internal This constructor is private and used by Connection.
      *
      * @param dbc The ODBC connection handle.
-     * @throw SQLException if statement allocation fails.
+     * @throws SQLException if statement allocation fails.
      */
     explicit Statement(SQLHDBC dbc) throws (SQLException):
-        dbc{dbc}, stmt{nullptr}, closed{false} {
+        dbc{dbc}, stmt{nullptr}, rs_type{ResultSetType::FORWARD_ONLY}, closed{false} {
         SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, this->dbc, &this->stmt);
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to allocate statement handle");
+            throw SQLException(SQL_HANDLE_DBC, this->dbc, "Failed to allocate statement handle");
         }
     }
 
@@ -833,7 +2075,7 @@ public:
      * @brief Move constructor.
      */
     Statement(Statement&& other) noexcept:
-        dbc{other.dbc}, stmt{other.stmt}, closed{other.closed} {
+        dbc{other.dbc}, stmt{other.stmt}, rs_type{other.rs_type}, closed{other.closed} {
         other.stmt = nullptr;
         other.closed = true;
     }
@@ -846,6 +2088,7 @@ public:
             close();
             dbc = other.dbc;
             stmt = other.stmt;
+            rs_type = other.rs_type;
             closed = other.closed;
             other.stmt = nullptr;
             other.closed = true;
@@ -874,18 +2117,19 @@ public:
     [[nodiscard]]
     ResultSet execute_query(StringView sql) throws (SQLException) {
         check_closed();
-        
+
+        String sql_str(sql);
         SQLRETURN ret = SQLExecDirect(
-            stmt, 
-            reinterpret_cast<SQLCHAR*>(const_cast<char*>(sql.data())),
-            SQL_NTS
+            stmt,
+            reinterpret_cast<SQLCHAR*>(sql_str.data()),
+            static_cast<SQLINTEGER>(sql_str.size())
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to execute query");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to execute query");
         }
-        
-        return ResultSet(stmt);
+
+        return ResultSet(stmt, rs_type != ResultSetType::FORWARD_ONLY);
     }
 
     /**
@@ -898,24 +2142,25 @@ public:
     [[nodiscard]]
     i32 execute_update(StringView sql) throws (SQLException) {
         check_closed();
-        
+
+        String sql_str(sql);
         SQLRETURN ret = SQLExecDirect(
             stmt,
-            reinterpret_cast<SQLCHAR*>(const_cast<char*>(sql.data())),
-            SQL_NTS
+            reinterpret_cast<SQLCHAR*>(sql_str.data()),
+            static_cast<SQLINTEGER>(sql_str.size())
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to execute update");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to execute update");
         }
-        
+
         SQLLEN row_count;
         ret = SQLRowCount(stmt, &row_count);
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get row count");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get row count");
         }
-        
+
         return static_cast<i32>(row_count);
     }
 
@@ -929,20 +2174,21 @@ public:
     [[nodiscard]]
     bool execute(StringView sql) throws (SQLException) {
         check_closed();
-        
+
+        String sql_str(sql);
         SQLRETURN ret = SQLExecDirect(
             stmt,
-            reinterpret_cast<SQLCHAR*>(const_cast<char*>(sql.data())),
-            SQL_NTS
+            reinterpret_cast<SQLCHAR*>(sql_str.data()),
+            static_cast<SQLINTEGER>(sql_str.size())
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to execute statement");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to execute statement");
         }
-        
+
         SQLSMALLINT column_count;
         ret = SQLNumResultCols(stmt, &column_count);
-        
+
         return SQL_SUCCEEDED(ret) && column_count > 0;
     }
 
@@ -955,7 +2201,7 @@ public:
     [[nodiscard]]
     ResultSet get_result_set() throws (SQLException) {
         check_closed();
-        return ResultSet(stmt);
+        return ResultSet(stmt, rs_type != ResultSetType::FORWARD_ONLY);
     }
 
     /**
@@ -967,15 +2213,104 @@ public:
     [[nodiscard]]
     i32 update_count() throws (SQLException) {
         check_closed();
-        
+
         SQLLEN row_count;
         SQLRETURN ret = SQLRowCount(stmt, &row_count);
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to get row count");
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to get row count");
         }
-        
+
         return static_cast<i32>(row_count);
+    }
+
+    /**
+     * @brief Sets the result set type (scrollability) for subsequent queries.
+     *
+     * Must be called before execute_query(). Sets the ODBC cursor type
+     * on the underlying statement handle.
+     *
+     * @param type The desired result set type.
+     * @throws SQLException on error.
+     */
+    void set_result_set_type(ResultSetType type) throws (SQLException) {
+        check_closed();
+
+        SQLRETURN ret = SQLSetStmtAttr(
+            stmt, SQL_ATTR_CURSOR_TYPE,
+            reinterpret_cast<SQLPOINTER>(static_cast<SQLLEN>(static_cast<i32>(type))), 0
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to set cursor type");
+        }
+
+        rs_type = type;
+    }
+
+    /**
+     * @brief Sets the query timeout in seconds.
+     *
+     * If the query does not complete within the specified time, it is cancelled.
+     * A value of 0 means no timeout (the default).
+     *
+     * @param seconds The timeout in seconds.
+     * @throws SQLException on error.
+     */
+    void set_query_timeout(i32 seconds) throws (SQLException) {
+        check_closed();
+
+        SQLRETURN ret = SQLSetStmtAttr(
+            stmt, SQL_ATTR_QUERY_TIMEOUT,
+            reinterpret_cast<SQLPOINTER>(static_cast<SQLLEN>(seconds)), 0
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to set query timeout");
+        }
+    }
+
+    /**
+     * @brief Sets the maximum number of rows to return from a query.
+     *
+     * A value of 0 means no limit (the default).
+     *
+     * @param max The maximum number of rows.
+     * @throws SQLException on error.
+     */
+    void set_max_rows(i32 max) throws (SQLException) {
+        check_closed();
+
+        SQLRETURN ret = SQLSetStmtAttr(
+            stmt, SQL_ATTR_MAX_ROWS,
+            reinterpret_cast<SQLPOINTER>(static_cast<SQLLEN>(max)), 0
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to set max rows");
+        }
+    }
+
+    /**
+     * @brief Sets the number of rows to fetch at a time (fetch size hint).
+     *
+     * This is a hint to the driver for performance optimization.
+     * A value of 0 means use the driver default.
+     *
+     * @param size The fetch size.
+     * @throws SQLException on error.
+     */
+    void set_fetch_size(i32 size) throws (SQLException) {
+        check_closed();
+
+        SQLRETURN ret = SQLSetStmtAttr(
+            stmt, SQL_ATTR_ROW_ARRAY_SIZE,
+            reinterpret_cast<SQLPOINTER>(static_cast<SQLLEN>(size)), 0
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_STMT, stmt, "Failed to set fetch size");
+        }
     }
 
     /**
@@ -999,6 +2334,318 @@ public:
         return closed;
     }
 };
+
+/**
+ * @class DatabaseMetaData
+ * @brief Provides information about the database as a whole.
+ *
+ * Wraps ODBC SQLGetInfo, SQLTables, and SQLColumns to expose database-level
+ * metadata such as product name, supported features, and schema information.
+ * Mirrors java.sql.DatabaseMetaData.
+ */
+class DatabaseMetaData {
+private:
+    SQLHDBC dbc;
+
+    /**
+     * @brief Retrieves a string info value from the connection.
+     *
+     * @param info_type The ODBC info type identifier.
+     * @return The string value.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String string_info(SQLUSMALLINT info_type) const throws (SQLException) {
+        SQLCHAR buffer[256]{};
+        SQLSMALLINT length;
+        SQLRETURN ret = SQLGetInfo(dbc, info_type, buffer, sizeof(buffer), &length);
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to get database info");
+        }
+        return String(reinterpret_cast<char*>(buffer));
+    }
+
+    /**
+     * @brief Retrieves a 16-bit integer info value from the connection.
+     *
+     * @param info_type The ODBC info type identifier.
+     * @return The integer value.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    u16 u16_info(SQLUSMALLINT info_type) const throws (SQLException) {
+        SQLUSMALLINT value;
+        SQLRETURN ret = SQLGetInfo(dbc, info_type, &value, sizeof(value), nullptr);
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to get database info");
+        }
+        return static_cast<u16>(value);
+    }
+
+    /**
+     * @brief Retrieves a 32-bit integer info value from the connection.
+     *
+     * @param info_type The ODBC info type identifier.
+     * @return The integer value.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    u32 u32_info(SQLUSMALLINT info_type) const throws (SQLException) {
+        SQLUINTEGER value;
+        SQLRETURN ret = SQLGetInfo(dbc, info_type, &value, sizeof(value), nullptr);
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to get database info");
+        }
+        return static_cast<u32>(value);
+    }
+
+    explicit DatabaseMetaData(SQLHDBC dbc) noexcept:
+        dbc{dbc} {}
+
+    friend class Connection;
+public:
+    /**
+     * @brief Gets the database product name.
+     *
+     * @return The product name (e.g. "PostgreSQL", "MySQL", "Microsoft SQL Server").
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String database_product_name() const throws (SQLException) {
+        return string_info(SQL_DBMS_NAME);
+    }
+
+    /**
+     * @brief Gets the database product version.
+     *
+     * @return The version string.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String database_product_version() const throws (SQLException) {
+        return string_info(SQL_DBMS_VER);
+    }
+
+    /**
+     * @brief Gets the ODBC driver name.
+     *
+     * @return The driver name.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String driver_name() const throws (SQLException) {
+        return string_info(SQL_DRIVER_NAME);
+    }
+
+    /**
+     * @brief Gets the ODBC driver version.
+     *
+     * @return The driver version string.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String driver_version() const throws (SQLException) {
+        return string_info(SQL_DRIVER_VER);
+    }
+
+    /**
+     * @brief Gets the current database/catalog name.
+     *
+     * @return The database name.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String database_name() const throws (SQLException) {
+        return string_info(SQL_DATABASE_NAME);
+    }
+
+    /**
+     * @brief Gets the current user name.
+     *
+     * @return The user name.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String user_name() const throws (SQLException) {
+        return string_info(SQL_USER_NAME);
+    }
+
+    /**
+     * @brief Gets the string used to quote identifiers.
+     *
+     * @return The identifier quote string (e.g. "\"" or "`").
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String identifier_quote_string() const throws (SQLException) {
+        return string_info(SQL_IDENTIFIER_QUOTE_CHAR);
+    }
+
+    /**
+     * @brief Gets the term the database uses for "catalog".
+     *
+     * @return The catalog term (e.g. "database").
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String catalog_term() const throws (SQLException) {
+        return string_info(SQL_CATALOG_TERM);
+    }
+
+    /**
+     * @brief Gets the term the database uses for "schema".
+     *
+     * @return The schema term (e.g. "schema", "owner").
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    String schema_term() const throws (SQLException) {
+        return string_info(SQL_SCHEMA_TERM);
+    }
+
+    /**
+     * @brief Gets the maximum number of columns allowed in a table.
+     *
+     * @return The maximum column count, or 0 if unlimited/unknown.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    i32 max_columns_in_table() const throws (SQLException) {
+        return static_cast<i32>(u16_info(SQL_MAX_COLUMNS_IN_TABLE));
+    }
+
+    /**
+     * @brief Gets the maximum length of a statement string.
+     *
+     * @return The maximum statement length, or 0 if unlimited.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    i32 max_statement_length() const throws (SQLException) {
+        return static_cast<i32>(u32_info(SQL_MAX_STATEMENT_LEN));
+    }
+
+    /**
+     * @brief Checks if transactions are supported.
+     *
+     * @return true if the database supports transactions.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    bool supports_transactions() const throws (SQLException) {
+        return u16_info(SQL_TXN_CAPABLE) != SQL_TC_NONE;
+    }
+
+    /**
+     * @brief Retrieves a result set describing available tables.
+     *
+     * Wraps SQLTables. Pass empty strings to match all. Patterns may use
+     * '%' and '_' wildcards.
+     *
+     * @param catalog Catalog name pattern (or "" for all).
+     * @param schema Schema name pattern (or "" for all).
+     * @param table Table name pattern (or "" for all).
+     * @param types Comma-separated table types (e.g. "TABLE,VIEW") or "" for all.
+     * @return A ResultSet with columns: TABLE_CAT, TABLE_SCHEM, TABLE_NAME, TABLE_TYPE, REMARKS.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    ResultSet tables(
+        StringView catalog, StringView schema,
+        StringView table, StringView types
+    ) const throws (SQLException) {
+        SQLHSTMT stmt;
+        SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to allocate statement for getTables");
+        }
+
+        String cat_str(catalog);
+        String sch_str(schema);
+        String tbl_str(table);
+        String typ_str(types);
+
+        ret = SQLTables(
+            stmt,
+            cat_str.empty() ? nullptr : reinterpret_cast<SQLCHAR*>(cat_str.data()),
+            cat_str.empty() ? 0 : static_cast<SQLSMALLINT>(cat_str.size()),
+            sch_str.empty() ? nullptr : reinterpret_cast<SQLCHAR*>(sch_str.data()),
+            sch_str.empty() ? 0 : static_cast<SQLSMALLINT>(sch_str.size()),
+            tbl_str.empty() ? nullptr : reinterpret_cast<SQLCHAR*>(tbl_str.data()),
+            tbl_str.empty() ? 0 : static_cast<SQLSMALLINT>(tbl_str.size()),
+            typ_str.empty() ? nullptr : reinterpret_cast<SQLCHAR*>(typ_str.data()),
+            typ_str.empty() ? 0 : static_cast<SQLSMALLINT>(typ_str.size())
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_STMT, stmt, "Failed to retrieve tables");
+            SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+            throw ex;
+        }
+
+        return ResultSet(stmt);
+    }
+
+    /**
+     * @brief Retrieves a result set describing columns in specified tables.
+     *
+     * Wraps SQLColumns. Pass empty strings to match all. Patterns may use
+     * '%' and '_' wildcards.
+     *
+     * @param catalog Catalog name pattern (or "" for all).
+     * @param schema Schema name pattern (or "" for all).
+     * @param table Table name pattern (or "" for all).
+     * @param column Column name pattern (or "" for all).
+     * @return A ResultSet with columns including: TABLE_CAT, TABLE_SCHEM, TABLE_NAME,
+     *         COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_SIZE, NULLABLE, etc.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    ResultSet columns(
+        StringView catalog, StringView schema,
+        StringView table, StringView column
+    ) const throws (SQLException) {
+        SQLHSTMT stmt;
+        SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to allocate statement for getColumns");
+        }
+
+        String cat_str(catalog);
+        String sch_str(schema);
+        String tbl_str(table);
+        String col_str(column);
+
+        ret = SQLColumns(
+            stmt,
+            cat_str.empty() ? nullptr : reinterpret_cast<SQLCHAR*>(cat_str.data()),
+            cat_str.empty() ? 0 : static_cast<SQLSMALLINT>(cat_str.size()),
+            sch_str.empty() ? nullptr : reinterpret_cast<SQLCHAR*>(sch_str.data()),
+            sch_str.empty() ? 0 : static_cast<SQLSMALLINT>(sch_str.size()),
+            tbl_str.empty() ? nullptr : reinterpret_cast<SQLCHAR*>(tbl_str.data()),
+            tbl_str.empty() ? 0 : static_cast<SQLSMALLINT>(tbl_str.size()),
+            col_str.empty() ? nullptr : reinterpret_cast<SQLCHAR*>(col_str.data()),
+            col_str.empty() ? 0 : static_cast<SQLSMALLINT>(col_str.size())
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_STMT, stmt, "Failed to retrieve columns");
+            SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+            throw ex;
+        }
+
+        return ResultSet(stmt);
+    }
+};
+
+/**
+ * @class Transaction
+ * @brief RAII guard for database transactions.
+ *
+ * Automatically rolls back on destruction if not explicitly committed.
+ * Disables auto-commit on construction and restores it on destruction.
+ */
+class Transaction;
 
 /**
  * @class Connection
@@ -1027,7 +2674,7 @@ private:
 
     /**
      * @brief Constructs a Connection using a connection string.
-     * @internal This constructor can be private or public depending on desired API style.
+     * @internal This constructor is private and used by DriverManager.
      *
      * @param conn_str The ODBC connection string.
      * @throws SQLException if connection fails.
@@ -1041,38 +2688,93 @@ private:
 
         ret = SQLSetEnvAttr(env, SQL_ATTR_ODBC_VERSION, reinterpret_cast<SQLPOINTER>(SQL_OV_ODBC3), 0);
         if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_ENV, env, "Failed to set ODBC version");
             SQLFreeHandle(SQL_HANDLE_ENV, env);
-            throw SQLException("Failed to set ODBC version");
+            throw ex;
         }
 
         ret = SQLAllocHandle(SQL_HANDLE_DBC, env, &dbc);
         if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_ENV, env, "Failed to allocate connection handle");
             SQLFreeHandle(SQL_HANDLE_ENV, env);
-            throw SQLException("Failed to allocate connection handle");
+            throw ex;
         }
 
         SQLCHAR out_conn_str[1024];
         SQLSMALLINT out_conn_str_len;
-        
+
+        String conn_string(conn_str);
         ret = SQLDriverConnect(
-            dbc, 
+            dbc,
             nullptr,
-            reinterpret_cast<SQLCHAR*>(const_cast<char*>(conn_str.data())),
-            SQL_NTS,
+            reinterpret_cast<SQLCHAR*>(conn_string.data()),
+            static_cast<SQLSMALLINT>(conn_string.size()),
             out_conn_str, sizeof(out_conn_str),
             &out_conn_str_len,
             SQL_DRIVER_NOPROMPT
         );
 
         if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_DBC, dbc, "Failed to connect to database");
             SQLFreeHandle(SQL_HANDLE_DBC, dbc);
             SQLFreeHandle(SQL_HANDLE_ENV, env);
-            throw SQLException("Failed to connect to database");
+            throw ex;
+        }
+    }
+
+    /**
+     * @brief Constructs a Connection using DSN, username and password directly.
+     * @internal This constructor is private and used by DriverManager.
+     *
+     * @param dsn The Data Source Name.
+     * @param username The database username.
+     * @param password The database password.
+     * @throws SQLException if connection fails.
+     */
+    Connection(StringView dsn, StringView username, StringView password) throws (SQLException):
+        env{nullptr}, dbc{nullptr}, closed{false}, auto_commit{true} {
+        SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env);
+        if (!SQL_SUCCEEDED(ret)) {
+            throw SQLException("Failed to allocate environment handle");
+        }
+
+        ret = SQLSetEnvAttr(env, SQL_ATTR_ODBC_VERSION, reinterpret_cast<SQLPOINTER>(SQL_OV_ODBC3), 0);
+        if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_ENV, env, "Failed to set ODBC version");
+            SQLFreeHandle(SQL_HANDLE_ENV, env);
+            throw ex;
+        }
+
+        ret = SQLAllocHandle(SQL_HANDLE_DBC, env, &dbc);
+        if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_ENV, env, "Failed to allocate connection handle");
+            SQLFreeHandle(SQL_HANDLE_ENV, env);
+            throw ex;
+        }
+
+        String dsn_str(dsn);
+        String user_str(username);
+        String pass_str(password);
+
+        ret = SQLConnect(
+            dbc,
+            reinterpret_cast<SQLCHAR*>(dsn_str.data()),
+            static_cast<SQLSMALLINT>(dsn_str.size()),
+            reinterpret_cast<SQLCHAR*>(user_str.data()),
+            static_cast<SQLSMALLINT>(user_str.size()),
+            reinterpret_cast<SQLCHAR*>(pass_str.data()),
+            static_cast<SQLSMALLINT>(pass_str.size())
+        );
+
+        if (!SQL_SUCCEEDED(ret)) {
+            SQLException ex(SQL_HANDLE_DBC, dbc, "Failed to connect to database");
+            SQLFreeHandle(SQL_HANDLE_DBC, dbc);
+            SQLFreeHandle(SQL_HANDLE_ENV, env);
+            throw ex;
         }
     }
 
     friend class DriverManager;
-
 public:
     /**
      * @brief Move constructor.
@@ -1137,16 +2839,59 @@ public:
     }
 
     /**
+     * @brief Creates a CallableStatement for executing stored procedures.
+     *
+     * Uses the ODBC call escape syntax. Example:
+     * @code
+     * CallableStatement cs = conn.prepare_call("{call my_procedure(?, ?)}");
+     * @endcode
+     *
+     * @param call The ODBC call syntax string.
+     * @return A CallableStatement object.
+     * @throws SQLException if statement preparation fails.
+     */
+    [[nodiscard]]
+    CallableStatement prepare_call(StringView call) throws (SQLException) {
+        check_closed();
+        return CallableStatement(dbc, call);
+    }
+
+    /**
+     * @brief Gets metadata about the database.
+     *
+     * @return A DatabaseMetaData object for querying database properties.
+     * @throws SQLException if the connection is closed.
+     */
+    [[nodiscard]]
+    DatabaseMetaData metadata() throws (SQLException) {
+        check_closed();
+        return DatabaseMetaData(dbc);
+    }
+
+    /**
+     * @brief Begins a new transaction and returns an RAII guard.
+     *
+     * Disables auto-commit for the duration of the transaction. The returned
+     * Transaction object will automatically roll back on destruction if
+     * commit() has not been called.
+     *
+     * @return A Transaction RAII guard.
+     * @throws SQLException on error.
+     */
+    [[nodiscard]]
+    Transaction begin_transaction() throws (SQLException);
+
+    /**
      * @brief Commits the current transaction.
      *
      * @throws SQLException on error.
      */
-    void commit() {
+    void commit() throws (SQLException) {
         check_closed();
-        
+
         SQLRETURN ret = SQLEndTran(SQL_HANDLE_DBC, dbc, SQL_COMMIT);
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to commit transaction");
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to commit transaction");
         }
     }
 
@@ -1157,10 +2902,10 @@ public:
      */
     void rollback() throws (SQLException) {
         check_closed();
-        
+
         SQLRETURN ret = SQLEndTran(SQL_HANDLE_DBC, dbc, SQL_ROLLBACK);
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to rollback transaction");
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to rollback transaction");
         }
     }
 
@@ -1172,18 +2917,18 @@ public:
      */
     void set_auto_commit(bool auto_commit_mode) throws (SQLException) {
         check_closed();
-        
+
         SQLRETURN ret = SQLSetConnectAttr(
             dbc,
             SQL_ATTR_AUTOCOMMIT,
             reinterpret_cast<SQLPOINTER>(auto_commit_mode ? SQL_AUTOCOMMIT_ON : SQL_AUTOCOMMIT_OFF),
             0
         );
-        
+
         if (!SQL_SUCCEEDED(ret)) {
-            throw SQLException("Failed to set auto-commit mode");
+            throw SQLException(SQL_HANDLE_DBC, dbc, "Failed to set auto-commit mode");
         }
-        
+
         auto_commit = auto_commit_mode;
     }
 
@@ -1227,6 +2972,83 @@ public:
 };
 
 /**
+ * @class Transaction
+ * @brief RAII guard for database transactions.
+ *
+ * Automatically rolls back on destruction if not explicitly committed.
+ * Disables auto-commit on construction and restores it on destruction.
+ */
+class Transaction {
+private:
+    Connection& conn;
+    bool committed;
+    bool prev_auto_commit;
+
+    explicit Transaction(Connection& conn) throws (SQLException):
+        conn{conn}, committed{false}, prev_auto_commit{conn.auto_commit_enabled()} {
+        conn.set_auto_commit(false);
+    }
+
+    friend class Connection;
+public:
+    Transaction(const Transaction&) = delete;
+    Transaction& operator=(const Transaction&) = delete;
+    Transaction& operator=(Transaction&&) = delete;
+
+    /**
+     * @brief Move constructor.
+     */
+    Transaction(Transaction&& other) noexcept:
+        conn{other.conn}, committed{other.committed},
+        prev_auto_commit{other.prev_auto_commit} {
+        other.committed = true;
+    }
+
+    /**
+     * @brief Destructor. Rolls back if not committed, then restores auto-commit.
+     */
+    ~Transaction() {
+        if (!committed) {
+            try {
+                conn.rollback();
+            } catch ([[maybe_unused]] const SQLException& e) {
+                // do nothing
+            }
+        }
+        try {
+            conn.set_auto_commit(prev_auto_commit);
+        } catch ([[maybe_unused]] const SQLException& e) {
+            // do nothing
+        }
+    }
+
+    /**
+     * @brief Commits the transaction.
+     *
+     * @throws SQLException on error.
+     */
+    void commit() throws (SQLException) {
+        conn.commit();
+        committed = true;
+    }
+
+    /**
+     * @brief Explicitly rolls back the transaction.
+     *
+     * @throws SQLException on error.
+     */
+    void rollback() throws (SQLException) {
+        conn.rollback();
+        committed = true;
+    }
+};
+
+Transaction Connection::begin_transaction() throws (SQLException) {
+    check_closed();
+    return Transaction(*this);
+}
+
+/**
  * @class DriverManager
  * @brief Manages database drivers and provides connection factory methods.
  *
@@ -1235,8 +3057,6 @@ public:
 class DriverManager {
 public:
     DriverManager() = delete;
-    DriverManager(const DriverManager&) = delete;
-    DriverManager& operator=(const DriverManager&) = delete;
 
     /**
      * @brief Establishes a connection to the database.
@@ -1251,12 +3071,14 @@ public:
      * - "Driver={PostgreSQL Unicode};Server=localhost;Port=5432;Database=mydb;Uid=user;Pwd=pass;"
      */
     [[nodiscard]]
-    static Connection get_connection(StringView conn_str) throws (SQLException) {
+    static Connection connection(StringView conn_str) throws (SQLException) {
         return Connection(conn_str);
     }
 
     /**
      * @brief Establishes a connection to the database using DSN.
+     *
+     * Uses SQLConnect directly for proper DSN-based authentication.
      *
      * @param dsn The Data Source Name.
      * @param username The database username.
@@ -1265,59 +3087,189 @@ public:
      * @throws SQLException if the connection fails.
      */
     [[nodiscard]]
-    static Connection get_connection(StringView dsn, StringView username, StringView password) throws (SQLException) {
-        String conn_str = stdx::fmt::format("DSN={};Uid={};Pwd={};", dsn, username, password);
-        return Connection(conn_str);
+    static Connection connection(StringView dsn, StringView username, StringView password) throws (SQLException) {
+        return Connection(dsn, username, password);
     }
 
     /**
-     * @brief Establishes a connection to a SQL Server database.
+     * @brief Establishes a connection using a driver, server, database, and credentials.
      *
+     * Builds an ODBC connection string from the given components. This is the
+     * preferred way to connect when you know the driver name installed on the system.
+     *
+     * @param driver The ODBC driver name (e.g. "SQL Server", "PostgreSQL Unicode",
+     *               "MySQL ODBC 8.0 Unicode Driver").
      * @param server The server hostname or IP address.
      * @param database The database name.
      * @param username The database username.
      * @param password The database password.
+     * @param port Optional port number. If 0, the port parameter is omitted from
+     *             the connection string and the driver default is used.
      * @return A Connection object.
      * @throws SQLException if the connection fails.
      */
     [[nodiscard]]
-    static Connection get_sql_server_connection(StringView server, StringView database, StringView username, StringView password) throws (SQLException) {
-        String conn_str = stdx::fmt::format("Driver={{SQL Server}};Server={};Database={};Uid={};Pwd={};", server, database, username, password);
+    static Connection connection(
+        StringView driver,
+        StringView server,
+        StringView database,
+        StringView username,
+        StringView password,
+        i32 port = 0
+    ) throws (SQLException) {
+        String conn_str;
+        if (port > 0) {
+            conn_str = stdx::fmt::format(
+                "Driver={{{}}};Server={};Port={};Database={};Uid={};Pwd={};",
+                driver, server, port, database, username, password
+            );
+        } else {
+            conn_str = stdx::fmt::format(
+                "Driver={{{}}};Server={};Database={};Uid={};Pwd={};",
+                driver, server, database, username, password
+            );
+        }
         return Connection(conn_str);
+    }
+};
+
+/**
+ * @class DataSource
+ * @brief A simple connection pool, mirroring javax.sql.DataSource.
+ *
+ * Maintains a pool of reusable Connection objects. When a connection is
+ * requested, a pooled connection is returned if available; otherwise a new
+ * one is created (up to the configured maximum). Connections should be
+ * returned to the pool via return_connection() instead of being closed.
+ *
+ * Thread-safe: all public methods are synchronized.
+ */
+class DataSource {
+private:
+    String connection_string;
+    Queue<Connection> pool;
+    Mutex mtx;
+    ConditionVariable cv;
+    i32 max_size;
+    i32 active = 0;
+public:
+    /**
+     * @brief Constructs a DataSource with a connection string and pool size.
+     *
+     * @param conn_str The ODBC connection string used to create new connections.
+     * @param max_size The maximum number of connections in the pool (default: 10).
+     */
+    explicit DataSource(StringView conn_str, i32 max_size = 10):
+        connection_string{conn_str}, max_size{max_size}, active{0} {}
+
+    DataSource(const DataSource&) = delete;
+    DataSource& operator=(const DataSource&) = delete;
+
+    /**
+     * @brief Gets a connection from the pool.
+     *
+     * If a pooled connection is available, it is returned immediately. If the
+     * pool is empty but the active count is below the maximum, a new connection
+     * is created. Otherwise, this method blocks until a connection is returned.
+     *
+     * @return A Connection object.
+     * @throws SQLException if connection creation fails.
+     */
+    [[nodiscard]]
+    Connection connection() throws (SQLException) {
+        UniqueLock<Mutex> lock(mtx);
+
+        while (pool.empty() && active >= max_size) {
+            cv.wait(lock);
+        }
+
+        if (!pool.empty()) {
+            Connection conn = System::move(pool.front());
+            pool.pop();
+
+            if (conn.is_closed()) {
+                --active;
+                lock.unlock();
+                return connection();
+            }
+
+            return conn;
+        }
+
+        ++active;
+        lock.unlock();
+
+        try {
+            return DriverManager::connection(connection_string);
+        } catch ([[maybe_unused]] const SQLException& e) {
+            ScopedLock<Mutex> guard(mtx);
+            --active;
+            cv.notify_one();
+            throw;
+        }
     }
 
     /**
-     * @brief Establishes a connection to a PostgreSQL database.
+     * @brief Returns a connection to the pool for reuse.
      *
-     * @param server The server hostname or IP address.
-     * @param database The database name.
-     * @param username The database username.
-     * @param password The database password.
-     * @param port The server port (default: 5432).
-     * @return A Connection object.
-     * @throws SQLException if the connection fails.
+     * If the connection is still open, it is placed back in the pool.
+     * If the connection is closed, the active count is decremented.
+     *
+     * @param conn The connection to return.
      */
-    [[nodiscard]]
-    static Connection get_postgre_sql_connection(StringView server, StringView database, StringView username, StringView password, int port = 5432) throws (SQLException) {
-        String conn_str = stdx::fmt::format("Driver={{PostgreSQL Unicode}};Server={};Port={};Database={};Uid={};Pwd={};", server, port, database, username, password);
-        return Connection(conn_str);
+    void return_connection(Connection conn) {
+        ScopedLock<Mutex> lock(mtx);
+
+        if (conn.is_closed()) {
+            --active;
+        } else {
+            pool.push(System::move(conn));
+        }
+
+        cv.notify_one();
     }
 
     /**
-     * @brief Establishes a connection to a MySQL database.
+     * @brief Gets the number of currently active (checked-out) connections.
      *
-     * @param server The server hostname or IP address.
-     * @param database The database name.
-     * @param username The database username.
-     * @param password The database password.
-     * @param port The server port (default: 3306).
-     * @return A Connection object.
-     * @throws SQLException if the connection fails.
+     * @return The active connection count.
      */
     [[nodiscard]]
-    static Connection get_mysql_connection(StringView server, StringView database, StringView username, StringView password, int port = 3306) throws (SQLException) {
-        String conn_str = stdx::fmt::format("Driver={{MySQL ODBC 8.0 Unicode Driver}};Server={};Port={};Database={};User={};Password={};", server, port, database, username, password);
-        return Connection(conn_str);
+    i32 active_count() const {
+        return active;
+    }
+
+    /**
+     * @brief Gets the number of idle connections in the pool.
+     *
+     * @return The idle connection count.
+     */
+    [[nodiscard]]
+    i32 idle_count() const {
+        return static_cast<i32>(pool.size());
+    }
+
+    /**
+     * @brief Gets the maximum pool size.
+     *
+     * @return The maximum number of connections allowed.
+     */
+    [[nodiscard]]
+    i32 max_pool_size() const noexcept {
+        return max_size;
+    }
+
+    /**
+     * @brief Closes all idle connections in the pool.
+     */
+    void close() {
+        ScopedLock<Mutex> lock(mtx);
+
+        while (!pool.empty()) {
+            pool.front().close();
+            pool.pop();
+            --active;
+        }
     }
 };
 

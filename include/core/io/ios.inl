@@ -24,7 +24,7 @@ export namespace core::io {
     private:
         Self value;
     public:
-        constexpr OpenMode(Self value = Self()) noexcept:
+        constexpr OpenMode(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {
@@ -57,7 +57,7 @@ export namespace core::io {
     private:
         Self value;
     public:
-        constexpr FormatFlags(Self value = Self()) noexcept:
+        constexpr FormatFlags(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {
@@ -80,7 +80,7 @@ export namespace core::io {
     private:
         Self value;
     public:
-        constexpr IOState(Self value = Self()) noexcept:
+        constexpr IOState(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {
@@ -98,7 +98,7 @@ export namespace core::io {
     private:
         Self value;
     public:
-        constexpr SeekingDirection(Self value = Self()) noexcept:
+        constexpr SeekingDirection(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {
@@ -116,7 +116,7 @@ export namespace core::io {
     private:
         Self value;
     public:
-        constexpr IOEvent(Self value = Self()) noexcept:
+        constexpr IOEvent(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {
@@ -156,17 +156,12 @@ export namespace core::io {
         }
     };
 
-    template <typename T>
-    using IsErrorCodeEnum = std::is_error_code_enum<T>;
-
     using StreamOffset = std::streamoff;
     using StreamSize = std::streamsize;
 
     using IOException = std::ios_base::failure;
 
     using std::iostream_category;
-    using std::make_error_code;
-    using std::make_error_condition;
     using std::boolalpha;
     using std::noboolalpha;
     using std::showbase;
@@ -194,9 +189,18 @@ export namespace core::io {
 }
 
 /**
- * @namespace core
+ * @namespace core::meta
+ * @brief Wrapper namespace for standard library metaprogramming operations.
+ */
+export namespace core::meta {
+    template <typename T>
+    using IsErrorCodeEnum = std::is_error_code_enum<T>;
+}
+
+/**
+ * @namespace core::prelude
  * @brief Wrapper namespace for standard library core operations.
  */
-export namespace core {
+export namespace core::prelude {
     using core::io::IOErrc;
 }

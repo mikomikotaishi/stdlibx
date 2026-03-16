@@ -5,13 +5,13 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::Optional;
-    using ::core::nullopt;
-    using ::core::NullOption;
-    using ::core::BadOptionalAccessException;
+    using ::core::prelude::Optional;
+    using ::core::prelude::nullopt;
+    using ::core::prelude::NullOption;
+    using ::core::prelude::BadOptionalAccessException;
 
-    using ::core::hash;
-    using ::core::swap;
+    using ::core::prelude::hash;
+    using ::core::prelude::swap;
 
-    using ::core::make_optional;
+    using ::core::prelude::make_optional;
 }

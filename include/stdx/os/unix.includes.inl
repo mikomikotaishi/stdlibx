@@ -1,5 +1,8 @@
 #pragma once
 
+#include <errno.h>
+#include <signal.h>
+
 #ifdef __unix__
 #include <aio.h>
 #include <dirent.h>
@@ -25,6 +28,7 @@
 #include <search.h>
 #include <semaphore.h>
 #include <spawn.h>
+#include <stdlib.h>
 #include <strings.h>
 #include <termios.h>
 #include <unistd.h>

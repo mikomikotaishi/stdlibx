@@ -8,6 +8,9 @@ export namespace stdx::alloc {
     using ::alloc::PointerTraits;
     using ::alloc::Allocator;
     using ::alloc::AllocatorTraits;
+    #ifdef __cpp_lib_allocate_at_least
+    using ::alloc::AllocationResult;
+    #endif
     using ::alloc::UsesAllocator;
     using ::alloc::DefaultDelete;
 

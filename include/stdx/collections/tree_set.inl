@@ -8,15 +8,6 @@ export namespace stdx::collections {
     using ::alloc::collections::TreeSet;
     using ::alloc::collections::TreeMultiset;
 
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using ::alloc::collections::pmr::TreeSet;
-        using ::alloc::collections::pmr::TreeMultiset;
-    }
-
     using ::alloc::collections::erase_if;
 
     using ::alloc::collections::operator==;

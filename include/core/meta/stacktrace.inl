@@ -12,14 +12,6 @@ export namespace core::meta {
     using BasicStackTrace = std::basic_stacktrace<Allocator>;
 
     using StackTrace = std::stacktrace;
-    
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using StackTrace = std::pmr::stacktrace;
-    }
 
     using std::hash;
     using std::formatter;

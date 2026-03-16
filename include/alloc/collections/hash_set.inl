@@ -1,10 +1,5 @@
 #pragma once
 
-using core::EqualTo;
-using core::Hash;
-
-using alloc::Allocator;
-
 /**
  * @namespace alloc::collections
  * @brief Wrapper namespace for standard library collection operations.
@@ -15,20 +10,6 @@ export namespace alloc::collections {
 
     template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>, typename Alloc = Allocator<Key>>
     using HashMultiset = std::unordered_multiset<Key, HashFn, Predicate, Alloc>;
-
-
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
-        using HashSet = std::pmr::unordered_set<Key, HashFn, Predicate>;
-
-        template <typename Key, typename HashFn = Hash<Key>, typename Predicate = EqualTo<Key>>
-        using HashMultiset = std::pmr::unordered_multiset<Key, HashFn, Predicate>;
-
-    }
 
     using std::erase_if;
 

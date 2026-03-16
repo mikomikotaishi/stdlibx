@@ -14,7 +14,26 @@ export namespace stdx::sync {
     using AtomicReference = std::atomic_ref<T>;
     
     // Memory order enum
-    using MemoryOrder = std::memory_order;
+    class [[nodiscard]] MemoryOrder final {
+    public:
+        using Self = std::memory_order;
+
+        static constexpr Self RELAXED = std::memory_order::relaxed;
+        static constexpr Self CONSUME = std::memory_order::consume;
+        static constexpr Self ACQUIRE = std::memory_order::acquire;
+        static constexpr Self RELEASE = std::memory_order::release;
+        static constexpr Self ACQUIRE_RELEASE = std::memory_order::acq_rel;
+        static constexpr Self SEQUENTIALLY_CONSISTENT = std::memory_order::seq_cst;
+    private:
+        Self value;
+    public:
+        constexpr MemoryOrder(Self value = {}) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
+    };
     
     // Memory order constants
 

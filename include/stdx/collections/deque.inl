@@ -7,14 +7,6 @@
 export namespace stdx::collections {
     using ::alloc::collections::Deque;
 
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using ::alloc::collections::pmr::Deque;
-    }
-
     using ::alloc::collections::erase;
     using ::alloc::collections::erase_if;
 

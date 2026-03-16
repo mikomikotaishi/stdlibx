@@ -1,114 +1,58 @@
 #pragma once
 
 /**
- * @namespace stdx::text
- * @brief Wrapper namespace for standard library text operations.
+ * @namespace stdx::text::regex
+ * @brief Wrapper namespace for standard library regular expressions operations.
  */
-export namespace stdx::text {
-    using ::alloc::text::BasicRegex;
-    using ::alloc::text::Regex;    
-    using ::alloc::text::WideRegex;
-    using ::alloc::text::SubexpressionMatch;
-    using ::alloc::text::CSubexpressionMatch;
-    using ::alloc::text::WideCSubexpressionMatch;
-    using ::alloc::text::StringSubexpressionMatch;
-    using ::alloc::text::WideStringSubexpressionMatch;
-    using ::alloc::text::MatchResults;
-    using ::alloc::text::CMatch;
-    using ::alloc::text::WideCMatch;
-    using ::alloc::text::StringMatch;
-    using ::alloc::text::WideStringMatch;
+export namespace stdx::text::regex {
+    using ::alloc::text::regex::BasicRegex;
+    using ::alloc::text::regex::Regex;    
+    using ::alloc::text::regex::WideRegex;
+    using ::alloc::text::regex::SubexpressionMatch;
+    using ::alloc::text::regex::CSubexpressionMatch;
+    using ::alloc::text::regex::WideCSubexpressionMatch;
+    using ::alloc::text::regex::StringSubexpressionMatch;
+    using ::alloc::text::regex::WideStringSubexpressionMatch;
+    using ::alloc::text::regex::MatchResults;
+    using ::alloc::text::regex::CMatch;
+    using ::alloc::text::regex::WideCMatch;
+    using ::alloc::text::regex::StringMatch;
+    using ::alloc::text::regex::WideStringMatch;
 
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using ::alloc::text::pmr::CMatch;
-        using ::alloc::text::pmr::WideCMatch;
-        using ::alloc::text::pmr::StringMatch;
-        using ::alloc::text::pmr::WideStringMatch;
-    }
+    using ::alloc::text::regex::RegexIterator;
+    using ::alloc::text::regex::CRegexIterator;
+    using ::alloc::text::regex::WideCRegexIterator;
+    using ::alloc::text::regex::StringRegexIterator;
+    using ::alloc::text::regex::WideStringRegexIterator;
+    using ::alloc::text::regex::RegexTokenIterator;
+    using ::alloc::text::regex::CRegexTokenIterator;
+    using ::alloc::text::regex::RegexTraits;
+    using ::alloc::text::regex::RegexException;
 
-    using ::alloc::text::RegexIterator;
-    using ::alloc::text::CRegexIterator;
-    using ::alloc::text::WideCRegexIterator;
-    using ::alloc::text::StringRegexIterator;
-    using ::alloc::text::WideStringRegexIterator;
-    using ::alloc::text::RegexTokenIterator;
-    using ::alloc::text::CRegexTokenIterator;
-    using ::alloc::text::RegexTraits;
-    using ::alloc::text::RegexException;
+    using ::alloc::text::regex::regex_match;
+    using ::alloc::text::regex::regex_search;
+    using ::alloc::text::regex::regex_replace;
 
-    using ::alloc::text::regex_match;
-    using ::alloc::text::regex_search;
-    using ::alloc::text::regex_replace;
+    using ::alloc::text::regex::swap;
 
-    using ::alloc::text::swap;
+    using ::alloc::text::regex::begin;
+    using ::alloc::text::regex::cbegin;
+    using ::alloc::text::regex::end;
+    using ::alloc::text::regex::cend;
+    using ::alloc::text::regex::rbegin;
+    using ::alloc::text::regex::crbegin;
+    using ::alloc::text::regex::rend;
+    using ::alloc::text::regex::crend;
+    using ::alloc::text::regex::size;
+    using ::alloc::text::regex::ssize;
+    using ::alloc::text::regex::empty;
+    using ::alloc::text::regex::data;
 
-    using ::alloc::text::begin;
-    using ::alloc::text::cbegin;
-    using ::alloc::text::end;
-    using ::alloc::text::cend;
-    using ::alloc::text::rbegin;
-    using ::alloc::text::crbegin;
-    using ::alloc::text::rend;
-    using ::alloc::text::crend;
-    using ::alloc::text::size;
-    using ::alloc::text::ssize;
-    using ::alloc::text::empty;
-    using ::alloc::text::data;
+    using ::alloc::text::regex::operator==;
+    using ::alloc::text::regex::operator<=>;
+    using ::alloc::text::regex::operator<<;
 
-    using ::alloc::text::operator==;
-    using ::alloc::text::operator<=>;
-    using ::alloc::text::operator<<;
-
-    /**
-     * @namespace regex_constants
-     * @brief Namespace containing all constants used by standard library regex objects.
-     */
-    namespace regex_constants {
-        using ::alloc::text::regex_constants::SyntaxOptionType;
-        using ::alloc::text::regex_constants::ICASE;
-        using ::alloc::text::regex_constants::NOSUBS;
-        using ::alloc::text::regex_constants::OPTIMIZE;
-        using ::alloc::text::regex_constants::COLLATE;
-        using ::alloc::text::regex_constants::ECMASCRIPT;
-        using ::alloc::text::regex_constants::BASIC;
-        using ::alloc::text::regex_constants::EXTENDED;
-        using ::alloc::text::regex_constants::AWK;
-        using ::alloc::text::regex_constants::GREP;
-        using ::alloc::text::regex_constants::EGREP;
-        using ::alloc::text::regex_constants::POLYNOMIAL;
-        using ::alloc::text::regex_constants::MULTILINE;
-
-        using ::alloc::text::regex_constants::MatchFlagType;
-        using ::alloc::text::regex_constants::MATCH_DEFAULT;
-        using ::alloc::text::regex_constants::MATCH_NOT_BOL;
-        using ::alloc::text::regex_constants::MATCH_NOT_EOL;
-        using ::alloc::text::regex_constants::MATCH_NOT_BOW;
-        using ::alloc::text::regex_constants::MATCH_ANY;
-        using ::alloc::text::regex_constants::MATCH_NOT_NULL;
-        using ::alloc::text::regex_constants::MATCH_CONTINUOUS;
-        using ::alloc::text::regex_constants::MATCH_PREVIOUS_AVAILABLE;
-        using ::alloc::text::regex_constants::FORMAT_DEFAULT;
-        using ::alloc::text::regex_constants::FORMAT_SED;
-        using ::alloc::text::regex_constants::FORMAT_NO_COPY;
-        using ::alloc::text::regex_constants::FORMAT_FIRST_ONLY;
-
-        using ::alloc::text::regex_constants::ErrorType;
-        using ::alloc::text::regex_constants::ERROR_COLLATE;
-        using ::alloc::text::regex_constants::ERROR_CTYPE;
-        using ::alloc::text::regex_constants::ERROR_ESCAPE;
-        using ::alloc::text::regex_constants::ERROR_BACKREFERENCE;
-        using ::alloc::text::regex_constants::ERROR_BRACKETS;
-        using ::alloc::text::regex_constants::ERROR_PARENTHESES;
-        using ::alloc::text::regex_constants::ERROR_BRACE;
-        using ::alloc::text::regex_constants::ERROR_BADBRACE;
-        using ::alloc::text::regex_constants::ERROR_RANGE;
-        using ::alloc::text::regex_constants::ERROR_SPACE;
-        using ::alloc::text::regex_constants::ERROR_BADREPEAT;
-        using ::alloc::text::regex_constants::ERROR_COMPLEXITY;
-        using ::alloc::text::regex_constants::ERROR_STACK;
-    }
+    using ::alloc::text::regex::SyntaxOption;
+    using ::alloc::text::regex::MatchFlag;
+    using ::alloc::text::regex::RegexParseError;
 }

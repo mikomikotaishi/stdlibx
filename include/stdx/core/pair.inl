@@ -5,11 +5,13 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::Pair;
+    using ::core::prelude::Pair;
 
-    using ::core::swap;
-    using ::core::get;
+    using ::core::prelude::make_pair;
 
-    using ::core::operator==;
-    using ::core::operator<=>;
+    using ::core::prelude::swap;
+    using ::core::prelude::get;
+
+    using ::core::prelude::operator==;
+    using ::core::prelude::operator<=>;
 }

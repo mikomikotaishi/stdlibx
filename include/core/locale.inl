@@ -4,10 +4,10 @@ using core::iter::InputStreamBufferIterator;
 using core::iter::OutputStreamBufferIterator;
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace core::prelude {
     using Locale = std::locale;
     using LocaleId = std::locale::id;
     using LocaleFacet = std::locale::facet;

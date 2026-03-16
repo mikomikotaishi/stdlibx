@@ -11,9 +11,10 @@ export namespace stdx::thread {
     using JoiningThread = std::jthread;
 
     /**
+     * @namespace current
      * @brief Namespace for operations on the current thread.
      */
-    namespace this_thread {
+    namespace current {
         using std::this_thread::yield;
         using std::this_thread::get_id;
         using std::this_thread::sleep_for;

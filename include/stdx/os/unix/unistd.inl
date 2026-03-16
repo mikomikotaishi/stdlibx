@@ -136,5 +136,6 @@ export namespace stdx::os::unix {
     using ::getentropy;
     using ::close_range;
     using ::gettid;
+    using ::environ;
     #endif
 }

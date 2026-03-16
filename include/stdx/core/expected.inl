@@ -6,16 +6,16 @@
  */
 export namespace stdx::core {
     #ifdef __cpp_lib_expected
-    using ::core::Expected;
-    using ::core::Unexpected;
-    using ::core::UnexpectTag;
-    using ::core::Unexpect;
-    using ::core::BadExpectedAccessException;
-    using ::core::ErrorDescription;
+    using ::core::prelude::Expected;
+    using ::core::prelude::Unexpected;
+    using ::core::prelude::UnexpectTag;
+    using ::core::prelude::Unexpect;
+    using ::core::prelude::BadExpectedAccessException;
+    using ::core::prelude::ErrorDescription;
 
-    using ::core::swap;
+    using ::core::prelude::swap;
 
-    using ::core::Ok;
-    using ::core::Err;
+    using ::core::prelude::Ok;
+    using ::core::prelude::Err;
     #endif
 }

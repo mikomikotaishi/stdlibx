@@ -8,11 +8,9 @@ using stdx::fs::Path;
 using stdx::io::IOException;
 using stdx::mem::UniquePointer;
 
-using FILE = std::FILE;
-
-extern "C" FILE* stdin;
-extern "C" FILE* stdout;
-extern "C" FILE* stderr;
+extern "C" std::FILE* stdin;
+extern "C" std::FILE* stdout;
+extern "C" std::FILE* stderr;
 
 /**
  * @namespace stdx::io
@@ -20,63 +18,65 @@ extern "C" FILE* stderr;
  */
 export namespace stdx::io {
     
-    // File access
-    using std::fopen;
-    using std::freopen;
-    using std::fclose;
-    using std::fflush;
-    using std::setbuf;
-    using std::setvbuf;
+    namespace cstdio {
+        // File access
+        using std::fopen;
+        using std::freopen;
+        using std::fclose;
+        using std::fflush;
+        using std::setbuf;
+        using std::setvbuf;
 
-    // Direct I/O
-    using std::fread;
-    using std::fwrite;
+        // Direct I/O
+        using std::fread;
+        using std::fwrite;
 
-    // Byte/multibyte character unformatted I/O
-    using std::fgetc;
-    using std::getc;
-    using std::fgets;
-    using std::fputc;
-    using std::putc;
-    using std::getchar;
-    using std::putchar;
-    using std::puts;
-    using std::ungetc;
+        // Byte/multibyte character unformatted I/O
+        using std::fgetc;
+        using std::getc;
+        using std::fgets;
+        using std::fputc;
+        using std::putc;
+        using std::getchar;
+        using std::putchar;
+        using std::puts;
+        using std::ungetc;
 
-    // Byte/multibyte formatted I/O
-    using std::scanf;
-    using std::fscanf;
-    using std::sscanf;
-    using std::vscanf;
-    using std::vfscanf;
-    using std::vsscanf;
-    using std::printf;
-    using std::fprintf;
-    using std::sprintf;
-    using std::snprintf;
-    using std::vprintf;
-    using std::vfprintf;
-    using std::vsprintf;
-    using std::vsnprintf;
+        // Byte/multibyte formatted I/O
+        using std::scanf;
+        using std::fscanf;
+        using std::sscanf;
+        using std::vscanf;
+        using std::vfscanf;
+        using std::vsscanf;
+        using std::printf;
+        using std::fprintf;
+        using std::sprintf;
+        using std::snprintf;
+        using std::vprintf;
+        using std::vfprintf;
+        using std::vsprintf;
+        using std::vsnprintf;
 
-    // File positioning
-    using std::ftell;
-    using std::fgetpos;
-    using std::fseek;
-    using std::fsetpos;
-    using std::rewind;
+        // File positioning
+        using std::ftell;
+        using std::fgetpos;
+        using std::fseek;
+        using std::fsetpos;
+        using std::rewind;
 
-    // Error handling
-    using std::clearerr;
-    using std::feof;
-    using std::ferror;
-    using std::perror;
+        // Error handling
+        using std::clearerr;
+        using std::feof;
+        using std::ferror;
+        using std::perror;
 
-    // Operations
-    using std::remove;
-    using std::rename;
-    using std::tmpfile;
-    using std::tmpnam;
+        // Operations
+        using std::remove;
+        using std::rename;
+        using std::tmpfile;
+        using std::tmpnam;
+    }
 
     /**
      * @class File
@@ -93,7 +93,7 @@ export namespace stdx::io {
         struct FileDeleter {
             void operator()(Handle* file) const noexcept {
                 if (file && file != stdin() && file != stdout() && file != stderr()) {
-                    fclose(file);
+                    cstdio::fclose(file);
                 }
             }
         };
@@ -118,10 +118,10 @@ export namespace stdx::io {
          * @param mode 
          */
         File(StringView name, StringView mode):
-            handle{fopen(name.data(), mode.data())}, file_path{Path(name)} {}
+            handle{cstdio::fopen(name.data(), mode.data())}, file_path{Path(name)} {}
 
         File(const Path& path, StringView mode):
-            handle{fopen(path.c_str(), mode.data())}, file_path{path} {}
+            handle{cstdio::fopen(path.c_str(), mode.data())}, file_path{path} {}
 
         ~File() = default;
         File(const File&) = delete;
@@ -238,18 +238,18 @@ export namespace stdx::io {
             if (!handle) {
                 return {};
             }
-            i64 current_pos = stdx::io::ftell(handle.get());
+            i64 current_pos = cstdio::ftell(handle.get());
             if (current_pos < 0) {
                 return {};
             }
-            if (stdx::io::fseek(handle.get(), 0, SEEK_END) != 0) {
+            if (cstdio::fseek(handle.get(), 0, SEEK_END) != 0) {
                 return {};
             }
-            i64 end_pos = stdx::io::ftell(handle.get());
+            i64 end_pos = cstdio::ftell(handle.get());
             if (end_pos < 0) {
                 return {};
             }
-            if (stdx::io::fseek(handle.get(), current_pos, SEEK_SET) != 0) {
+            if (cstdio::fseek(handle.get(), current_pos, SEEK_SET) != 0) {
                 return {};
             }
             return static_cast<u64>(end_pos);
@@ -265,7 +265,7 @@ export namespace stdx::io {
             if (!handle) {
                 return {};
             }
-            i64 pos = stdx::io::ftell(handle.get());
+            i64 pos = cstdio::ftell(handle.get());
             if (pos < 0) {
                 return {};
             }
@@ -280,7 +280,7 @@ export namespace stdx::io {
          * @throws IOException if the seek operation fails.
          */
         void seek(i64 offset, i32 whence = SEEK_SET) throws (IOException) {
-            if (!handle || stdx::io::fseek(handle.get(), offset, whence) != 0) {
+            if (!handle || cstdio::fseek(handle.get(), offset, whence) != 0) {
                 throw IOException("Failed to seek in file.");
             }
         }
@@ -293,7 +293,7 @@ export namespace stdx::io {
          * @return True if the seek operation was successful, false otherwise.
          */
         bool try_seek(i64 offset, i32 whence = SEEK_SET) noexcept {
-            return handle && stdx::io::fseek(handle.get(), offset, whence) == 0;
+            return handle && cstdio::fseek(handle.get(), offset, whence) == 0;
         }
 
         /**
@@ -301,7 +301,7 @@ export namespace stdx::io {
          */
         void rewind() noexcept {
             if (handle) {
-                stdx::io::rewind(handle.get());
+                cstdio::rewind(handle.get());
             }
         }
 
@@ -316,7 +316,7 @@ export namespace stdx::io {
             if (!file_path || !handle) {
                 throw IOException("File is not open or has no path.");
             }
-            Handle* new_handle = stdx::io::freopen(file_path->c_str(), mode.data(), handle.get());
+            Handle* new_handle = cstdio::freopen(file_path->c_str(), mode.data(), handle.get());
             if (!new_handle) {
                 handle.release();
                 handle.reset(new_handle);
@@ -335,7 +335,7 @@ export namespace stdx::io {
             if (!file_path || !handle) {
                 return false;
             }
-            Handle* new_handle = stdx::io::freopen(file_path->c_str(), mode.data(), handle.get());
+            Handle* new_handle = cstdio::freopen(file_path->c_str(), mode.data(), handle.get());
             if (!new_handle) {
                 handle.release();
                 handle.reset(new_handle);
@@ -350,7 +350,7 @@ export namespace stdx::io {
          * @throws IOException if the flush operation fails.
          */
         void flush() throws (IOException) {
-            if (!handle || stdx::io::fflush(handle.get()) != 0) {
+            if (!handle || cstdio::fflush(handle.get()) != 0) {
                 throw IOException("Failed to flush file.");
             }
         }
@@ -361,7 +361,7 @@ export namespace stdx::io {
          * @return True if the flush operation was successful, false otherwise.
          */
         bool try_flush() noexcept {
-            return handle && stdx::io::fflush(handle.get()) == 0;
+            return handle && cstdio::fflush(handle.get()) == 0;
         }
 
         /**
@@ -371,7 +371,7 @@ export namespace stdx::io {
          */
         [[nodiscard]]
         bool has_error() const noexcept {
-            return handle && stdx::io::ferror(handle.get()) != 0;
+            return handle && cstdio::ferror(handle.get()) != 0;
         }
         
         /**
@@ -381,7 +381,7 @@ export namespace stdx::io {
          */
         [[nodiscard]]
         bool eof() const noexcept {
-            return handle && stdx::io::feof(handle.get()) != 0;
+            return handle && cstdio::feof(handle.get()) != 0;
         }
 
         /**
@@ -389,7 +389,7 @@ export namespace stdx::io {
          */
         void clear_error() noexcept {
             if (handle) {
-                stdx::io::clearerr(handle.get());
+                cstdio::clearerr(handle.get());
             }
         }
 

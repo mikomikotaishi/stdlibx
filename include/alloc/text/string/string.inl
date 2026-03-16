@@ -1,7 +1,5 @@
 #pragma once
 
-using alloc::Allocator;
-
 /**
  * @namespace alloc::text::string
  * @brief Wrapper namespace for standard library string operations.
@@ -9,31 +7,16 @@ using alloc::Allocator;
 export namespace alloc::text::string {
     using String = std::string;
 
-    template <typename CharT>
-    using CharTraits = std::char_traits<CharT>;
+    template <typename Char>
+    using CharTraits = std::char_traits<Char>;
 
-    template <typename CharT, typename Traits = CharTraits<CharT>, typename Alloc = Allocator<CharT>>
-    using BasicString = std::basic_string<CharT, Traits, Alloc>;
+    template <typename Char, typename Traits = CharTraits<Char>, typename Alloc = Allocator<Char>>
+    using BasicString = std::basic_string<Char, Traits, Alloc>;
 
     using Utf8String = std::u8string;
     using Utf16String = std::u16string;
     using Utf32String = std::u32string;
     using WideString = std::wstring;
-
-    /**
-        * @namespace pmr
-        * @brief Namespace for operations on polymorphic memory resources.
-        */
-    namespace pmr {
-        template <typename CharT, typename Traits = CharTraits<CharT>>
-        using BasicString = std::pmr::basic_string<CharT, Traits>;
-
-        using String = std::pmr::string;
-        using Utf8String = std::pmr::u8string;
-        using Utf16String = std::pmr::u16string;
-        using Utf32String = std::pmr::u32string;
-        using WideString = std::pmr::wstring;
-    }
 
     using std::stoi;
     using std::stol;
@@ -71,9 +54,9 @@ export namespace alloc::text::string {
 }
 
 /**
- * @namespace alloc::literals::string_literals
+ * @namespace core::literals::string_literals
  * @brief String literals namespace
  */
-export namespace alloc::inline literals::inline string_literals {
+export namespace core::inline literals::inline string_literals {
     using std::operator""s;
 }

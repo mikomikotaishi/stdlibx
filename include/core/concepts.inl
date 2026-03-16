@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace core::prelude {
     template <typename T, typename U>
     concept SameAs = std::same_as<T, U>;
 

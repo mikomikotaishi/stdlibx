@@ -6,22 +6,22 @@
  */
 export namespace stdx::core {
     #ifdef __cpp_lib_mdspan
-    using ::core::Extents;
-    using ::core::DynamicExtents;
-    using ::core::Dims;
-    using ::core::LayoutLeftPadded;
-    using ::core::LayoutRightPadded;
-    using ::core::DefaultAccessor;
-    using ::core::LayoutLeft;
-    using ::core::LayoutRight;
-    using ::core::LayoutStride;
-    using ::core::MultiDimensionalSpan;
-    using ::core::StridedSlice;
-    using ::core::SubMultiDimensionalSpanMappingResult;
-    using ::core::FullExtentTag;
-    using ::core::FullExtent;
+    using ::core::prelude::Extents;
+    using ::core::prelude::DynamicExtents;
+    using ::core::prelude::Dims;
+    using ::core::prelude::LayoutLeftPadded;
+    using ::core::prelude::LayoutRightPadded;
+    using ::core::prelude::DefaultAccessor;
+    using ::core::prelude::LayoutLeft;
+    using ::core::prelude::LayoutRight;
+    using ::core::prelude::LayoutStride;
+    using ::core::prelude::MultiDimensionalSpan;
+    using ::core::prelude::StridedSlice;
+    using ::core::prelude::SubMultiDimensionalSpanMappingResult;
+    using ::core::prelude::FullExtentTag;
+    using ::core::prelude::FullExtent;
 
-    using ::core::submdspan_extents;
-    using ::core::submdspan;
+    using ::core::prelude::submdspan_extents;
+    using ::core::prelude::submdspan;
     #endif
 }

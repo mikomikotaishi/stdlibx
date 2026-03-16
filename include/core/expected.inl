@@ -3,10 +3,10 @@
 using core::meta::DecayType;
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace core::prelude {
     #ifdef __cpp_lib_expected
     template <typename T, typename E>
     using Expected = std::expected<T, E>;

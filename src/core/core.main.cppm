@@ -26,6 +26,9 @@ export module core:main;
 
 import std;
 
+STDLIBX_CORE_PREPARE_IMPORT_PRELUDE();
+STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
+
 #include "core/array.inl"
 #include "core/clocale.inl"
 #include "core/compare.inl"
@@ -36,12 +39,13 @@ import std;
 #include "core/functional.inl"
 #include "core/initializer_list.inl"
 #include "core/limits.inl"
+#include "core/mdspan.inl"
 #include "core/optional.inl"
 #include "core/pair.inl"
 #include "core/sequence.inl"
 #include "core/span.inl"
-#include "core/mdspan.inl"
 #include "core/system_error.inl"
+#include "core/tags.inl"
 #include "core/tuple.inl"
 #include "core/variant.inl"
 
@@ -50,6 +54,7 @@ import std;
 #include "core/fmt/cinttypes.inl"
 
 #include "core/io/ios.inl"
+#include "core/io/iosfwd.inl"
 #include "core/io/streambuf.inl"
 
 #include "core/math/algorithm.inl"
@@ -61,6 +66,7 @@ import std;
 #include "core/math/linalg.inl"
 #include "core/math/numbers.inl"
 #include "core/math/numeric.inl"
+#include "core/math/quaternion.inl"
 #include "core/math/ratio.inl"
 
 #include "core/meta/source_location.inl"
@@ -70,6 +76,9 @@ import std;
 #include "core/meta/typeinfo.inl"
 
 #include "core/iter/iterator.inl"
+
+#include "core/pmr/generator.inl"
+#include "core/pmr/stacktrace.inl"
 
 #include "core/ranges/algorithm.inl"
 #include "core/ranges/functional.inl"
@@ -102,7 +111,9 @@ import std;
 // appears at end
 #include "core/locale.inl"
 #include "core/string_view.inl"
-#include "core/cstddef.Numbers.inl"
-#include "core/core.Math.inl"
+#include "core/numbers.inl"
 #include "core/expected.inl"
-#include "core/tags.inl"
+
+#ifndef STDLIBX_EXPORT_IMPORT_STD
+#include "operators.inl"
+#endif

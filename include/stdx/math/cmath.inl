@@ -346,6 +346,7 @@ export namespace stdx::math {
     // Check if unordered
     using ::core::math::isunordered;
 
+    #ifdef __cpp_lib_math_special_functions
     // Associated Laguerre polynomials
     using ::core::math::assoc_laguerre;
     using ::core::math::assoc_laguerref;
@@ -450,4 +451,5 @@ export namespace stdx::math {
     using ::core::math::sph_neumann;
     using ::core::math::sph_neumannf;
     using ::core::math::sph_neumannl;
+    #endif
 }

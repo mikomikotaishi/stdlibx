@@ -4,29 +4,24 @@ using core::iter::IteratorTraits;
 using core::meta::IsSameValue;
 using core::meta::UnderlyingTypeType;
 
-using alloc::Allocator;
-
 /**
- * @namespace alloc::text
- * @brief Wrapper namespace for standard library text operations.
+ * @namespace alloc::text::regex
+ * @brief Wrapper namespace for standard library regular expressions operations.
  */
-export namespace alloc::text {
+export namespace alloc::text::regex {
     template <typename T>
     using RegexTraits = std::regex_traits<T>;
 
-    template <typename CharT, typename RxTraits = RegexTraits<CharT>>
-        requires IsSameValue<CharT, typename RxTraits::char_type>
-    using BasicRegex = std::basic_regex<CharT, RxTraits>;
+    template <typename Char, typename RxTraits = RegexTraits<Char>>
+        requires IsSameValue<Char, typename RxTraits::char_type>
+    using BasicRegex = std::basic_regex<Char, RxTraits>;
 
     using Regex = std::regex;
 
-
     using WideRegex = std::wregex;
-
 
     template <typename T>
     using SubexpressionMatch = std::sub_match<T>;
-
 
     using CSubexpressionMatch = std::csub_match;
     using WideCSubexpressionMatch = std::wcsub_match;
@@ -43,20 +38,8 @@ export namespace alloc::text {
     using StringMatch = std::smatch;
     using WideStringMatch = std::wsmatch;
 
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using CMatch = std::pmr::cmatch;
-
-        using WideCMatch = std::pmr::wcmatch;
-        using StringMatch = std::pmr::smatch;
-        using WideStringMatch = std::pmr::wsmatch;
-    }
-
-    template <typename BidirIt, typename CharT = IteratorTraits<BidirIt>::value_type, typename RxTraits = RegexTraits<CharT>>
-    using RegexIterator = std::regex_iterator<BidirIt, CharT, RxTraits>;
+    template <typename BidirIt, typename Char = IteratorTraits<BidirIt>::value_type, typename RxTraits = RegexTraits<Char>>
+    using RegexIterator = std::regex_iterator<BidirIt, Char, RxTraits>;
 
     using CRegexIterator = std::cregex_iterator;
 
@@ -69,7 +52,6 @@ export namespace alloc::text {
     using RegexTokenIterator = std::regex_token_iterator<T>;
 
     using CRegexTokenIterator = std::cregex_token_iterator;
-
 
     using WideCRegexTokenIterator = std::wcregex_token_iterator;
     using StringRegexTokenIterator = std::sregex_token_iterator;
@@ -100,159 +82,197 @@ export namespace alloc::text {
     using std::operator<=>;
     using std::operator<<;
 
-    /**
-     * @namespace regex_constants
-     * @brief Namespace containing all constants used by standard library regex objects.
-     */
-    namespace regex_constants {
-        using SyntaxOptionType = std::regex_constants::syntax_option_type;
+    class [[nodiscard]] SyntaxOption final {
+    public:
+        using Self = std::regex_constants::syntax_option_type;
 
-        inline constexpr SyntaxOptionType ICASE = std::regex_constants::icase;
-        inline constexpr SyntaxOptionType NOSUBS = std::regex_constants::nosubs;
-        inline constexpr SyntaxOptionType OPTIMIZE = std::regex_constants::optimize;
-        inline constexpr SyntaxOptionType COLLATE = std::regex_constants::collate;
-        inline constexpr SyntaxOptionType ECMASCRIPT = std::regex_constants::ECMAScript;
-        inline constexpr SyntaxOptionType BASIC = std::regex_constants::basic;
-        inline constexpr SyntaxOptionType EXTENDED = std::regex_constants::extended;
-        inline constexpr SyntaxOptionType AWK = std::regex_constants::awk;
-        inline constexpr SyntaxOptionType GREP = std::regex_constants::grep;
-        inline constexpr SyntaxOptionType EGREP = std::regex_constants::egrep;
+        static constexpr Self NONE = std::regex_constants::syntax_option_type{};
+        static constexpr Self ICASE = std::regex_constants::icase;
+        static constexpr Self NOSUBS = std::regex_constants::nosubs;
+        static constexpr Self OPTIMIZE = std::regex_constants::optimize;
+        static constexpr Self COLLATE = std::regex_constants::collate;
+        static constexpr Self ECMASCRIPT = std::regex_constants::ECMAScript;
+        static constexpr Self BASIC = std::regex_constants::basic;
+        static constexpr Self EXTENDED = std::regex_constants::extended;
+        static constexpr Self AWK = std::regex_constants::awk;
+        static constexpr Self GREP = std::regex_constants::grep;
+        static constexpr Self EGREP = std::regex_constants::egrep;
         #ifdef __GNUC__
-        inline constexpr SyntaxOptionType POLYNOMIAL = std::regex_constants::_S_polynomial;
+        static constexpr Self POLYNOMIAL = std::regex_constants::_S_polynomial;
         #endif
-        inline constexpr SyntaxOptionType MULTILINE = std::regex_constants::multiline;
+        static constexpr Self MULTILINE = std::regex_constants::multiline;
+    private:
+        Self value;
+    public:
+        constexpr SyntaxOption(Self value = NONE) noexcept:
+            value{value} {}
 
-        [[nodiscard]]
-        constexpr SyntaxOptionType operator&(SyntaxOptionType a, SyntaxOptionType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::syntax_option_type>;
-            return static_cast<SyntaxOptionType>(
-                static_cast<Underlying>(a) & static_cast<Underlying>(b)
-            );
+        operator Self() const noexcept {
+            return value;
         }
 
         [[nodiscard]]
-        constexpr SyntaxOptionType operator|(SyntaxOptionType a, SyntaxOptionType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::syntax_option_type>;
-            return static_cast<SyntaxOptionType>(
-                static_cast<Underlying>(a) | static_cast<Underlying>(b)
-            );
+        constexpr SyntaxOption operator&(SyntaxOption other) const noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            return SyntaxOption(static_cast<Self>(
+                static_cast<Underlying>(value) & static_cast<Underlying>(other.value)
+            ));
         }
 
         [[nodiscard]]
-        constexpr SyntaxOptionType operator^(SyntaxOptionType a, SyntaxOptionType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::syntax_option_type>;
-            return static_cast<SyntaxOptionType>(
-                static_cast<Underlying>(a) ^ static_cast<Underlying>(b)
-            );
+        constexpr SyntaxOption operator|(SyntaxOption other) const noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            return SyntaxOption(static_cast<Self>(
+                static_cast<Underlying>(value) | static_cast<Underlying>(other.value)
+            ));
         }
 
         [[nodiscard]]
-        constexpr SyntaxOptionType operator~(SyntaxOptionType a) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::syntax_option_type>;
-            return static_cast<SyntaxOptionType>(~static_cast<Underlying>(a));
-        }
-
-        constexpr SyntaxOptionType& operator&=(SyntaxOptionType& a, SyntaxOptionType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::syntax_option_type>;
-            return a = static_cast<SyntaxOptionType>(
-                static_cast<Underlying>(a) & static_cast<Underlying>(b)
-            );
-        }
-
-        constexpr SyntaxOptionType& operator|=(SyntaxOptionType& a, SyntaxOptionType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::syntax_option_type>;
-            return a = static_cast<SyntaxOptionType>(
-                static_cast<Underlying>(a) | static_cast<Underlying>(b)
-            );
-        }
-
-        constexpr SyntaxOptionType& operator^=(SyntaxOptionType& a, SyntaxOptionType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::syntax_option_type>;
-            return a = static_cast<SyntaxOptionType>(
-                static_cast<Underlying>(a) ^ static_cast<Underlying>(b)
-            );
-        }
-
-        using MatchFlagType = std::regex_constants::match_flag_type;
-
-        inline constexpr MatchFlagType MATCH_DEFAULT = std::regex_constants::match_default;
-        inline constexpr MatchFlagType MATCH_NOT_BOL = std::regex_constants::match_not_bol;
-        inline constexpr MatchFlagType MATCH_NOT_EOL = std::regex_constants::match_not_eol;
-        inline constexpr MatchFlagType MATCH_NOT_BOW = std::regex_constants::match_not_bow;
-        inline constexpr MatchFlagType MATCH_ANY = std::regex_constants::match_any;
-        inline constexpr MatchFlagType MATCH_NOT_NULL = std::regex_constants::match_not_null;
-        inline constexpr MatchFlagType MATCH_CONTINUOUS = std::regex_constants::match_continuous;
-        inline constexpr MatchFlagType MATCH_PREVIOUS_AVAILABLE = std::regex_constants::match_prev_avail;
-        inline constexpr MatchFlagType FORMAT_DEFAULT = std::regex_constants::format_default;
-        inline constexpr MatchFlagType FORMAT_SED = std::regex_constants::format_sed;
-        inline constexpr MatchFlagType FORMAT_NO_COPY = std::regex_constants::format_no_copy;
-        inline constexpr MatchFlagType FORMAT_FIRST_ONLY = std::regex_constants::format_first_only;
-
-        [[nodiscard]]
-        constexpr MatchFlagType operator&(MatchFlagType a, MatchFlagType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::match_flag_type>;
-            return static_cast<MatchFlagType>(
-                static_cast<Underlying>(a) & static_cast<Underlying>(b)
-            );
+        constexpr SyntaxOption operator^(SyntaxOption other) const noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            return SyntaxOption(static_cast<Self>(
+                static_cast<Underlying>(value) ^ static_cast<Underlying>(other.value)
+            ));
         }
 
         [[nodiscard]]
-        constexpr MatchFlagType operator|(MatchFlagType a, MatchFlagType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::match_flag_type>;
-            return static_cast<MatchFlagType>(
-                static_cast<Underlying>(a) | static_cast<Underlying>(b)
+        constexpr SyntaxOption operator~() const noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            return SyntaxOption(static_cast<Self>(~static_cast<Underlying>(value)));
+        }
+
+        constexpr SyntaxOption& operator&=(SyntaxOption other) noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            value = static_cast<Self>(
+                static_cast<Underlying>(value) & static_cast<Underlying>(other.value)
             );
+            return *this;
+        }
+
+        constexpr SyntaxOption& operator|=(SyntaxOption other) noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            value = static_cast<Self>(
+                static_cast<Underlying>(value) | static_cast<Underlying>(other.value)
+            );
+            return *this;
+        }
+
+        constexpr SyntaxOption& operator^=(SyntaxOption other) noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            value = static_cast<Self>(
+                static_cast<Underlying>(value) ^ static_cast<Underlying>(other.value)
+            );
+            return *this;
+        }
+    };
+
+    class [[nodiscard]] MatchFlag final {
+    public:
+        using Self = std::regex_constants::match_flag_type;
+
+        static constexpr Self DEFAULT = std::regex_constants::match_default;
+        static constexpr Self NOT_BOL = std::regex_constants::match_not_bol;
+        static constexpr Self NOT_EOL = std::regex_constants::match_not_eol;
+        static constexpr Self NOT_BOW = std::regex_constants::match_not_bow;
+        static constexpr Self ANY = std::regex_constants::match_any;
+        static constexpr Self NOT_NULL = std::regex_constants::match_not_null;
+        static constexpr Self CONTINUOUS = std::regex_constants::match_continuous;
+        static constexpr Self PREVIOUS_AVAILABLE = std::regex_constants::match_prev_avail;
+        static constexpr Self FORMAT_DEFAULT = std::regex_constants::format_default;
+        static constexpr Self FORMAT_SED = std::regex_constants::format_sed;
+        static constexpr Self FORMAT_NO_COPY = std::regex_constants::format_no_copy;
+        static constexpr Self FORMAT_FIRST_ONLY = std::regex_constants::format_first_only;
+    private:
+        Self value;
+    public:
+        constexpr MatchFlag(Self value = DEFAULT) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
         }
 
         [[nodiscard]]
-        constexpr MatchFlagType operator^(MatchFlagType a, MatchFlagType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::match_flag_type>;
-            return static_cast<MatchFlagType>(
-                static_cast<Underlying>(a) ^ static_cast<Underlying>(b)
-            );
+        constexpr MatchFlag operator&(MatchFlag other) const noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            return MatchFlag(static_cast<Self>(
+                static_cast<Underlying>(value) & static_cast<Underlying>(other.value)
+            ));
         }
 
         [[nodiscard]]
-        constexpr MatchFlagType operator~(MatchFlagType a) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::match_flag_type>;
-            return static_cast<MatchFlagType>(~static_cast<Underlying>(a));
+        constexpr MatchFlag operator|(MatchFlag other) const noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            return MatchFlag(static_cast<Self>(
+                static_cast<Underlying>(value) | static_cast<Underlying>(other.value)
+            ));
         }
 
-        constexpr MatchFlagType& operator&=(MatchFlagType& a, MatchFlagType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::match_flag_type>;
-            return a = static_cast<MatchFlagType>(
-                static_cast<Underlying>(a) & static_cast<Underlying>(b)
+        [[nodiscard]]
+        constexpr MatchFlag operator^(MatchFlag other) const noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            return MatchFlag(static_cast<Self>(
+                static_cast<Underlying>(value) ^ static_cast<Underlying>(other.value)
+            ));
+        }
+
+        [[nodiscard]]
+        constexpr MatchFlag operator~() const noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            return MatchFlag(static_cast<Self>(~static_cast<Underlying>(value)));
+        }
+
+        constexpr MatchFlag& operator&=(MatchFlag other) noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            value = static_cast<Self>(
+                static_cast<Underlying>(value) & static_cast<Underlying>(other.value)
             );
+            return *this;
         }
 
-        constexpr MatchFlagType& operator|=(MatchFlagType& a, MatchFlagType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::match_flag_type>;
-            return a = static_cast<MatchFlagType>(
-                static_cast<Underlying>(a) | static_cast<Underlying>(b)
+        constexpr MatchFlag& operator|=(MatchFlag other) noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            value = static_cast<Self>(
+                static_cast<Underlying>(value) | static_cast<Underlying>(other.value)
             );
+            return *this;
         }
 
-        constexpr MatchFlagType& operator^=(MatchFlagType& a, MatchFlagType b) noexcept {
-            using Underlying = UnderlyingTypeType<std::regex_constants::match_flag_type>;
-            return a = static_cast<MatchFlagType>(
-                static_cast<Underlying>(a) ^ static_cast<Underlying>(b)
+        constexpr MatchFlag& operator^=(MatchFlag other) noexcept {
+            using Underlying = UnderlyingTypeType<Self>;
+            value = static_cast<Self>(
+                static_cast<Underlying>(value) ^ static_cast<Underlying>(other.value)
             );
+            return *this;
         }
+    };
 
-        using ErrorType = std::regex_constants::error_type;
+    class [[nodiscard]] RegexParseError final {
+    public:
+        using Self = std::regex_constants::error_type;
 
-        inline constexpr ErrorType ERROR_COLLATE = std::regex_constants::error_collate;
-        inline constexpr ErrorType ERROR_CTYPE = std::regex_constants::error_ctype;
-        inline constexpr ErrorType ERROR_ESCAPE = std::regex_constants::error_escape;
-        inline constexpr ErrorType ERROR_BACKREFERENCE = std::regex_constants::error_backref;
-        inline constexpr ErrorType ERROR_BRACKETS = std::regex_constants::error_brack;
-        inline constexpr ErrorType ERROR_PARENTHESES = std::regex_constants::error_paren;
-        inline constexpr ErrorType ERROR_BRACE = std::regex_constants::error_brace;
-        inline constexpr ErrorType ERROR_BADBRACE = std::regex_constants::error_badbrace;
-        inline constexpr ErrorType ERROR_RANGE = std::regex_constants::error_range;
-        inline constexpr ErrorType ERROR_SPACE = std::regex_constants::error_space;
-        inline constexpr ErrorType ERROR_BADREPEAT = std::regex_constants::error_badrepeat;
-        inline constexpr ErrorType ERROR_COMPLEXITY = std::regex_constants::error_complexity;
-        inline constexpr ErrorType ERROR_STACK = std::regex_constants::error_stack;
-    }
+        static constexpr Self NONE = std::regex_constants::error_type{};
+        static constexpr Self COLLATE = std::regex_constants::error_collate;
+        static constexpr Self CTYPE = std::regex_constants::error_ctype;
+        static constexpr Self ESCAPE = std::regex_constants::error_escape;
+        static constexpr Self BACKREFERENCE = std::regex_constants::error_backref;
+        static constexpr Self BRACKETS = std::regex_constants::error_brack;
+        static constexpr Self PARENTHESES = std::regex_constants::error_paren;
+        static constexpr Self BRACE = std::regex_constants::error_brace;
+        static constexpr Self BAD_BRACE = std::regex_constants::error_badbrace;
+        static constexpr Self RANGE = std::regex_constants::error_range;
+        static constexpr Self SPACE = std::regex_constants::error_space;
+        static constexpr Self BAD_REPEAT = std::regex_constants::error_badrepeat;
+        static constexpr Self COMPLEXITY = std::regex_constants::error_complexity;
+        static constexpr Self STACK = std::regex_constants::error_stack;
+    private:
+        Self value;
+    public:
+        constexpr RegexParseError(Self value = NONE) noexcept:
+            value{value} {}
+
+        operator Self() const noexcept {
+            return value;
+        }
+    };
 }

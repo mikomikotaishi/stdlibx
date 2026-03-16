@@ -1,21 +1,19 @@
 #pragma once
 
-using core::Movable;
 using core::ranges::Range;
 
-using alloc::Allocator;
-using alloc::CharTraits;
+using alloc::text::string::CharTraits;
 
 /**
  * @namespace core::ranges
  * @brief Wrapper namespace for standard library ranges operations.
  */
 export namespace alloc::ranges {
-    template <Range R, typename Alloc = Allocator<std::byte>>
+    template <Range R, typename Alloc = Allocator<ByteUnit>>
     using ElementsOf = std::ranges::elements_of<R, Alloc>;
 
-    template <Movable V, typename CharT, typename Traits = CharTraits<CharT>>
-    using BasicInputStreamView = std::ranges::basic_istream_view<V, CharT, Traits>;
+    template <Movable V, typename Char, typename Traits = CharTraits<Char>>
+    using BasicInputStreamView = std::ranges::basic_istream_view<V, Char, Traits>;
 
     namespace types {
         template <typename T>

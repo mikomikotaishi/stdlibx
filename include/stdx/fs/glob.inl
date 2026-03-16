@@ -5,7 +5,7 @@ using stdx::collections::Vector;
 using stdx::ranges::views::Filter;
 using stdx::ranges::views::Join;
 using stdx::ranges::views::Transform;
-using stdx::text::Regex;
+using stdx::text::regex::Regex;
 
 using namespace stdx::core;
 
@@ -81,7 +81,7 @@ namespace stdx::fs {
                             }
                         }
                         String rep;
-                        stdx::text::regex_replace(
+                        stdx::text::regex::regex_replace(
                             stdx::iter::back_inserter(rep),
                             contents.begin(),
                             contents.end(),
@@ -132,7 +132,7 @@ namespace stdx::fs {
     }
 
     bool filename_match(const Path& name, const String& pattern) {
-        return stdx::text::regex_match(name.string(), compile_pattern(pattern));
+        return stdx::text::regex::regex_match(name.string(), compile_pattern(pattern));
     }
 
     [[nodiscard]]
@@ -174,12 +174,12 @@ namespace stdx::fs {
 
     [[nodiscard]]
     bool has_magic(const String& p) {
-        return stdx::text::regex_search(p, Regex("([*?[])"));
+        return stdx::text::regex::regex_search(p, Regex("([*?[])"));
     }
 
     [[nodiscard]]
     bool is_hidden(const String& p) {
-        return stdx::text::regex_match(p, Regex("^(.*\\/)*\\.[^\\.\\/]+\\/*$"));
+        return stdx::text::regex::regex_match(p, Regex("^(.*\\/)*\\.[^\\.\\/]+\\/*$"));
     }
 
     [[nodiscard]]

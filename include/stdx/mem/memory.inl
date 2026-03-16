@@ -13,15 +13,33 @@ export namespace stdx::mem {
 
     using ::alloc::mem::hash;
 
+    #ifdef __cpp_lib_out_ptr
     using ::alloc::mem::OutputPointer;
     using ::alloc::mem::InOutPointer;
+    #endif
 
     using ::alloc::mem::BadWeakPointerException;
+
+    #ifdef __cpp_lib_indirect
+    using ::alloc::mem::Indirect;
+    #endif
+
+    #ifdef __cpp_lib_polymorphic
+    using ::alloc::mem::Polymorphic;
+    #endif
 
     using ::alloc::mem::to_address;
     using ::alloc::mem::addressof;
     using ::alloc::mem::align;
     using ::alloc::mem::assume_aligned;
+    #ifdef __cpp_lib_is_sufficiently_aligned
+    using ::alloc::mem::is_sufficiently_aligned;
+    #endif
+
+    #ifdef __cpp_lib_start_lifetime_as
+    using ::alloc::mem::start_lifetime_as;
+    using ::alloc::mem::start_lifetime_as_array;
+    #endif
 
     using ::alloc::mem::uninitialized_copy;
     using ::alloc::mem::uninitialized_copy_n;
@@ -52,8 +70,10 @@ export namespace stdx::mem {
 
     using ::alloc::mem::swap;
 
+    #ifdef __cpp_lib_out_ptr
     using ::alloc::mem::out_ptr;
     using ::alloc::mem::inout_ptr;
+    #endif
 
     /**
      * @namespace ranges
@@ -75,4 +95,6 @@ export namespace stdx::mem {
         using ::alloc::mem::ranges::destroy_at;
         using ::alloc::mem::ranges::construct_at;
     }
+
+    using ::alloc::mem::Pointers;
 }

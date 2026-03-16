@@ -9,14 +9,6 @@ export namespace stdx::meta {
     using ::core::meta::StackTraceEntry;
     using ::core::meta::BasicStackTrace;
     using ::core::meta::StackTrace;
-    
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using ::core::meta::pmr::StackTrace;
-    }
 
     using ::core::meta::hash;
     using ::core::meta::formatter;

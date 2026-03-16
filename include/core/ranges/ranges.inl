@@ -146,7 +146,7 @@ export namespace core::ranges {
 
         Self value;
 
-        constexpr SubrangeKind(Self value = Self()) noexcept:
+        constexpr SubrangeKind(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {
@@ -196,7 +196,9 @@ export namespace core::ranges {
         using Drop = decltype(std::ranges::views::drop);
         using DropWhile = decltype(std::ranges::views::drop_while);
         using Join = decltype(std::ranges::views::join);
+        #ifdef __cpp_lib_ranges_join_with
         using JoinWith = decltype(std::ranges::views::join_with);
+        #endif
         using LazySplit = decltype(std::ranges::views::lazy_split);
         using Split = decltype(std::ranges::views::split);
         #ifdef __cpp_lib_ranges_concat
@@ -205,12 +207,16 @@ export namespace core::ranges {
         using Counted = decltype(std::ranges::views::counted);
         using Common = decltype(std::ranges::views::common);
         using Reverse = decltype(std::ranges::views::reverse);
+        #ifdef __cpp_lib_ranges_as_const
         using AsConst = decltype(std::ranges::views::as_const);
+        #endif
         template <usize N>
         using Elements = decltype(std::ranges::views::elements<N>);
         using Keys = decltype(std::ranges::views::keys);
         using Values = decltype(std::ranges::views::values);
+        #ifdef __cpp_lib_ranges_enumerate
         using Enumerate = decltype(std::ranges::views::enumerate);
+        #endif
         using Zip = decltype(std::ranges::views::zip);
         using ZipTransform = decltype(std::ranges::views::zip_transform);
         template <usize N>
@@ -219,11 +225,21 @@ export namespace core::ranges {
         template <usize N>
         using AdjacentTransform = decltype(std::ranges::views::adjacent_transform<N>);
         using PairwiseTransform = decltype(std::ranges::views::pairwise_transform);
+        #ifdef __cpp_lib_ranges_chunk
         using Chunk = decltype(std::ranges::views::chunk);
+        #endif
+        #ifdef __cpp_lib_ranges_slide
         using Slide = decltype(std::ranges::views::slide);
+        #endif
+        #ifdef __cpp_lib_ranges_chunk_by
         using ChunkBy = decltype(std::ranges::views::chunk_by);
+        #endif
+        #ifdef __cpp_lib_ranges_stride
         using Stride = decltype(std::ranges::views::stride);
+        #endif
+        #ifdef __cpp_lib_ranges_cartesian_product
         using CartesianProduct = decltype(std::ranges::views::cartesian_product);
+        #endif
         #ifdef __cpp_lib_ranges_cache_latest
         using CacheLatest = decltype(std::ranges::views::cache_latest);
         #endif
@@ -265,8 +281,10 @@ export namespace core::ranges {
     template <InputRange V>
     using JoinView = std::ranges::join_view<V>;
 
+    #ifdef __cpp_lib_ranges_join_with
     template <InputRange V, ForwardRange Pattern>
     using JoinWithView = std::ranges::join_with_view<V, Pattern>;
+    #endif
 
     template <InputRange V, ForwardRange Pattern>
     using LazySplitView = std::ranges::lazy_split_view<V, Pattern>;
@@ -285,8 +303,10 @@ export namespace core::ranges {
     template <View V>
     using ReverseView = std::ranges::reverse_view<V>;
 
+    #ifdef __cpp_lib_ranges_as_const
     template <View V>
     using AsConstView = std::ranges::as_const_view<V>;
+    #endif
 
     template <InputRange V, usize N>
     using ElementsView = std::ranges::elements_view<V, N>;
@@ -297,8 +317,10 @@ export namespace core::ranges {
     template <typename R>
     using ValuesView = std::ranges::values_view<R>;
 
+    #ifdef __cpp_lib_ranges_enumerate
     template <View V>
     using EnumerateView = std::ranges::enumerate_view<V>;
+    #endif
 
     template <InputRange... Vs>
     using ZipView = std::ranges::zip_view<Vs...>;
@@ -312,20 +334,30 @@ export namespace core::ranges {
     template <ForwardRange V, MoveConstructible F, usize N>
     using AdjacentTransformView = std::ranges::adjacent_transform_view<V, F, N>;
 
+    #ifdef __cpp_lib_ranges_chunk
     template <View V>
     using ChunkView = std::ranges::chunk_view<V>;
+    #endif
 
+    #ifdef __cpp_lib_ranges_slide
     template <ForwardRange V>
     using SlideView = std::ranges::slide_view<V>;
+    #endif
 
+    #ifdef __cpp_lib_ranges_chunk_by
     template <ForwardRange V, IndirectBinaryPredicate<RangeIterator<V>, RangeIterator<V>> Predicate>
     using ChunkByView = std::ranges::chunk_by_view<V, Predicate>;
+    #endif
 
+    #ifdef __cpp_lib_ranges_stride
     template <InputRange V>
     using StrideView = std::ranges::stride_view<V>;
+    #endif
 
+    #ifdef __cpp_lib_ranges_cartesian_product
     template <InputRange First, ForwardRange... Vs>
     using CartesianProductView = std::ranges::cartesian_product_view<First, Vs...>;
+    #endif
 
     #ifdef __cpp_lib_ranges_cache_latest
     template <InputRange V>
@@ -354,7 +386,9 @@ export namespace core::ranges {
         inline constexpr types::Drop Drop = std::ranges::views::drop;
         inline constexpr types::DropWhile DropWhile = std::ranges::views::drop_while;
         inline constexpr types::Join Join = std::ranges::views::join;
+        #ifdef __cpp_lib_ranges_join_with
         inline constexpr types::JoinWith JoinWith = std::ranges::views::join_with;
+        #endif
         inline constexpr types::LazySplit LazySplit = std::ranges::views::lazy_split;
         inline constexpr types::Split Split = std::ranges::views::split;
         #ifdef __cpp_lib_ranges_concat
@@ -363,12 +397,16 @@ export namespace core::ranges {
         inline constexpr types::Counted Counted = std::ranges::views::counted;
         inline constexpr types::Common Common = std::ranges::views::common;
         inline constexpr types::Reverse Reverse = std::ranges::views::reverse;
+        #ifdef __cpp_lib_ranges_as_const
         inline constexpr types::AsConst AsConst = std::ranges::views::as_const;
+        #endif
         template <usize N>
         inline constexpr types::Elements<N> Elements = std::ranges::views::elements<N>;
         inline constexpr types::Keys Keys = std::ranges::views::keys;
         inline constexpr types::Values Values = std::ranges::views::values;
+        #ifdef __cpp_lib_ranges_enumerate 	
         inline constexpr types::Enumerate Enumerate = std::ranges::views::enumerate;
+        #endif
         inline constexpr types::Zip Zip = std::ranges::views::zip;
         inline constexpr types::ZipTransform ZipTransform = std::ranges::views::zip_transform;
         template <usize N>
@@ -377,11 +415,21 @@ export namespace core::ranges {
         template <usize N>
         inline constexpr types::AdjacentTransform<N> AdjacentTransform = std::ranges::views::adjacent_transform<N>;
         inline constexpr types::PairwiseTransform PairwiseTransform = std::ranges::views::pairwise_transform;
+        #ifdef __cpp_lib_ranges_chunk
         inline constexpr types::Chunk Chunk = std::ranges::views::chunk;
+        #endif
+        #ifdef __cpp_lib_ranges_slide
         inline constexpr types::Slide Slide = std::ranges::views::slide;
+        #endif
+        #ifdef __cpp_lib_ranges_chunk_by
         inline constexpr types::ChunkBy ChunkBy = std::ranges::views::chunk_by;
+        #endif
+        #ifdef __cpp_lib_ranges_stride
         inline constexpr types::Stride Stride = std::ranges::views::stride;
+        #endif
+        #ifdef __cpp_lib_ranges_cartesian_product
         inline constexpr types::CartesianProduct CartesianProduct = std::ranges::views::cartesian_product;
+        #endif
         #ifdef __cpp_lib_ranges_cache_latest
         inline constexpr types::CacheLatest CacheLatest = std::ranges::views::cache_latest;
         #endif

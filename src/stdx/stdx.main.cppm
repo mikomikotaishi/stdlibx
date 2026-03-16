@@ -39,7 +39,11 @@ module;
 
 export module stdx:main;
 
+#ifdef STDLIBX_EXPORT_IMPORT_STD
+export import std;
+#else
 import std;
+#endif
 
 export import :constants;
 
@@ -48,7 +52,18 @@ import :os;
 import core;
 import alloc;
 
-STDLIBX_PREPARE_EXPORT_CORE();
+STDLIBX_CORE_PREPARE_IMPORT_PRELUDE();
+STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
+STDLIBX_STDX_PREPARE_IMPORT_CORE();
+STDLIBX_STDX_PREPARE_IMPORT_LITERALS();
+
+extern "C" {
+    #ifdef __unix__
+    extern char** environ;
+    #elifdef _WIN32
+    extern char** _environ;
+    #endif
+}
 
 #include "stdx/core/string.inl"
 #include "stdx/core/string_view.inl"
@@ -62,6 +77,7 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/core/exception.inl"
 #include "stdx/core/expected.inl"
 #include "stdx/core/functional.inl"
+#include "stdx/core/gsl.inl"
 #include "stdx/core/initializer_list.inl"
 #include "stdx/core/limits.inl"
 #include "stdx/core/locale.inl"
@@ -71,6 +87,7 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/core/sequence.inl"
 #include "stdx/core/span.inl"
 #include "stdx/core/system_error.inl"
+#include "stdx/core/tags.inl"
 #include "stdx/core/tuple.inl"
 #include "stdx/core/variant.inl"
 
@@ -82,7 +99,6 @@ STDLIBX_PREPARE_EXPORT_CORE();
 
 #include "stdx/alloc/cstdlib.inl"
 #include "stdx/alloc/memory.inl"
-#include "stdx/alloc/memory_resource.inl"
 #include "stdx/alloc/new.inl"
 #include "stdx/alloc/scoped_allocator.inl"
 
@@ -109,7 +125,9 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/fmt/cinttypes.inl"
 #include "stdx/fmt/format.inl"
 
-#include "stdx/core/cstddef.Numbers.inl"
+#include "stdx/core/numbers.inl"
+
+#include "stdx/fmt/printf_format.inl"
 
 #include "stdx/fs/fs.inl"
 
@@ -120,10 +138,10 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/io/fstream.inl"
 #include "stdx/io/iomanip.inl"
 #include "stdx/io/ios.inl"
+#include "stdx/io/iosfwd.inl"
 #include "stdx/io/istream.inl"
 #include "stdx/io/ostream.inl"
 #include "stdx/io/iostream.inl"
-#include "stdx/io/print.inl"
 #include "stdx/io/spanstream.inl"
 #include "stdx/io/sstream.inl"
 #include "stdx/io/streambuf.inl"
@@ -143,19 +161,20 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/math/linalg.inl"
 #include "stdx/math/numbers.inl"
 #include "stdx/math/numeric.inl"
+#include "stdx/math/quaternion.inl"
 #include "stdx/math/random.inl"
 #include "stdx/math/ratio.inl"
 #include "stdx/math/simd.inl"
 
-#include "stdx/core/core.Math.inl"
+#include "stdx/core/math.inl"
 
 #include "stdx/mem/cstring.inl"
 #include "stdx/mem/cwchar.inl"
 #include "stdx/mem/memory.inl"
-#include "stdx/mem/memory_resource.inl"
 #include "stdx/mem/new.inl"
 
 #include "stdx/io/cstdio.inl"
+#include "stdx/io/print.inl"
 
 #include "stdx/meta/source_location.inl"
 #include "stdx/meta/stacktrace.inl"
@@ -170,6 +189,14 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/net/socket.inl"
 #include "stdx/net/timer.inl"
 
+#include "stdx/pmr/collections.inl"
+#include "stdx/pmr/generator.inl"
+#include "stdx/pmr/memory.inl"
+#include "stdx/pmr/memory_resource.inl"
+#include "stdx/pmr/stacktrace.inl"
+#include "stdx/pmr/regex.inl"
+#include "stdx/pmr/string.inl"
+
 #include "stdx/ranges/algorithm.inl"
 #include "stdx/ranges/functional.inl"
 #include "stdx/ranges/generator.inl"
@@ -178,13 +205,16 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/ranges/ranges.inl"
 #include "stdx/ranges/random.inl"
 
-#include "stdx/core/core.Random.inl"
+#include "stdx/meta/meta.inl"
+
+#include "stdx/core/random.inl"
 
 #include "stdx/sync/atomic.inl"
 #include "stdx/sync/barrier.inl"
 #include "stdx/sync/condition_variable.inl"
 #include "stdx/sync/latch.inl"
 #include "stdx/sync/mutex.inl"
+#include "stdx/sync/rcu.inl"
 #include "stdx/sync/semaphore.inl"
 #include "stdx/sync/shared_mutex.inl"
 
@@ -212,7 +242,24 @@ STDLIBX_PREPARE_EXPORT_CORE();
 #include "stdx/thread/stop_token.inl"
 #include "stdx/thread/thread.inl"
 
-#include "stdx/time/chrono.inl"
 #include "stdx/time/ctime.inl"
+#include "stdx/time/time.inl"
 
-#include "stdx/core/tags.inl"
+#include "stdx/core/system.inl"
+#include "stdx/core/uuid.inl"
+
+#include "stdx/io/scanner.inl"
+
+#include "stdx/linq/linq.inl"
+
+#include "stdx/process/process.inl"
+
+#include "stdx/time/chrono/chrono.inl"
+#include "stdx/time/chrono/chinese.inl"
+
+#include "stdx/util/argparse.inl"
+#include "stdx/util/logging.inl"
+
+#ifndef STDLIBX_EXPORT_IMPORT_STD
+#include "operators.inl"
+#endif

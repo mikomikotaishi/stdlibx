@@ -1,18 +1,6 @@
 #pragma once
 
 /**
- * @internal
- * @namespace _detail::core
- * @brief Wrapper namespace for standard library random number operations.
- * Detail namespace - not to be exported for external use
- */
-namespace _detail::stdx::random {
-    constexpr auto RandMax = RAND_MAX;
-}
-
-#undef RAND_MAX
-
-/**
  * @namespace stdx::random
  * @brief Wrapper namespace for standard library random number operations.
  */
@@ -138,5 +126,5 @@ export namespace stdx::random {
     using std::rand;
     using std::srand;
 
-    constexpr auto RAND_MAX = _detail::stdx::random::RandMax;
+    using ::core::random::RAND_MAX;
 }

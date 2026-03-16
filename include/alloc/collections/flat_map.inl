@@ -1,10 +1,7 @@
 #pragma once
 
-using core::Less;
 using core::meta::IsNothrowSwappableValue;
 using core::meta::IsSameValue;
-
-using alloc::Allocator;
 
 /**
  * @namespace alloc::collections

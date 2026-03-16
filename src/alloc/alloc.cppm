@@ -21,24 +21,32 @@ import std;
 
 import core;
 
-using namespace core;
+STDLIBX_CORE_PREPARE_IMPORT_PRELUDE();
+STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
 
 #include "alloc/cstdlib.inl"
 #include "alloc/memory.inl"
-#include "alloc/memory_resource.inl"
 #include "alloc/new.inl"
 #include "alloc/scoped_allocator.inl"
+
+#include "alloc/thread/hazard_pointer.inl"
 
 #include "alloc/mem/cstring.inl"
 #include "alloc/mem/cwchar.inl"
 #include "alloc/mem/memory.inl"
-#include "alloc/mem/memory_resource.inl"
 #include "alloc/mem/new.inl"
 
 #include "alloc/text/regex.inl"
 #include "alloc/text/string/string.inl"
 
+#include "alloc/pmr/collections.inl"
+#include "alloc/pmr/memory.inl"
+#include "alloc/pmr/memory_resource.inl"
+#include "alloc/pmr/regex.inl"
+#include "alloc/pmr/string.inl"
+
 #include "alloc/string.inl"
+#include "alloc/exception.inl"
 
 #include "alloc/ranges/memory.inl"
 #include "alloc/ranges/ranges.inl"
@@ -59,8 +67,17 @@ using namespace core;
 #include "alloc/collections/tree_set.inl"
 #include "alloc/collections/valarray.inl"
 
-#include "alloc/tags.inl"
+#include "alloc/io/ios.inl"
+
+#ifndef STDLIBX_EXPORT_IMPORT_STD
+#include "operators.inl"
+#endif
 
 #if defined(STDLIBX_NO_STD) && defined(STDLIBX_IMPLICIT_USING_CORE)
-STDLIBX_ALLOC_MODULE_EXPORT_CORE();
+export using namespace core::prelude;
+export using namespace core::prelude::util;
+#endif
+
+#if defined(STDLIBX_NO_STD) && defined(STDLIBX_IMPLICIT_USING_LITERALS)
+export using namespace core::literals;
 #endif

@@ -17,7 +17,7 @@ export namespace stdx::future {
     template <typename T>
     using SharedFuture = std::shared_future<T>;
 
-    class [[nodiscard]] Launch final {
+    class [[nodiscard]] LaunchPolicy final {
     public:
         using Self = std::launch;
 
@@ -26,7 +26,7 @@ export namespace stdx::future {
     private:
         Self value;
     public:
-        constexpr Launch(Self value = Self()) noexcept:
+        constexpr LaunchPolicy(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {
@@ -44,7 +44,7 @@ export namespace stdx::future {
     private:
         Self value;
     public:
-        constexpr FutureStatus(Self value = Self()) noexcept:
+        constexpr FutureStatus(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {

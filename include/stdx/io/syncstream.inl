@@ -5,11 +5,11 @@
  * @brief Wrapper namespace for standard library IO operations.
  */
 export namespace stdx::io {
-    template <typename CharT>
-    using BasicSyncBuffer = std::basic_syncbuf<CharT>;
+    template <typename Char>
+    using BasicSyncBuffer = std::basic_syncbuf<Char>;
 
-    template <typename CharT>
-    using BasicOutputSyncStream = std::basic_osyncstream<CharT>;
+    template <typename Char>
+    using BasicOutputSyncStream = std::basic_osyncstream<Char>;
 
     using SyncBuffer = std::syncbuf;
     using WideSyncBuffer = std::wsyncbuf;

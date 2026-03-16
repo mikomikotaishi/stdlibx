@@ -1,10 +1,6 @@
 #pragma once
 
-using core::Less;
-using core::Pair;
 using core::meta::IsSameValue;
-
-using alloc::Allocator;
 
 /**
  * @namespace alloc::collections
@@ -18,19 +14,6 @@ export namespace alloc::collections {
     template <typename Key, typename Value, typename Compare = Less<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
         requires IsSameValue<typename Alloc::value_type, Pair<const Key, Value>>
     using TreeMultimap = std::multimap<Key, Value, Compare, Alloc>;
-
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        template <typename Key, typename Value, typename Compare = Less<Key>>
-        using TreeMap = std::pmr::map<Key, Value, Compare>;
-
-        template <typename Key, typename Value, typename Compare = Less<Key>>
-        using TreeMultimap = std::pmr::multimap<Key, Value, Compare>;
-
-    }
 
     using std::erase_if;
 

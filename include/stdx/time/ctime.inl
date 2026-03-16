@@ -14,17 +14,11 @@ export namespace stdx::time {
     using std::time;
     using std::difftime;
 
-    /**
-     * @brief fmt
-     * @brief Wrapper namespace for standard library time formatting operations
-     */
-    namespace fmt {
-        using std::timespec_get;
-        using std::ctime;
-        using std::asctime;
-        using std::strftime;
-        using std::gmtime;
-        using std::localtime;
-        using std::mktime;
-    }
+    using std::timespec_get;
+    using std::ctime;
+    using std::asctime;
+    using std::strftime;
+    using std::gmtime;
+    using std::localtime;
+    using std::mktime;
 }

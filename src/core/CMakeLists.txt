@@ -41,16 +41,29 @@ elseif(ARCH_ARM)
     target_compile_definitions(stdlibx_core PRIVATE ARCH_ARM)
 endif()
 
-if(STDLIBX_NO_STD)
-    target_compile_definitions(stdlibx_core PRIVATE STDLIBX_NO_STD)
+if(STDLIBX_NO_STDX)
+    target_compile_definitions(stdlibx_core PRIVATE STDLIBX_NO_STDX)
 endif()
 
 if(STDLIBX_NO_ALLOC)
     target_compile_definitions(stdlibx_core PRIVATE STDLIBX_NO_ALLOC)
 endif()
 
+if(STDLIBX_NO_EXPORT_IMPORT_STD)
+    target_compile_definitions(stdlibx_core PRIVATE STDLIBX_NO_EXPORT_IMPORT_STD)
+endif()
+
 if(STDLIBX_IMPLICIT_USING_CORE)
-    target_compile_definitions(stdlibx_core INTERFACE STDLIBX_IMPLICIT_USING_CORE)
+    target_compile_definitions(stdlibx_core PRIVATE STDLIBX_IMPLICIT_USING_CORE)
+endif()
+
+if(STDLIBX_IMPLICIT_USING_LITERALS)
+    target_compile_definitions(stdlibx_core INTERFACE STDLIBX_IMPLICIT_USING_LITERALS)
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY)
+    target_compile_definitions(stdlibx_core PRIVATE STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY)
+    target_link_libraries(stdlibx_core PRIVATE Microsoft.GSL::GSL)
 endif()
 
 set_target_properties(stdlibx_core PROPERTIES 

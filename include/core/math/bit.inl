@@ -15,7 +15,7 @@ export namespace core::math {
     private:
         Self value;
     public:
-        constexpr Endian(Self value = Self()) noexcept:
+        constexpr Endian(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {

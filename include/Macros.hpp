@@ -7,35 +7,35 @@
 
 #pragma once
 
-#define THROWS_FALSE noexcept
-#define THROWS_TRUE noexcept(false)
-
-#define THROWS_SELECT(_1, NAME, ...) NAME
-#define THROWS_CHOOSE(...) THROWS_SELECT(__VA_ARGS__, THROWS_TRUE, THROWS_FALSE)
-
-#define throws(...) THROWS_CHOOSE(__VA_ARGS__)
+#define throws(...) noexcept(__VA_OPT__(!) true)
 
 /**
- * @brief Automatically exports the symbols in the stdx::core namespace.
+ * @brief Utility macro to import the core::prelude namespace within the module.
  */
-#define STDLIBX_STDX_MODULE_EXPORT_CORE() export using namespace stdx::core;
+#define STDLIBX_CORE_PREPARE_IMPORT_PRELUDE() \
+    namespace core::prelude {} \
+    using namespace core::prelude;
 
 /**
- * @brief Automatically exports the symbols in the alloc namespace.
+ * @brief Utility macro to import the core::literals namespace within the module.
  */
-#define STDLIBX_ALLOC_MODULE_EXPORT_CORE() export using namespace alloc;
+#define STDLIBX_CORE_PREPARE_IMPORT_LITERALS() \
+    namespace core::inline literals {} \
+    using namespace core::literals;
 
 /**
- * @brief Automatically exports the symbols in the core namespace.
+ * @brief Utility macro to import the stdx::core namespace within the module.
  */
-#define STDLIBX_CORE_MODULE_EXPORT_CORE() export using namespace core;
-
-/**
- * @brief Utility macro to prepare the stdx::core namespace for export.
- */
-#define STDLIBX_PREPARE_EXPORT_CORE() \
+#define STDLIBX_STDX_PREPARE_IMPORT_CORE() \
     namespace stdx::core {} \
     using namespace stdx::core;
+
+/**
+ * @brief Utility macro to import the stdx::literals namespace within the module.
+ */
+#define STDLIBX_STDX_PREPARE_IMPORT_LITERALS() \
+    namespace stdx::inline literals {} \
+    using namespace stdx::literals;
 
 /**
  * @brief Automatically generate an implicit constructor for a class Derived

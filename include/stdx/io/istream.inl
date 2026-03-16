@@ -5,14 +5,14 @@
  * @brief Wrapper namespace for standard library input/output operations.
  */
 export namespace stdx::io {
-    template <typename CharT>
-    using BasicInputStream = std::basic_istream<CharT>;
+    template <typename Char>
+    using BasicInputStream = std::basic_istream<Char>;
 
     using InputStream = std::istream;
     using WideInputStream = std::wistream;
 
-    template <typename CharT>
-    using BasicInputOutputStream = std::basic_iostream<CharT>;
+    template <typename Char>
+    using BasicInputOutputStream = std::basic_iostream<Char>;
     
     using InputOutputStream = std::iostream;
     using WideInputOutputStream = std::wiostream;

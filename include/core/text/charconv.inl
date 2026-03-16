@@ -16,7 +16,7 @@ export namespace core::text {
     private:
         Self value;
     public:
-        CharsFormat(Self value = Self()) noexcept:
+        CharsFormat(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {

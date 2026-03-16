@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace core::prelude {
     using ErrorCategory = std::error_category;
     using ErrorCondition = std::error_condition;
     using ErrorCode = std::error_code;
@@ -42,7 +42,7 @@ export namespace core {
         static constexpr Self INTERRUPTED = std::errc::interrupted;
         static constexpr Self INVALID_ARGUMENT = std::errc::invalid_argument;
         static constexpr Self INVALID_SEEK = std::errc::invalid_seek;
-        static constexpr Self IOERROR = std::errc::io_error;
+        static constexpr Self IO_ERROR = std::errc::io_error;
         static constexpr Self IS_ADIRECTORY = std::errc::is_a_directory;
         static constexpr Self MESSAGE_SIZE = std::errc::message_size;
         static constexpr Self NETWORK_DOWN = std::errc::network_down;
@@ -94,6 +94,19 @@ export namespace core {
 
     using SystemException = std::system_error;
 
+    using std::generic_category;
+    using std::system_category;
+    using std::make_error_code;
+    using std::make_error_condition;
+
+    using std::hash;
+}
+
+/**
+ * @namespace core::meta
+ * @brief Wrapper namespace for standard library metaprogramming operations.
+ */
+export namespace core::meta {
     template <typename T>
     using IsErrorCodeEnum = std::is_error_code_enum<T>;
 
@@ -105,11 +118,4 @@ export namespace core {
 
     template <typename T>
     constexpr bool IsErrorConditionEnumValue = std::is_error_condition_enum_v<T>;
-
-    using std::generic_category;
-    using std::system_category;
-    using std::make_error_code;
-    using std::make_error_condition;
-
-    using std::hash;
 }

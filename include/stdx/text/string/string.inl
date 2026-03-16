@@ -53,5 +53,5 @@ export namespace stdx::text::string {
  * @brief String literals namespace
  */
 export namespace stdx::inline literals::inline string_literals {
-    using ::alloc::literals::string_literals::operator""s;
+    using ::core::literals::string_literals::operator""s;
 }

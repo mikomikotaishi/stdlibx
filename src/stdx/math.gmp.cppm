@@ -9,11 +9,7 @@
 
 module;
 
-#ifdef COMPILER_GCC
-#warning "GMP support is currently forcefully disabled when compiling with GCC due to compiler bugs. Please use a different compiler if GMP functionality is needed."
-#endif
-
-#if defined(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY) && !defined(COMPILER_GCC)
+#if defined(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY)
 #include <gmpxx.h>
 #endif
 
@@ -31,8 +27,6 @@ using namespace stdx::core;
  */
 export namespace stdx::math::inline gmp {
 
-#if defined(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY) && !defined(COMPILER_GCC)
-
 using BitCount = ::mp_bitcnt_t;
 
 class [[nodiscard]] GnuInteger {
@@ -40,7 +34,7 @@ private:
     mpz_class value;
 protected:
     GnuInteger(mpz_class v):
-        value{stdx::util::move(v)} {}
+        value{System::move(v)} {}
 public:
     template <Numeric T>
         requires (!SameAs<T, bool>)
@@ -80,35 +74,35 @@ public:
     GnuInteger gcd(const GnuInteger& b) const {
         mpz_class result;
         mpz_gcd(result.get_mpz_t(), value.get_mpz_t(), b.value.get_mpz_t());
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     [[nodiscard]]
     static GnuInteger gcd(const GnuInteger& a, const GnuInteger& b) {
         mpz_class result;
         mpz_gcd(result.get_mpz_t(), a.value.get_mpz_t(), b.value.get_mpz_t());
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     [[nodiscard]]
     GnuInteger lcm(const GnuInteger& b) const {
         mpz_class result;
         mpz_lcm(result.get_mpz_t(), value.get_mpz_t(), b.value.get_mpz_t());
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     [[nodiscard]]
     static GnuInteger lcm(const GnuInteger& a, const GnuInteger& b) {
         mpz_class result;
         ::mpz_lcm(result.get_mpz_t(), a.value.get_mpz_t(), b.value.get_mpz_t());
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     [[nodiscard]]
     GnuInteger pow(u32 exponent) const {
         mpz_class result;
         ::mpz_pow_ui(result.get_mpz_t(), value.get_mpz_t(), exponent);
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     [[nodiscard]]
@@ -125,35 +119,35 @@ public:
     GnuInteger operator+(const GnuInteger& b) const {
         mpz_class result = value;
         result += b.value;
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     [[nodiscard]]
     GnuInteger operator-(const GnuInteger& b) const {
         mpz_class result = value;
         result -= b.value;
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     [[nodiscard]]
     GnuInteger operator*(const GnuInteger& b) const {
         mpz_class result = value;
         result *= b.value;
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     [[nodiscard]]
     GnuInteger operator/(const GnuInteger& b) const {
         mpz_class result = value;
         result /= b.value;
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     [[nodiscard]]
     GnuInteger operator%(const GnuInteger& b) const {
         mpz_class result = value;
         result %= b.value;
-        return GnuInteger(stdx::util::move(result));
+        return GnuInteger(System::move(result));
     }
 
     GnuInteger& operator+=(const GnuInteger& b) {
@@ -206,7 +200,7 @@ private:
     mpq_class value;
 protected:
     GnuRational(mpq_class v):
-        value{stdx::util::move(v)} {}
+        value{System::move(v)} {}
 public:
     template <Numeric T>
         requires (!SameAs<T, bool>)
@@ -255,28 +249,28 @@ public:
     GnuRational operator+(const GnuRational& b) const {
         mpq_class result = value;
         result += b.value;
-        return GnuRational(stdx::util::move(result));
+        return GnuRational(System::move(result));
     }
 
     [[nodiscard]]
     GnuRational operator-(const GnuRational& b) const {
         mpq_class result = value;
         result -= b.value;
-        return GnuRational(stdx::util::move(result));
+        return GnuRational(System::move(result));
     }
 
     [[nodiscard]]
     GnuRational operator*(const GnuRational& b) const {
         mpq_class result = value;
         result *= b.value;
-        return GnuRational(stdx::util::move(result));
+        return GnuRational(System::move(result));
     }
 
     [[nodiscard]]
     GnuRational operator/(const GnuRational& b) const {
         mpq_class result = value;
         result /= b.value;
-        return GnuRational(stdx::util::move(result));
+        return GnuRational(System::move(result));
     }
 
     GnuRational& operator+=(const GnuRational& b) {
@@ -321,7 +315,7 @@ private:
     mpf_class value;
 protected:
     GnuFloat(mpf_class v):
-        value{stdx::util::move(v)} {}
+        value{System::move(v)} {}
 public:
     template <Numeric T>
         requires (!SameAs<T, bool>)
@@ -355,28 +349,28 @@ public:
     GnuFloat operator+(const GnuFloat& b) const {
         mpf_class result = value;
         result += b.value;
-        return GnuFloat(stdx::util::move(result));
+        return GnuFloat(System::move(result));
     }
 
     [[nodiscard]]
     GnuFloat operator-(const GnuFloat& b) const {
         mpf_class result = value;
         result -= b.value;
-        return GnuFloat(stdx::util::move(result));
+        return GnuFloat(System::move(result));
     }
 
     [[nodiscard]]
     GnuFloat operator*(const GnuFloat& b) const {
         mpf_class result = value;
         result *= b.value;
-        return GnuFloat(stdx::util::move(result));
+        return GnuFloat(System::move(result));
     }
 
     [[nodiscard]]
     GnuFloat operator/(const GnuFloat& b) const {
         mpf_class result = value;
         result /= b.value;
-        return GnuFloat(stdx::util::move(result));
+        return GnuFloat(System::move(result));
     }
 
     GnuFloat& operator+=(const GnuFloat& b) {
@@ -430,8 +424,6 @@ GnuRational operator""_mpq(const char s[]) throws (InvalidArgumentException) {
 GnuFloat operator""_mpf(const char s[]) throws (InvalidArgumentException) {
     return GnuFloat(s);
 }
-
-#endif
 
 }
 

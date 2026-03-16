@@ -308,6 +308,60 @@ export namespace core::meta {
     template <typename T>
     constexpr bool IsNothrowMoveConstructibleValue = std::is_nothrow_move_constructible_v<T>;
 
+    template <typename T, typename U>
+    using IsAssignable = std::is_assignable<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsAssignableValue = std::is_assignable_v<T, U>;
+
+    template <typename T, typename U>
+    using IsTriviallyAssignable = std::is_trivially_assignable<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsTriviallyAssignableValue = std::is_trivially_assignable_v<T, U>;
+
+    template <typename T, typename U>
+    using IsNothrowAssignable = std::is_nothrow_assignable<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsNothrowAssignableValue = std::is_nothrow_assignable_v<T, U>;
+
+    template <typename T>
+    using IsCopyAssignable = std::is_copy_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsCopyAssignableValue = std::is_copy_assignable_v<T>;
+
+    template <typename T>
+    using IsTriviallyCopyAssignable = std::is_trivially_copy_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyCopyAssignableValue = std::is_trivially_copy_assignable_v<T>;
+
+    template <typename T>
+    using IsNothrowCopyAssignable = std::is_nothrow_copy_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowCopyAssignableValue = std::is_nothrow_copy_assignable_v<T>;
+
+    template <typename T>
+    using IsMoveAssignable = std::is_move_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsMoveAssignableValue = std::is_move_assignable_v<T>;
+
+    template <typename T>
+    using IsTriviallyMoveAssignable = std::is_trivially_move_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyMoveAssignableValue = std::is_trivially_move_assignable_v<T>;
+
+    template <typename T>
+    using IsNothrowMoveAssignable = std::is_nothrow_move_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowMoveAssignableValue = std::is_nothrow_move_assignable_v<T>;
+
     template <typename T>
     using IsDestructible = std::is_destructible<T>;
 
@@ -356,6 +410,20 @@ export namespace core::meta {
     template <typename T>
     constexpr bool IsNothrowSwappableValue = std::is_nothrow_swappable_v<T>;
 
+    #ifdef __cpp_lib_reference_from_temporary
+    template <typename T, typename U>
+    using ReferenceConstructsFromTemporary = std::reference_constructs_from_temporary<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool ReferenceConstructsFromTemporaryValue = std::reference_constructs_from_temporary_v<T, U>;
+
+    template <typename T, typename U>
+    using ReferenceConvertsFromTemporary = std::reference_converts_from_temporary<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool ReferenceConvertsFromTemporaryValue = std::reference_converts_from_temporary_v<T, U>;
+    #endif
+
     template <typename T>
     using AlignmentOf = std::alignment_of<T>;
 
@@ -398,17 +466,21 @@ export namespace core::meta {
     template <typename From, typename To>
     constexpr bool IsNothrowConvertibleValue = std::is_nothrow_convertible_v<From, To>;
 
+    #ifdef __cpp_lib_is_layout_compatible
     template <typename T, typename U>
     using IsLayoutCompatible = std::is_layout_compatible<T, U>;
 
     template <typename T, typename U>
     constexpr bool IsLayoutCompatibleValue = std::is_layout_compatible_v<T, U>;
+    #endif
 
+    #ifdef __cpp_lib_is_pointer_interconvertible
     template <typename Base, typename Derived>
     using IsPointerInterconvertibleBaseOf = std::is_pointer_interconvertible_base_of<Base, Derived>;
 
     template <typename Base, typename Derived>
     constexpr bool IsPointerInterconvertibleBaseOfValue = std::is_pointer_interconvertible_base_of_v<Base, Derived>;
+    #endif
 
     template <typename Fn, typename... ArgTypes>
     using IsInvocable = std::is_invocable<Fn, ArgTypes...>;

@@ -5,22 +5,25 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::Tuple;
-    using ::core::TupleSize;
-    using ::core::TupleSizeValue;
-    using ::core::TupleElement;
-    using ::core::TupleElementType;
+    using ::core::prelude::Tuple;
+    using ::core::prelude::TupleSize;
+    using ::core::prelude::TupleSizeValue;
+    using ::core::prelude::TupleElement;
+    using ::core::prelude::TupleElementType;
 
-    using ::core::operator==;
-    using ::core::operator<=>;
+    using ::core::prelude::operator==;
+    using ::core::prelude::operator<=>;
 
-    using ::core::make_tuple;
-    using ::core::tie;
-    using ::core::forward_as_tuple;
-    using ::core::tuple_cat;
-    using ::core::get;
-    using ::core::apply;
-    using ::core::make_from_tuple;
+    using ::core::prelude::IgnoreType;
+    using ::core::prelude::IGNORE;
 
-    using ::core::swap;
+    using ::core::prelude::make_tuple;
+    using ::core::prelude::tie;
+    using ::core::prelude::forward_as_tuple;
+    using ::core::prelude::tuple_cat;
+    using ::core::prelude::get;
+    using ::core::prelude::apply;
+    using ::core::prelude::make_from_tuple;
+
+    using ::core::prelude::swap;
 }

@@ -8,11 +8,7 @@
 
 module;
 
-#include "Macros.hpp"
-
 export module stdx;
-
-export import std; // Apparently this is needed in some places.
 
 export import :main;
 export import :arch;
@@ -21,17 +17,17 @@ export import :crypto;
 export import :csv;
 export import :ffi;
 export import :json;
-export import :linq;
 export import :lua;
 export import :math.gmp;
 export import :os;
-export import :process;
 export import :sql;
-export import :util;
-export import :util.logging;
 export import :xml;
 export import :zip;
 
 #if !defined(STDLIBX_NO_STD) && defined(STDLIBX_IMPLICIT_USING_CORE)
-STDLIBX_STDX_MODULE_EXPORT_CORE();
+export using namespace stdx::core;
+#endif
+
+#if defined(STDLIBX_NO_STD) && defined(STDLIBX_IMPLICIT_USING_LITERALS)
+export using namespace stdx::literals;
 #endif

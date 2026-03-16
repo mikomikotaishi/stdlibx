@@ -43,7 +43,6 @@ export namespace stdx::lua {
     constexpr i32 TTHREAD = LUA_TTHREAD;
     constexpr i32 NUMTYPES = LUA_NUMTYPES;
 
-    constexpr i32 MAXSTACK = LUAI_MAXSTACK;
     constexpr i32 MINSTACK = LUA_MINSTACK;
     constexpr i32 RIDX_MAINTHREAD = LUA_RIDX_MAINTHREAD;
     constexpr i32 RIDX_GLOBALS = LUA_RIDX_GLOBALS;
@@ -74,13 +73,16 @@ export namespace stdx::lua {
     constexpr i32 GCCOUNT = LUA_GCCOUNT;
     constexpr i32 GCCOUNTB = LUA_GCCOUNTB;
     constexpr i32 GCSTEP = LUA_GCSTEP;
-    constexpr i32 GCSETPAUSE = LUA_GCSETPAUSE;
-    constexpr i32 GCSETSTEPMUL = LUA_GCSETSTEPMUL;
     constexpr i32 GCISRUNNING = LUA_GCISRUNNING;
     constexpr i32 GCGEN = LUA_GCGEN;
     constexpr i32 GCINC = LUA_GCINC;
-
-    constexpr i32 NUMTAGS = LUA_NUMTAGS;
+    constexpr i32 GCPARAM = LUA_GCPARAM;
+    constexpr i32 GCPMINORMUL = LUA_GCPMINORMUL;
+    constexpr i32 GCPMAJORMINOR = LUA_GCPMAJORMINOR;
+    constexpr i32 GCPMINORMAJOR = LUA_GCPMINORMAJOR;
+    constexpr i32 GCPPAUSE = LUA_GCPPAUSE;
+    constexpr i32 GCPSTEPMUL = LUA_GCPSTEPMUL;
+    constexpr i32 GCPSTEPSIZE = LUA_GCPSTEPSIZE;
 
     constexpr i32 HOOKCALL = LUA_HOOKCALL;
     constexpr i32 HOOKRET = LUA_HOOKRET;
@@ -118,8 +120,8 @@ export namespace stdx::lua {
     using Hook = ::lua_Hook;
 
     [[nodiscard]]
-    State* new_state(Alloc f, void* ud) noexcept {
-        return lua_newstate(f, ud);
+    State* new_state(Alloc f, void* ud, u32 seed) noexcept {
+        return lua_newstate(f, ud, seed);
     }
 
     void close(State* l) noexcept {
@@ -583,7 +585,7 @@ export namespace stdx::lua {
     }
 
     i32 set_cstack_limit(State* l, u32 limit) noexcept {
-        return lua_setcstacklimit(l, limit);
+        return set_cstack_limit(l, limit);
     }
 
     i32 open_base(State* l) noexcept {

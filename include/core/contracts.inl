@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for (experimental) standard library networking operations.
  */
-export namespace core {
+export namespace core::prelude {
     #ifdef __cpp_lib_contracts
     class [[nodiscard]] AssertionKind final {
     public:
@@ -16,7 +16,7 @@ export namespace core {
     private:
         Self value;
     public:
-        constexpr AssertionKind(Self value = Self()) noexcept:
+        constexpr AssertionKind(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {
@@ -35,7 +35,7 @@ export namespace core {
     private:
         Self value;
     public:
-        constexpr EvaluationSemantic(Self value = Self()) noexcept:
+        constexpr EvaluationSemantic(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {
@@ -52,7 +52,7 @@ export namespace core {
     private:
         Self value;
     public:
-        constexpr DetectionMode(Self value = Self()) noexcept:
+        constexpr DetectionMode(Self value = {}) noexcept:
             value{value} {}
 
         operator Self() const noexcept {

@@ -7,14 +7,6 @@
 export namespace stdx::collections {
     using ::alloc::collections::Vector;
 
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using ::alloc::collections::pmr::Vector;
-    }
-
     using ::alloc::collections::erase;
     using ::alloc::collections::erase_if;
 

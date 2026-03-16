@@ -1,20 +1,41 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace stdx::core
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace stdx::core {
+    template <typename T>
+    struct Hash: std::hash<T> {
+        
+    };
+}
+
+/**
+ * @namespace core::prelude
+ * @brief Wrapper namespace for the core objects of the standard library.
+ */
+export namespace core::prelude {
     template <typename Signature>
     using Function = std::function<Signature>;
     
+    #ifdef __cpp_lib_move_only_function
     template <typename... Signature>
     using MoveOnlyFunction = std::move_only_function<Signature...>;
+    #endif
 
+    #ifdef __cpp_lib_copyable_function
+    template <typename... Signature>
+    using CopyableFunction = std::copyable_function<Signature...>;
+    #endif
+
+    #ifdef __cpp_lib_function_ref
+    template <typename... Signature>
+    using FunctionReference = std::function_ref<Signature...>;
+    #endif
+
+    using stdx::core::Hash;
     using std::hash;
-    
-    template <typename T>
-    struct Hash: std::hash<T> {};
 
     namespace types {
         template <typename M, typename T>
@@ -34,6 +55,12 @@ export namespace core {
 
     template <typename T>
     using UnwrapReferenceDecay = std::unwrap_ref_decay<T>;
+
+    template <typename T>
+    using UnwrapReferenceType = std::unwrap_reference_t<T>;
+
+    template <typename T>
+    using UnwrapReferenceDecayType = std::unwrap_ref_decay_t<T>;
 
     template <typename T>
     using IsBindExpression = std::is_bind_expression<T>;
@@ -118,4 +145,5 @@ export namespace core {
     using std::ref;
     using std::cref;
     using std::invoke;
+    using std::invoke_r;
 }

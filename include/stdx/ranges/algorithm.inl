@@ -38,12 +38,14 @@ export namespace stdx::ranges {
     using ::core::ranges::contains;
     using ::core::ranges::contains_subrange;
 
+    #ifdef __cpp_lib_ranges_fold
     using ::core::ranges::fold_left;
     using ::core::ranges::fold_left_first;
     using ::core::ranges::fold_right;
     using ::core::ranges::fold_right_last;
     using ::core::ranges::fold_left_with_iter;
     using ::core::ranges::fold_left_first_with_iter;
+    #endif
 
     using ::core::ranges::copy;
     using ::core::ranges::copy_if;

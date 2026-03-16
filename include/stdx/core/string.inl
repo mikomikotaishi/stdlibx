@@ -5,66 +5,44 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using alloc::CharTraits;
-    using alloc::BasicString;
-    using alloc::String;
-    using alloc::Utf8String;
-    using alloc::Utf16String;
-    using alloc::Utf32String;
-    using alloc::WideString;
+    using ::core::prelude::BasicString;
+    using ::core::prelude::String;
+    using ::core::prelude::Utf8String;
+    using ::core::prelude::Utf16String;
+    using ::core::prelude::Utf32String;
+    using ::core::prelude::WideString;
 
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using alloc::pmr::BasicString;
-        using alloc::pmr::String;
-        using alloc::pmr::Utf8String;
-        using alloc::pmr::Utf16String;
-        using alloc::pmr::Utf32String;
-        using alloc::pmr::WideString;
-    }
-    
-    using alloc::stoi;
-    using alloc::stol;
-    using alloc::stoll;
-    using alloc::stoul;
-    using alloc::stoull;
-    using alloc::stof;
-    using alloc::stod;
-    using alloc::stold;
-    using alloc::to_string;
-    using alloc::to_wstring;
+    using ::core::prelude::stoi;
+    using ::core::prelude::stol;
+    using ::core::prelude::stoll;
+    using ::core::prelude::stoul;
+    using ::core::prelude::stoull;
+    using ::core::prelude::stof;
+    using ::core::prelude::stod;
+    using ::core::prelude::stold;
+    using ::core::prelude::to_string;
+    using ::core::prelude::to_wstring;
 
-    using alloc::operator+;
-    using alloc::operator==;
-    using alloc::operator<=>;
+    using ::core::prelude::operator+;
+    using ::core::prelude::operator==;
+    using ::core::prelude::operator<=>;
 
-    using alloc::erase;
-    using alloc::erase_if;
+    using ::core::prelude::erase;
+    using ::core::prelude::erase_if;
 
-    using alloc::begin;
-    using alloc::cbegin;
-    using alloc::end;
-    using alloc::cend;
-    using alloc::rbegin;
-    using alloc::crbegin;
-    using alloc::rend;
-    using alloc::crend;
-    using alloc::size;
-    using alloc::ssize;
-    using alloc::empty;
-    using alloc::data;
+    using ::core::prelude::begin;
+    using ::core::prelude::cbegin;
+    using ::core::prelude::end;
+    using ::core::prelude::cend;
+    using ::core::prelude::rbegin;
+    using ::core::prelude::crbegin;
+    using ::core::prelude::rend;
+    using ::core::prelude::crend;
+    using ::core::prelude::size;
+    using ::core::prelude::ssize;
+    using ::core::prelude::empty;
+    using ::core::prelude::data;
 
-    using alloc::hash;
-    using alloc::swap;
-}
-
-/**
- * @namespace stdx::literals::string_literals
- * @brief String literals namespace
- */
-export namespace stdx::inline literals::inline string_literals {
-    using alloc::literals::string_literals::operator""s;
+    using ::core::prelude::hash;
+    using ::core::prelude::swap;
 }

@@ -14,6 +14,11 @@ export namespace alloc {
     template <typename Ptr>
     using AllocatorTraits = std::allocator_traits<Ptr>;
 
+    #ifdef __cpp_lib_allocate_at_least
+    template <typename Ptr, typename Size = usize>
+    using AllocationResult = std::allocation_result<Ptr, Size>;
+    #endif
+
     template <typename Ptr, typename Alloc>
     using UsesAllocator = std::uses_allocator<Ptr, Alloc>;
 

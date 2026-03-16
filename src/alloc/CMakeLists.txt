@@ -43,16 +43,24 @@ elseif(ARCH_ARM)
     target_compile_definitions(stdlibx_alloc PRIVATE ARCH_ARM)
 endif()
 
-if(STDLIBX_NO_STD)
-    target_compile_definitions(stdlibx_alloc PRIVATE STDLIBX_NO_STD)
+if(STDLIBX_NO_STDX)
+    target_compile_definitions(stdlibx_alloc PRIVATE STDLIBX_NO_STDX)
 endif()
 
 if(STDLIBX_NO_ALLOC)
     target_compile_definitions(stdlibx_alloc PRIVATE STDLIBX_NO_ALLOC)
 endif()
 
+if(STDLIBX_NO_EXPORT_IMPORT_STD)
+    target_compile_definitions(stdlibx_alloc PRIVATE STDLIBX_NO_EXPORT_IMPORT_STD)
+endif()
+
 if(STDLIBX_IMPLICIT_USING_CORE)
-    target_compile_definitions(stdlibx_alloc INTERFACE STDLIBX_IMPLICIT_USING_CORE)
+    target_compile_definitions(stdlibx_alloc PRIVATE STDLIBX_IMPLICIT_USING_CORE)
+endif()
+
+if(STDLIBX_IMPLICIT_USING_LITERALS)
+    target_compile_definitions(stdlibx_alloc INTERFACE STDLIBX_IMPLICIT_USING_LITERALS)
 endif()
 
 set_target_properties(stdlibx_alloc PROPERTIES 

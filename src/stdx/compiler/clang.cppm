@@ -9,6 +9,15 @@
 
 module;
 
+#if defined(__clang__) && defined(STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY)
+#include <clang/APINotes/APINotesManager.h>
+#include <clang/APINotes/APINotesOptions.h>
+#include <clang/APINotes/APINotesReader.h>
+#include <clang/APINotes/APINotesWriter.h>
+#include <clang/APINotes/APINotesYAMLCompiler.h>
+#include <clang/APINotes/Types.h>
+#endif
+
 export module stdx:compiler.clang;
 
-export import :compiler.clang.api_notes;
+#include "stdx/compiler/clang/APINotes.inl"

@@ -1,6 +1,5 @@
 #pragma once
 
-using core::Less;
 using core::meta::IsSameValue;
 
 /**

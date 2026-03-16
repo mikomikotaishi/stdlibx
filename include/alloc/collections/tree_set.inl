@@ -1,10 +1,7 @@
 #pragma once
 
-using core::Less;
 using core::meta::IsSameValue;
 using core::meta::RemoveConstVolatile;
-
-using alloc::Allocator;
 
 /**
  * @namespace alloc::collections
@@ -22,20 +19,6 @@ export namespace alloc::collections {
             IsSameValue<typename RemoveConstVolatile<Key>::type, Key> &&
             IsSameValue<typename Alloc::value_type, Key>
     using TreeMultiset = std::multiset<Key, Compare, Alloc>;
-
-
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        template <typename Key, typename Compare = Less<Key>>
-        using TreeSet = std::pmr::set<Key, Compare>;
-
-        template <typename Key, typename Compare = Less<Key>>
-        using TreeMultiset = std::pmr::multiset<Key, Compare>;
-
-    }
 
     using std::erase_if;
 

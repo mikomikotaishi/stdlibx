@@ -187,57 +187,62 @@ namespace _detail {
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace core {
-    constexpr auto LC_ALL = _detail::LcAll;
-    constexpr auto LC_COLLATE = _detail::LcCollate;
-    constexpr auto LC_CTYPE = _detail::LcCType;
-    constexpr auto LC_MONETARY = _detail::LcMonetary;
-    constexpr auto LC_NUMERIC = _detail::LcNumeric;
-    constexpr auto LC_TIME = _detail::LcTime;
+    /**
+     * @namespace prelude
+     * @brief Wrapper namespace for the core objects of the standard library.
+     */
+    namespace prelude {
+        constexpr auto LC_ALL = _detail::LcAll;
+        constexpr auto LC_COLLATE = _detail::LcCollate;
+        constexpr auto LC_CTYPE = _detail::LcCType;
+        constexpr auto LC_MONETARY = _detail::LcMonetary;
+        constexpr auto LC_NUMERIC = _detail::LcNumeric;
+        constexpr auto LC_TIME = _detail::LcTime;
 
-    constexpr auto EXIT_SUCCESS = _detail::ExitSuccess;
-    constexpr auto EXIT_FAILURE = _detail::ExitFailure;
-    const auto MB_CUR_MAX = _detail::MultibyteCurrentMax;
-    constexpr const void* const NULL = (void*)0;
-    constexpr auto RAND_MAX = _detail::RandMax;
+        constexpr auto EXIT_SUCCESS = _detail::ExitSuccess;
+        constexpr auto EXIT_FAILURE = _detail::ExitFailure;
+        const auto MB_CUR_MAX = _detail::MultibyteCurrentMax;
+        constexpr const void* const NULL = (void*)0;
 
-    class Placeholders final {
-    public:
-        Placeholders() = delete;
+        class Placeholders final {
+        public:
+            Placeholders() = delete;
 
-        static constexpr auto _1 = std::placeholders::_1;
-        static constexpr auto _2 = std::placeholders::_2;
-        static constexpr auto _3 = std::placeholders::_3;
-        static constexpr auto _4 = std::placeholders::_4;
-        static constexpr auto _5 = std::placeholders::_5;
-        static constexpr auto _6 = std::placeholders::_6;
-        static constexpr auto _7 = std::placeholders::_7;
-        static constexpr auto _8 = std::placeholders::_8;
-        static constexpr auto _9 = std::placeholders::_9;
-        static constexpr auto _10 = std::placeholders::_10;
-        #if defined(_MSVC_STL_VERSION) || defined(__GLIBCXX__)
-        static constexpr auto _11 = std::placeholders::_11;
-        static constexpr auto _12 = std::placeholders::_12;
-        static constexpr auto _13 = std::placeholders::_13;
-        static constexpr auto _14 = std::placeholders::_14;
-        static constexpr auto _15 = std::placeholders::_15;
-        static constexpr auto _16 = std::placeholders::_16;
-        static constexpr auto _17 = std::placeholders::_17;
-        static constexpr auto _18 = std::placeholders::_18;
-        static constexpr auto _19 = std::placeholders::_19;
-        static constexpr auto _20 = std::placeholders::_20;
-        #if defined(__GLIBCXX__)
-        static constexpr auto _21 = std::placeholders::_21;
-        static constexpr auto _22 = std::placeholders::_22;
-        static constexpr auto _23 = std::placeholders::_23;
-        static constexpr auto _24 = std::placeholders::_24;
-        static constexpr auto _25 = std::placeholders::_25;
-        static constexpr auto _26 = std::placeholders::_26;
-        static constexpr auto _27 = std::placeholders::_27;
-        static constexpr auto _28 = std::placeholders::_28;
-        static constexpr auto _29 = std::placeholders::_29;
-        #endif
-        #endif
-    };
+            static constexpr auto _1 = std::placeholders::_1;
+            static constexpr auto _2 = std::placeholders::_2;
+            static constexpr auto _3 = std::placeholders::_3;
+            static constexpr auto _4 = std::placeholders::_4;
+            static constexpr auto _5 = std::placeholders::_5;
+            static constexpr auto _6 = std::placeholders::_6;
+            static constexpr auto _7 = std::placeholders::_7;
+            static constexpr auto _8 = std::placeholders::_8;
+            static constexpr auto _9 = std::placeholders::_9;
+            static constexpr auto _10 = std::placeholders::_10;
+            #if defined(_MSVC_STL_VERSION) || defined(__GLIBCXX__)
+            static constexpr auto _11 = std::placeholders::_11;
+            static constexpr auto _12 = std::placeholders::_12;
+            static constexpr auto _13 = std::placeholders::_13;
+            static constexpr auto _14 = std::placeholders::_14;
+            static constexpr auto _15 = std::placeholders::_15;
+            static constexpr auto _16 = std::placeholders::_16;
+            static constexpr auto _17 = std::placeholders::_17;
+            static constexpr auto _18 = std::placeholders::_18;
+            static constexpr auto _19 = std::placeholders::_19;
+            static constexpr auto _20 = std::placeholders::_20;
+            #if defined(__GLIBCXX__)
+            static constexpr auto _21 = std::placeholders::_21;
+            static constexpr auto _22 = std::placeholders::_22;
+            static constexpr auto _23 = std::placeholders::_23;
+            static constexpr auto _24 = std::placeholders::_24;
+            static constexpr auto _25 = std::placeholders::_25;
+            static constexpr auto _26 = std::placeholders::_26;
+            static constexpr auto _27 = std::placeholders::_27;
+            static constexpr auto _28 = std::placeholders::_28;
+            static constexpr auto _29 = std::placeholders::_29;
+            #endif
+            #endif
+        };
+    }
 
     /**
      * @namespace math
@@ -271,6 +276,14 @@ export namespace core {
         constexpr auto FP_ZERO = _detail::FpZero;
         constexpr auto FP_INFINITE = _detail::FpInfinite;
         constexpr auto FP_NAN = _detail::FpNaN;
+    }
+
+    /**
+     * @namespace random
+     * @brief Wrapper namespace for standard library random number operations.
+     */
+    namespace random {
+        constexpr auto RAND_MAX = _detail::RandMax;
     }
 
     /**

@@ -7,14 +7,6 @@
 export namespace stdx::collections {
     using ::alloc::collections::LinkedList;
 
-    /**
-     * @namespace pmr
-     * @brief Namespace for operations on polymorphic memory resources.
-     */
-    namespace pmr {
-        using ::alloc::collections::pmr::LinkedList;
-    }
-
     using ::alloc::collections::erase;
     using ::alloc::collections::erase_if;
 

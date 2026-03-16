@@ -5,11 +5,11 @@
  * @brief Wrapper namespace for standard library string operations.
  */
 export namespace core::text::string {
-    template <typename CharT>
-    using CharTraits = std::char_traits<CharT>;
+    template <typename Char>
+    using CharTraits = std::char_traits<Char>;
 
-    template <typename CharT, typename Traits = CharTraits<CharT>>
-    using BasicStringView = std::basic_string_view<CharT>;
+    template <typename Char, typename Traits = CharTraits<Char>>
+    using BasicStringView = std::basic_string_view<Char>;
 
     using StringView = std::string_view;
 
@@ -46,10 +46,3 @@ export namespace core::text::string {
 export namespace core::inline literals::inline string_view_literals {
     using std::literals::string_view_literals::operator""sv;
 }
-
-#ifdef __GLIBCXX__
-export namespace __gnu_cxx {
-    using __gnu_cxx::operator==;
-    using __gnu_cxx::operator<=>;
-}
-#endif

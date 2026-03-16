@@ -1,15 +1,56 @@
 #pragma once
 
 /**
- * @namespace core
+ * @namespace core::prelude
  * @brief Wrapper namespace for the core objects of the standard library.
  */
-export namespace core {
+export namespace core::prelude {
     template <typename T>
     concept ThreeWayComparable = std::three_way_comparable<T>;
 
     template <typename T, typename U>
     concept ThreeWayComparableWith = std::three_way_comparable_with<T, U>;
+
+    class Compare final {
+    public:
+        Compare() = delete;
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool equal(T t, U u) noexcept {
+            return std::cmp_equal(t, u);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool not_equal(T t, U u) noexcept {
+            return std::cmp_not_equal(t, u);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool less(T t, U u) noexcept {
+            return std::cmp_less(t, u);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool greater(T t, U u) noexcept {
+            return std::cmp_greater(t, u);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool less_equal(T t, U u) noexcept {
+            return std::cmp_less_equal(t, u);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool greater_equal(T t, U u) noexcept {
+            return std::cmp_greater_equal(t, u);
+        }
+    };
 
     class [[nodiscard]] PartialOrdering final {
     public:

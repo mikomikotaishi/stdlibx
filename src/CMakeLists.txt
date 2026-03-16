@@ -1,3 +1,5 @@
+include("${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake")
+
 add_subdirectory(core)
 
 if(NOT STDLIBX_NO_ALLOC)

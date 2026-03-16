@@ -5,42 +5,44 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::ThreeWayComparable;
-    using ::core::ThreeWayComparableWith;
+    using ::core::prelude::ThreeWayComparable;
+    using ::core::prelude::ThreeWayComparableWith;
 
-    using ::core::PartialOrdering;
-    using ::core::WeakOrdering;
-    using ::core::StrongOrdering;
+    using ::core::prelude::Compare;
 
-    using ::core::CommonComparisonCategory;
-    using ::core::CompareThreeWayResult;
+    using ::core::prelude::PartialOrdering;
+    using ::core::prelude::WeakOrdering;
+    using ::core::prelude::StrongOrdering;
 
-    using ::core::CompareThreeWay;
+    using ::core::prelude::CommonComparisonCategory;
+    using ::core::prelude::CompareThreeWayResult;
+
+    using ::core::prelude::CompareThreeWay;
     
-    using ::core::StrongFallback;
-    using ::core::WeakFallback;
-    using ::core::PartialFallback;
+    using ::core::prelude::StrongFallback;
+    using ::core::prelude::WeakFallback;
+    using ::core::prelude::PartialFallback;
 
     inline namespace comparison {
-        using ::core::comparison::StrongOrder;
-        using ::core::comparison::WeakOrder;
-        using ::core::comparison::PartialOrder;
-        using ::core::comparison::CompareStrongOrderFallback;
-        using ::core::comparison::CompareWeakOrderFallback;
-        using ::core::comparison::ComparePartialOrderFallback;
+        using ::core::prelude::comparison::StrongOrder;
+        using ::core::prelude::comparison::WeakOrder;
+        using ::core::prelude::comparison::PartialOrder;
+        using ::core::prelude::comparison::CompareStrongOrderFallback;
+        using ::core::prelude::comparison::CompareWeakOrderFallback;
+        using ::core::prelude::comparison::ComparePartialOrderFallback;
     }
 
-    using ::core::is_eq;
-    using ::core::is_neq;
-    using ::core::is_lt;
-    using ::core::is_lteq;
-    using ::core::is_gt;
-    using ::core::is_gteq;
+    using ::core::prelude::is_eq;
+    using ::core::prelude::is_neq;
+    using ::core::prelude::is_lt;
+    using ::core::prelude::is_lteq;
+    using ::core::prelude::is_gt;
+    using ::core::prelude::is_gteq;
 
-    using ::core::operator==;
-    using ::core::operator<;
-    using ::core::operator>;
-    using ::core::operator<=;
-    using ::core::operator>=;
-    using ::core::operator<=>;
+    using ::core::prelude::operator==;
+    using ::core::prelude::operator<;
+    using ::core::prelude::operator>;
+    using ::core::prelude::operator<=;
+    using ::core::prelude::operator>=;
+    using ::core::prelude::operator<=>;
 }

@@ -118,10 +118,8 @@
 #endif
 
 /**
- * @internal
- * @namespace _detail::core::sys
+ * @namespace core::sys
  * @brief Wrapper namespace for standard library system operations.
- * Detail namespace - not to be exported for external use
  */
 export namespace core::sys {
     using Handler = void (*)(int);    
