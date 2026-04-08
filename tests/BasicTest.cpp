@@ -3,6 +3,7 @@ import stdx;
 using stdx::collections::HashMap;
 using stdx::collections::TreeMap;
 using stdx::collections::Vector;
+using stdx::debug::StackTrace;
 using stdx::fs::DirectoryEntry;
 using stdx::fs::DirectoryIterator;
 using stdx::fs::Path;
@@ -125,4 +126,6 @@ int main() {
         System::current_time_millis(),
         System::current_time_as_string()
     );
+
+    System::out.println(StackTrace::current());
 }

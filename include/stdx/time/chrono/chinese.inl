@@ -1,7 +1,5 @@
 #pragma once
 
-using namespace stdx::core;
-
 /**
  * @brief Chinese lunisolar calendar implementation.
  *

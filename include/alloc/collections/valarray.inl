@@ -12,7 +12,7 @@ export namespace alloc::collections {
     using SliceArray = std::slice_array<T>;
 
     template <typename T>
-    using GSliceArray = std::gslice_array<T>;
+    using GeneralSliceArray = std::gslice_array<T>;
 
     template <typename T>
     using MaskArray = std::mask_array<T>;
@@ -21,7 +21,7 @@ export namespace alloc::collections {
     using IndirectArray = std::indirect_array<T>;
 
     using Slice = std::slice;
-    using GSlice = std::gslice;
+    using GeneralSlice = std::gslice;
 
     using std::operator+;
     using std::operator-;

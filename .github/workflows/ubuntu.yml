@@ -15,8 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         compiler:
-          - { name: GCC, cc: gcc-14, cxx: g++-14 }
-          - { name: Clang, cc: clang-21, cxx: clang++-21 }
+          - { name: GCC, cc: gcc-15, cxx: g++-15 }
+          - { name: Clang, cc: clang-22, cxx: clang++-22 }
         build_type: [Debug, Release]
     
     steps:
@@ -29,7 +29,7 @@ jobs:
         sudo apt-get install -y ninja-build wget software-properties-common \
           unixodbc unixodbc-dev libstdc++6 libgmp-dev libsodium-dev zlib1g-dev
 
-        # Install CMake (4.2.3)
+        # Install CMake
         wget https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-linux-x86_64.tar.gz
         tar -xzf cmake-4.2.3-linux-x86_64.tar.gz
         sudo mv cmake-4.2.3-linux-x86_64 /opt/cmake-4.2.3
@@ -42,11 +42,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.compiler.cc }} ${{ matrix.compiler.cxx }}
         elif [[ "${{ matrix.compiler.cxx }}" == clang++* ]]; then
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt-get update
+          sudo apt-get install -y libstdc++-16-dev
+
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 21
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-21 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-21 100
+          sudo ./llvm.sh 22
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-22 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-22 100
         fi
         
         # Verify installations
@@ -63,12 +67,18 @@ jobs:
       run: |
         which $CC || echo "CC not found"
         which $CXX || echo "CXX not found"
+        EXTRA_FLAGS=""
+        if [[ "${{ matrix.compiler.name }}" == "GCC" ]]; then
+          EXTRA_FLAGS="-DSTDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY=OFF \
+                       -DSTDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY=OFF"
+        fi
         cmake -S . -B build \
           -G Ninja \
           -DCMAKE_C_COMPILER=$CC \
           -DCMAKE_CXX_COMPILER=$CXX \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DSTDLIB_BUILD_TESTS=OFF
+          -DSTDLIB_BUILD_TESTS=OFF \
+          $EXTRA_FLAGS
     
     - name: Build
       run: cmake --build build

@@ -7,8 +7,6 @@ using stdx::ranges::views::Join;
 using stdx::ranges::views::Transform;
 using stdx::text::regex::Regex;
 
-using namespace stdx::core;
-
 /**
  * @namespace stdx::fs
  * @brief Wrapper namespace for standard library file system operations.

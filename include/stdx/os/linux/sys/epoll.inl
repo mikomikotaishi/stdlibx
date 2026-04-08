@@ -26,7 +26,7 @@ export namespace stdx::os::linux::sys {
 
     using EpollData = ::epoll_data;
     using EpollEvent = ::epoll_event;
-    using EpollParams = ::epoll_params;
+    // using EpollParams = ::epoll_params;
 
     using ::epoll_create;
     using ::epoll_create1;

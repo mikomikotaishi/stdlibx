@@ -17,7 +17,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     
     # Set C++ standard and properties
     set_target_properties(${TEST_NAME} PROPERTIES
-        CXX_STANDARD 23
+        CXX_STANDARD ${STDLIBX_CXX_STANDARD}
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
     )

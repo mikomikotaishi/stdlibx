@@ -19,6 +19,10 @@ target_include_directories(stdlibx_core
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
 )
 
+if(STDLIB_NAME_GCC)
+    target_link_libraries(stdlibx_core PUBLIC stdc++exp)
+endif()
+
 add_library(stdlibx::core ALIAS stdlibx_core)
 
 if(COMPILER_APPLE_CLANG)
@@ -66,8 +70,8 @@ if(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY)
     target_link_libraries(stdlibx_core PRIVATE Microsoft.GSL::GSL)
 endif()
 
-set_target_properties(stdlibx_core PROPERTIES 
-    CXX_STANDARD 23 
+set_target_properties(stdlibx_core PROPERTIES
+    CXX_STANDARD ${STDLIBX_CXX_STANDARD}
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
 )

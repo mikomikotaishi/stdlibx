@@ -1282,9 +1282,9 @@ public:
      */
     PreparedStatement(PreparedStatement&& other) noexcept:
         dbc{other.dbc}, stmt{other.stmt},
-        params{System::move(other.params)},
-        batch{System::move(other.batch)},
-        sql{System::move(other.sql)}, closed{other.closed} {
+        params{Ops::move(other.params)},
+        batch{Ops::move(other.batch)},
+        sql{Ops::move(other.sql)}, closed{other.closed} {
         other.stmt = nullptr;
         other.closed = true;
     }
@@ -1297,9 +1297,9 @@ public:
             close();
             dbc = other.dbc;
             stmt = other.stmt;
-            params = System::move(other.params);
-            batch = System::move(other.batch);
-            sql = System::move(other.sql);
+            params = Ops::move(other.params);
+            batch = Ops::move(other.batch);
+            sql = Ops::move(other.sql);
             closed = other.closed;
             other.stmt = nullptr;
             other.closed = true;
@@ -1334,7 +1334,7 @@ public:
 
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
-            0, 0, &System::get<i32>(slot.value),
+            0, 0, &Ops::get<i32>(slot.value),
             0, &slot.indicator
         );
 
@@ -1360,7 +1360,7 @@ public:
 
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_SBIGINT, SQL_BIGINT,
-            0, 0, &System::get<i64>(slot.value),
+            0, 0, &Ops::get<i64>(slot.value),
             0, &slot.indicator
         );
 
@@ -1386,7 +1386,7 @@ public:
 
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE,
-            0, 0, &System::get<f64>(slot.value),
+            0, 0, &Ops::get<f64>(slot.value),
             0, &slot.indicator
         );
 
@@ -1408,7 +1408,7 @@ public:
 
         ParamSlot& slot = params[parameter_index - 1];
         slot.value = String(value);
-        const String& str = System::get<String>(slot.value);
+        const String& str = Ops::get<String>(slot.value);
         slot.indicator = static_cast<SQLLEN>(str.size());
 
         SQLRETURN ret = SQLBindParameter(
@@ -1439,7 +1439,7 @@ public:
 
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_BIT, SQL_BIT, 0, 0,
-            &System::get<u8>(slot.value), 0, &slot.indicator
+            &Ops::get<u8>(slot.value), 0, &slot.indicator
         );
 
         if (!SQL_SUCCEEDED(ret)) {
@@ -1552,7 +1552,7 @@ public:
                 ParamSlot& slot = entry[i];
                 i32 param_index = i + 1;
 
-                System::visit([&](auto& val) -> void {
+                Ops::visit([&](auto& val) -> void {
                     if constexpr (IsSameValue<DecayType<decltype(val)>, Monostate>) {
                         slot.indicator = SQL_NULL_DATA;
                         SQLBindParameter(
@@ -1805,7 +1805,7 @@ public:
                 break;
         }
 
-        void* value_ptr = System::visit([](auto& val) -> void* {
+        void* value_ptr = Ops::visit([](auto& val) -> void* {
             if constexpr (IsSameValue<DecayType<decltype(val)>, Monostate>) {
                 return nullptr;
             } else if constexpr (IsSameValue<DecayType<decltype(val)>, String>) {
@@ -1817,7 +1817,7 @@ public:
 
         SQLLEN buffer_len = 0;
         if (holds_alternative<String>(slot.value)) {
-            buffer_len = static_cast<SQLLEN>(System::get<String>(slot.value).size());
+            buffer_len = static_cast<SQLLEN>(Ops::get<String>(slot.value).size());
         }
 
         SQLRETURN ret = SQLBindParameter(
@@ -1849,7 +1849,7 @@ public:
 
         SQLRETURN ret = SQLBindParameter(
             stmt, parameter_index, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
-            0, 0, &System::get<i32>(slot.value), 0, &slot.indicator
+            0, 0, &Ops::get<i32>(slot.value), 0, &slot.indicator
         );
 
         if (!SQL_SUCCEEDED(ret)) {
@@ -1870,7 +1870,7 @@ public:
 
         ParamSlot& slot = params[parameter_index - 1];
         slot.value = String(value);
-        const String& str = System::get<String>(slot.value);
+        const String& str = Ops::get<String>(slot.value);
         slot.indicator = static_cast<SQLLEN>(str.size());
         param_directions[parameter_index - 1] = SQL_PARAM_INPUT;
 
@@ -1933,7 +1933,7 @@ public:
         if (slot.indicator == SQL_NULL_DATA) {
             throw SQLException("OUT parameter is NULL");
         }
-        return System::get<i32>(slot.value);
+        return Ops::get<i32>(slot.value);
     }
 
     /**
@@ -1952,7 +1952,7 @@ public:
         if (slot.indicator == SQL_NULL_DATA) {
             throw SQLException("OUT parameter is NULL");
         }
-        return System::get<i64>(slot.value);
+        return Ops::get<i64>(slot.value);
     }
 
     /**
@@ -1971,7 +1971,7 @@ public:
         if (slot.indicator == SQL_NULL_DATA) {
             throw SQLException("OUT parameter is NULL");
         }
-        return System::get<f64>(slot.value);
+        return Ops::get<f64>(slot.value);
     }
 
     /**
@@ -1990,7 +1990,7 @@ public:
         if (slot.indicator == SQL_NULL_DATA) {
             throw SQLException("OUT parameter is NULL");
         }
-        return System::get<String>(slot.value);
+        return Ops::get<String>(slot.value);
     }
 
     /**
@@ -3184,7 +3184,7 @@ public:
         }
 
         if (!pool.empty()) {
-            Connection conn = System::move(pool.front());
+            Connection conn = Ops::move(pool.front());
             pool.pop();
 
             if (conn.is_closed()) {
@@ -3223,7 +3223,7 @@ public:
         if (conn.is_closed()) {
             --active;
         } else {
-            pool.push(System::move(conn));
+            pool.push(Ops::move(conn));
         }
 
         cv.notify_one();

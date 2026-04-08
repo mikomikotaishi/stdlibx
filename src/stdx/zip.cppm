@@ -7,6 +7,7 @@
 module;
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY
+#define _BITS_PTHREADTYPES_COMMON_H	1
 #include <zlib.h>
 #endif
 

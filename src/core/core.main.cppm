@@ -11,8 +11,6 @@ module;
 // Needed for feature testing macros
 #include <version>
 
-#include <csignal>
-
 #ifdef __clang__
 #include <type_traits>
 #endif
@@ -25,6 +23,8 @@ module;
 export module core:main;
 
 import std;
+
+export import :constants;
 
 STDLIBX_CORE_PREPARE_IMPORT_PRELUDE();
 STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
@@ -39,17 +39,22 @@ STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
 #include "core/functional.inl"
 #include "core/initializer_list.inl"
 #include "core/limits.inl"
-#include "core/mdspan.inl"
 #include "core/optional.inl"
 #include "core/pair.inl"
 #include "core/sequence.inl"
 #include "core/span.inl"
+#include "core/mdspan.inl"
 #include "core/system_error.inl"
 #include "core/tags.inl"
 #include "core/tuple.inl"
 #include "core/variant.inl"
 
 #include "core/collections/bitset.inl"
+#include "core/collections/static_vector.inl"
+
+#include "core/debug/debugging.inl"
+#include "core/debug/source_location.inl"
+#include "core/debug/stacktrace.inl"
 
 #include "core/fmt/cinttypes.inl"
 
@@ -69,8 +74,6 @@ STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
 #include "core/math/quaternion.inl"
 #include "core/math/ratio.inl"
 
-#include "core/meta/source_location.inl"
-#include "core/meta/stacktrace.inl"
 #include "core/meta/type_traits.inl"
 #include "core/meta/typeindex.inl"
 #include "core/meta/typeinfo.inl"
@@ -104,7 +107,6 @@ STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
 
 #include "core/util/algorithm.inl"
 #include "core/util/cstdlib.inl"
-#include "core/util/debugging.inl"
 #include "core/util/numeric.inl"
 #include "core/util/utility.inl"
 
@@ -113,6 +115,8 @@ STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
 #include "core/string_view.inl"
 #include "core/numbers.inl"
 #include "core/expected.inl"
+
+#include "core/ops.inl"
 
 #ifndef STDLIBX_EXPORT_IMPORT_STD
 #include "operators.inl"

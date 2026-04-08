@@ -85,7 +85,6 @@ using namespace core::prelude;
 #include "stdx/os/linux/sysinfo.inl"
 
 #include "stdx/os/linux/arpa/nameser.inl"
-#include "stdx/os/linux/arpa/telnet.inl"
 #include "stdx/os/linux/arpa/tftp.inl"
 #include "stdx/os/linux/net/ethernet.inl"
 #include "stdx/os/linux/net/if_arp.inl"

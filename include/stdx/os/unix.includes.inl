@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <threads.h>
 
 #ifdef __unix__
 #include <aio.h>
@@ -18,7 +19,6 @@
 #include <libgen.h>
 #include <monetary.h>
 #include <mqueue.h>
-#include <ndbm.h>
 #include <netdb.h>
 #include <nl_types.h>
 #include <pthread.h>
@@ -58,4 +58,8 @@
 #include <sys/un.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
+
+#if __has_include(<ndbm.h>)
+#include <ndbm.h>
+#endif
 #endif

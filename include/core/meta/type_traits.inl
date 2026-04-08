@@ -68,6 +68,14 @@ export namespace core::meta {
     template <typename T>
     constexpr bool IsFunctionValue = std::is_function_v<T>;
 
+    #ifdef __cpp_impl_reflection
+    template <typename T>
+    using IsReflection = std::is_reflection<T>;
+
+    template <typename T>
+    constexpr bool IsReflectionValue = std::is_reflection_v<T>;
+    #endif
+
     template <typename T>
     using IsPointer = std::is_pointer<T>;
 
@@ -153,12 +161,6 @@ export namespace core::meta {
     constexpr bool IsVolatileValue = std::is_volatile_v<T>;
 
     template <typename T>
-    using IsTrivial = std::is_trivial<T>;
-
-    template <typename T>
-    constexpr bool IsTrivialValue = std::is_trivial_v<T>;
-
-    template <typename T>
     using IsTriviallyCopyable = std::is_trivially_copyable<T>;
 
     template <typename T>
@@ -169,12 +171,6 @@ export namespace core::meta {
 
     template <typename T>
     constexpr bool IsStandardLayoutValue = std::is_standard_layout_v<T>;
-
-    template <typename T>
-    using IsPOD = std::is_pod<T>;
-
-    template <typename T>
-    constexpr bool IsPODValue = std::is_pod_v<T>;
 
     template <typename T>
     using HasUniqueObjectRepresentations = std::has_unique_object_representations<T>;

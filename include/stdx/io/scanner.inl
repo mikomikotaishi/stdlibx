@@ -24,7 +24,7 @@ export namespace stdx::io {
      * Example usage:
      * @code
      *     // Read from stdin
-     *     Scanner sc(System.in);
+     *     Scanner sc(System::in);
      *     while (sc.has_next_int()) {
      *         i32 n = sc.next_int();
      *     }

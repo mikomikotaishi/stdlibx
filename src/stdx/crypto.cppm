@@ -156,6 +156,7 @@ namespace stdx::crypto {
 	inline constexpr usize SECRETBOX_NONCE_BYTES = 24; ///< XSalsa20-Poly1305 nonce size in bytes.
 	inline constexpr usize SECRETBOX_MAC_BYTES = 16; ///< XSalsa20-Poly1305 authentication tag size in bytes.
 
+	#ifdef STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY
 	/**
 	 * @brief Ensures libsodium is initialised exactly once across all threads.
 	 * @throws CryptoInitializationException if {@code sodium_init()} returns a negative value.
@@ -186,7 +187,6 @@ namespace stdx::crypto {
 		return false;
 	}
 
-	#if defined(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY)
 	static_assert(crypto_sign_PUBLICKEYBYTES == ED25519_PUBLIC_KEY_BYTES);
 	static_assert(crypto_sign_SECRETKEYBYTES == ED25519_PRIVATE_KEY_BYTES);
 	static_assert(crypto_sign_BYTES == ED25519_SIGNATURE_BYTES);
@@ -388,6 +388,8 @@ enum class MessageDigestAlgorithm: u8 {
 	SHA_512, ///< SHA-2 with a 512-bit digest.
 	BLAKE2B_256, ///< BLAKE2b truncated to a 256-bit digest.
 };
+
+#ifdef STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY
 
 /**
  * @class SecureRandom
@@ -1180,5 +1182,7 @@ public:
 		return plain;
 	}
 };
+
+#endif
 
 }

@@ -15,7 +15,7 @@ export namespace stdx::meta::reflect {
     using std::define_static_object;
 
     using Info = std::meta::info;
-    using ReflectionException = std::meta::exception;
+    using ReflectiveOperationException = std::meta::exception;
 
     class [[nodiscard]] Operators final {
     public:
@@ -26,7 +26,7 @@ export namespace stdx::meta::reflect {
         static constexpr Self ARRAY_NEW = std::meta::operators::op_array_new;
         static constexpr Self ARRAY_DELETE = std::meta::operators::op_array_delete;
         static constexpr Self CO_AWAIT = std::meta::operators::op_co_await;
-        static constexpr Self PARENTHESES = std::meta::operators::op_parenthesis;
+        static constexpr Self PARENTHESES = std::meta::operators::op_parentheses;
         static constexpr Self ARROW = std::meta::operators::op_arrow;
         static constexpr Self ARROW_STAR = std::meta::operators::op_arrow_star;
         static constexpr Self TILDE = std::meta::operators::op_tilde;
@@ -46,7 +46,7 @@ export namespace stdx::meta::reflect {
         static constexpr Self SLASH_EQUALS = std::meta::operators::op_slash_equals; 
         static constexpr Self PERCENT_EQUALS = std::meta::operators::op_percent_equals;
         static constexpr Self CARET_EQUALS = std::meta::operators::op_caret_equals;
-        static constexpr Self AMPERSAND_EQUALS = std::meta::operators::op_ampersand
+        static constexpr Self AMPERSAND_EQUALS = std::meta::operators::op_ampersand;
         static constexpr Self PIPE_EQUALS = std::meta::operators::op_pipe_equals;
         static constexpr Self EQUALS_EQUALS = std::meta::operators::op_equals_equals;
         static constexpr Self EXCLAMATION_EQUALS = std::meta::operators::op_exclamation_equals;
@@ -58,9 +58,9 @@ export namespace stdx::meta::reflect {
         static constexpr Self AMPERSAND_AMPERSAND = std::meta::operators::op_ampersand_ampersand;
         static constexpr Self PIPE_PIPE = std::meta::operators::op_pipe_pipe;
         static constexpr Self LESS_LESS = std::meta::operators::op_less_less;
-        static constexpr Self GREATER_GREATER = std::meta::operators::op_greater_g
+        static constexpr Self GREATER_GREATER = std::meta::operators::op_greater_greater;
         static constexpr Self LESS_LESS_EQUALS = std::meta::operators::op_less_less_equals;
-        static constexpr Self GREATER_GREATER_EQUALS = std::meta::operators::op_greater
+        static constexpr Self GREATER_GREATER_EQUALS = std::meta::operators::op_greater_greater_equals;
         static constexpr Self PLUS_PLUS = std::meta::operators::op_plus_plus;
         static constexpr Self MINUS_MINUS = std::meta::operators::op_minus_minus;
         static constexpr Self COMMA = std::meta::operators::op_comma;
@@ -72,6 +72,16 @@ export namespace stdx::meta::reflect {
 
         operator Self() const noexcept {
             return value;
+        }
+
+        [[nodiscard]]
+        consteval StringView symbol() const noexcept {
+            return std::meta::symbol_of(value);
+        }
+
+        [[nodiscard]]
+        consteval Utf8StringView u8symbol() const noexcept {
+            return std::meta::u8symbol_of(value);
         }
     };
 
@@ -151,7 +161,7 @@ export namespace stdx::meta::reflect {
     using std::meta::is_function_parameter;
     using std::meta::is_explicit_object_parameter;
     using std::meta::has_default_argument;
-    using std::meta::has_ellipsis_parameter;
+    using std::meta::is_vararg_function;
 
     using std::meta::is_template;
     using std::meta::is_function_template;
@@ -212,8 +222,8 @@ export namespace stdx::meta::reflect {
     
     using std::meta::extract;
 
-    template <typename Range>
-    concept ReflectionRange = std::meta::reflection_range<Range>;
+    template <typename Ran>
+    concept ReflectionRange = std::meta::reflection_range<Ran>;
 
     using std::meta::can_substitute;
     using std::meta::substitute;
@@ -264,7 +274,7 @@ export namespace stdx::meta::reflect {
     using std::meta::is_abstract_type;
     using std::meta::is_final_type;
     using std::meta::is_aggregate_type;
-    using std::meta::is_consteval_only_type;
+    // using std::meta::is_consteval_only_type;
     using std::meta::is_signed_type;
     using std::meta::is_unsigned_type;
     using std::meta::is_bounded_array_type;
@@ -373,6 +383,6 @@ export namespace stdx::meta::reflect {
     using std::meta::type_order;
 
     using std::meta::annotations_of;
-    using std::meta::annotations_of_with_type
+    using std::meta::annotations_of_with_type;
     #endif
 }

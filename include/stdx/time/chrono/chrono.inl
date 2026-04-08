@@ -1,7 +1,5 @@
 #pragma once
 
-using namespace stdx::core;
-
 /**
  * @namespace stdx::time::chrono
  * @brief Calendar system support inspired by java.time.chrono and HowardHinnant/date.h.
@@ -942,7 +940,7 @@ export namespace stdx::time::chrono {
                 case Era::REIWA:
                     return 2019;
                 default:
-                    System::unreachable();
+                    Ops::unreachable();
             }
         }
 
@@ -1345,10 +1343,10 @@ export namespace stdx::time::chrono {
     template <ChronologyLike Chrono>
     class [[nodiscard]] ChronoLocalDate final {
     private:
+        i64 epoch_day; ///< The number of days since 1970-01-01 (Gregorian).
         i32 proleptic_year; ///< The proleptic year in the chronology (e.g., 2024 for ISO, 1445 for Hijrah).
         u32 mth; ///< The month of the date.
         u32 dy; ///< The day of the month.
-        i64 epoch_day; ///< The number of days since 1970-01-01 (Gregorian).
     public:
         using Chronology = Chrono;
 
@@ -1359,8 +1357,8 @@ export namespace stdx::time::chrono {
          * @param day The day of the month.
          */
         constexpr ChronoLocalDate(i32 year, u32 month, u32 day):
-            proleptic_year{year}, mth{month}, dy{day},
-            epoch_day{Chrono::to_epoch_day(year, month, day)} {}
+            epoch_day{Chrono::to_epoch_day(year, month, day)},
+            proleptic_year{year}, mth{month}, dy{day} {}
 
         /**
          * @brief Named constructor from components.

@@ -18,36 +18,6 @@ public:
     static constexpr f64 E_GAMMA = ::core::math::numbers::E_GAMMA; ///< Euler-Mascheroni constant
     static constexpr f64 PHI = ::core::math::numbers::PHI; ///< Golden ratio (1+sqrt(5))/2
 
-    static constexpr auto HUGE_VAL = ::core::math::HUGE_VAL;
-    static constexpr auto HUGE_VALF = ::core::math::HUGE_VALF;
-    static constexpr auto HUGE_VALL = ::core::math::HUGE_VALL;
-    static constexpr auto INFINITY = ::core::math::INFINITY;
-    static constexpr auto NAN = ::core::math::NAN;
-    static constexpr auto MATH_ERRHANDLING = ::core::math::MATH_ERRHANDLING;
-    static constexpr auto MATH_ERRNO = ::core::math::MATH_ERRNO;
-    static constexpr auto MATH_ERREXCEPT = ::core::math::MATH_ERREXCEPT;
-    static constexpr auto FP_NORMAL = ::core::math::FP_NORMAL;
-    static constexpr auto FP_SUBNORMAL = ::core::math::FP_SUBNORMAL;
-    static constexpr auto FP_ZERO = ::core::math::FP_ZERO;
-    static constexpr auto FP_INFINITE = ::core::math::FP_INFINITE;
-    static constexpr auto FP_NAN = ::core::math::FP_NAN;
-
-    static constexpr auto RAND_MAX = ::core::random::RAND_MAX;
-
-    static constexpr auto FE_ALL_EXCEPT = ::core::math::FE_ALL_EXCEPT;
-    static constexpr auto FE_DIVBYZERO = ::core::math::FE_DIVBYZERO;
-    static constexpr auto FE_INEXACT = ::core::math::FE_INEXACT;
-    static constexpr auto FE_INVALID = ::core::math::FE_INVALID;
-    static constexpr auto FE_OVERFLOW = ::core::math::FE_OVERFLOW;
-    static constexpr auto FE_UNDERFLOW = ::core::math::FE_UNDERFLOW;
-
-    static constexpr auto FE_TONEAREST = ::core::math::FE_TONEAREST;
-    static constexpr auto FE_DOWNWARD = ::core::math::FE_DOWNWARD;
-    static constexpr auto FE_UPWARD = ::core::math::FE_UPWARD;
-    static constexpr auto FE_TOWARDZERO = ::core::math::FE_TOWARDZERO;
-
-    static inline const auto FE_DFL_ENV = ::core::math::FE_DFL_ENV;
-
     // Basic operations
 
     [[nodiscard]]

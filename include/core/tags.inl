@@ -13,6 +13,7 @@ export namespace core::prelude {
     public:
         Tags() = delete;
 
+        using IgnoreType = decltype(std::ignore);
         #ifdef __cpp_lib_expected
         using Unexpect = std::unexpect_t;
         #endif
@@ -50,6 +51,7 @@ export namespace core::prelude {
         using NoStopState = std::nostopstate_t;
         using Last = std::chrono::last_spec;
 
+        static constexpr IgnoreType IGNORE = std::ignore;
         #ifdef __cpp_lib_expected
         static constexpr Unexpect UNEXPECT = std::unexpect;
         #endif

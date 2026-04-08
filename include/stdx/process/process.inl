@@ -5,7 +5,6 @@ using stdx::ranges::RangeValue;
 using stdx::sys::Signal;
 using stdx::thread::JoiningThread;
 
-using namespace stdx::core;
 using namespace stdx::os;
 using namespace stdx::os::unix;
 using namespace stdx::os::win32;
@@ -265,23 +264,23 @@ export namespace stdx::process {
 
         Child(Child&& o) noexcept:
         #ifdef __unix__
-            pid{System::exchange(o.pid, -1)},
-            stdin_wr{System::exchange(o.stdin_wr, -1)},
-            stdout_rd{System::exchange(o.stdout_rd, -1)},
-            stderr_rd{System::exchange(o.stderr_rd, -1)}
+            pid{Ops::exchange(o.pid, -1)},
+            stdin_wr{Ops::exchange(o.stdin_wr, -1)},
+            stdout_rd{Ops::exchange(o.stdout_rd, -1)},
+            stderr_rd{Ops::exchange(o.stderr_rd, -1)}
         #elifdef _WIN32
-            process{System::exchange(o.process, nullptr)},
-            thread{System::exchange(o.thread, nullptr)},
-            stdin_wr{System::exchange(o.stdin_wr, nullptr)},
-            stdout_rd{System::exchange(o.stdout_rd, nullptr)},
-            stderr_rd{System::exchange(o.stderr_rd, nullptr)}
+            process{Ops::exchange(o.process, nullptr)},
+            thread{Ops::exchange(o.thread, nullptr)},
+            stdin_wr{Ops::exchange(o.stdin_wr, nullptr)},
+            stdout_rd{Ops::exchange(o.stdout_rd, nullptr)},
+            stderr_rd{Ops::exchange(o.stderr_rd, nullptr)}
         #endif
             {}
 
         Child& operator=(Child&& o) noexcept {
             if (this != &o) {
                 close_handles();
-                new (this) Child(System::move(o));
+                new (this) Child(Ops::move(o));
             }
             return *this;
         }
@@ -363,7 +362,7 @@ export namespace stdx::process {
         Expected<ExitStatus, ErrorCode> wait() {
             #ifdef __unix__
             if (pid == -1) {
-                return Unexpected(System::error_code(Errc::NO_CHILD_PROCESS));
+                return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
             i32 status = 0;
             ProcessId ret;
@@ -371,22 +370,22 @@ export namespace stdx::process {
                 ret = unix::sys::waitpid(pid, &status, 0);
             } while (ret == -1 && unix::errnov() == unix::EINTR);
             if (ret == -1) {
-                return Unexpected(ErrorCode(unix::errnov(), System::system_category()));
+                return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
             pid = -1;
             return ExitStatus(status);
             #elifdef _WIN32
             if (!process) {
-                return Unexpected(System::error_code(Errc::NO_CHILD_PROCESS));
+                return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
             if (win32::WaitForSingleObject(static_cast<Handle>(process), INFINITE) == WAIT_FAILED) {
-                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), System::system_category()));
+                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
             DWord code = 0;
             win32::GetExitCodeProcess(static_cast<Handle>(process), &code);
             return win32::ExitStatus(static_cast<i32>(code));
             #else
-            return Unexpected(System::make_error_code(Errc::FUNCTION_NOT_SUPPORTED));
+            return Unexpected(Ops::make_error_code(Errc::FUNCTION_NOT_SUPPORTED));
             #endif
         }
 
@@ -399,7 +398,7 @@ export namespace stdx::process {
         Expected<Optional<ExitStatus>, ErrorCode> try_wait() {
             #ifdef __unix__
             if (pid == -1) {
-                return Unexpected(System::error_code(Errc::NO_CHILD_PROCESS));
+                return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
             i32 status = 0;
             ProcessId ret = unix::sys::waitpid(pid, &status, unix::sys::WNOHANG);
@@ -407,20 +406,20 @@ export namespace stdx::process {
                 return Optional<ExitStatus>{};
             }
             if (ret == -1) {
-                return Unexpected(ErrorCode(unix::errnov(), System::system_category()));
+                return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
             pid = -1;
             return Optional<ExitStatus>{ExitStatus(status)};
             #elifdef _WIN32
             if (!process) {
-                return Unexpected(System::error_code(Errc::NO_CHILD_PROCESS));
+                return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
             DWord res = win32::WaitForSingleObject(static_cast<Handle>(process), 0);
             if (res == WAIT_TIMEOUT) {
                 return Optional<ExitStatus>{};
             }
             if (res == WAIT_FAILED) {
-                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), System::system_category()));
+                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
             DWord code = 0;
             win32::GetExitCodeProcess(static_cast<Handle>(process), &code);
@@ -441,7 +440,7 @@ export namespace stdx::process {
                 return {};
             }
             if (unix::kill(pid, Signal::KILL) == -1) {
-                return Unexpected(ErrorCode(unix::errnov(), System::system_category()));
+                return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
             return {};
             #elifdef _WIN32
@@ -449,11 +448,11 @@ export namespace stdx::process {
                 return {};
             }
             if (!win32::TerminateProcess(static_cast<Handle>(process), 1)) {
-                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), System::system_category()));
+                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
             return {};
             #else
-            return Unexpected(System::error_code(Errc::FUNCTION_NOT_SUPPORTED));
+            return Unexpected(Ops::error_code(Errc::FUNCTION_NOT_SUPPORTED));
             #endif
         }
 
@@ -470,8 +469,8 @@ export namespace stdx::process {
             JoiningThread err_thread;
 
             #ifdef __unix__
-            i32 out_fd = System::exchange(stdout_rd, -1);
-            i32 err_fd = System::exchange(stderr_rd, -1);
+            i32 out_fd = Ops::exchange(stdout_rd, -1);
+            i32 err_fd = Ops::exchange(stderr_rd, -1);
             if (out_fd != -1) {
                 out_thread = JoiningThread(drain_to, out_fd, &out_data);
             }
@@ -479,8 +478,8 @@ export namespace stdx::process {
                 err_thread = JoiningThread(drain_to, err_fd, &err_data);
             }
             #elifdef _WIN32
-            Handle out_h = System::exchange(stdout_rd, nullptr);
-            Handle err_h = System::exchange(stderr_rd, nullptr);
+            Handle out_h = Ops::exchange(stdout_rd, nullptr);
+            Handle err_h = Ops::exchange(stderr_rd, nullptr);
             if (out_h) {
                 out_thread = JoiningThread(drain_handle_to, out_h, &out_data);
             }
@@ -500,7 +499,7 @@ export namespace stdx::process {
             if (!result) {
                 return Unexpected(result.error());
             }
-            return Output(System::move(out_data), System::move(err_data), *result);
+            return Output(Ops::move(out_data), Ops::move(err_data), *result);
         }
     };
 
@@ -565,21 +564,21 @@ export namespace stdx::process {
 
             if (stdin_cfg == Stdio::PIPED && !make_pipe(in_r,  in_w)) {
                 cleanup();
-                return Unexpected(ErrorCode(unix::errnov(), System::system_category()));
+                return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
             if (stdout_cfg == Stdio::PIPED && !make_pipe(out_r, out_w)) {
                 cleanup();
-                return Unexpected(ErrorCode(unix::errnov(), System::system_category()));
+                return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
             if (stderr_cfg == Stdio::PIPED && !make_pipe(err_r, err_w)) {
-                cleanup(); return Unexpected(ErrorCode(unix::errnov(), System::system_category()));
+                cleanup(); return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
 
             if (stdin_cfg == Stdio::NULL_DEV || stdout_cfg == Stdio::NULL_DEV || stderr_cfg == Stdio::NULL_DEV) {
                 null = static_cast<i32>(unix::open("/dev/null", unix::O_RDWR));
                 if (null == -1) {
                     cleanup();
-                    return Unexpected(ErrorCode(unix::errnov(), System::system_category()));
+                    return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
                 }
             }
 
@@ -587,7 +586,7 @@ export namespace stdx::process {
             if (raw_pid == -1) {
                 i32 e = unix::errnov();
                 cleanup();
-                return Unexpected(ErrorCode(e, System::system_category()));
+                return Unexpected(ErrorCode(e, Ops::system_category()));
             }
 
             if (raw_pid == 0) {
@@ -607,7 +606,7 @@ export namespace stdx::process {
                     case Stdio::INHERIT:
                         break;
                     default:
-                        System::unreachable();
+                        Ops::unreachable();
                 }
                 switch (stdout_cfg) {
                     case Stdio::PIPED:
@@ -619,7 +618,7 @@ export namespace stdx::process {
                     case Stdio::INHERIT:
                         break;
                     default:
-                        System::unreachable();
+                        Ops::unreachable();
                 }
                 switch (stderr_cfg) {
                     case Stdio::PIPED:
@@ -631,7 +630,7 @@ export namespace stdx::process {
                     case Stdio::INHERIT:
                         break;
                     default:
-                        System::unreachable();
+                        Ops::unreachable();
                 }
                 for (i32 fd: {in_r, in_w, out_r, out_w, err_r, err_w, null}) {
                     if (fd != -1) {
@@ -708,22 +707,22 @@ export namespace stdx::process {
 
             if (stdin_cfg == Stdio::PIPED && !make_pipe(in_r, in_w, false)) {
                 cleanup();
-                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), System::system_category()));
+                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
             if (stdout_cfg == Stdio::PIPED && !make_pipe(out_r, out_w, true)) {
                 cleanup();
-                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), System::system_category()));
+                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
             if (stderr_cfg == Stdio::PIPED && !make_pipe(err_r, err_w, true)) {
                 cleanup();
-                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), System::system_category()));
+                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
 
             if (stdin_cfg == Stdio::NULL_DEV || stdout_cfg == Stdio::NULL_DEV || stderr_cfg == Stdio::NULL_DEV) {
                 null = win32::CreateFileW(L"NUL", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, OPEN_EXISTING, 0, nullptr);
                 if (null == INVALID_HANDLE_VALUE) {
                     cleanup();
-                    return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), System::system_category()));
+                    return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
                 }
             }
 
@@ -770,7 +769,7 @@ export namespace stdx::process {
                 &pi
             )) {
                 cleanup();
-                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), System::system_category()));
+                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
 
             for (Handle* h: {&in_r, &out_w, &err_w, &null}) {

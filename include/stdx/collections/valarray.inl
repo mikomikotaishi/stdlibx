@@ -7,11 +7,11 @@
 export namespace stdx::collections {
     using ::alloc::collections::ValArray;
     using ::alloc::collections::SliceArray;
-    using ::alloc::collections::GSliceArray;
+    using ::alloc::collections::GeneralSliceArray;
     using ::alloc::collections::MaskArray;
     using ::alloc::collections::IndirectArray;
     using ::alloc::collections::Slice;
-    using ::alloc::collections::GSlice;
+    using ::alloc::collections::GeneralSlice;
 
     using ::alloc::collections::operator+;
     using ::alloc::collections::operator-;

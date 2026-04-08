@@ -79,14 +79,6 @@ if(STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY)
 endif()
 
-find_package(LLVM QUIET)
-if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY AND LLVM_FOUND)
-    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
-    target_link_libraries(stdlibx_stdx PUBLIC LLVMSupport LLVMCore)
-elseif(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LIBRARY)
-    message(WARNING "LLVM not found. Skipping compiler extension.")
-endif()
-
 if(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY AND Lua_FOUND)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
     target_link_libraries(stdlibx_stdx PUBLIC Lua::Lua)
@@ -145,8 +137,8 @@ if(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
     target_link_libraries(stdlibx_stdx PUBLIC ZLIB::ZLIB)
 endif()
 
-set_target_properties(stdlibx_stdx PROPERTIES 
-    CXX_STANDARD 23 
+set_target_properties(stdlibx_stdx PROPERTIES
+    CXX_STANDARD ${STDLIBX_CXX_STANDARD}
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
 )

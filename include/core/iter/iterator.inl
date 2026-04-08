@@ -129,9 +129,6 @@ export namespace core::iter {
     using RandomAccessIteratorTag = std::random_access_iterator_tag;
     using ContiguousIteratorTag = std::contiguous_iterator_tag;
 
-    template <typename Category, typename T, typename Distance = ptrdiff, typename Pointer = T*, typename Reference = T&>
-    using IteratorBase = std::iterator<Category, T, Distance, Pointer, Reference>;
-
     template <typename Iterable>
         requires
             (requires { typename Iterable::iterator; }) ||

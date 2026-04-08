@@ -1,5 +1,7 @@
 #pragma once
 
+#define _Bool bool
+
 #ifdef __linux__
 #include <arpa/nameser.h>
 #include <arpa/telnet.h>
@@ -22,9 +24,7 @@
 #include <netinet/ip6.h>
 #include <netinet/udp.h>
 #include <sys/acct.h>
-#include <sys/acl.h>
 #include <sys/auxv.h>
-#include <sys/capability.h>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <sys/fanotify.h>
@@ -43,7 +43,6 @@
 #include <sys/prctl.h>
 #include <sys/procfs.h>
 #include <sys/profil.h>
-#include <sys/psx_syscall.h>
 #include <sys/ptrace.h>
 #include <sys/quota.h>
 #include <sys/random.h>
@@ -69,4 +68,16 @@
 
 #include <linux/sysinfo.h>
 #include <linux/posix_types.h>
+
+#if __has_include(<sys/acl.h>)
+#include <sys/acl.h>
+#endif
+
+#if __has_include(<sys/capability.h>)
+#include <sys/capability.h>
+#endif
+
+#if __has_include(<sys/psx_syscall.h>)
+#include <sys/psx_syscall.h>
+#endif
 #endif
