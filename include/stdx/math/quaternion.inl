@@ -27,5 +27,5 @@ namespace stdx::fmt {
     };
 }
 
-template <typename  T, typename Char>
+template <typename T, typename Char>
 struct stdx::fmt::formatter<Quaternion<T>, Char> : public Formatter<Quaternion<T>, Char> {};

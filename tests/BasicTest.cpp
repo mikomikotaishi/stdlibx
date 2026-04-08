@@ -3,6 +3,7 @@ import stdx;
 using stdx::collections::HashMap;
 using stdx::collections::TreeMap;
 using stdx::collections::Vector;
+using stdx::debug::StackTrace;
 using stdx::fs::DirectoryEntry;
 using stdx::fs::DirectoryIterator;
 using stdx::fs::Path;
@@ -37,9 +38,13 @@ Expected<u32, Status> perform_operation(bool succeed) {
 
 int main() {
     ArgumentParser parser("test_program", "1.0", DefaultArguments::NONE);
-    parser.add_argument("--name").default_value("world");
-    parser.add_argument("--count").default_value(1).scan<'d', i32>();
-    parser.add_argument("--verbose").flag();
+    parser.add_argument("--name")
+        .default_value("world");
+    parser.add_argument("--count")
+        .default_value(1)
+        .scan<'d', i32>();
+    parser.add_argument("--verbose")
+        .flag();
 
     parser.parse_args({"test_program", "--name", "stdlibx", "--count", "3", "--verbose"});
 
@@ -125,4 +130,6 @@ int main() {
         System::current_time_millis(),
         System::current_time_as_string()
     );
+
+    System::out.println(StackTrace::current());
 }

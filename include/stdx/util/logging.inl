@@ -2,6 +2,7 @@
 
 using stdx::collections::HashMap;
 using stdx::collections::Vector;
+using stdx::debug::SourceLocation;
 using stdx::fmt::Formatter;
 using stdx::fs::Path;
 using stdx::io::IOException;
@@ -13,7 +14,6 @@ using stdx::io::Stdout;
 using stdx::mem::Pointers;
 using stdx::mem::SharedPointer;
 using stdx::mem::UniquePointer;
-using stdx::meta::SourceLocation;
 using stdx::sync::Mutex;
 using stdx::sync::ScopedLock;
 using stdx::time::Instant;
@@ -71,7 +71,7 @@ namespace stdx::fmt {
                     name = "[ERROR]:";
                     break;
                 default:
-                    System::unreachable();
+                    Ops::unreachable();
             }
             return stdx::fmt::format_to(ctx.out(), "{:11}", name);
         }
@@ -261,7 +261,7 @@ public:
      * @param sink The sink to add
      */
     Logger& add_sink(SharedPointer<LogSink> sink) {
-        sinks.emplace_back(System::move(sink));
+        sinks.emplace_back(Ops::move(sink));
         return *this;
     }
 
@@ -295,7 +295,7 @@ public:
      */
     template <typename... Args>
     void log(Level level, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(level, fmt, SourceLocation::current(), System::forward<Args>(args)...);
+        log(level, fmt, SourceLocation::current(), Ops::forward<Args>(args)...);
     }
 
     /**
@@ -314,11 +314,11 @@ public:
         const SourceLocation& location,
         Args&&... args
     ) const {
-        if (System::to_underlying(level) < System::to_underlying(min_level)) {
+        if (Ops::to_underlying(level) < Ops::to_underlying(min_level)) {
             return;
         }
 
-        String message = stdx::fmt::format(fmt, System::forward<Args>(args)...);
+        String message = stdx::fmt::format(fmt, Ops::forward<Args>(args)...);
         String timestamp = stdx::time::current_time_as_string();
 
         for (const SharedPointer<LogSink>& sink: sinks) {
@@ -335,7 +335,7 @@ public:
      */
     template <typename... Args>
     void trace(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::TRACE, fmt, SourceLocation::current(), System::forward<Args>(args)...);
+        log(Level::TRACE, fmt, SourceLocation::current(), Ops::forward<Args>(args)...);
     }
 
     /**
@@ -348,7 +348,7 @@ public:
      */
     template <typename... Args>
     void trace(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::TRACE, fmt, location, System::forward<Args>(args)...);
+        log(Level::TRACE, fmt, location, Ops::forward<Args>(args)...);
     }
 
     /**
@@ -360,7 +360,7 @@ public:
      */
     template <typename... Args>
     void debug(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::DEBUG, fmt, SourceLocation::current(), System::forward<Args>(args)...);
+        log(Level::DEBUG, fmt, SourceLocation::current(), Ops::forward<Args>(args)...);
     }
 
     /**
@@ -373,7 +373,7 @@ public:
      */
     template <typename... Args>
     void debug(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::DEBUG, fmt, location, System::forward<Args>(args)...);
+        log(Level::DEBUG, fmt, location, Ops::forward<Args>(args)...);
     }
 
     /**
@@ -385,7 +385,7 @@ public:
      */
     template <typename... Args>
     void info(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::INFO, fmt, SourceLocation::current(), System::forward<Args>(args)...);
+        log(Level::INFO, fmt, SourceLocation::current(), Ops::forward<Args>(args)...);
     }
 
     /**
@@ -398,7 +398,7 @@ public:
      */
     template <typename... Args>
     void info(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::INFO, fmt, location, System::forward<Args>(args)...);
+        log(Level::INFO, fmt, location, Ops::forward<Args>(args)...);
     }
 
     /**
@@ -410,7 +410,7 @@ public:
      */
     template <typename... Args>
     void warn(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::WARNING, fmt, SourceLocation::current(), System::forward<Args>(args)...);
+        log(Level::WARNING, fmt, SourceLocation::current(), Ops::forward<Args>(args)...);
     }
 
     /**
@@ -423,7 +423,7 @@ public:
      */
     template <typename... Args>
     void warn(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::WARNING, fmt, location, System::forward<Args>(args)...);
+        log(Level::WARNING, fmt, location, Ops::forward<Args>(args)...);
     }
 
     /**
@@ -435,7 +435,7 @@ public:
      */
     template <typename... Args>
     void error(const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::ERROR, fmt, SourceLocation::current(), System::forward<Args>(args)...);
+        log(Level::ERROR, fmt, SourceLocation::current(), Ops::forward<Args>(args)...);
     }
 
     /**
@@ -448,7 +448,7 @@ public:
      */
     template <typename... Args>
     void error(const SourceLocation& location, const FormatString<Args...>& fmt, Args&&... args) const {
-        log(Level::ERROR, fmt, location, System::forward<Args>(args)...);
+        log(Level::ERROR, fmt, location, Ops::forward<Args>(args)...);
     }
 
     /**

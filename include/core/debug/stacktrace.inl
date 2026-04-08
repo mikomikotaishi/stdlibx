@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace core::meta
- * @brief Wrapper namespace for standard library metaprogramming operations.
+ * @namespace core::debug
+ * @brief Wrapper namespace for standard library debugging operations.
  */
-export namespace core::meta {
+export namespace core::debug {
     #ifdef __cpp_lib_stacktrace
     using StackTraceEntry = std::stacktrace_entry;
 

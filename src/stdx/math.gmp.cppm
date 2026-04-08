@@ -9,7 +9,7 @@
 
 module;
 
-#if defined(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY)
+#ifdef STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY
 #include <gmpxx.h>
 #endif
 
@@ -27,14 +27,16 @@ using namespace stdx::core;
  */
 export namespace stdx::math::inline gmp {
 
+#ifdef STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY
+
 using BitCount = ::mp_bitcnt_t;
 
 class [[nodiscard]] GnuInteger {
 private:
-    mpz_class value;
+    ::mpz_class value;
 protected:
-    GnuInteger(mpz_class v):
-        value{System::move(v)} {}
+    GnuInteger(::mpz_class v):
+        value{Ops::move(v)} {}
 public:
     template <Numeric T>
         requires (!SameAs<T, bool>)
@@ -72,37 +74,37 @@ public:
 
     [[nodiscard]]
     GnuInteger gcd(const GnuInteger& b) const {
-        mpz_class result;
-        mpz_gcd(result.get_mpz_t(), value.get_mpz_t(), b.value.get_mpz_t());
-        return GnuInteger(System::move(result));
+        ::mpz_class result;
+        ::mpz_gcd(result.get_mpz_t(), value.get_mpz_t(), b.value.get_mpz_t());
+        return GnuInteger(Ops::move(result));
     }
 
     [[nodiscard]]
     static GnuInteger gcd(const GnuInteger& a, const GnuInteger& b) {
-        mpz_class result;
-        mpz_gcd(result.get_mpz_t(), a.value.get_mpz_t(), b.value.get_mpz_t());
-        return GnuInteger(System::move(result));
+        ::mpz_class result;
+        ::mpz_gcd(result.get_mpz_t(), a.value.get_mpz_t(), b.value.get_mpz_t());
+        return GnuInteger(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuInteger lcm(const GnuInteger& b) const {
-        mpz_class result;
-        mpz_lcm(result.get_mpz_t(), value.get_mpz_t(), b.value.get_mpz_t());
-        return GnuInteger(System::move(result));
+        ::mpz_class result;
+        ::mpz_lcm(result.get_mpz_t(), value.get_mpz_t(), b.value.get_mpz_t());
+        return GnuInteger(Ops::move(result));
     }
 
     [[nodiscard]]
     static GnuInteger lcm(const GnuInteger& a, const GnuInteger& b) {
-        mpz_class result;
+        ::mpz_class result;
         ::mpz_lcm(result.get_mpz_t(), a.value.get_mpz_t(), b.value.get_mpz_t());
-        return GnuInteger(System::move(result));
+        return GnuInteger(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuInteger pow(u32 exponent) const {
-        mpz_class result;
+        ::mpz_class result;
         ::mpz_pow_ui(result.get_mpz_t(), value.get_mpz_t(), exponent);
-        return GnuInteger(System::move(result));
+        return GnuInteger(Ops::move(result));
     }
 
     [[nodiscard]]
@@ -117,37 +119,37 @@ public:
 
     [[nodiscard]]
     GnuInteger operator+(const GnuInteger& b) const {
-        mpz_class result = value;
+        ::mpz_class result = value;
         result += b.value;
-        return GnuInteger(System::move(result));
+        return GnuInteger(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuInteger operator-(const GnuInteger& b) const {
-        mpz_class result = value;
+        ::mpz_class result = value;
         result -= b.value;
-        return GnuInteger(System::move(result));
+        return GnuInteger(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuInteger operator*(const GnuInteger& b) const {
-        mpz_class result = value;
+        ::mpz_class result = value;
         result *= b.value;
-        return GnuInteger(System::move(result));
+        return GnuInteger(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuInteger operator/(const GnuInteger& b) const {
-        mpz_class result = value;
+        ::mpz_class result = value;
         result /= b.value;
-        return GnuInteger(System::move(result));
+        return GnuInteger(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuInteger operator%(const GnuInteger& b) const {
-        mpz_class result = value;
+        ::mpz_class result = value;
         result %= b.value;
-        return GnuInteger(System::move(result));
+        return GnuInteger(Ops::move(result));
     }
 
     GnuInteger& operator+=(const GnuInteger& b) {
@@ -182,7 +184,7 @@ public:
 
     [[nodiscard]]
     StrongOrdering operator<=>(const GnuInteger& b) const {
-        const i32 cmp = mpz_cmp(value.get_mpz_t(), b.value.get_mpz_t());
+        const i32 cmp = ::mpz_cmp(value.get_mpz_t(), b.value.get_mpz_t());
         if (cmp < 0) {
             return StrongOrdering::LESS;
         }
@@ -197,10 +199,10 @@ public:
 
 class [[nodiscard]] GnuRational {
 private:
-    mpq_class value;
+    ::mpq_class value;
 protected:
-    GnuRational(mpq_class v):
-        value{System::move(v)} {}
+    GnuRational(::mpq_class v):
+        value{Ops::move(v)} {}
 public:
     template <Numeric T>
         requires (!SameAs<T, bool>)
@@ -247,30 +249,30 @@ public:
 
     [[nodiscard]]
     GnuRational operator+(const GnuRational& b) const {
-        mpq_class result = value;
+        ::mpq_class result = value;
         result += b.value;
-        return GnuRational(System::move(result));
+        return GnuRational(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuRational operator-(const GnuRational& b) const {
-        mpq_class result = value;
+        ::mpq_class result = value;
         result -= b.value;
-        return GnuRational(System::move(result));
+        return GnuRational(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuRational operator*(const GnuRational& b) const {
-        mpq_class result = value;
+        ::mpq_class result = value;
         result *= b.value;
-        return GnuRational(System::move(result));
+        return GnuRational(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuRational operator/(const GnuRational& b) const {
-        mpq_class result = value;
+        ::mpq_class result = value;
         result /= b.value;
-        return GnuRational(System::move(result));
+        return GnuRational(Ops::move(result));
     }
 
     GnuRational& operator+=(const GnuRational& b) {
@@ -300,7 +302,7 @@ public:
 
     [[nodiscard]]
     StrongOrdering operator<=>(const GnuRational& b) const {
-        const i32 cmp = mpq_cmp(value.get_mpq_t(), b.value.get_mpq_t());
+        const i32 cmp = ::mpq_cmp(value.get_mpq_t(), b.value.get_mpq_t());
         if (cmp < 0) {
             return StrongOrdering::LESS;
         } else if (cmp > 0) {
@@ -312,10 +314,10 @@ public:
 
 class [[nodiscard]] GnuFloat {
 private:
-    mpf_class value;
+    ::mpf_class value;
 protected:
-    GnuFloat(mpf_class v):
-        value{System::move(v)} {}
+    GnuFloat(::mpf_class v):
+        value{Ops::move(v)} {}
 public:
     template <Numeric T>
         requires (!SameAs<T, bool>)
@@ -347,30 +349,30 @@ public:
 
     [[nodiscard]]
     GnuFloat operator+(const GnuFloat& b) const {
-        mpf_class result = value;
+        ::mpf_class result = value;
         result += b.value;
-        return GnuFloat(System::move(result));
+        return GnuFloat(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuFloat operator-(const GnuFloat& b) const {
-        mpf_class result = value;
+        ::mpf_class result = value;
         result -= b.value;
-        return GnuFloat(System::move(result));
+        return GnuFloat(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuFloat operator*(const GnuFloat& b) const {
-        mpf_class result = value;
+        ::mpf_class result = value;
         result *= b.value;
-        return GnuFloat(System::move(result));
+        return GnuFloat(Ops::move(result));
     }
 
     [[nodiscard]]
     GnuFloat operator/(const GnuFloat& b) const {
-        mpf_class result = value;
+        ::mpf_class result = value;
         result /= b.value;
-        return GnuFloat(System::move(result));
+        return GnuFloat(Ops::move(result));
     }
 
     GnuFloat& operator+=(const GnuFloat& b) {
@@ -400,7 +402,7 @@ public:
 
     [[nodiscard]]
     PartialOrdering operator<=>(const GnuFloat& b) const {
-        const i32 cmp = mpf_cmp(value.get_mpf_t(), b.value.get_mpf_t());
+        const i32 cmp = ::mpf_cmp(value.get_mpf_t(), b.value.get_mpf_t());
         if (cmp < 0) {
             return PartialOrdering::LESS;
         } else if (cmp > 0) {
@@ -424,6 +426,8 @@ GnuRational operator""_mpq(const char s[]) throws (InvalidArgumentException) {
 GnuFloat operator""_mpf(const char s[]) throws (InvalidArgumentException) {
     return GnuFloat(s);
 }
+
+#endif
 
 }
 

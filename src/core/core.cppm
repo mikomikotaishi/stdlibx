@@ -11,14 +11,13 @@ module;
 #include "Macros.hpp"
 
 #define STDLIBX_NO_STD_CORE_FEATURES
-#define STDLIBX_NO_STD_NO_ALLOC_FEATURES
+#define STDLIBX_NO_STD_ALLOC_FEATURES
 
 export module core;
 
 import std;
 
 export import :main;
-export import :constants;
 export import :gsl;
 
 // Include math, system in module core so that constants declared in core:constants

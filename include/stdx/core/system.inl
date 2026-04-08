@@ -1,7 +1,6 @@
 #pragma once
 
 using stdx::collections::HashMap;
-using stdx::future::LaunchPolicy;
 using stdx::io::Cerr;
 using stdx::io::Cin;
 using stdx::io::Clog;

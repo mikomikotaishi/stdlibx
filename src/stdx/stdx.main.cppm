@@ -93,7 +93,6 @@ extern "C" {
 
 #include "stdx/util/algorithm.inl"
 #include "stdx/util/cstdlib.inl"
-#include "stdx/util/debugging.inl"
 #include "stdx/util/numeric.inl"
 #include "stdx/util/utility.inl"
 
@@ -119,7 +118,11 @@ extern "C" {
 #include "stdx/collections/valarray.inl"
 #include "stdx/collections/vector.inl"
 
-#include "stdx/execution/execution.inl"
+#include "stdx/debug/debugging.inl"
+#include "stdx/debug/source_location.inl"
+#include "stdx/debug/stacktrace.inl"
+
+#include "stdx/exec/execution.inl"
 
 #include "stdx/fmt/charconv.inl"
 #include "stdx/fmt/cinttypes.inl"
@@ -176,8 +179,6 @@ extern "C" {
 #include "stdx/io/cstdio.inl"
 #include "stdx/io/print.inl"
 
-#include "stdx/meta/source_location.inl"
-#include "stdx/meta/stacktrace.inl"
 #include "stdx/meta/type_traits.inl"
 #include "stdx/meta/typeindex.inl"
 #include "stdx/meta/typeinfo.inl"
@@ -206,6 +207,11 @@ extern "C" {
 #include "stdx/ranges/random.inl"
 
 #include "stdx/meta/meta.inl"
+#include "stdx/collections/enum_set.inl"
+#include "stdx/meta/reflect.inl"
+
+#include "stdx/compiler/annotations.inl"
+#include "stdx/compiler/attributes.inl"
 
 #include "stdx/core/random.inl"
 
@@ -245,6 +251,7 @@ extern "C" {
 #include "stdx/time/ctime.inl"
 #include "stdx/time/time.inl"
 
+#include "stdx/core/ops.inl"
 #include "stdx/core/system.inl"
 #include "stdx/core/uuid.inl"
 

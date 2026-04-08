@@ -16,12 +16,18 @@ export namespace stdx::core {
     using ::core::prelude::LayoutRight;
     using ::core::prelude::LayoutStride;
     using ::core::prelude::MultiDimensionalSpan;
-    using ::core::prelude::StridedSlice;
+    // using ::core::prelude::StridedSlice;
     using ::core::prelude::SubMultiDimensionalSpanMappingResult;
     using ::core::prelude::FullExtentTag;
     using ::core::prelude::FullExtent;
+    #endif
 
-    using ::core::prelude::submdspan_extents;
+    #ifdef __cpp_lib_submdspan
+    // using ::core::prelude::submdspan_extents;
     using ::core::prelude::submdspan;
+    #endif
+
+    #ifdef __cpp_lib_aligned_accessor
+    using ::core::prelude::AlignedAccessor;
     #endif
 }

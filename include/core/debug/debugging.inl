@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace core::util
- * @brief Wrapper namespace for standard library utility operations.
+ * @namespace core::debug
+ * @brief Wrapper namespace for standard library debugging operations.
  */
-export namespace core::util {
+export namespace core::debug {
     #if __has_include(<debugging>)
     using std::breakpoint;
     using std::breakpoint_if_debugging;

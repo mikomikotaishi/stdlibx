@@ -36,12 +36,12 @@ export namespace alloc::mem {
 
     #ifdef __cpp_lib_indirect
     template <typename T, typename Alloc = Allocator<T>>
-    class Indirect = std::indirect<T, Alloc>;
+    using Indirect = std::indirect<T, Alloc>;
     #endif
 
     #ifdef __cpp_lib_polymorphic
     template <typename T, typename Alloc = Allocator<T>>
-    class Polymorphic = std::polymorphic<T, Alloc>;
+    using Polymorphic = std::polymorphic<T, Alloc>;
     #endif
 
     using std::to_address;

@@ -35,19 +35,24 @@ export namespace core::prelude {
         typename AccessorPolicy = DefaultAccessor<E>
     >
     using MultiDimensionalSpan = std::mdspan<E, Exts, LayoutPolicy, AccessorPolicy>;
-    
-    template <typename OffsetT, typename LengthT, typename StrideT>
-    using StridedSlice = std::strided_slice<OffsetT, LengthT, StrideT>;
+
+    // template <typename OffsetT, typename LengthT, typename StrideT>
+    // using StridedSlice = std::strided_slice<OffsetT, LengthT, StrideT>;
 
     template <typename LayoutMapping>
-    using SubMultiDimensionalSpanMappingResult = std::submdspan_layout_mapping_result<LayoutMapping>;
+    using SubMultiDimensionalSpanMappingResult = std::submdspan_mapping_result<LayoutMapping>;
 
     using FullExtentTag = std::full_extent_t;
     inline constexpr FullExtentTag FullExtent = std::full_extent;
     #endif
 
     #ifdef __cpp_lib_submdspan
-    using std::submdspan_extents;
+    // using std::submdspan_extents;
     using std::submdspan;
+    #endif
+
+    #ifdef __cpp_lib_aligned_accessor
+    template <typename E, u64 ByteAlign>
+    using AlignedAccessor = std::aligned_accessor<E, ByteAlign>;
     #endif
 }

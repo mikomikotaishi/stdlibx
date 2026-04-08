@@ -75,10 +75,3 @@ export namespace std {
         using std::ranges::cdata;
     }
 }
-
-#ifdef __GLIBCXX__
-export namespace __gnu_cxx {
-    using __gnu_cxx::operator==;
-    using __gnu_cxx::operator<=>;
-}
-#endif

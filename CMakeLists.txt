@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
 message(STATUS "CMake version ${CMAKE_VERSION}")
 
-set(CMAKE_CXX_STANDARD 23)
+set(STDLIBX_CXX_STANDARD 23 CACHE INTERNAL "stdlibx C++ standard (visible across directory scopes for FetchContent consumers)")
+set(CMAKE_CXX_STANDARD ${STDLIBX_CXX_STANDARD})
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_MODULE_STD ON)
 
@@ -18,14 +19,19 @@ option(BUILD_STATIC_LIBS "Build static libraries instead of shared" OFF)
 set(STDLIB "default" CACHE STRING "C++ standard library to use (default, libstdc++, libc++)")
 set_property(CACHE STDLIB PROPERTY STRINGS "default" "libstdc++" "libc++")
 
+set(STDLIB_NAME_CLANG OFF)
+set(STDLIB_NAME_GCC OFF)
+
 # CXX compile flags must be set BEFORE project() so that CMake's import-std
 # detection finds the correct standard library module source (e.g. libc++'s
 # std.cppm instead of libstdc++'s std.cc). Linker flags are applied after
 # project() to avoid breaking the C compiler test.
 if(STDLIB STREQUAL "libc++")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    set(STDLIB_NAME_CLANG ON)
 elseif(STDLIB STREQUAL "libstdc++")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+    set(STDLIB_NAME_GCC ON)
 endif()
 
 if(BUILD_STATIC_LIBS)
@@ -52,144 +58,6 @@ project(stdlibx
     LANGUAGES C CXX
     VERSION 0.0.1
 )
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
-
-function(configure_cpp_module_target target)
-    set_target_properties(${target} PROPERTIES
-        CXX_EXTENSIONS OFF
-        CXX_MODULE_BMI_DIRECTORY "${CMAKE_CXX_MODULE_BMI_DIRECTORY}"
-        CMAKE_CXX_STANDARD 23
-        CMAKE_CXX_MODULE_STD ON
-    )
-endfunction()
-
-option(ENABLE_SANITIZERS "Enable sanitisers in debug builds" OFF)
-option(USE_SANITIZER_ADDRESS "Enable address sanitiser" OFF)
-option(USE_SANITIZER_KERNEL "Enable kernel address sanitiser" OFF)
-option(USE_SANITIZER_HW "Enable hardware address sanitiser" OFF)
-option(USE_SANITIZER_UNDEFINED "Enable undefined behaviour sanitiser" OFF)
-option(USE_SANITIZER_THREAD "Enable thread sanitiser" OFF)
-option(USE_SANITIZER_MEMORY "Enable memory sanitiser" OFF)
-option(USE_SANITIZER_LEAK "Enable leak sanitiser" OFF)
-
-function(add_sanitisers target)
-    if(NOT ENABLE_SANITIZERS)
-        return()
-    endif()
-
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-        set(SANITIZER_FLAGS "")
-        
-        if(USE_SANITIZER_ADDRESS)
-            list(APPEND SANITIZER_FLAGS "-fsanitize=address")
-        endif()
-
-        if(USE_SANITIZER_KERNEL)
-            list(APPEND SANITIZER_FLAGS "-fsanitize=kernel-address")
-        endif()
-
-        if(USE_SANITIZER_HW)
-            list(APPEND SANITIZER_FLAGS "-fsanitize=hwaddress")
-        endif()
-
-        if(USE_SANITIZER_UNDEFINED)
-            list(APPEND SANITIZER_FLAGS "-fsanitize=undefined")
-        endif()
-
-        if(USE_SANITIZER_THREAD)
-            list(APPEND SANITIZER_FLAGS "-fsanitize=thread")
-        endif()
-
-        if(USE_SANITIZER_MEMORY)
-            list(APPEND SANITIZER_FLAGS "-fsanitize=memory")
-        endif()
-        
-        if(USE_SANITIZER_LEAK)
-            list(APPEND SANITIZER_FLAGS "-fsanitize=leak")
-        endif()
-        
-        if(SANITIZER_FLAGS)
-            target_compile_options(${target} PRIVATE ${SANITIZER_FLAGS})
-            target_link_options(${target} PRIVATE ${SANITIZER_FLAGS})
-        endif()
-    endif()
-endfunction()
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_definitions(NDEBUG)
-    
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-        add_compile_options(-O3)
-    elseif(MSVC)
-        add_compile_options(/O2)
-    endif()
-    
-    set(ENABLE_SANITIZERS OFF)
-endif()
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    if(STDLIB STREQUAL "libc++")
-        message(STATUS "Standard library: libc++")
-        add_link_options(-stdlib=libc++)
-    elseif(STDLIB STREQUAL "libstdc++")
-        message(STATUS "Standard library: libstdc++")
-        add_link_options(-stdlib=libstdc++)
-    else()
-        if(APPLE)
-            message(STATUS "Standard library: libc++ (default on macOS)")
-        elseif(UNIX)
-            message(STATUS "Standard library: libstdc++ (default on Linux)")
-        else()
-            message(STATUS "Standard library: compiler default")
-        endif()
-    endif()
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    if(STDLIB STREQUAL "default")
-        message(STATUS "Standard library: libstdc++ (GCC default)")
-    else()
-        message(WARNING "STDLIB option '${STDLIB}' is not applicable with GCC (always uses libstdc++)")
-    endif()
-elseif(MSVC)
-    if(STDLIB STREQUAL "default")
-        message(STATUS "Standard library: MSVC STL (default)")
-    else()
-        message(WARNING "STDLIB option '${STDLIB}' is not applicable with MSVC")
-    endif()
-else()
-    if(NOT STDLIB STREQUAL "default")
-        message(WARNING "STDLIB option '${STDLIB}' may not be supported with ${CMAKE_CXX_COMPILER_ID}")
-    else()
-        message(STATUS "Standard library: compiler default")
-    endif()
-endif()
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-include(FetchContent)
-
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-
-option(STDLIBX_NO_STDX "Disable the stdx::* namespace and only use core::* and alloc::*" OFF)
-option(STDLIBX_NO_ALLOC "Disable the alloc::* namespace and only use core::*" OFF)
-option(STDLIBX_EXPORT_IMPORT_STD "Enable export import std" OFF)
-option(STDLIBX_IMPLICIT_USING_CORE "Make the stdx::core::* namespace implicitly imported at module import" ON)
-option(STDLIBX_IMPLICIT_USING_LITERALS "Make the stdx::literals::* namespace implicitly imported at module import" ON)
-option(STDLIBX_COMPILE_EXPERIMENTAL_HEADERS "Enable experimental standard library headers" OFF)
-option(STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY "Enable architecture intrinsics header modules in stdx::arch::*" OFF)
-option(STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY "Enable Clang header modules in stdx::compiler::clang::*" OFF)
-option(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY "Enable LLVM header modules in stdx::compiler::llvm::*" OFF)
-option(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY "Enable libsodium modules in stdx::crypto::*" ON)
-option(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY "Enable Microsoft Guidelines Support Library modules in stdx::core::gsl::*" ON)
-option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx::lua::*" ON)
-option(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY "Enable GNU Multiple Precision Arithmetic modules in stdx::math::*" ON)
-option(STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY "Enable operating system header modules in stdx::os::*" ON)
-option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules in stdx::sql::*" ON)
-option(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY "Enable ZIP (zlib) wrapper modules in stdx::zip::*" ON)
-option(STDLIBX_BUILD_TESTS "Build the tests for stdlibx" ON)
 
 set(COMPILER_APPLE_CLANG OFF)
 set(COMPILER_CLANG OFF)
@@ -221,6 +89,176 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|armv7l")
     set(ARCH_ARM ON)
 endif()
 
+if("cxx_std_26" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    if(COMPILER_GCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
+        message(STATUS "C++ standard: C++23 (C++26 build crashes on versions of GCC less than 16)")
+    else()
+        set(STDLIBX_CXX_STANDARD 26 CACHE INTERNAL "stdlibx C++ standard (visible across directory scopes for FetchContent consumers)")
+        set(CMAKE_CXX_STANDARD 26)
+        message(STATUS "C++ standard: C++26 (auto-detected)")
+    endif()
+else()
+    message(STATUS "C++ standard: C++23 (C++26 not advertised by ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION})")
+endif()
+
+option(STDLIBX_ENABLE_CONTRACTS "Enable C++26 contracts" ON)
+option(STDLIBX_ENABLE_REFLECTION "Enable C++26 reflection" ON)
+
+if(COMPILER_GCC
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16
+    AND STDLIBX_CXX_STANDARD GREATER_EQUAL 26
+    AND STDLIBX_ENABLE_CONTRACTS)
+    message(STATUS "Contracts enabled")
+    add_compile_options(-fcontracts)
+endif()
+
+if(COMPILER_GCC
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16
+    AND STDLIBX_CXX_STANDARD GREATER_EQUAL 26
+    AND STDLIBX_ENABLE_REFLECTION)
+    message(STATUS "Reflection enabled")
+    add_compile_options(-freflection)
+endif()
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
+function(configure_cpp_module_target target)
+    set_target_properties(${target} PROPERTIES
+        CXX_EXTENSIONS OFF
+        CXX_MODULE_BMI_DIRECTORY "${CMAKE_CXX_MODULE_BMI_DIRECTORY}"
+        CXX_STANDARD "${STDLIBX_CXX_STANDARD}"
+        CXX_STANDARD_REQUIRED ON
+        CXX_MODULE_STD ON
+    )
+endfunction()
+
+option(STDLIBX_ENABLE_SANITIZERS "Enable sanitisers in debug builds" OFF)
+option(STDLIBX_USE_SANITIZER_ADDRESS "Enable address sanitiser" OFF)
+option(STDLIBX_USE_SANITIZER_KERNEL "Enable kernel address sanitiser" OFF)
+option(STDLIBX_USE_SANITIZER_HW "Enable hardware address sanitiser" OFF)
+option(STDLIBX_USE_SANITIZER_UNDEFINED "Enable undefined behaviour sanitiser" OFF)
+option(STDLIBX_USE_SANITIZER_THREAD "Enable thread sanitiser" OFF)
+option(STDLIBX_USE_SANITIZER_MEMORY "Enable memory sanitiser" OFF)
+option(STDLIBX_USE_SANITIZER_LEAK "Enable leak sanitiser" OFF)
+
+function(add_sanitisers target)
+    if(NOT STDLIBX_ENABLE_SANITIZERS)
+        return()
+    endif()
+
+    if(COMPILER_GCC OR COMPILER_CLANG OR COMPILER_APPLE_CLANG)
+        set(SANITIZER_FLAGS "")
+        
+        if(STDLIBX_USE_SANITIZER_ADDRESS)
+            list(APPEND SANITIZER_FLAGS "-fsanitize=address")
+        endif()
+
+        if(STDLIBX_USE_SANITIZER_KERNEL)
+            list(APPEND SANITIZER_FLAGS "-fsanitize=kernel-address")
+        endif()
+
+        if(STDLIBX_USE_SANITIZER_HW)
+            list(APPEND SANITIZER_FLAGS "-fsanitize=hwaddress")
+        endif()
+
+        if(STDLIBX_USE_SANITIZER_UNDEFINED)
+            list(APPEND SANITIZER_FLAGS "-fsanitize=undefined")
+        endif()
+
+        if(STDLIBX_USE_SANITIZER_THREAD)
+            list(APPEND SANITIZER_FLAGS "-fsanitize=thread")
+        endif()
+
+        if(STDLIBX_USE_SANITIZER_MEMORY)
+            list(APPEND SANITIZER_FLAGS "-fsanitize=memory")
+        endif()
+        
+        if(STDLIBX_USE_SANITIZER_LEAK)
+            list(APPEND SANITIZER_FLAGS "-fsanitize=leak")
+        endif()
+        
+        if(SANITIZER_FLAGS)
+            target_compile_options(${target} PRIVATE ${SANITIZER_FLAGS})
+            target_link_options(${target} PRIVATE ${SANITIZER_FLAGS})
+        endif()
+    endif()
+endfunction()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_definitions(NDEBUG)
+    
+    if(COMPILER_GCC OR COMPILER_CLANG OR COMPILER_APPLE_CLANG)
+        add_compile_options(-O3)
+    elseif(COMPILER_MSVC)
+        add_compile_options(/O2)
+    endif()
+    
+    set(ENABLE_SANITIZERS OFF)
+endif()
+
+if(COMPILER_CLANG OR COMPILER_APPLE_CLANG)
+    if(STDLIB_NAME_CLANG)
+        message(STATUS "Standard library: libc++")
+        add_link_options(-stdlib=libc++)
+    elseif(STDLIB_NAME_GCC)
+        message(STATUS "Standard library: libstdc++")
+        add_link_options(-stdlib=libstdc++)
+    else()
+        if(APPLE)
+            message(STATUS "Standard library: libc++ (default on macOS)")
+            set(STDLIB_NAME_CLANG ON)
+        elseif(UNIX)
+            message(STATUS "Standard library: libstdc++ (default on Linux)")
+            set(STDLIB_NAME_GCC ON)
+        else()
+            message(STATUS "Standard library: compiler default")
+        endif()
+    endif()
+elseif(COMPILER_GCC)
+    set(STDLIB_NAME_GCC ON)
+    if(STDLIB STREQUAL "default")
+        message(STATUS "Standard library: libstdc++ (GCC default)")
+    else()
+        message(WARNING "STDLIB option '${STDLIB}' is not applicable with GCC (always uses libstdc++)")
+    endif()
+elseif(COMPILER_MSVC)
+    if(STDLIB STREQUAL "default")
+        message(STATUS "Standard library: MSVC STL (default)")
+    else()
+        message(WARNING "STDLIB option '${STDLIB}' is not applicable with MSVC")
+    endif()
+else()
+    if(NOT STDLIB STREQUAL "default")
+        message(WARNING "STDLIB option '${STDLIB}' may not be supported with ${CMAKE_CXX_COMPILER_ID}")
+    else()
+        message(STATUS "Standard library: compiler default")
+    endif()
+endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+include(FetchContent)
+
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+
+option(STDLIBX_NO_STDX "Disable the stdx::* namespace and only use core::* and alloc::*" OFF)
+option(STDLIBX_NO_ALLOC "Disable the alloc::* namespace and only use core::*" OFF)
+option(STDLIBX_EXPORT_IMPORT_STD "Enable export import std" OFF)
+option(STDLIBX_IMPLICIT_USING_CORE "Make the stdx::core::* namespace implicitly imported at module import" ON)
+option(STDLIBX_IMPLICIT_USING_LITERALS "Make the stdx::literals::* namespace implicitly imported at module import" ON)
+option(STDLIBX_COMPILE_EXPERIMENTAL_HEADERS "Enable experimental standard library headers" OFF)
+option(STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY "Enable architecture intrinsics header modules in stdx::arch::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY "Enable libsodium modules in stdx::crypto::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY "Enable Microsoft Guidelines Support Library modules in stdx::core::gsl::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx::lua::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY "Enable GNU Multiple Precision Arithmetic modules in stdx::math::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY "Enable operating system header modules in stdx::os::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules in stdx::sql::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY "Enable ZIP (zlib) wrapper modules in stdx::zip::*" ON)
+option(STDLIBX_BUILD_TESTS "Build the tests for stdlibx" ON)
+
 if(STDLIBX_NO_STD AND STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
     set(STDLIBX_USE_RESERVED_STD_IDENTIFIERS OFF CACHE BOOL "Disabled because STDLIBX_NO_STD is ON" FORCE)
 endif()
@@ -233,12 +271,13 @@ if(COMPILER_GCC AND NOT STDLIBX_EXPORT_IMPORT_STD)
     set(STDLIBX_EXPORT_IMPORT_STD ON CACHE BOOL "export import std is forced on GCC due to compiler bugs" FORCE)
 endif()
 
-if((NOT COMPILER_APPLE_CLANG OR NOT COMPILER_CLANG) AND STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY)
-    set(STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY OFF CACHE BOOL "Disabled because compiler is not Clang" FORCE)
-endif()
-
-if((NOT COMPILER_APPLE_CLANG OR NOT COMPILER_CLANG) AND STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY)
-    set(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY OFF CACHE BOOL "Disabled because compiler is not Clang" FORCE)
+if(COMPILER_GCC AND STDLIBX_ENABLE_REFLECTION)
+    set(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
+    set(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
+    set(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
+    set(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
+    set(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
+    set(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
 endif()
 
 add_library(stdlibx INTERFACE)
@@ -303,14 +342,6 @@ if(STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY)
 endif()
 
-if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY)
-    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_COMPILER_CLANG_LIBRARY)
-endif()
-
-if(STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY)
-    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_COMPILER_LLVM_LIBRARY)
-endif()
-
 if(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY)
 endif()
@@ -335,9 +366,23 @@ if(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
 endif()
 
-set_target_properties(stdlibx PROPERTIES 
+if(COMPILER_GCC
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16
+    AND STDLIBX_CXX_STANDARD GREATER_EQUAL 26
+    AND STDLIBX_ENABLE_CONTRACTS)
+    target_compile_options(stdlibx INTERFACE -fcontracts)
+endif()
+
+if(COMPILER_GCC
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16
+    AND STDLIBX_CXX_STANDARD GREATER_EQUAL 26
+    AND STDLIBX_ENABLE_REFLECTION)
+    target_compile_options(stdlibx INTERFACE -freflection)
+endif()
+
+set_target_properties(stdlibx PROPERTIES
     EXPORT_NAME stdlibx
-    CXX_STANDARD 23
+    CXX_STANDARD ${STDLIBX_CXX_STANDARD}
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS ON
 )

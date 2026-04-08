@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for the Microsoft GSL objects.
  */
 export namespace stdx::core::gsl {
-    #ifdef STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY
+    #if defined(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY) && __has_include(<gsl/gsl>)
     using ::core::gsl::Owner;
     using ::core::gsl::NonNull;
     using ::core::gsl::StrictNonNull;

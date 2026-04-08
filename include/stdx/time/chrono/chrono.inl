@@ -1,7 +1,5 @@
 #pragma once
 
-using namespace stdx::core;
-
 /**
  * @namespace stdx::time::chrono
  * @brief Calendar system support inspired by java.time.chrono and HowardHinnant/date.h.
@@ -942,7 +940,7 @@ export namespace stdx::time::chrono {
                 case Era::REIWA:
                     return 2019;
                 default:
-                    System::unreachable();
+                    Ops::unreachable();
             }
         }
 
@@ -1000,7 +998,9 @@ export namespace stdx::time::chrono {
          * @param m The month (1-12).
          * @param d The day of the month.
          * @returns The date in this chronology.
-         * @throws DateTimeException if the date is before Meiji (1868-01-25) or year_of_era < 1.
+         * @throws DateTimeException if year_of_era < 1, if the date is before Meiji
+         *   (1868-01-25), or if the resulting date does not fall within the requested
+         *   era (e.g. Showa 64-01-08, which is the first day of Heisei).
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<JapaneseChronology> of(Era era, i32 year_of_era, u32 m, u32 d) throws (DateTimeException);
@@ -1345,10 +1345,10 @@ export namespace stdx::time::chrono {
     template <ChronologyLike Chrono>
     class [[nodiscard]] ChronoLocalDate final {
     private:
+        i64 epoch_day; ///< The number of days since 1970-01-01 (Gregorian).
         i32 proleptic_year; ///< The proleptic year in the chronology (e.g., 2024 for ISO, 1445 for Hijrah).
         u32 mth; ///< The month of the date.
         u32 dy; ///< The day of the month.
-        i64 epoch_day; ///< The number of days since 1970-01-01 (Gregorian).
     public:
         using Chronology = Chrono;
 
@@ -1359,8 +1359,8 @@ export namespace stdx::time::chrono {
          * @param day The day of the month.
          */
         constexpr ChronoLocalDate(i32 year, u32 month, u32 day):
-            proleptic_year{year}, mth{month}, dy{day},
-            epoch_day{Chrono::to_epoch_day(year, month, day)} {}
+            epoch_day{Chrono::to_epoch_day(year, month, day)},
+            proleptic_year{year}, mth{month}, dy{day} {}
 
         /**
          * @brief Named constructor from components.
@@ -1553,7 +1553,7 @@ export namespace stdx::time::chrono {
          */
         template <ChronologyLike Other>
         [[nodiscard]]
-        constexpr StrongOrdering operator==(const ChronoLocalDate<Other>& other) const noexcept {
+        constexpr bool operator==(const ChronoLocalDate<Other>& other) const noexcept {
             return epoch_day == other.to_epoch_day();
         }
     };
@@ -1627,7 +1627,15 @@ export namespace stdx::time::chrono {
     }
 
     constexpr JapaneseDate JapaneseChronology::of(Era era, i32 year_of_era, u32 m, u32 d) throws (DateTimeException) {
-        return of(proleptic_year(era, year_of_era), m, d);
+        i32 py = proleptic_year(era, year_of_era);
+        i64 e = gregorian_to_epoch_day(py, m, d);
+        if (e < MEIJI_START) {
+            throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
+        }
+        if (era_of(e) != era) {
+            throw DateTimeException("Date does not fall within the specified Japanese era");
+        }
+        return JapaneseDate(py, m, d);
     }
 
     inline JapaneseDate JapaneseChronology::date_now() throws (DateTimeException) {
@@ -1658,3 +1666,22 @@ export namespace stdx::time::chrono {
         return ThaiBuddhistDate::now();
     }
 }
+
+using stdx::time::chrono::ChronoLocalDate;
+using stdx::time::chrono::ChronologyLike;
+
+namespace stdx::fmt {
+    template <ChronologyLike Chrono, typename Char>
+    struct Formatter<ChronoLocalDate<Chrono>, Char> {
+        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+            return ctx.begin();
+        }
+
+        static FormatContext::iterator format(const ChronoLocalDate<Chrono>& d, FormatContext& ctx) {
+            return format_to(ctx.out(), "{:04d}-{:02d}-{:02d}", d.year(), d.month(), d.day());
+        }
+    };
+}
+
+template <ChronologyLike Chrono, typename Char>
+struct stdx::fmt::formatter<ChronoLocalDate<Chrono>, Char> : public stdx::fmt::Formatter<ChronoLocalDate<Chrono>, Char> {};

@@ -28,7 +28,6 @@ using stdx::meta::TrueType;
 using stdx::ranges::IotaView;
 using stdx::text::string::CharTraits;
 
-using namespace stdx::core;
 using namespace stdx::literals;
 
 namespace stdx::util {
@@ -100,15 +99,15 @@ concept StandardInteger = StandardSignedInteger<T> || StandardUnsignedInteger<T>
 template <typename F, typename Tpl, typename Ext, usize... I>
 constexpr decltype(auto) apply_plus_one_impl(F&& f, Tpl&& t, Ext&& x, [[maybe_unused]] IndexSequence<I...> ind_seq) noexcept {
     (void)ind_seq;
-    return invoke(System::forward<F>(f), get<I>(System::forward<Tpl>(t))..., System::forward<Ext>(x));
+    return invoke(Ops::forward<F>(f), get<I>(Ops::forward<Tpl>(t))..., Ops::forward<Ext>(x));
 }
 
 template <typename F, typename Tpl, typename Ext>
 constexpr decltype(auto) apply_plus_one(F&& f, Tpl&& t, Ext&& x) noexcept {
     return apply_plus_one_impl(
-        System::forward<F>(f),
-        System::forward<Tpl>(t),
-        System::forward<Ext>(x),
+        Ops::forward<F>(f),
+        Ops::forward<Tpl>(t),
+        Ops::forward<Ext>(x),
         IndexSequenceOf<TupleSizeValue<RemoveReferenceType<Tpl>>>{}
     );
 }
@@ -182,7 +181,7 @@ T perform_from_chars(StringView s) throws (InvalidArgumentException, InvalidRang
         case Errc::RESULT_OUT_OF_RANGE:
             throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
         default:
-            System::unreachable();
+            Ops::unreachable();
     }
 }
 
@@ -292,7 +291,7 @@ T perform_floating_from_chars(StringView s, CharsFormat fmt) throws (InvalidArgu
         case Errc::RESULT_OUT_OF_RANGE:
             throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
         default:
-            System::unreachable();
+            Ops::unreachable();
     }
 }
 
@@ -512,12 +511,12 @@ enum class DefaultArguments: u8 {
 
 [[nodiscard]]
 constexpr DefaultArguments operator&(DefaultArguments a, DefaultArguments b) noexcept {
-    return static_cast<DefaultArguments>(System::to_underlying(a) & System::to_underlying(b));
+    return static_cast<DefaultArguments>(Ops::to_underlying(a) & Ops::to_underlying(b));
 }
 
 [[nodiscard]]
 constexpr DefaultArguments operator|(DefaultArguments a, DefaultArguments b) noexcept {
-    return static_cast<DefaultArguments>(System::to_underlying(a) | System::to_underlying(b));
+    return static_cast<DefaultArguments>(Ops::to_underlying(a) | Ops::to_underlying(b));
 }
 
 class CommandLineParserException: public RuntimeException {
@@ -819,15 +818,15 @@ private:
 public:
     template <usize N>
     explicit Argument(StringView prefix_chars, Array<StringView, N>&& a):
-        Argument(prefix_chars, System::move(a), IndexSequenceOf<N>{}) {}
+        Argument(prefix_chars, Ops::move(a), IndexSequenceOf<N>{}) {}
 
     Argument& help(String text) {
-        help_text = System::move(text);
+        help_text = Ops::move(text);
         return *this;
     }
 
     Argument& metavar(String mv) {
-        meta_variable = System::move(mv); return *this;
+        meta_variable = Ops::move(mv); return *this;
     }
 
     template <typename T>
@@ -839,7 +838,7 @@ public:
         } else if constexpr (CanInvokeToString<T>) {
             default_value_string = to_string(value);
         }
-        default_val = System::forward<T>(value);
+        default_val = Ops::forward<T>(value);
         return *this;
     }
 
@@ -852,7 +851,7 @@ public:
     }
 
     Argument& implicit_value(Any value) {
-        implicit_val = System::move(value);
+        implicit_val = Ops::move(value);
         num_args_range = NArgsRange{0, 0};
         return *this;
     }
@@ -871,12 +870,12 @@ public:
             ReturnableAction
         >;
         if constexpr (sizeof...(Args) == 0) {
-            actions.emplace_back(ActionType(System::forward<F>(callable)));
+            actions.emplace_back(ActionType(Ops::forward<F>(callable)));
         } else {
             actions.emplace_back(ActionType(
                 [
-                    f = System::forward<F>(callable),
-                    tup = make_tuple(System::forward<Args>(bound_args)...)
+                    f = Ops::forward<F>(callable),
+                    tup = make_tuple(Ops::forward<Args>(bound_args)...)
                 ](const String& opt) mutable {
                     return apply_plus_one(f, tup, opt);
                 }
@@ -1050,7 +1049,7 @@ public:
                 num_args_range = NArgsRange{1, UnsignedSize::MAX_VALUE};
                 break;
             default:
-                System::unreachable();
+                Ops::unreachable();
         }
         return *this;
     }
@@ -1067,9 +1066,9 @@ public:
             choice_values = Vector<String>{};
         }
         if constexpr (IsConvertibleValue<T, StringView>) {
-            choice_values.value().push_back(String{StringView{System::forward<T>(choice)}});
+            choice_values.value().push_back(String{StringView{Ops::forward<T>(choice)}});
         } else if constexpr (CanInvokeToString<T>) {
-            choice_values.value().push_back(to_string(System::forward<T>(choice)));
+            choice_values.value().push_back(to_string(Ops::forward<T>(choice)));
         }
     }
 
@@ -1082,8 +1081,8 @@ public:
 
     template <typename T, typename... U>
     Argument& choices(T&& first, U&&... rest) throws (CommandLineParserException) {
-        add_choice(System::forward<T>(first));
-        choices(System::forward<U>(rest)...);
+        add_choice(Ops::forward<T>(first));
+        choices(Ops::forward<U>(rest)...);
         return *this;
     }
 
@@ -1498,13 +1497,13 @@ public:
         MutuallyExclusiveGroup& operator=(const MutuallyExclusiveGroup&) = delete;
         MutuallyExclusiveGroup(MutuallyExclusiveGroup&& other) noexcept:
             parent{other.parent}, required{other.required},
-            elems{System::move(other.elems)} {
+            elems{Ops::move(other.elems)} {
             other.elems.clear();
         }
 
         template <typename... Ts>
         Argument& add_argument(Ts... args) {
-            Argument& argument = parent.add_argument(System::forward<Ts>(args)...);
+            Argument& argument = parent.add_argument(Ops::forward<Ts>(args)...);
             elems.push_back(&argument);
             return argument;
         }
@@ -1574,7 +1573,7 @@ protected:
             if (argument_map.find(arg) == argument_map.end() && apc(arg) && pos != String::npos) {
                 String opt = arg.substr(0, pos);
                 if (argument_map.find(opt) != argument_map.end()) {
-                    args.push_back(System::move(opt));
+                    args.push_back(Ops::move(opt));
                     args.push_back(arg.substr(pos + 1));
                     continue;
                 }
@@ -1728,11 +1727,18 @@ public:
         bool exit_on_default_arguments = true,
         OutputStream& os = Cout
     ):
-        prog_name{System::move(program_name)}, ver{System::move(version)},
+        prog_name{Ops::move(program_name)}, ver{Ops::move(version)},
         exit_on_default_arguments{exit_on_default_arguments}, parser_path{prog_name} {
         if ((add_args & DefaultArguments::HELP) == DefaultArguments::HELP) {
             add_argument("-h", "--help")
-                .action([&](const auto&) { os << help().str(); if (exit_on_default_arguments) System::exit(0); })
+                .action(
+                    [&]([[maybe_unused]] const auto& _) -> void {
+                        os << help().str();
+                        if (exit_on_default_arguments) {
+                            System::exit(0);
+                        }
+                    }
+                )
                 .default_value(false).help("shows help message and exits").implicit_value(true).nargs(0uz);
         }
         if ((add_args & DefaultArguments::VERSION) == DefaultArguments::VERSION) {
@@ -1794,17 +1800,17 @@ public:
     }
 
     ArgumentParser& add_group(String group_name) {
-        group_names.emplace_back(System::move(group_name));
+        group_names.emplace_back(Ops::move(group_name));
         return *this;
     }
 
     ArgumentParser& add_description(String desc) {
-        desc = System::move(desc);
+        desc = Ops::move(desc);
         return *this;
     }
 
     ArgumentParser& add_epilog(String ep) {
-        epilog = System::move(ep);
+        epilog = Ops::move(ep);
         return *this;
     }
 
@@ -1833,12 +1839,12 @@ public:
     }
 
     ArgumentParser& set_prefix_chars(String pc) {
-        prefix_chars = System::move(pc);
+        prefix_chars = Ops::move(pc);
         return *this;
     }
 
     ArgumentParser& set_assign_chars(String ac) {
-        assign_chars = System::move(ac);
+        assign_chars = Ops::move(ac);
         return *this;
     }
 

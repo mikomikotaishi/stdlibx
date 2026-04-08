@@ -2,8 +2,6 @@
 
 using stdx::math::ratio::Ratio;
 
-using namespace stdx::core;
-
 /**
  * @namespace stdx::time
  * @brief Wrapper namespace for standard library time operations.

@@ -12,7 +12,7 @@ export module stdx;
 
 export import :main;
 export import :arch;
-export import :compiler;
+export import :audio;
 export import :crypto;
 export import :csv;
 export import :ffi;

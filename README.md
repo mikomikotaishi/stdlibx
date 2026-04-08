@@ -1,6 +1,6 @@
 # `stdlibx`
 
-> **WARNING:** As this library is still under development, many features do not yet work, or requires inelegant workarounds or even inclusion of headers to resolve. These issues will only be resolved as development continues.
+> **WARNING:** As this library is still under development, it is not stable and does not have a stable release. Furthermore, many features do not yet work, or require inelegant workarounds. These issues will only be resolved as development continues.
 
 > **WARNING:** This library is primarily tested with Clang and GCC, and MSVC support is not yet confirmed.
 
@@ -26,7 +26,7 @@ Cons:
 - Non-standard, obviously. Features are obviously dependent on what is supported by vendors, and different compilers may have different challenges building this library.
 - This library is developed independently. While we accept feature requests, pull requests, and improvements from everyone, do note that support is limited due to the limited resources.
 - Because of its limited development resources, bugs are bound to arise in independently-developed parts.
-- Often relies on cutting or bleeding-edge features, which may not be suitable for stability-priority projects.
+- Often relies on cutting or bleeding-edge features, which may not be suitable for stability-priority projects. Development is currently unstable, and no stable release exists (yet).
 - Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 20-30 seconds to build on my (modest) hardware on both Clang and GCC.
 - No support for headers. The library likely will not ever support headers, as it makes extensive use of `using` statements (and is designed to encourage their usage), and any attempt to simultaneously support headers and modules would likely clutter the code with preprocessor directives and ugly macros.
 
@@ -41,6 +41,7 @@ Note that currently, Clang module support is far superior to that of GCC, and th
 ### Features
 - Everything included in the C++ standard library
 - Additional ease-of-use classes and Java-style utility classes (`stdx::core::System`, `stdx::core::Integer`, `stdx::core::Character`, `stdx::core::Math`)
+- A higher-level API for C++ `std::meta` reflection
 - An improved chronology library based on `java.time.chrono`
 - Minimal wrappers over the GNU C library, Win32 API, and Linux headers, where possible (in `stdx::os`)
 - A JDBC-style ODBC wrapper (with `stdx::sql`)
@@ -70,7 +71,6 @@ Disabled when `STDLIBX_NO_STD` (or `STDLIBX_NO_ALLOC`) are enabled.
 Some third-party libraries used here (as optional dependencies) include:
 - [gmplib](https://gmplib.org/)
 - [libsodium](https://doc.libsodium.org/)
-- [p-ranav/glob](https://github.com/p-ranav/glob)
 - [zlib](https://zlib.net/)
 
 ## Example

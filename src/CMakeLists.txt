@@ -16,6 +16,6 @@ if(NOT STDLIBX_NO_ALLOC)
     target_link_libraries(stdlibx INTERFACE stdlibx_alloc)
 endif()
 
-if(STDLIBX_EXTENSIONS)
+if(NOT STDLIBX_NO_STDX)
     target_link_libraries(stdlibx INTERFACE stdlibx_stdx)
 endif()

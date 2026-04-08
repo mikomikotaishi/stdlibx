@@ -6,9 +6,9 @@
  */
 export namespace stdx::collections {
     #ifdef __cpp_lib_inplace_vector
-    using ::alloc::collections::StaticVector;
+    using ::core::collections::StaticVector;
 
-    using ::alloc::collections::erase;
-    using ::alloc::collections::erase_if;
+    using ::core::collections::erase;
+    using ::core::collections::erase_if;
     #endif
 }

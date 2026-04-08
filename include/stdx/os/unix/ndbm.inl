@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for Unix POSIX operations.
  */
 export namespace stdx::os::unix {
-    #ifdef __unix__
+    #if defined(__unix__) && __has_include(<ndbm.h>)
     using ::dbm_open;
     using ::dbm_close;
     using ::dbm_fetch;

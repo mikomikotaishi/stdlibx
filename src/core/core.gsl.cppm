@@ -9,20 +9,18 @@
 module;
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY
+#if __has_include(<gsl/gsl>)
 #include <gsl/gsl>
+#endif
+
+#include <functional>
+#include <type_traits>
+#include <utility>
 #endif
 
 export module core:gsl;
 
-import :main;
-
-using core::meta::EnableIfType;
-using core::meta::IsDefaultConstructibleValue;
-using core::meta::IsPointerValue;
-
-using namespace core::prelude;
-
-#ifdef STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY
+#if defined(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY) && __has_include(<gsl/gsl>)
 void _expects(bool cond) {
     Expects(cond);
 }
@@ -35,15 +33,23 @@ void _ensures(bool cond) {
 #undef Ensures
 #endif
 
+#ifdef STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY
+using usize = std::size_t;
+
+template <typename K>
+using Hash = std::hash<K>;
+#endif
+
 /**
  * @namespace core::gsl
  * @brief Wrapper namespace for the Microsoft GSL objects.
  */
 export namespace core::gsl {
-    #ifdef STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY
+    #if defined(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY) && __has_include(<gsl/gsl>)
     using ::gsl::copy;
 
-    template <typename T, EnableIfType<IsPointerValue<T>, bool> = true>
+    template <typename T>
+        requires std::is_pointer_v<T>
     using Owner = ::gsl::owner<T>;
 
     template <typename T>
@@ -54,10 +60,8 @@ export namespace core::gsl {
 
     template <
         typename T,
-        typename U = decltype(
-            core::util::declval<const T&>().get()
-        ),
-        bool = IsDefaultConstructibleValue<Hash<U>>
+        typename U = decltype(std::declval<const T&>().get()),
+        bool = std::is_default_constructible_v<Hash<U>>
     >
     using NonNullHash = ::gsl::not_null_hash<T, U>;
 
@@ -104,7 +108,7 @@ export namespace core::gsl {
     #endif
 }
 
-#ifdef STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY
+#if defined(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY) && __has_include(<gsl/gsl>)
 export namespace gsl {
     using ::gsl::operator<<;
     using ::gsl::operator==;

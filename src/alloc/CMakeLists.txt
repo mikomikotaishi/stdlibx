@@ -63,8 +63,8 @@ if(STDLIBX_IMPLICIT_USING_LITERALS)
     target_compile_definitions(stdlibx_alloc INTERFACE STDLIBX_IMPLICIT_USING_LITERALS)
 endif()
 
-set_target_properties(stdlibx_alloc PROPERTIES 
-    CXX_STANDARD 23 
+set_target_properties(stdlibx_alloc PROPERTIES
+    CXX_STANDARD ${STDLIBX_CXX_STANDARD}
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
 )

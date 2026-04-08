@@ -62,7 +62,6 @@ STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
 #include "alloc/collections/queue.inl"
 #include "alloc/collections/singly_linked_list.inl"
 #include "alloc/collections/stack.inl"
-#include "alloc/collections/static_vector.inl"
 #include "alloc/collections/tree_map.inl"
 #include "alloc/collections/tree_set.inl"
 #include "alloc/collections/valarray.inl"

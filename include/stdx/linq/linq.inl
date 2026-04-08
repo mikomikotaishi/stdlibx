@@ -11,7 +11,6 @@ using stdx::ranges::RangeDifference;
 using stdx::ranges::RangeValue;
 using stdx::ranges::ViewableRange;
 
-using namespace stdx::core;
 using namespace stdx::ranges::views;
 
 /**
@@ -29,7 +28,7 @@ export namespace stdx::linq {
  */
 template <typename Ran, typename Pred>
 concept Filterable = requires (Ran& r, Pred&& p) {
-    { Filter(r, System::forward<Pred>(p)) };
+    { Filter(r, Ops::forward<Pred>(p)) };
 };
 
 /**
@@ -41,7 +40,7 @@ concept Filterable = requires (Ran& r, Pred&& p) {
  */
 template <typename Ran, typename Func>
 concept Transformable = requires (Ran& r, Func&& f) {
-    { Transform(r, System::forward<Func>(f)) };
+    { Transform(r, Ops::forward<Func>(f)) };
 };
 
 /**
@@ -54,7 +53,7 @@ concept Transformable = requires (Ran& r, Func&& f) {
  */
 template <typename Ran, typename KeySelector, typename Collection = Vector<RangeValue<Ran>>>
 concept Sortable = ForwardRange<Ran> && requires (Collection c, KeySelector&& k) {
-    { stdx::ranges::sort(c, Less<>{}, System::forward<KeySelector>(k)) };
+    { stdx::ranges::sort(c, Less<>{}, Ops::forward<KeySelector>(k)) };
 };
 
 /**
@@ -78,7 +77,7 @@ concept Distinguishable = ForwardRange<Ran> &&
  */
 template <typename Ran, typename Pred>
 concept AnyOfQueryable = requires (const Ran& r, Pred&& p) {
-    { stdx::ranges::any_of(r, System::forward<Pred>(p)) };
+    { stdx::ranges::any_of(r, Ops::forward<Pred>(p)) };
 };
 
 /**
@@ -90,7 +89,7 @@ concept AnyOfQueryable = requires (const Ran& r, Pred&& p) {
  */
 template <typename Ran, typename Pred>
 concept AllOfQueryable = requires (const Ran& r, Pred&& p) {
-    { stdx::ranges::all_of(r, System::forward<Pred>(p)) };
+    { stdx::ranges::all_of(r, Ops::forward<Pred>(p)) };
 };
 
 /**
@@ -102,7 +101,7 @@ concept AllOfQueryable = requires (const Ran& r, Pred&& p) {
  */
 template <typename Ran, typename Pred>
 concept NoneOfQueryable = requires (const Ran& r, Pred&& p) {
-    { stdx::ranges::none_of(r, System::forward<Pred>(p)) };
+    { stdx::ranges::none_of(r, Ops::forward<Pred>(p)) };
 };
 
 /**
@@ -114,7 +113,7 @@ concept NoneOfQueryable = requires (const Ran& r, Pred&& p) {
  */
 template <typename Ran, typename Pred>
 concept CountIfQueryable = requires (const Ran& r, Pred&& p) {
-    { stdx::ranges::count_if(r, System::forward<Pred>(p)) };
+    { stdx::ranges::count_if(r, Ops::forward<Pred>(p)) };
 };
 
 /**
@@ -126,7 +125,7 @@ concept CountIfQueryable = requires (const Ran& r, Pred&& p) {
  */
 template <typename Coll, typename T>
 concept PushBackable = requires (Coll c, T elem) {
-    { c.push_back(System::forward<T>(elem)) };
+    { c.push_back(Ops::forward<T>(elem)) };
 };
 
 /**
@@ -196,7 +195,7 @@ concept Joinable = requires (Ran& r) {
  */
 template <typename Ran, typename Init, typename Func>
 concept Foldable = requires (Ran& r, Init&& init, Func&& f) {
-    { stdx::ranges::fold_left(r, System::forward<Init>(init), System::forward<Func>(f)) };
+    { stdx::ranges::fold_left(r, Ops::forward<Init>(init), Ops::forward<Func>(f)) };
 };
 #endif
 
@@ -221,7 +220,7 @@ public:
     template <typename R>
         requires SameAs<RemoveConstVolatileReferenceType<R>, RemoveConstVolatileReferenceType<Ran>>
     constexpr explicit Query(R&& r) noexcept:
-        range{System::forward<R>(r)} {}
+        range{Ops::forward<R>(r)} {}
 
     /**
      * @brief Returns an iterator to the beginning of the range.
@@ -253,9 +252,9 @@ public:
     template <typename Pred>
         requires Filterable<Ran, Pred>
     [[nodiscard]]
-    constexpr auto where(Pred&& pred) noexcept -> Query<decltype(Filter(range, System::forward<Pred>(pred)))> {
-        return Query<decltype(Filter(range, System::forward<Pred>(pred)))>(
-            Filter(range, System::forward<Pred>(pred))
+    constexpr auto where(Pred&& pred) noexcept -> Query<decltype(Filter(range, Ops::forward<Pred>(pred)))> {
+        return Query<decltype(Filter(range, Ops::forward<Pred>(pred)))>(
+            Filter(range, Ops::forward<Pred>(pred))
         );
     }
 
@@ -269,9 +268,9 @@ public:
     template <typename Func>
         requires Transformable<Ran, Func>
     [[nodiscard]]
-    constexpr auto select(Func&& func) noexcept -> Query<decltype(Transform(range, System::forward<Func>(func)))> {
-        return Query<decltype(Transform(range, System::forward<Func>(func)))>(
-            Transform(range, System::forward<Func>(func))
+    constexpr auto select(Func&& func) noexcept -> Query<decltype(Transform(range, Ops::forward<Func>(func)))> {
+        return Query<decltype(Transform(range, Ops::forward<Func>(func)))>(
+            Transform(range, Ops::forward<Func>(func))
         );
     }
 
@@ -286,12 +285,12 @@ public:
      */
     template <typename Func>
         requires Transformable<Ran, Func> &&
-            requires (Ran& r, Func&& f) { Join(Transform(r, System::forward<Func>(f))); }
+            requires (Ran& r, Func&& f) { Join(Transform(r, Ops::forward<Func>(f))); }
     [[nodiscard]]
     constexpr auto select_many(Func&& func) noexcept
-        -> Query<decltype(Join(Transform(range, System::forward<Func>(func))))> {
-        return Query<decltype(Join(Transform(range, System::forward<Func>(func))))>(
-            Join(Transform(range, System::forward<Func>(func)))
+        -> Query<decltype(Join(Transform(range, Ops::forward<Func>(func))))> {
+        return Query<decltype(Join(Transform(range, Ops::forward<Func>(func))))>(
+            Join(Transform(range, Ops::forward<Func>(func)))
         );
     }
 
@@ -315,9 +314,9 @@ public:
      */
     template <typename Pred>
     [[nodiscard]]
-    constexpr auto skip_while(Pred&& pred) noexcept -> Query<decltype(DropWhile(range, System::forward<Pred>(pred)))> {
-        return Query<decltype(DropWhile(range, System::forward<Pred>(pred)))>(
-            DropWhile(range, System::forward<Pred>(pred))
+    constexpr auto skip_while(Pred&& pred) noexcept -> Query<decltype(DropWhile(range, Ops::forward<Pred>(pred)))> {
+        return Query<decltype(DropWhile(range, Ops::forward<Pred>(pred)))>(
+            DropWhile(range, Ops::forward<Pred>(pred))
         );
     }
 
@@ -341,9 +340,9 @@ public:
      */
     template <typename Pred>
     [[nodiscard]]
-    constexpr auto take_while(Pred&& pred) noexcept -> Query<decltype(TakeWhile(range, System::forward<Pred>(pred)))> {
-        return Query<decltype(TakeWhile(range, System::forward<Pred>(pred)))>(
-            TakeWhile(range, System::forward<Pred>(pred))
+    constexpr auto take_while(Pred&& pred) noexcept -> Query<decltype(TakeWhile(range, Ops::forward<Pred>(pred)))> {
+        return Query<decltype(TakeWhile(range, Ops::forward<Pred>(pred)))>(
+            TakeWhile(range, Ops::forward<Pred>(pred))
         );
     }
 
@@ -381,9 +380,9 @@ public:
     template <typename... Others>
     [[nodiscard]]
     constexpr auto zip(Others&&... others) noexcept
-        -> Query<decltype(Zip(range, System::forward<Others>(others)...))> {
-        return Query<decltype(Zip(range, System::forward<Others>(others)...))>(
-            Zip(range, System::forward<Others>(others)...)
+        -> Query<decltype(Zip(range, Ops::forward<Others>(others)...))> {
+        return Query<decltype(Zip(range, Ops::forward<Others>(others)...))>(
+            Zip(range, Ops::forward<Others>(others)...)
         );
     }
 
@@ -488,8 +487,8 @@ public:
     [[nodiscard]]
     constexpr auto order_by(KeySelector&& keySelector) noexcept -> Query<Collection> {
         Collection temp(begin(), end());
-        stdx::ranges::sort(temp, Less<>{}, System::forward<KeySelector>(keySelector));
-        return Query<Collection>(System::move(temp));
+        stdx::ranges::sort(temp, Less<>{}, Ops::forward<KeySelector>(keySelector));
+        return Query<Collection>(Ops::move(temp));
     }
 
     /**
@@ -505,8 +504,8 @@ public:
     [[nodiscard]]
     constexpr auto order_by_descending(KeySelector&& keySelector) noexcept -> Query<Collection> {
         Collection temp(begin(), end());
-        stdx::ranges::sort(temp, Greater<>{}, System::forward<KeySelector>(keySelector));
-        return Query<Collection>(System::move(temp));
+        stdx::ranges::sort(temp, Greater<>{}, Ops::forward<KeySelector>(keySelector));
+        return Query<Collection>(Ops::move(temp));
     }
 
     /**
@@ -522,7 +521,7 @@ public:
         stdx::ranges::sort(temp);
         auto last = stdx::ranges::unique(temp);
         temp.erase(last.begin(), temp.end());
-        return Query<Collection>(System::move(temp));
+        return Query<Collection>(Ops::move(temp));
     }
 
     /**
@@ -539,9 +538,9 @@ public:
     constexpr auto concat(Other&& other) noexcept -> Query<Collection> {
         Collection temp(begin(), end());
         for (auto&& elem : other) {
-            temp.push_back(System::forward<decltype(elem)>(elem));
+            temp.push_back(Ops::forward<decltype(elem)>(elem));
         }
-        return Query<Collection>(System::move(temp));
+        return Query<Collection>(Ops::move(temp));
     }
 
     /**
@@ -670,7 +669,7 @@ public:
         requires AnyOfQueryable<Ran, Pred>
     [[nodiscard]]
     constexpr bool any(Pred&& pred) const noexcept {
-        return stdx::ranges::any_of(range, System::forward<Pred>(pred));
+        return stdx::ranges::any_of(range, Ops::forward<Pred>(pred));
     }
 
     /**
@@ -684,7 +683,7 @@ public:
         requires AllOfQueryable<Ran, Pred>
     [[nodiscard]]
     constexpr bool all(Pred&& pred) const noexcept {
-        return stdx::ranges::all_of(range, System::forward<Pred>(pred));
+        return stdx::ranges::all_of(range, Ops::forward<Pred>(pred));
     }
 
     /**
@@ -698,7 +697,7 @@ public:
         requires NoneOfQueryable<Ran, Pred>
     [[nodiscard]]
     constexpr bool none(Pred&& pred) const noexcept {
-        return stdx::ranges::none_of(range, System::forward<Pred>(pred));
+        return stdx::ranges::none_of(range, Ops::forward<Pred>(pred));
     }
 
     /**
@@ -735,7 +734,7 @@ public:
         requires CountIfQueryable<Ran, Pred>
     [[nodiscard]]
     constexpr usize count(Pred&& pred) const noexcept {
-        return stdx::ranges::count_if(range, System::forward<Pred>(pred));
+        return stdx::ranges::count_if(range, Ops::forward<Pred>(pred));
     }
 
     /**
@@ -825,7 +824,7 @@ public:
         requires Foldable<Ran, Init, Func>
     [[nodiscard]]
     constexpr auto aggregate(Init&& init, Func&& func) const noexcept {
-        return stdx::ranges::fold_left(range, System::forward<Init>(init), System::forward<Func>(func));
+        return stdx::ranges::fold_left(range, Ops::forward<Init>(init), Ops::forward<Func>(func));
     }
 
     /**
@@ -879,7 +878,7 @@ public:
      */
     template <typename Func>
     constexpr void for_each(Func&& func) {
-        stdx::ranges::for_each(range, System::forward<Func>(func));
+        stdx::ranges::for_each(range, Ops::forward<Func>(func));
     }
 
     /**
@@ -890,10 +889,10 @@ public:
      */
     template <PushBackable<RangeValue<Ran>> Collection = Vector<RangeValue<Ran>>>
     [[nodiscard]]
-    Collection to() {
+    constexpr Collection to() {
         Collection result;
         for (auto&& elem : range) {
-            result.push_back(System::forward<decltype(elem)>(elem));
+            result.push_back(Ops::forward<decltype(elem)>(elem));
         }
         return result;
     }
@@ -907,13 +906,26 @@ public:
     template <template <typename...> class Collection>
         requires PushBackable<Collection<RangeValue<Ran>>, RangeValue<Ran>>
     [[nodiscard]]
-    Collection<RangeValue<Ran>> to() {
+    constexpr Collection<RangeValue<Ran>> to() {
         Collection<RangeValue<Ran>> result;
         for (auto&& elem : range) {
-            result.push_back(System::forward<decltype(elem)>(elem));
+            result.push_back(Ops::forward<decltype(elem)>(elem));
         }
         return result;
     }
+
+    #ifdef __cpp_impl_reflection
+    /**
+     * @brief Converts the range to a static array (requires reflection).
+     *
+     * @return The range as a collection with deduced element type.
+     */
+    [[nodiscard]]
+    constexpr Span<const RangeValue<Ran>> to_array() {
+        Vector<RangeValue<Ran>> tmp(begin(), end());
+        return Ops::define_static_array(tmp);
+    }
+    #endif
 
     /**
      * @brief Creates a Query from an object or range.
@@ -926,9 +938,9 @@ public:
     [[nodiscard]]
     static constexpr auto from(T&& t) noexcept {
         if constexpr (IsLvalueReferenceValue<T>) {
-            return Query<T>(System::forward<T>(t));
+            return Query<T>(Ops::forward<T>(t));
         } else {
-            return Query<RemoveConstVolatileReferenceType<T>>(System::forward<T>(t));
+            return Query<RemoveConstVolatileReferenceType<T>>(Ops::forward<T>(t));
         }
     }
 };

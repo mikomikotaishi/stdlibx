@@ -27,6 +27,10 @@ export namespace stdx::meta {
     using ::core::meta::IsClassValue;
     using ::core::meta::IsFunction;
     using ::core::meta::IsFunctionValue;
+    #ifdef __cpp_impl_reflection
+    using ::core::meta::IsReflection;
+    using ::core::meta::IsReflectionValue;
+    #endif
     using ::core::meta::IsPointer;
     using ::core::meta::IsPointerValue;
     using ::core::meta::IsLvalueReference;
@@ -55,14 +59,10 @@ export namespace stdx::meta {
     using ::core::meta::IsConstValue;
     using ::core::meta::IsVolatile;
     using ::core::meta::IsVolatileValue;
-    using ::core::meta::IsTrivial;
-    using ::core::meta::IsTrivialValue;
     using ::core::meta::IsTriviallyCopyable;
     using ::core::meta::IsTriviallyCopyableValue;
     using ::core::meta::IsStandardLayout;
     using ::core::meta::IsStandardLayoutValue;
-    using ::core::meta::IsPOD;
-    using ::core::meta::IsPODValue;
     using ::core::meta::HasUniqueObjectRepresentations;
     using ::core::meta::HasUniqueObjectRepresentationsValue;
     using ::core::meta::IsEmpty;

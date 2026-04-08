@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for Unix POSIX operations.
  */
 export namespace stdx::os::linux::sys {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<sys/capability.h>)
     using Capability = ::cap_t;
     using CapabilityValue = ::cap_value_t;
     
