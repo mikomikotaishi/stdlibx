@@ -32,12 +32,14 @@ export namespace stdx::net {
         static constexpr Self PARENT = std::experimental::net::fork_event::parent;
         static constexpr Self CHILD = std::experimental::net::fork_event::child;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr ForkEvent(Self value = {}) noexcept:
+        constexpr ForkEvent() noexcept = default;
+
+        constexpr ForkEvent(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

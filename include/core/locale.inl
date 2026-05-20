@@ -25,12 +25,14 @@ export namespace core::prelude {
         static constexpr Self MESSAGES = std::locale::messages;
         static constexpr Self ALL = std::locale::all;
     private:
-        Self value;
+        const Self value = NONE;
     public:
-        constexpr LocaleCategory(Self value = NONE) noexcept:
+        constexpr LocaleCategory() noexcept = default;
+
+        constexpr LocaleCategory(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

@@ -21,10 +21,10 @@ export namespace stdx::thread::current {
 }
 
 /**
- * @namespace std::execution
+ * @namespace std::exec
  * @brief Wrapper namespace for standard library execution operations.
  */
-export namespace stdx::execution {
+export namespace stdx::exec {
     using SequencedPolicy = std::execution::sequenced_policy;
     using ParallelPolicy = std::execution::parallel_policy;
     using ParallelUnsequencedPolicy = std::execution::parallel_unsequenced_policy;
@@ -60,12 +60,12 @@ export namespace stdx::execution {
         static constexpr Self PARALLEL = std::execution::forward_progress_guarantee::parallel;
         static constexpr Self WEAKLY_PARALLEL = std::execution::forward_progress_guarantee::weakly_parallel;
     private:
-        Self value;
+        const Self value;
     public:
         constexpr ForwardProgressGuarantee(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

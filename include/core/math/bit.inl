@@ -13,12 +13,14 @@ export namespace core::math {
         static constexpr Self BIG = std::endian::big;
         static constexpr Self NATIVE = std::endian::native;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr Endian(Self value = {}) noexcept:
+        constexpr Endian() noexcept = default;
+
+        constexpr Endian(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

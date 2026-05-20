@@ -8,8 +8,8 @@ export namespace stdx::thread {
     using StopToken = std::stop_token;
     using StopSource = std::stop_source;
 
-    template <typename Callback>
-    using StopCallback = std::stop_callback<Callback>;
+    template <typename Fn>
+    using StopCallback = std::stop_callback<Fn>;
 
     using NoStopStateTag = std::nostopstate_t;
     inline constexpr NoStopStateTag NoStopState = std::nostopstate;

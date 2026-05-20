@@ -801,6 +801,74 @@ export namespace stdx::time::chrono {
         }
 
         /**
+         * @brief Convert an era and year-of-era to a proleptic year.
+         * @param era The calendar era (BEFORE_HUANGDI or HUANGDI).
+         * @param year_of_era The positive year-of-era value.
+         * @returns The proleptic Chinese year.
+         */
+        [[nodiscard]]
+        static constexpr i32 proleptic_year(Era era, i32 year_of_era) noexcept {
+            return era == Era::HUANGDI ? year_of_era : 1 - year_of_era;
+        }
+
+        [[nodiscard]]
+        static bool is_leap_year(Year y) noexcept {
+            return is_leap_year(static_cast<i32>(y));
+        }
+
+        [[nodiscard]]
+        static u32 days_in_month(Year y, Month m) noexcept {
+            return days_in_month(
+                static_cast<i32>(y),
+                static_cast<u32>(m)
+            );
+        }
+
+        [[nodiscard]]
+        static i32 days_in_year(Year y) noexcept {
+            return days_in_year(static_cast<i32>(y));
+        }
+
+        [[nodiscard]]
+        static u32 months_in_year(Year y) noexcept {
+            return months_in_year(static_cast<i32>(y));
+        }
+
+        [[nodiscard]]
+        static i64 to_epoch_day(Year y, Month m, Day d) noexcept {
+            return to_epoch_day(
+                static_cast<i32>(y),
+                static_cast<u32>(m),
+                static_cast<u32>(d)
+            );
+        }
+
+        [[nodiscard]]
+        static constexpr Era era_of(Year y) noexcept {
+            return era_of(static_cast<i32>(y));
+        }
+
+        [[nodiscard]]
+        static constexpr i32 year_of_era(Year y) noexcept {
+            return year_of_era(static_cast<i32>(y));
+        }
+
+        [[nodiscard]]
+        static constexpr i32 cycle_of(Year y) noexcept {
+            return cycle_of(static_cast<i32>(y));
+        }
+
+        [[nodiscard]]
+        static constexpr i32 year_of_cycle(Year y) noexcept {
+            return year_of_cycle(static_cast<i32>(y));
+        }
+
+        [[nodiscard]]
+        static constexpr i32 proleptic_year(Era era, Year year_of_era) noexcept {
+            return proleptic_year(era, static_cast<i32>(year_of_era));
+        }
+
+        /**
          * @brief Create a date from proleptic year, month, and day.
          * @param y The proleptic Chinese year.
          * @param m The month (1–12, non-leap).
@@ -809,6 +877,27 @@ export namespace stdx::time::chrono {
          */
         [[nodiscard]]
         static ChronoLocalDate<ChineseChronology> of(i32 y, u32 m, u32 d) noexcept;
+
+        /**
+         * @brief Create a date from typed year, month, and day.
+         * @param y The proleptic Chinese year.
+         * @param m The month (1–12, non-leap).
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         */
+        [[nodiscard]]
+        static ChronoLocalDate<ChineseChronology> of(Year y, Month m, Day d) noexcept;
+
+        /**
+         * @brief Create a date from era, year-of-era, month, and day.
+         * @param era The calendar era (BEFORE_HUANGDI or HUANGDI).
+         * @param year_of_era The positive year-of-era value.
+         * @param m The month (1–12, non-leap).
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         */
+        [[nodiscard]]
+        static ChronoLocalDate<ChineseChronology> of(Era era, i32 year_of_era, u32 m, u32 d) noexcept;
 
         /**
          * @brief Create a date from an epoch day count.
@@ -831,6 +920,14 @@ export namespace stdx::time::chrono {
 
     inline ChineseDate ChineseChronology::of(i32 y, u32 m, u32 d) noexcept {
         return ChineseDate(y, m, d);
+    }
+
+    inline ChineseDate ChineseChronology::of(Year y, Month m, Day d) noexcept {
+        return ChineseDate(y, m, d);
+    }
+
+    inline ChineseDate ChineseChronology::of(ChineseChronology::Era era, i32 yoe, u32 m, u32 d) noexcept {
+        return ChineseDate(proleptic_year(era, yoe), m, d);
     }
 
     inline ChineseDate ChineseChronology::date_epoch_day(i64 e) noexcept {

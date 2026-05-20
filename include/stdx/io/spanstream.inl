@@ -1,22 +1,24 @@
 #pragma once
 
+using stdx::text::CharTraits;
+
 /**
  * @namespace stdx::io
  * @brief Wrapper namespace for standard library IO operations.
  */
 export namespace stdx::io {
     #if __has_include(<spanstream>)
-    template <typename Char>
-    using BasicSpanBuffer = std::basic_spanbuf<Char>;
+    template <typename Char, typename Traits = CharTraits<Char>>
+    using BasicSpanBuffer = std::basic_spanbuf<Char, Traits>;
 
-    template <typename Char>
-    using BasicInputSpanStream = std::basic_ispanstream<Char>;
+    template <typename Char, typename Traits = CharTraits<Char>>
+    using BasicInputSpanStream = std::basic_ispanstream<Char, Traits>;
 
-    template <typename Char>
-    using BasicOutputSpanStream = std::basic_ospanstream<Char>;
+    template <typename Char, typename Traits = CharTraits<Char>>
+    using BasicOutputSpanStream = std::basic_ospanstream<Char, Traits>;
 
-    template <typename Char>
-    using BasicSpanStream = std::basic_spanstream<Char>;
+    template <typename Char, typename Traits = CharTraits<Char>>
+    using BasicSpanStream = std::basic_spanstream<Char, Traits>;
 
     using SpanBuffer = std::spanbuf;
     using WideSpanBuffer = std::wspanbuf;

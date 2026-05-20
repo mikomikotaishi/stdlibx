@@ -1,5 +1,10 @@
 #pragma once
 
+using stdx::fmt::FormatContext;
+using stdx::fmt::FormatParseContext;
+using stdx::fmt::Formatter;
+
+using stdx::io::BasicOutputStream;
 using stdx::math::ratio::Ratio;
 
 /**
@@ -11,7 +16,7 @@ export namespace stdx::time {
     using Duration = ::std::chrono::duration<Rep, Period>;
 
     template <typename Rep>
-    using TreatAsFloatingPoi32 = ::std::chrono::treat_as_floating_point<Rep>;
+    using TreatAsFloatingPoint = ::std::chrono::treat_as_floating_point<Rep>;
 
     template <typename Rep>
     using DurationValues = ::std::chrono::duration_values<Rep>;
@@ -61,69 +66,19 @@ export namespace stdx::time {
     using GpsSeconds = ::std::chrono::gps_seconds;
     using LocalSeconds = ::std::chrono::local_seconds;
 
+    using LastSpecifier = ::std::chrono::last_spec;
+    inline constexpr LastSpecifier Last = ::std::chrono::last;
+    using WeekdayIndexed = ::std::chrono::weekday_indexed;
+    using WeekdayLast = ::std::chrono::weekday_last;
+    using MonthDayLast = ::std::chrono::month_day_last;
+    using MonthWeekday = ::std::chrono::month_weekday;
+    using MonthWeekdayLast = ::std::chrono::month_weekday_last;
+    using YearMonthDayLast = ::std::chrono::year_month_day_last;
+    using YearMonthWeekday = ::std::chrono::year_month_weekday;
+    using YearMonthWeekdayLast = ::std::chrono::year_month_weekday_last;
+
     using SystemDays = ::std::chrono::sys_days;
     using LocalDays = ::std::chrono::local_days;
-
-    using Day = ::std::chrono::day;
-    using Month = ::std::chrono::month;
-    using Year = ::std::chrono::year;
-    using Weekday = ::std::chrono::weekday;
-    using MonthDay = ::std::chrono::month_day;
-    using YearMonth = ::std::chrono::year_month;
-    using YearMonthDay = ::std::chrono::year_month_day;
-
-    using ::std::chrono::January;
-    using ::std::chrono::February;
-    using ::std::chrono::March;
-    using ::std::chrono::April;
-    using ::std::chrono::May;
-    using ::std::chrono::June;
-    using ::std::chrono::July;
-    using ::std::chrono::August;
-    using ::std::chrono::September;
-    using ::std::chrono::October;
-    using ::std::chrono::November;
-    using ::std::chrono::December;
-
-    using ::std::chrono::Sunday;
-    using ::std::chrono::Monday;
-    using ::std::chrono::Tuesday;
-    using ::std::chrono::Wednesday;
-    using ::std::chrono::Thursday;
-    using ::std::chrono::Friday;
-    using ::std::chrono::Saturday;
-
-    inline constexpr Month JANUARY = ::std::chrono::January;
-    inline constexpr Month FEBRUARY = ::std::chrono::February;
-    inline constexpr Month MARCH = ::std::chrono::March;
-    inline constexpr Month APRIL = ::std::chrono::April;
-    inline constexpr Month MAY = ::std::chrono::May;
-    inline constexpr Month JUNE = ::std::chrono::June;
-    inline constexpr Month JULY = ::std::chrono::July;
-    inline constexpr Month AUGUST = ::std::chrono::August;
-    inline constexpr Month SEPTEMBER = ::std::chrono::September;
-    inline constexpr Month OCTOBER = ::std::chrono::October;
-    inline constexpr Month NOVEMBER = ::std::chrono::November;
-    inline constexpr Month DECEMBER = ::std::chrono::December;
-
-    inline constexpr Weekday SUNDAY = ::std::chrono::Sunday;
-    inline constexpr Weekday MONDAY = ::std::chrono::Monday;
-    inline constexpr Weekday TUESDAY = ::std::chrono::Tuesday;
-    inline constexpr Weekday WEDNESDAY = ::std::chrono::Wednesday;
-    inline constexpr Weekday THURSDAY = ::std::chrono::Thursday;
-    inline constexpr Weekday FRIDAY = ::std::chrono::Friday;
-    inline constexpr Weekday SATURDAY = ::std::chrono::Saturday;
-
-    using Nanoseconds = ::std::chrono::nanoseconds;
-    using Microseconds = ::std::chrono::microseconds;
-    using Milliseconds = ::std::chrono::milliseconds;
-    using Seconds = ::std::chrono::seconds;
-    using Minutes = ::std::chrono::minutes;
-    using Hours = ::std::chrono::hours;
-    using Days = ::std::chrono::days;
-    using Weeks = ::std::chrono::weeks;
-    using Months = ::std::chrono::months;
-    using Years = ::std::chrono::years;
 
     using TimeZoneDatabase = ::std::chrono::tzdb;
     using TimeZoneDatabaseList = ::std::chrono::tzdb_list;
@@ -155,16 +110,187 @@ export namespace stdx::time {
     using AmbiguousLocalTimeException = ::std::chrono::ambiguous_local_time;
     using NonexistentLocalTimeException = ::std::chrono::nonexistent_local_time;
 
-    using LastSpecifier = ::std::chrono::last_spec;
-    inline constexpr LastSpecifier Last = ::std::chrono::last;
-    using WeekdayIndexed = ::std::chrono::weekday_indexed;
-    using WeekdayLast = ::std::chrono::weekday_last;
-    using MonthDayLast = ::std::chrono::month_day_last;
-    using MonthWeekday = ::std::chrono::month_weekday;
-    using MonthWeekdayLast = ::std::chrono::month_weekday_last;
-    using YearMonthDayLast = ::std::chrono::year_month_day_last;
-    using YearMonthWeekday = ::std::chrono::year_month_weekday;
-    using YearMonthWeekdayLast = ::std::chrono::year_month_weekday_last;
+    using Day = ::std::chrono::day;
+    using Year = ::std::chrono::year;
+    using MonthDay = ::std::chrono::month_day;
+    using YearMonth = ::std::chrono::year_month;
+    using YearMonthDay = ::std::chrono::year_month_day;
+
+    class [[nodiscard]] Month final {
+    public:
+        using Self = std::chrono::month;
+
+        static constexpr Self JANUARY = std::chrono::January;
+        static constexpr Self FEBRUARY = std::chrono::February;
+        static constexpr Self MARCH = std::chrono::March;
+        static constexpr Self APRIL = std::chrono::April;
+        static constexpr Self MAY = std::chrono::May;
+        static constexpr Self JUNE = std::chrono::June;
+        static constexpr Self JULY = std::chrono::July;
+        static constexpr Self AUGUST = std::chrono::August;
+        static constexpr Self SEPTEMBER = std::chrono::September;
+        static constexpr Self OCTOBER = std::chrono::October;
+        static constexpr Self NOVEMBER = std::chrono::November;
+        static constexpr Self DECEMBER = std::chrono::December;
+    private:
+        Self value;
+    public:
+        constexpr Month() noexcept = default;
+
+        constexpr Month(Self value) noexcept:
+            value{value} {}
+
+        constexpr explicit Month(unsigned int value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+
+        constexpr Month& operator++() noexcept {
+            ++value;
+            return *this;
+        }
+
+        constexpr Month operator++(int) noexcept {
+            Month temp = *this;
+            ++value;
+            return temp;
+        }
+
+        constexpr Month& operator--() noexcept {
+            --value;
+            return *this;
+        }
+
+        constexpr Month operator--(int) noexcept {
+            Month temp = *this;
+            --value;
+            return temp;
+        }
+
+        constexpr Month& operator+=(const Months& m) noexcept {
+            value += m;
+            return *this;
+        }
+
+        constexpr Month& operator-=(const Months& m) noexcept {
+            value -= m;
+            return *this;
+        }
+
+        constexpr explicit operator unsigned int() const noexcept {
+            return static_cast<unsigned int>(value);
+        }
+
+        [[nodiscard]]
+        constexpr bool ok() const noexcept {
+            return value.ok();
+        }
+    };
+
+    class [[nodiscard]] Weekday final {
+    public:
+        using Self = std::chrono::weekday;
+
+        static constexpr Self SUNDAY = std::chrono::Sunday;
+        static constexpr Self MONDAY = std::chrono::Monday;
+        static constexpr Self TUESDAY = std::chrono::Tuesday;
+        static constexpr Self WEDNESDAY = std::chrono::Wednesday;
+        static constexpr Self THURSDAY = std::chrono::Thursday;
+        static constexpr Self FRIDAY = std::chrono::Friday;
+        static constexpr Self SATURDAY = std::chrono::Saturday;
+    private:
+        Self value;
+    public:
+        constexpr Weekday() noexcept = default;
+
+        constexpr Weekday(Self value) noexcept:
+            value{value} {}
+
+        constexpr explicit Weekday(unsigned int value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+
+        constexpr Weekday& operator++() noexcept {
+            ++value;
+            return *this;
+        }
+
+        constexpr Weekday operator++(int) noexcept {
+            Weekday temp = *this;
+            ++value;
+            return temp;
+        }
+
+        constexpr Weekday& operator--() noexcept {
+            --value;
+            return *this;
+        }
+
+        constexpr Weekday operator--(int) noexcept {
+            Weekday temp = *this;
+            --value;
+            return temp;
+        }
+
+        constexpr Weekday& operator+=(const Days& d) noexcept {
+            value += d;
+            return *this;
+        }
+
+        constexpr Weekday& operator-=(const Days& d) noexcept {
+            value -= d;
+            return *this;
+        }
+
+        [[nodiscard]]
+        constexpr bool ok() const noexcept {
+            return value.ok();
+        }
+
+        [[nodiscard]]
+        constexpr unsigned int c_encoding() const noexcept {
+            return value.c_encoding();
+        }
+
+        [[nodiscard]]
+        constexpr unsigned int iso_encoding() const noexcept {
+            return value.iso_encoding();
+        }
+
+        constexpr WeekdayIndexed operator[](unsigned int index) const noexcept {
+            return WeekdayIndexed(value, index);
+        }
+
+        constexpr WeekdayLast operator[](LastSpecifier) const noexcept {
+            return WeekdayLast(value);
+        }
+    };
+
+    using ::std::chrono::January;
+    using ::std::chrono::February;
+    using ::std::chrono::March;
+    using ::std::chrono::April;
+    using ::std::chrono::May;
+    using ::std::chrono::June;
+    using ::std::chrono::July;
+    using ::std::chrono::August;
+    using ::std::chrono::September;
+    using ::std::chrono::October;
+    using ::std::chrono::November;
+    using ::std::chrono::December;
+
+    using ::std::chrono::Sunday;
+    using ::std::chrono::Monday;
+    using ::std::chrono::Tuesday;
+    using ::std::chrono::Wednesday;
+    using ::std::chrono::Thursday;
+    using ::std::chrono::Friday;
+    using ::std::chrono::Saturday;
     
     class [[nodiscard]] Choose final {
     public:
@@ -173,12 +299,14 @@ export namespace stdx::time {
         static constexpr Self EARLIEST = std::chrono::choose::earliest;
         static constexpr Self LATEST = std::chrono::choose::latest;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr Choose(Self value = {}) noexcept:
+        constexpr Choose() noexcept = default;
+
+        constexpr Choose(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -227,6 +355,71 @@ export namespace stdx::time {
     using ::std::hash;
     using ::std::formatter;
 
+    [[nodiscard]]
+    constexpr bool operator==(const Month& x, const Month& y) noexcept {
+        return static_cast<unsigned int>(x) == static_cast<unsigned int>(y);
+    }
+
+    [[nodiscard]]
+    constexpr bool operator==(const Weekday& x, const Weekday& y) noexcept {
+        return x.c_encoding() == y.c_encoding();
+    }
+
+    [[nodiscard]]
+    constexpr StrongOrdering operator<=>(const Month& x, const Month& y) noexcept {
+        return static_cast<unsigned int>(x) <=> static_cast<unsigned int>(y);
+    }
+
+    [[nodiscard]]
+    constexpr Month operator+(const Month& m, const Months& ms) noexcept {
+        return static_cast<Month::Self>(m) + static_cast<Months>(ms);
+    }
+
+    [[nodiscard]]
+    constexpr Month operator+(const Months& ms, const Month& m) noexcept {
+        return static_cast<Month::Self>(m) + static_cast<Months>(ms);
+    }
+
+    [[nodiscard]]
+    constexpr Weekday operator+(const Weekday& w, const Days& d) noexcept {
+        return static_cast<Weekday::Self>(w) + static_cast<Days>(d);
+    }
+
+    [[nodiscard]]
+    constexpr Weekday operator+(const Days& d, const Weekday& w) noexcept {
+        return static_cast<Weekday::Self>(w) + static_cast<Days>(d);
+    }
+
+    [[nodiscard]]
+    constexpr Month operator-(const Month& m, const Months& ms) noexcept {
+        return static_cast<Month::Self>(m) - static_cast<Months>(ms);
+    }
+
+    [[nodiscard]]
+    constexpr Month operator-(const Months& ms, const Month& m) noexcept {
+        return static_cast<Month::Self>(m) - static_cast<Months>(ms);
+    }
+
+    [[nodiscard]]
+    constexpr Weekday operator-(const Weekday& w, const Days& d) noexcept {
+        return static_cast<Weekday::Self>(w) - static_cast<Days>(d);
+    }
+
+    [[nodiscard]]
+    constexpr Days operator-(const Weekday& w1, const Weekday& w2) noexcept {
+        return static_cast<Weekday::Self>(w1) - static_cast<Weekday::Self>(w2);
+    }
+
+    template <typename Char, typename Traits>
+    BasicOutputStream<Char, Traits>& operator<<(BasicOutputStream<Char, Traits>& os, const Month& m) {
+        return os << static_cast<Month::Self>(m);
+    }
+
+    template <typename Char, typename Traits>
+    BasicOutputStream<Char, Traits>& operator<<(BasicOutputStream<Char, Traits>& os, const Weekday& w) {
+        return os << static_cast<Weekday::Self>(w);
+    }
+
     using ::std::chrono::operator+;
     using ::std::chrono::operator-;
     using ::std::chrono::operator*;
@@ -238,6 +431,7 @@ export namespace stdx::time {
     using ::std::chrono::operator>;
     using ::std::chrono::operator>=;
     using ::std::chrono::operator<=>;
+    using ::std::chrono::operator<<;
 
     /**
      * @brief Get the current time as a string.
@@ -264,3 +458,36 @@ export namespace stdx::inline literals::inline chrono_literals  {
     using ::std::literals::chrono_literals::operator""us;
     using ::std::literals::chrono_literals::operator""y; 
 }
+
+using stdx::time::Month;
+using stdx::time::Weekday;
+
+namespace stdx::fmt {
+    template <>
+    struct Formatter<Month> {
+        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+            return ctx.begin();
+        }
+
+        static FormatContext::iterator format(const Month& m, FormatContext& ctx) {
+            return format_to(ctx.out(), "{}", static_cast<Month::Self>(m));
+        }
+    };
+
+    template <>
+    struct Formatter<Weekday> {
+        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+            return ctx.begin();
+        }
+
+        static FormatContext::iterator format(const Weekday& w, FormatContext& ctx) {
+            return format_to(ctx.out(), "{}", static_cast<Weekday::Self>(w));
+        }
+    };
+}
+
+template <>
+struct stdx::fmt::formatter<Month> : public stdx::fmt::Formatter<Month> {};
+
+template <>
+struct stdx::fmt::formatter<Weekday> : public stdx::fmt::Formatter<Weekday> {};

@@ -61,7 +61,7 @@ export namespace core::prelude {
         static constexpr Self GREATER = std::partial_ordering::greater;
         static constexpr Self UNORDERED = std::partial_ordering::unordered;
     private:
-        Self value;
+        const Self value;
     public:
         constexpr PartialOrdering(Self value) noexcept:
             value{value} {}
@@ -79,7 +79,7 @@ export namespace core::prelude {
         static constexpr Self EQUIVALENT = std::weak_ordering::equivalent;
         static constexpr Self GREATER = std::weak_ordering::greater;
     private:
-        Self value;
+        const Self value;
     public:
         constexpr WeakOrdering(Self value) noexcept:
             value{value} {}
@@ -106,7 +106,7 @@ export namespace core::prelude {
         static constexpr Self EQUAL = std::strong_ordering::equal;
         static constexpr Self GREATER = std::strong_ordering::greater;
     private:
-        Self value;
+        const Self value;
     public:
         constexpr StrongOrdering(Self value) noexcept:
             value{value} {}

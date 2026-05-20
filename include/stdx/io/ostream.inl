@@ -1,12 +1,14 @@
 #pragma once
 
+using stdx::text::CharTraits;
+
 /**
  * @namespace stdx::io
  * @brief Wrapper namespace for standard library input/output operations.
  */
 export namespace stdx::io {
-    template <typename Char>
-    using BasicOutputStream = std::basic_ostream<Char>;
+    template <typename Char, typename Traits = CharTraits<Char>>
+    using BasicOutputStream = std::basic_ostream<Char, Traits>;
 
     using OutputStream = std::ostream;
     using WideOutputStream = std::wostream;

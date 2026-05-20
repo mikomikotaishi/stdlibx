@@ -155,14 +155,15 @@ int main() {
     System::out.println("EnumSet<Suit>:");
     constexpr EnumSet<Suit> REDS = EnumSet<Suit>::of(Suit::DIAMONDS, Suit::HEARTS);
     constexpr EnumSet<Suit> BLACKS = ~REDS;
-    System::out.println("|reds| = {}, contains HEARTS = {}", REDS.size(), REDS.contains(Suit::HEARTS));
-    System::out.println("|blacks| = {}, contains SPADES = {}", BLACKS.size(), BLACKS.contains(Suit::SPADES));
+    System::out.println("|reds| = {}, contains HEARTS: {}", REDS.size(), REDS.contains(Suit::HEARTS));
+    System::out.println("|blacks| = {}, contains SPADES: {}", BLACKS.size(), BLACKS.contains(Suit::SPADES));
     System::out.println("reds | blacks fully covers Suit? {}", (REDS | BLACKS).is_full());
 
     System::out.println();
     constexpr Type INT_TYPE = Ops::type_of<int>();
     System::out.println(
-        "int: integral={}, signed={}, size={} bytes",
+        "{} (integral: {}, signed: {}, size: {} bytes)",
+        INT_TYPE.display_name(),
         INT_TYPE.is_integral(),
         INT_TYPE.is_signed(),
         INT_TYPE.size()

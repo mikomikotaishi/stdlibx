@@ -24,12 +24,14 @@ export namespace stdx::future {
         static constexpr Self ASYNC = std::launch::async;
         static constexpr Self DEFERRED = std::launch::deferred;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr LaunchPolicy(Self value = {}) noexcept:
+        constexpr LaunchPolicy() noexcept = default;
+
+        constexpr LaunchPolicy(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -42,12 +44,14 @@ export namespace stdx::future {
         static constexpr Self TIMEOUT = std::future_status::timeout;
         static constexpr Self DEFERRED = std::future_status::deferred;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr FutureStatus(Self value = {}) noexcept:
+        constexpr FutureStatus() noexcept = default;
+
+        constexpr FutureStatus(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -62,12 +66,14 @@ export namespace stdx::future {
         static constexpr Self NO_STATE = std::future_errc::no_state;
         static constexpr Self BROKEN_PROMISE = std::future_errc::broken_promise;
     private:
-        Self value;
+        const Self value = SUCCESS;
     public:
-        constexpr FutureErrc(Self value = SUCCESS) noexcept:
+        constexpr FutureErrc() noexcept = default;
+
+        constexpr FutureErrc(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

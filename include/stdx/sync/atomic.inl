@@ -25,12 +25,14 @@ export namespace stdx::sync {
         static constexpr Self ACQUIRE_RELEASE = std::memory_order::acq_rel;
         static constexpr Self SEQUENTIALLY_CONSISTENT = std::memory_order::seq_cst;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr MemoryOrder(Self value = {}) noexcept:
+        constexpr MemoryOrder() noexcept = default;
+
+        constexpr MemoryOrder(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

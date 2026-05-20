@@ -82,12 +82,14 @@ export namespace core::prelude {
         static constexpr Self VALUE_TOO_LARGE = std::errc::value_too_large;
         static constexpr Self WRONG_PROTOCOL_TYPE = std::errc::wrong_protocol_type;
     private:
-        Self value;
+        const Self value = SUCCESS;
     public:
-        constexpr Errc(Self value = SUCCESS) noexcept:
+        constexpr Errc() noexcept = default;
+
+        constexpr Errc(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

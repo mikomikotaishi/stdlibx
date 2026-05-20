@@ -2,7 +2,7 @@
 
 using core::ranges::Range;
 
-using alloc::text::string::CharTraits;
+using alloc::text::CharTraits;
 
 /**
  * @namespace core::ranges

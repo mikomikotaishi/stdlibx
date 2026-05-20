@@ -27,12 +27,14 @@ export namespace stdx::net {
         static constexpr Self EOF = std::experimental::net::stream_errc::eof;
         static constexpr Self NOT_FOUND = std::experimental::net::stream_errc::not_found;
     private:
-        Self value;
+        const Self value = SUCCESS;
     public:
-        constexpr StreamErrc(Self value = SUCCESS) noexcept:
+        constexpr StreamErrc() noexcept = default;
+
+        constexpr StreamErrc(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

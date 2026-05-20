@@ -1,12 +1,19 @@
 #pragma once
 
 /**
+ * @namespace stdx::text
+ * @brief Wrapper namespace for standard library text operations.
+ */
+export namespace stdx::text {
+    using ::alloc::text::CharTraits;
+}
+
+/**
  * @namespace stdx::text::string
  * @brief Wrapper namespace for standard library string operations.
  */
 export namespace stdx::text::string {
     using ::alloc::text::string::String;
-    using ::alloc::text::string::CharTraits;
     using ::alloc::text::string::BasicString;
     using ::alloc::text::string::Utf8String;
     using ::alloc::text::string::Utf16String;
