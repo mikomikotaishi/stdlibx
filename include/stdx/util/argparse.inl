@@ -26,7 +26,7 @@ using stdx::meta::IsVolatileValue;
 using stdx::meta::RemoveReferenceType;
 using stdx::meta::TrueType;
 using stdx::ranges::IotaView;
-using stdx::text::string::CharTraits;
+using stdx::text::CharTraits;
 
 using namespace stdx::literals;
 

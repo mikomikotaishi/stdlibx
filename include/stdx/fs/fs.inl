@@ -26,12 +26,14 @@ export namespace stdx::fs {
         static constexpr Self SOCKET = std::filesystem::file_type::socket;
         static constexpr Self UNKNOWN = std::filesystem::file_type::unknown;
     private:
-        Self value;
+        const Self value = NONE;
     public:
-        constexpr FileType(Self value = NONE) noexcept:
+        constexpr FileType() noexcept = default;
+
+        constexpr FileType(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -51,12 +53,14 @@ export namespace stdx::fs {
         static constexpr Self CREATE_SYMLINKS = std::filesystem::copy_options::create_symlinks;
         static constexpr Self CREATE_HARD_LINKS = std::filesystem::copy_options::create_hard_links;
     private:
-        Self value;
+        const Self value = NONE;
     public:
-        constexpr CopyOptions(Self value = NONE) noexcept:
+        constexpr CopyOptions() noexcept = default;
+
+        constexpr CopyOptions(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -85,12 +89,14 @@ export namespace stdx::fs {
         static constexpr Self MASK = std::filesystem::perms::mask;
         static constexpr Self UNKNOWN = std::filesystem::perms::unknown;
     private:
-        Self value;
+        const Self value = NONE;
     public:
-        constexpr Permissions(Self value = NONE) noexcept:
+        constexpr Permissions() noexcept = default;
+
+        constexpr Permissions(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -104,12 +110,14 @@ export namespace stdx::fs {
         static constexpr Self REMOVE = std::filesystem::perm_options::remove;
         static constexpr Self NO_FOLLOW = std::filesystem::perm_options::nofollow;
     private:
-        Self value;
+        const Self value = REPLACE;
     public:
-        constexpr PermissionOptions(Self value = REPLACE) noexcept:
+        constexpr PermissionOptions() noexcept = default;
+
+        constexpr PermissionOptions(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -124,12 +132,14 @@ export namespace stdx::fs {
         static constexpr Self FOLLOW_DIRECTORY_SYMLINK = std::filesystem::directory_options::follow_directory_symlink;
         static constexpr Self SKIP_PERMISSION_DENIED = std::filesystem::directory_options::skip_permission_denied;
     private:
-        Self value;
+        const Self value = NONE;
     public:
-        constexpr DirectoryOptions(Self value = NONE) noexcept:
+        constexpr DirectoryOptions() noexcept = default;
+
+        constexpr DirectoryOptions(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

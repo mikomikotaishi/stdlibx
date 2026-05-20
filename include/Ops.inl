@@ -4,6 +4,10 @@ class Ops final {
 public:
     Ops() = delete;
 
+    class ExtractParameter {
+
+    };
+
     template <typename T>
     static constexpr void swap(T& a, T& b) {
         ::core::util::swap(a, b);
@@ -314,6 +318,11 @@ public:
     template <typename T>
     static consteval Info reflect_type() {
         return ^^T;
+    }
+
+    template <CharacterLike T>
+    static consteval bool reflect_string_literal(const T* p) {
+        return ::stdx::meta::reflect::is_string_literal(p);
     }
 
     template <InputRange R>

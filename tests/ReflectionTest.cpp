@@ -105,7 +105,7 @@ int main() {
     System::out.println("Class<Vec2>:");
     constexpr Class<Vec2> VEC2_CLASS = Ops::class_of<Vec2>();
     constexpr EnumSet<ReflectionOf> VEC2_KINDS = VEC2_CLASS.kinds();
-    System::out.println("name: {}", VEC2_CLASS.name());
+    System::out.println("name: {}", VEC2_CLASS.name().value());
     System::out.println("size/align: {} / {} bytes", VEC2_CLASS.size(), VEC2_CLASS.alignment());
     System::out.println("aggregate: {}", VEC2_CLASS.is_aggregate());
     System::out.println("trivially copyable: {}", VEC2_CLASS.is_trivially_copyable());
@@ -114,7 +114,7 @@ int main() {
     static constexpr Span<const Field> VEC2_FIELDS = Ops::define_static_array(VEC2_CLASS.fields(ctx));
     System::out.println("Fields:");
     template for (constexpr Field f : VEC2_FIELDS) {
-        constexpr StringView name = f.name();
+        constexpr StringView name = f.name().value_or("unnamed field");
         constexpr StringView type_name = f.type().display_name();
         constexpr usize offset = f.offset().bytes;
         constexpr usize access = Ops::to_underlying(f.access());
@@ -122,11 +122,11 @@ int main() {
     }
 
     static constexpr Span<const Method> VEC2_METHODS = Query(Ops::define_static_array(VEC2_CLASS.methods(ctx)))
-        .where([](Method m) -> bool { return m.has_name(); })
+        .where([](Method m) -> bool { return m.name().has_value(); })
         .to_array();
     System::out.println("Methods:");
     template for (constexpr Method m : VEC2_METHODS) {
-        constexpr StringView name = m.name();
+        constexpr StringView name = m.name().value_or("unnamed method");
         if constexpr (m.is_operator()) {
             constexpr StringView sym = m.operator_symbol();
             System::out.println("  {} -> operator '{}'", name, sym);
@@ -140,13 +140,13 @@ int main() {
     System::out.println();
     System::out.println("Enum<Suit>:");
     constexpr Enum<Suit> SUIT_ENUM = Ops::enum_of<Suit>();
-    System::out.println("name: {}", SUIT_ENUM.name());
+    System::out.println("name: {}", SUIT_ENUM.name().value_or("unnamed enum"));
     System::out.println("scoped: {}", SUIT_ENUM.is_scoped());
 
     static constexpr Span<const Enumerator> SUITS = Ops::define_static_array(SUIT_ENUM.enumerators());
     System::out.println("Enumerators:");
     template for (constexpr Enumerator e : SUITS) {
-        constexpr StringView name = e.name();
+        constexpr StringView name = e.name().value_or("unnamed enumerator");
         constexpr usize value = Ops::to_underlying(e.as<Suit>());
         System::out.println("  {} = {}", name, value);
     }
@@ -155,14 +155,15 @@ int main() {
     System::out.println("EnumSet<Suit>:");
     constexpr EnumSet<Suit> REDS = EnumSet<Suit>::of(Suit::DIAMONDS, Suit::HEARTS);
     constexpr EnumSet<Suit> BLACKS = ~REDS;
-    System::out.println("|reds| = {}, contains HEARTS = {}", REDS.size(), REDS.contains(Suit::HEARTS));
-    System::out.println("|blacks| = {}, contains SPADES = {}", BLACKS.size(), BLACKS.contains(Suit::SPADES));
+    System::out.println("|reds| = {}, contains HEARTS: {}", REDS.size(), REDS.contains(Suit::HEARTS));
+    System::out.println("|blacks| = {}, contains SPADES: {}", BLACKS.size(), BLACKS.contains(Suit::SPADES));
     System::out.println("reds | blacks fully covers Suit? {}", (REDS | BLACKS).is_full());
 
     System::out.println();
     constexpr Type INT_TYPE = Ops::type_of<int>();
     System::out.println(
-        "int: integral={}, signed={}, size={} bytes",
+        "{} (integral: {}, signed: {}, size: {} bytes)",
+        INT_TYPE.display_name(),
         INT_TYPE.is_integral(),
         INT_TYPE.is_signed(),
         INT_TYPE.size()

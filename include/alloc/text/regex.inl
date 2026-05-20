@@ -102,12 +102,14 @@ export namespace alloc::text::regex {
         #endif
         static constexpr Self MULTILINE = std::regex_constants::multiline;
     private:
-        Self value;
+        Self value = NONE;
     public:
-        constexpr SyntaxOption(Self value = NONE) noexcept:
+        constexpr SyntaxOption() noexcept = default;
+
+        constexpr SyntaxOption(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
 
@@ -183,12 +185,14 @@ export namespace alloc::text::regex {
         static constexpr Self FORMAT_NO_COPY = std::regex_constants::format_no_copy;
         static constexpr Self FORMAT_FIRST_ONLY = std::regex_constants::format_first_only;
     private:
-        Self value;
+        Self value = DEFAULT;
     public:
-        constexpr MatchFlag(Self value = DEFAULT) noexcept:
+        constexpr MatchFlag() noexcept = default;
+
+        constexpr MatchFlag(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
 
@@ -266,12 +270,14 @@ export namespace alloc::text::regex {
         static constexpr Self COMPLEXITY = std::regex_constants::error_complexity;
         static constexpr Self STACK = std::regex_constants::error_stack;
     private:
-        Self value;
+        const Self value = NONE;
     public:
-        constexpr RegexParseError(Self value = NONE) noexcept:
+        constexpr RegexParseError() noexcept = default;
+
+        constexpr RegexParseError(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

@@ -122,7 +122,7 @@ extern "C" {
 #include "stdx/debug/source_location.inl"
 #include "stdx/debug/stacktrace.inl"
 
-#include "stdx/execution/execution.inl"
+#include "stdx/exec/execution.inl"
 
 #include "stdx/fmt/charconv.inl"
 #include "stdx/fmt/cinttypes.inl"
@@ -136,6 +136,18 @@ extern "C" {
 
 #include "stdx/future/coroutine.inl"
 #include "stdx/future/future.inl"
+
+#include "stdx/text/cctype.inl"
+#include "stdx/text/charconv.inl"
+#include "stdx/text/cstdlib.inl"
+#include "stdx/text/cuchar.inl"
+#include "stdx/text/cwchar.inl"
+#include "stdx/text/cwctype.inl"
+#include "stdx/text/regex.inl"
+#include "stdx/text/text_encoding.inl"
+#include "stdx/text/string/cstring.inl"
+#include "stdx/text/string/string.inl"
+#include "stdx/text/string/string_view.inl"
 
 #include "stdx/io/cwchar.inl"
 #include "stdx/io/fstream.inl"
@@ -167,7 +179,6 @@ extern "C" {
 #include "stdx/math/quaternion.inl"
 #include "stdx/math/random.inl"
 #include "stdx/math/ratio.inl"
-#include "stdx/math/simd.inl"
 
 #include "stdx/core/math.inl"
 
@@ -215,6 +226,8 @@ extern "C" {
 
 #include "stdx/core/random.inl"
 
+#include "stdx/simd/simd.inl"
+
 #include "stdx/sync/atomic.inl"
 #include "stdx/sync/barrier.inl"
 #include "stdx/sync/condition_variable.inl"
@@ -229,18 +242,6 @@ extern "C" {
 #include "stdx/sys/csignal.inl"
 #include "stdx/sys/cstdlib.inl"
 #include "stdx/sys/utility.inl"
-
-#include "stdx/text/cctype.inl"
-#include "stdx/text/charconv.inl"
-#include "stdx/text/cstdlib.inl"
-#include "stdx/text/cuchar.inl"
-#include "stdx/text/cwchar.inl"
-#include "stdx/text/cwctype.inl"
-#include "stdx/text/regex.inl"
-#include "stdx/text/text_encoding.inl"
-#include "stdx/text/string/cstring.inl"
-#include "stdx/text/string/string.inl"
-#include "stdx/text/string/string_view.inl"
 
 #include "stdx/fs/glob.inl"
 
@@ -261,8 +262,8 @@ extern "C" {
 
 #include "stdx/process/process.inl"
 
-#include "stdx/time/chrono/chrono.inl"
-#include "stdx/time/chrono/chinese.inl"
+#include "stdx/time/chrono.inl"
+#include "stdx/time/format.inl"
 
 #include "stdx/util/argparse.inl"
 #include "stdx/util/logging.inl"

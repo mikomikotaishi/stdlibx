@@ -3,6 +3,22 @@
 /**
  * @namespace stdx::os::win32
  * @brief Wrapper namespace for Windows API operations.
+ *
+ * Type aliases drop Win32 Hungarian notation:
+ *   - HXxx (handles)         -> XxxHandle               (HWND -> WindowHandle)
+ *   - PT / LPT (pointer-to)  -> WinTPointer / TPointer  (PVOID -> WinVoidPointer)
+ *   - T_PTR (ptr-sized int)  -> WinTPtr                 (INT_PTR -> WinIntPtr)
+ *   - LPSTR / LPWSTR / ...   -> WinAString / WinWString / ...
+ *   - Cryptic abbreviations  expanded (Wnd, Dc, Glrc, ...)
+ *
+ * Convention for the Win prefix:
+ *   - Primitives, explicit-width ints, pointer-sized ints, raw-pointer
+ *     aliases, and raw-string aliases all carry Win to disambiguate from
+ *     stdx::core wrapper classes (Boolean, Byte, Short, Long, Float, ...)
+ *     and from generic spellings (AString, IntPtr, VoidPointer).
+ *   - Handles, callbacks, MSG/security/structure aliases stay unprefixed
+ *     since their names (WindowHandle, Overlapped, FileTime, WindowProc, ...)
+ *     already self-identify as Win32.
  */
 export namespace stdx::os::win32 {
     [[nodiscard]]
@@ -31,118 +47,176 @@ export namespace stdx::os::win32 {
     }
 
     #ifdef _WIN32
-    using Win32Bool = ::BOOL;
-    using Win32Char = ::CHAR;
-    using Win32Short = ::SHORT;
-    using Win32Int = ::INT;
-    using Win32Long = ::LONG;
-    using Win32UChar = ::UCHAR;
-    using Win32UShort = ::USHORT;
-    using Win32UInt = ::UINT;
-    using Win32ULong = ::ULONG;
-    using Win32Byte = ::BYTE;
-    using Win32Word = ::WORD;
-    using Win32DWord = ::DWORD;
-    using Win32WChar = ::WCHAR;
-    using Win32PWChar = ::PWCHAR;
-    using Win32Atom = ::ATOM;
-    using Win32ULong32 = ::ULONG32;
-    using Win32DWord64 = ::DWORD64;
-    using Win32ULong64 = ::ULONG64;
-    using Win32Int32 = ::INT32;
-    using Win32Int64 = ::INT64;
-    using Win32DWordLong = ::DWORDLONG;
+    // Primitive integers and characters
+    using WinBool = ::BOOL;
+    using WinBoolean = ::BOOLEAN;
+    using WinChar = ::CHAR;
+    using WinShort = ::SHORT;
+    using WinInt = ::INT;
+    using WinLong = ::LONG;
+    using WinLongLong = ::LONGLONG;
+    using WinUChar = ::UCHAR;
+    using WinUShort = ::USHORT;
+    using WinUInt = ::UINT;
+    using WinULong = ::ULONG;
+    using WinULongLong = ::ULONGLONG;
+    using WinByte = ::BYTE;
+    using WinWord = ::WORD;
+    using WinDWord = ::DWORD;
+    using WinDWordLong = ::DWORDLONG;
+    using WinQWord = ::DWORDLONG;
+    using WinWChar = ::WCHAR;
+    using WinFloat = ::FLOAT;
+    using WinAtom = ::ATOM;
+    using WinVoid = ::VOID;
 
-    using Win32PChar = ::PCHAR;
-    using Win32PULong = ::PULONG;
-    using Win32PULong64 = ::PULONG64;
-    using Win32PDWord64 = ::PDWORD64;
+    // Explicit-width integers
+    using WinInt8 = ::INT8;
+    using WinInt16 = ::INT16;
+    using WinInt32 = ::INT32;
+    using WinInt64 = ::INT64;
+    using WinUInt8 = ::UINT8;
+    using WinUInt16 = ::UINT16;
+    using WinUInt32 = ::UINT32;
+    using WinUInt64 = ::UINT64;
+    using WinLong32 = ::LONG32;
+    using WinLong64 = ::LONG64;
+    using WinULong32 = ::ULONG32;
+    using WinULong64 = ::ULONG64;
+    using WinDWord32 = ::DWORD32;
+    using WinDWord64 = ::DWORD64;
 
-    using Win32LongLong = ::LONGLONG;
-    using Win32ULongLong = ::ULONGLONG;
+    // Pointer-sized integers (Win32 _PTR types; matches C# IntPtr convention)
+    using WinIntPtr = ::INT_PTR;
+    using WinUIntPtr = ::UINT_PTR;
+    using WinLongPtr = ::LONG_PTR;
+    using WinULongPtr = ::ULONG_PTR;
+    using WinDWordPtr = ::DWORD_PTR;
+    using WinHalfPtr = ::HALF_PTR;
+    using WinUHalfPtr = ::UHALF_PTR;
+    using WinSizeT = ::SIZE_T;
+    using WinSSizeT = ::SSIZE_T;
 
-    using Win32Void = ::VOID;
-    using Win32PVoid = ::PVOID;
-    using Win32LPVoid = ::LPVOID;
-    using Win32PBool = ::PBOOL;
-    using Win32LPBool = ::LPBOOL;
-    using Win32PWord = ::PWORD;
-    using Win32PLong = ::PLONG;
-    using Win32LPLong = ::LPLONG;
-    using Win32PDWord = ::PDWORD;
+    // Pointer-to-T (collapsed PXxx / LPXxx aliases)
+    using WinVoidPointer = ::PVOID;
+    using WinConstVoidPointer = ::LPCVOID;
+    using WinBoolPointer = ::PBOOL;
+    using WinBooleanPointer = ::PBOOLEAN;
+    using WinBytePointer = ::PBYTE;
+    using WinCharPointer = ::PCHAR;
+    using WinWCharPointer = ::PWCHAR;
+    using WinShortPointer = ::PSHORT;
+    using WinIntPointer = ::PINT;
+    using WinUIntPointer = ::PUINT;
+    using WinLongPointer = ::PLONG;
+    using WinULongPointer = ::PULONG;
+    using WinLongLongPointer = ::PLONGLONG;
+    using WinULongLongPointer = ::PULONGLONG;
+    using WinWordPointer = ::PWORD;
+    using WinDWordPointer = ::PDWORD;
+    using WinDWord64Pointer = ::PDWORD64;
+    using WinULong64Pointer = ::PULONG64;
+    using WinDWordLongPointer = ::PDWORDLONG;
+    using WinFloatPointer = ::PFLOAT;
+    using WinHandlePointer = ::PHANDLE;
+    using WinDWordPtrPointer = ::PDWORD_PTR;
+    using WinSizeTPointer = ::PSIZE_T;
 
-    using Win32Handle = ::HANDLE;
-    using Win32HInstance = ::HINSTANCE;
-    using Win32HWnd = ::HWND;
-    using Win32HModule = ::HMODULE;
-    using Win32HDc = ::HDC;
-    using Win32HGlrc = ::HGLRC;
-    using Win32HMenu = ::HMENU;
-    using Win32PHandle = ::PHANDLE;
-    using Win32LPHandle = ::LPHANDLE;
+    // Null-terminated raw string buffers
+    using WinAString = ::LPSTR;
+    using WinConstAString = ::LPCSTR;
+    using WinWString = ::LPWSTR;
+    using WinConstWString = ::LPCWSTR;
+    using WinTString = ::LPTSTR;
+    using WinConstTString = ::LPCTSTR;
+    using WinTChar = ::TCHAR;
+    using WinTByte = ::TBYTE;
 
-    using Win32PWStr = ::PWSTR;
-    using Win32LPByte = ::LPBYTE;
-    using Win32LPDWord = ::LPDWORD;
-    using Win32LPCVoid = ::LPCVOID;
+    // Handles
+    using Handle = ::HANDLE;
+    using WindowHandle = ::HWND;
+    using InstanceHandle = ::HINSTANCE;
+    using ModuleHandle = ::HMODULE;
+    using DeviceContextHandle = ::HDC;
+    using GlRenderContextHandle = ::HGLRC;
+    using MenuHandle = ::HMENU;
+    using IconHandle = ::HICON;
+    using CursorHandle = ::HCURSOR;
+    using BrushHandle = ::HBRUSH;
+    using PenHandle = ::HPEN;
+    using FontHandle = ::HFONT;
+    using BitmapHandle = ::HBITMAP;
+    using PaletteHandle = ::HPALETTE;
+    using RegionHandle = ::HRGN;
+    using MonitorHandle = ::HMONITOR;
+    using HookHandle = ::HHOOK;
+    using AcceleratorTableHandle = ::HACCEL;
+    using GdiObjectHandle = ::HGDIOBJ;
+    using RegistryKeyHandle = ::HKEY;
+    using RegistryKeyHandlePointer = ::PHKEY;
+    using GlobalHandle = ::HGLOBAL;
+    using LocalHandle = ::HLOCAL;
+    using FileHandle = ::HFILE;
+    using ColorSpaceHandle = ::HCOLORSPACE;
+    using DeferredWindowPositionHandle = ::HDWP;
 
-    using Win32IntPtr = ::INT_PTR;
-    using Win32LongPtr = ::LONG_PTR;
-    using Win32UIntPtr = ::UINT_PTR;
-    using Win32ULongPtr = ::ULONG_PTR;
-    using Win32DWordPtr = ::DWORD_PTR;
-    using Win32PDWordPtr = ::PDWORD_PTR;
+    // Callable types
+    using FarProc = ::FARPROC;
+    using NearProc = ::NEARPROC;
+    using Proc = ::PROC;
+    using WindowProc = ::WNDPROC;
+    using DialogProc = ::DLGPROC;
+    using HookProc = ::HOOKPROC;
 
-    using Win32Size = ::SIZE_T;
-    using Win32SSize = ::SSIZE_T;
+    // Window messaging
+    using LParam = ::LPARAM;
+    using WParam = ::WPARAM;
+    using LResult = ::LRESULT;
+    using HResult = ::HRESULT;
+    using Message = ::MSG;
+    using MessagePointer = ::PMSG;
 
-    using Win32LPStr = ::LPSTR;
-    using Win32LPWStr = ::LPWSTR;
-    using Win32LPCStr = ::LPCSTR;
-    using Win32LPCWStr = ::LPCWSTR;
-    using Win32TChar = ::TCHAR;
-    using Win32TByte = ::TBYTE;
-    using Win32LPCTStr = ::LPCTSTR;
-    using Win32LPTStr = ::LPTSTR;
+    // Security
+    using AccessMask = ::ACCESS_MASK;
+    using AccessMaskPointer = ::PACCESS_MASK;
+    using RegistryAccessMask = ::REGSAM;
+    using SecurityDescriptorPointer = ::PSECURITY_DESCRIPTOR;
+    using SecurityIdPointer = ::PSID;
+    using Luid = ::LUID;
+    using LuidPointer = ::PLUID;
 
-    using Win32FarProc = ::FARPROC;
-    using Win32NearProc = ::NEARPROC;
-    using Win32Proc = ::PROC;
+    // Common structures
+    using Overlapped = ::OVERLAPPED;
+    using OverlappedPointer = ::LPOVERLAPPED;
+    using SecurityAttributes = ::SECURITY_ATTRIBUTES;
+    using SecurityAttributesPointer = ::LPSECURITY_ATTRIBUTES;
+    using LargeInteger = ::LARGE_INTEGER;
+    using LargeIntegerPointer = ::PLARGE_INTEGER;
+    using ULargeInteger = ::ULARGE_INTEGER;
+    using ULargeIntegerPointer = ::PULARGE_INTEGER;
+    using FileTime = ::FILETIME;
+    using FileTimePointer = ::PFILETIME;
+    using SystemTime = ::SYSTEMTIME;
+    using SystemTimePointer = ::PSYSTEMTIME;
+    using Guid = ::GUID;
+    using GuidPointer = ::LPGUID;
+    using Point = ::POINT;
+    using PointPointer = ::PPOINT;
+    using PointLong = ::POINTL;
+    using Rect = ::RECT;
+    using RectPointer = ::PRECT;
+    using RectLong = ::RECTL;
+    using Size2D = ::SIZE;
+    using Size2DPointer = ::PSIZE;
+    using Size2DLong = ::SIZEL;
+    using ColorRef = ::COLORREF;
+    using ColorRefPointer = ::LPCOLORREF;
 
-    using Win32AccessMask = ::ACCESS_MASK;
-    using Win32PAccessMask = ::PACCESS_MASK;
+    // Locale
+    using LangId = ::LANGID;
+    using Lcid = ::LCID;
 
-    using Win32HIcon = ::HICON;
-    using Win32HBrush = ::HBRUSH;
-    using Win32HCursor = ::HCURSOR;
-
-    using Win32HResult = ::HRESULT;
-    using Win32LResult = ::LRESULT;
-    using Win32LParam = ::LPARAM;
-    using Win32WParam = ::WPARAM;
-
-    using Win32HGdiObj = ::HGDIOBJ;
-
-    using Win32HKey = ::HKEY;
-    using Win32PHKey = ::PHKEY;
-    using Win32RegSam = ::REGSAM;
-    
-    using Win32Overlapped = ::OVERLAPPED;
-    using Win32LPOverlapped = ::LPOVERLAPPED;
-
-    using Win32SecurityAttributes = ::SECURITY_ATTRIBUTES;
-    using Win32PSecurityAttributes = ::PSECURITY_ATTRIBUTES;
-    using Win32LPSecurityAttributes = ::LPSECURITY_ATTRIBUTES;
-
-    using Win32LargeInteger = ::LARGE_INTEGER;
-    using Win32PLargeInteger = ::PLARGE_INTEGER;
-    using Win32ULargeInteger = ::ULARGE_INTEGER;
-    using Win32PULargeInteger = ::PULARGE_INTEGER;
-
-    using Win32FileTime = ::FILETIME;
-    using Win32PFileTime = ::PFILETIME;
-    using Win32LPFileTime = ::LPFILETIME;
-    
-    using Win32Guid = ::GUID;
+    // Update sequence number
+    using Usn = ::USN;
     #endif
 }

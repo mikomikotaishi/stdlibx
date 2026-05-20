@@ -1,14 +1,20 @@
 #pragma once
 
 /**
+ * @namespace alloc::text
+ * @brief Wrapper namespace for standard library text operations.
+ */
+export namespace alloc::text {
+    template <typename Char>
+    using CharTraits = std::char_traits<Char>;
+}
+
+/**
  * @namespace alloc::text::string
  * @brief Wrapper namespace for standard library string operations.
  */
 export namespace alloc::text::string {
     using String = std::string;
-
-    template <typename Char>
-    using CharTraits = std::char_traits<Char>;
 
     template <typename Char, typename Traits = CharTraits<Char>, typename Alloc = Allocator<Char>>
     using BasicString = std::basic_string<Char, Traits, Alloc>;

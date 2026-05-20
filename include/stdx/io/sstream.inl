@@ -1,21 +1,24 @@
 #pragma once
 
+using stdx::alloc::Allocator;
+using stdx::text::CharTraits;
+
 /**
  * @namespace stdx::io
  * @brief Wrapper namespace for standard library input/output operations.
  */
 export namespace stdx::io {
-    template <typename Char>
-    using BasicStringBuffer = std::basic_stringbuf<Char>;
+    template <typename Char, typename Traits = CharTraits<Char>, typename Alloc = Allocator<Char>>
+    using BasicStringBuffer = std::basic_stringbuf<Char, Traits, Alloc>;
 
-    template <typename Char>
-    using BasicStringStream = std::basic_stringstream<Char>;
+    template <typename Char, typename Traits = CharTraits<Char>, typename Alloc = Allocator<Char>>
+    using BasicStringStream = std::basic_stringstream<Char, Traits, Alloc>;
 
-    template <typename Char>
-    using BasicInputStringStream = std::basic_istringstream<Char>;
+    template <typename Char, typename Traits = CharTraits<Char>, typename Alloc = Allocator<Char>>
+    using BasicInputStringStream = std::basic_istringstream<Char, Traits, Alloc>;
 
-    template <typename Char>
-    using BasicOutputStringStream = std::basic_ostringstream<Char>;
+    template <typename Char, typename Traits = CharTraits<Char>, typename Alloc = Allocator<Char>>
+    using BasicOutputStringStream = std::basic_ostringstream<Char, Traits, Alloc>;
 
     using StringBuffer = std::stringbuf;
     using WideStringBuffer = std::wstringbuf;

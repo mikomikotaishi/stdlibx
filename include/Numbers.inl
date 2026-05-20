@@ -22,8 +22,10 @@ public:
     static constexpr T MIN_VALUE = NumericLimits<T>::min(); ///< A constant representing the minimum value of the number type.
 
     constexpr Number() = default;
-    constexpr Number(T v):
+
+    constexpr Number(T v) noexcept:
         value{v} {}
+
     constexpr virtual ~Number() = default;
 
     constexpr Number& operator=(T v) noexcept {
@@ -470,9 +472,14 @@ export class [[nodiscard]] Boolean final {
 private:
     bool value = false;
 public:
+    static const Boolean TRUE; ///< A constant representing the boolean value true.
+    static const Boolean FALSE; ///< A constant representing the boolean value false.
+
     constexpr Boolean() = default;
-    constexpr Boolean(bool v):
+
+    constexpr Boolean(bool v) noexcept:
         value{v} {}
+
     constexpr ~Boolean() = default;
 
     constexpr Boolean& operator=(bool v) noexcept {
@@ -541,6 +548,9 @@ public:
     }
     #endif
 };
+
+inline constexpr Boolean Boolean::TRUE = Boolean(true);
+inline constexpr Boolean Boolean::FALSE = Boolean(false);
 
 export class [[nodiscard]] SignedByte final: public Number<i8, SignedByte> {
 public:

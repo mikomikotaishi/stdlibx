@@ -65,12 +65,12 @@ export namespace stdx::meta::reflect {
         static constexpr Self MINUS_MINUS = std::meta::operators::op_minus_minus;
         static constexpr Self COMMA = std::meta::operators::op_comma;
     private:
-        Self value;
+        const Self value;
     public:
         constexpr Operators(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
 

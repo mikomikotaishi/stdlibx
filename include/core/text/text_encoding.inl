@@ -273,12 +273,14 @@ export namespace core::text {
         static constexpr Self TIS620 = std::text_encoding::id::TIS620;
         static constexpr Self CP50220 = std::text_encoding::id::CP50220;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr TextEncodingId(Self value = {}) noexcept:
+        constexpr TextEncodingId() noexcept = default;
+
+        constexpr TextEncodingId(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

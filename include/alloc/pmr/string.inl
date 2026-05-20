@@ -1,6 +1,6 @@
 #pragma once
 
-using alloc::text::string::CharTraits;
+using alloc::text::CharTraits;
 
 /**
  * @namespace aloc::pmr::text::string

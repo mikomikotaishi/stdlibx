@@ -334,7 +334,10 @@ export namespace alloc::mem {
         #endif
 
         #ifdef __cpp_lib_hazard_pointer
-        
+        [[nodiscard]]
+        static HazardPointer hazard_pointer() noexcept {
+            return std::make_hazard_pointer();
+        }
         #endif
     };
 }

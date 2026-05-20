@@ -14,12 +14,14 @@ export namespace core::text {
         static constexpr Self HEX = ::std::chars_format::hex;
         static constexpr Self GENERAL = ::std::chars_format::general;
     private:
-        Self value;
+        const Self value;
     public:
-        CharsFormat(Self value = {}) noexcept:
+        constexpr CharsFormat() noexcept = default;
+
+        constexpr CharsFormat(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

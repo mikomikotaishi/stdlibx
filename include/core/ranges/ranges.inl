@@ -144,12 +144,14 @@ export namespace core::ranges {
         static constexpr Self UNSIZED = std::ranges::subrange_kind::unsized;
         static constexpr Self SIZED = std::ranges::subrange_kind::sized;
 
-        Self value;
+        const Self value;
 
-        constexpr SubrangeKind(Self value = {}) noexcept:
+        constexpr SubrangeKind() noexcept = default;
+
+        constexpr SubrangeKind(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

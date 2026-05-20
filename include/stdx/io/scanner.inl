@@ -3,7 +3,7 @@
 using stdx::fs::Path;
 using stdx::mem::Pointers;
 using stdx::mem::UniquePointer;
-using stdx::text::string::CharTraits;
+using stdx::text::CharTraits;
 
 /**
  * @namespace stdx::io

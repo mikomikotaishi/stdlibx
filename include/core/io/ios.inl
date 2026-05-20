@@ -22,12 +22,14 @@ export namespace core::io {
         static constexpr Self AT_END = std::ios::ate;
         static constexpr Self NO_REPLACE = std::ios::noreplace;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr OpenMode(Self value = {}) noexcept:
+        constexpr OpenMode() noexcept = default;
+
+        constexpr OpenMode(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -55,12 +57,14 @@ export namespace core::io {
         static constexpr Self UNIT_BUFFER = std::ios::unitbuf;
         static constexpr Self UPPERCASE = std::ios::uppercase;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr FormatFlags(Self value = {}) noexcept:
+        constexpr FormatFlags() noexcept = default;
+
+        constexpr FormatFlags(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -78,12 +82,14 @@ export namespace core::io {
         static constexpr Self IO_OPERATION_FAIL = std::ios::failbit;
         static constexpr Self END_OF_FILE = std::ios::eofbit;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr IOState(Self value = {}) noexcept:
+        constexpr IOState() noexcept = default;
+
+        constexpr IOState(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -96,12 +102,14 @@ export namespace core::io {
         static constexpr Self ENDING = std::ios::end;
         static constexpr Self CURRENT = std::ios::cur;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr SeekingDirection(Self value = {}) noexcept:
+        constexpr SeekingDirection() noexcept = default;
+
+        constexpr SeekingDirection(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -114,12 +122,14 @@ export namespace core::io {
         static constexpr Self IMBUE_EVENT = std::ios::event::imbue_event;
         static constexpr Self COPY_FORMAT_EVENT = std::ios::event::copyfmt_event;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr IOEvent(Self value = {}) noexcept:
+        constexpr IOEvent() noexcept = default;
+
+        constexpr IOEvent(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -146,12 +156,14 @@ export namespace core::io {
         static constexpr Self SUCCESS = std::io_errc();
         static constexpr Self STREAM = std::io_errc::stream;
     private:
-        Self value;
+        const Self value = SUCCESS;
     public:
-        constexpr IOErrc(Self value = SUCCESS) noexcept:
+        constexpr IOErrc() noexcept = default;
+
+        constexpr IOErrc(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };

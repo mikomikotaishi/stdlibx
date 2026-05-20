@@ -14,12 +14,14 @@ export namespace core::prelude {
         static constexpr Self POST = std::contracts::assertion_kind::post;
         static constexpr Self ASSERT = std::contracts::assertion_kind::assert;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr AssertionKind(Self value = {}) noexcept:
+        constexpr AssertionKind() noexcept = default;
+
+        constexpr AssertionKind(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -33,12 +35,14 @@ export namespace core::prelude {
         static constexpr Self ENFORCE = std::contracts::evaluation_semantic::enforce;
         static constexpr Self QUICK_ENFORCE = std::contracts::evaluation_semantic::quick_enforce;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr EvaluationSemantic(Self value = {}) noexcept:
+        constexpr EvaluationSemantic() noexcept = default;
+
+        constexpr EvaluationSemantic(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
@@ -50,12 +54,14 @@ export namespace core::prelude {
         static constexpr Self PREDICATE_FALSE = std::contracts::detection_mode::predicate_false;
         static constexpr Self EVALUATION_EXCEPTION = std::contracts::detection_mode::evaluation_exception;
     private:
-        Self value;
+        const Self value;
     public:
-        constexpr DetectionMode(Self value = {}) noexcept:
+        constexpr DetectionMode() noexcept = default;
+
+        constexpr DetectionMode(Self value) noexcept:
             value{value} {}
 
-        operator Self() const noexcept {
+        constexpr operator Self() const noexcept {
             return value;
         }
     };
