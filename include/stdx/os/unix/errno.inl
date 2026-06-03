@@ -6,7 +6,7 @@
  */
 export namespace stdx::os::unix {
     [[nodiscard]]
-    inline i32& errnov() noexcept {
+    inline auto& errnov() noexcept {
         return errno;
     }
 }

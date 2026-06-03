@@ -5,14 +5,23 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::prelude::IntegerSequence;
-    using ::core::prelude::IntegerSequenceOf;
+    template <typename T, T... Elements>
+    using IntegerSequence = std::integer_sequence<T>;
 
-    using ::core::prelude::IndexSequence;
-    using ::core::prelude::IndexSequenceFor;
-    using ::core::prelude::IndexSequenceOf;
+    template <typename T, T N>
+    using IntegerSequenceOf = std::make_integer_sequence<T, N>;
 
-    using ::core::prelude::begin;
-    using ::core::prelude::end;
-    using ::core::prelude::swap;
+    template <usize... I>
+    using IndexSequence = std::index_sequence<I...>;
+
+    template <typename... T>
+    using IndexSequenceFor = std::index_sequence_for<T...>;
+
+    template <usize N>
+    using IndexSequenceOf = std::make_index_sequence<N>;
+
+    using std::begin;
+    using std::end;
+
+    using std::swap;
 }

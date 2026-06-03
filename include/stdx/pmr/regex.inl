@@ -5,8 +5,8 @@
  * @brief Namespace for operations on polymorphic memory resources.
  */
 namespace stdx::pmr::text {
-    using ::alloc::pmr::text::CMatch;
-    using ::alloc::pmr::text::WideCMatch;
-    using ::alloc::pmr::text::StringMatch;
-    using ::alloc::pmr::text::WideStringMatch;
+    using CMatch = std::pmr::cmatch;
+    using WideCMatch = std::pmr::wcmatch;
+    using StringMatch = std::pmr::smatch;
+    using WideStringMatch = std::pmr::wsmatch;
 }

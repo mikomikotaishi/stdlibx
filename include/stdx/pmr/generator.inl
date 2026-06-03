@@ -6,6 +6,7 @@
  */
 export namespace stdx::pmr::ranges {
     #ifdef __cpp_lib_generator
-    using ::core::pmr::ranges::Generator;
+    template <typename Ref, typename V = void>
+    using Generator = std::pmr::generator<Ref, V>;
     #endif
 }

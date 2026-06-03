@@ -6,24 +6,6 @@
  */
 export namespace stdx::os::linux::sys {
     #ifdef __linux__
-    enum class EpollEvents: u32 {
-        IN = 0x001,
-        PRI = 0x002,
-        OUT = 0x004,
-        RD_NORM = 0x040,
-        RD_BAND = 0x080,
-        WR_NORM = 0x100,
-        WR_BAND = 0x200,
-        MSG = 0x400,
-        ERR = 0x008,
-        HUP = 0x010,
-        RD_HUP = 0x2000,
-        EXCLUSIVE = 1u << 28,
-        WAKEUP = 1u << 29,
-        ONE_SHOT = 1u << 30,
-        EDGE_TRIGGERED = 1u << 31
-    };
-
     using EpollData = ::epoll_data;
     using EpollEvent = ::epoll_event;
     // using EpollParams = ::epoll_params;

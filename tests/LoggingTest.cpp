@@ -26,28 +26,28 @@ int main() {
     logger->warn("This is a WARNING message with float: {:.2f}", 3.14159);
     logger->error("This is an ERROR message with multiple args: {}, {}, {}", 1, 2, 3);
 
-    SharedPointer<Logger> filteredLogger = LoggerFactory::instance().of("FilteredLogger");
-    filteredLogger->of_level(Level::WARNING);
+    SharedPointer<Logger> filtered_logger = LoggerFactory::instance().of("FilteredLogger");
+    filtered_logger->of_level(Level::WARNING);
 
-    filteredLogger->debug("This DEBUG should NOT appear");
-    filteredLogger->info("This INFO should NOT appear");
-    filteredLogger->warn("This WARNING SHOULD appear");
-    filteredLogger->error("This ERROR SHOULD appear");
+    filtered_logger->debug("This DEBUG should NOT appear");
+    filtered_logger->info("This INFO should NOT appear");
+    filtered_logger->warn("This WARNING SHOULD appear");
+    filtered_logger->error("This ERROR SHOULD appear");
 
-    SharedPointer<Logger> customLogger = LoggerFactory::instance().of("CustomLogger");
-    SharedPointer<FileSink> customSink = Pointers::shared<FileSink>("./userdata/custom_log.txt", OpenMode::TRUNCATE);
-    customLogger->add_sink(customSink);
+    SharedPointer<Logger> custom_logger = LoggerFactory::instance().of("CustomLogger");
+    SharedPointer<FileSink> custom_sink = Pointers::shared<FileSink>("./userdata/custom_log.txt", OpenMode::TRUNCATE);
+    custom_logger->add_sink(custom_sink);
 
-    customLogger->info("This message goes to both global and custom sinks");
-    customLogger->debug("Custom sink test with value: {}", 99);
-    customSink->flush();
+    custom_logger->info("This message goes to both global and custom sinks");
+    custom_logger->debug("Custom sink test with value: {}", 99);
+    custom_sink->flush();
 
-    SharedPointer<Logger> consoleLogger = Pointers::shared<Logger>("ConsoleOnly", Level::DEBUG, false);
-    SharedPointer<ConsoleSink> consoleSink = Pointers::shared<ConsoleSink>(false);
-    consoleLogger->add_sink(consoleSink);
+    SharedPointer<Logger> console_logger = Pointers::shared<Logger>("ConsoleOnly", Level::DEBUG, false);
+    SharedPointer<ConsoleSink> console_sink = Pointers::shared<ConsoleSink>(false);
+    console_logger->add_sink(console_sink);
     
-    consoleLogger->info("This message should appear on stdout");
-    consoleLogger->error("This error should appear on stdout (not stderr)");
+    console_logger->info("This message should appear on stdout");
+    console_logger->error("This error should appear on stdout (not stderr)");
 
     LoggerFactory::instance().flush_all();
     logger->flush();

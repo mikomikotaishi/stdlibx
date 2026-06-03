@@ -1,15 +1,25 @@
 #pragma once
 
+using stdx::alloc::Allocator;
+using stdx::meta::IsSameValue;
+using stdx::meta::RemoveConstVolatile;
+
 /**
  * @namespace stdx::collections
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace stdx::collections {
     #ifdef __cpp_lib_hive
-    using ::alloc::collections::ColonyLimits;
-    using ::alloc::collections::Colony;
-    using ::alloc::collections::swap;
-    using ::alloc::collections::erase;
-    using ::alloc::collections::erase_if;
+    using ColonyLimits = std::hive_limits;
+    
+    template <typename T, typename Alloc = Allocator<T>>
+        requires 
+            IsSameValue<typename RemoveConstVolatile<T>::type, T> &&
+            IsSameValue<typename Alloc::value_type, T>
+    using Colony = std::hive<T, Alloc>;
+
+    using std::swap;
+    using std::erase;
+    using std::erase_if;
     #endif
 }

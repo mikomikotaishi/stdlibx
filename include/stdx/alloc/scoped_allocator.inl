@@ -5,5 +5,6 @@
  * @brief Wrapper namespace for standard library allocation operations.
  */
 export namespace stdx::alloc {
-    using ::alloc::ScopedAllocatorAdaptor;
+    template <typename OuterAlloc, typename... InnerAllocs>
+    using ScopedAllocatorAdaptor = std::scoped_allocator_adaptor<OuterAlloc, InnerAllocs...>;
 }

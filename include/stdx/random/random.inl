@@ -125,6 +125,4 @@ export namespace stdx::random {
 
     using std::rand;
     using std::srand;
-
-    using ::core::random::RAND_MAX;
 }

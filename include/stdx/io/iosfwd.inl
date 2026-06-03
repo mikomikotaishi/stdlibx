@@ -5,9 +5,9 @@
  * @brief Wrapper namespace for standard library IO operations.
  */
 export namespace stdx::io {
-    using ::core::io::StreamPosition;
-    using ::core::io::WideStreamPosition;
-    using ::core::io::StreamPosition8;
-    using ::core::io::StreamPosition16;
-    using ::core::io::StreamPosition32;
+    using StreamPosition = std::streampos;
+    using WideStreamPosition = std::wstreampos;
+    using StreamPosition8 = std::u8streampos;
+    using StreamPosition16 = std::u16streampos;
+    using StreamPosition32 = std::u32streampos;
 }

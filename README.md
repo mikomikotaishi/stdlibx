@@ -5,24 +5,27 @@
 > **WARNING:** This library is primarily tested with Clang and GCC, and MSVC support is not yet confirmed.
 
 ## Overview
-This is a project that re-exports the entire C++ standard library as modules, in an API more consistent with standard libraries of other languages. The main purpose is to create a standard library experience that is more enjoyable and familiar to use, while remaining compatible (to some degree) with the original standard library.
+
+This is a framework that wraps the C++ Standard Library, in an API more consistent with standard libraries of other languages, while also extending it with additional features. The main purpose is to create a standard library experience that is more enjoyable and familiar to use, while remaining compatible (to some degree) with the original standard library.
 
 The motivation for creating this was that at the time, support for `import std;` was very poor (especially on CMake), a personal dislike of ISO C++'s usage of snake_case for class names, and a dislike of the flat `std::` namespace.
 
 The main features of this repackaging of the standard library are:
+
 - Symbols follow Rust naming conventions (object type names in PascalCase, constants in UPPER_SNAKE_CASE, variables and methods in snake_case)
-    - While I personally would have preferred methods to be in camelCase (like in Java), this would have been too much work to rename existing functions and methods, for very little gain.
-    - Perhaps in the future I might wrap all standard library classes using private inheritance, but this may be a gargantuan effort and not in the scope of the project at the present.
-- Splitting the standard library into sub-namespaces (in constrast to the ISO C++ `std::` namespace which is largely flat). 
-    - The divisions try to follow the Rust standard library modules, but also take inspiration from the Java standard library.
-- Option to use only `core` and `alloc` modules instead of the full standard library, similar to Rust
+  - While I personally would have preferred methods to be in camelCase (like in Java), this would have been too much work to rename existing functions and methods, for very little gain.
+  - Perhaps in the future I might wrap all standard library classes using private inheritance, but this may be a gargantuan effort and not in the scope of the project at the present.
+- Splitting the standard library into sub-namespaces (in constrast to the ISO C++ `std::` namespace which is largely flat).
+  - The divisions try to follow the Rust standard library modules, but also take inspiration from the Java standard library.
 
 Pros:
+
 - A clean API that is more in line with what C++ style should be (in my opinion), as well as that of other languages.
 - More features that ought to be part of the standard library, in a clean, C++-style interface.
 - Consistently updated (but is currently in-development and may be subject to unstable, API-breaking changes).
 
 Cons:
+
 - Non-standard, obviously. Features are obviously dependent on what is supported by vendors, and different compilers may have different challenges building this library.
 - This library is developed independently. While we accept feature requests, pull requests, and improvements from everyone, do note that support is limited due to the limited resources.
 - Because of its limited development resources, bugs are bound to arise in independently-developed parts.
@@ -39,6 +42,7 @@ Note that currently, Clang module support is far superior to that of GCC, and th
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### Features
+
 - Everything included in the C++ standard library
 - Additional ease-of-use classes and Java-style utility classes (`stdx::core::System`, `stdx::core::Integer`, `stdx::core::Character`, `stdx::core::Math`)
 - A higher-level API for C++ `std::meta` reflection
@@ -50,30 +54,16 @@ Note that currently, Clang module support is far superior to that of GCC, and th
 - Minimal wrappers over Lua headers (`stdx::lua`)
 - And more!
 
-## Libraries
-The `stdlibx` library offers the following namespaces/modules:
-
-### Core library (module `core`, namespace `core::*`)
-Core modules of the standard library, not requiring any memory allocation. Provides the most fundamental and low-level features of the C++ standard library. 
-
-### Allocation library (module `alloc`, namespace `alloc::*`)
-Allocation modules of the standard library, providing heap allocation and non-trivial data structures.
-
-Disabled when `STDLIB_NO_ALLOC` is enabled.
-
-### Standard library (module `stdx`, namespace `stdx::*`)
-The full C++ standard library, containing everything provided by `core` and `alloc`, as well as additional functionality depending on operating system and runtime. Includes "extensions", i.e. features that are not officially part of the ISO C++ standard library, but ought to be (in my opinion) and have equivalent features standard libraries of other languages.
-
-Disabled when `STDLIBX_NO_STD` (or `STDLIBX_NO_ALLOC`) are enabled.
-
 > **NOTE:** Some parts of this library may be third-party or re-exports of existing libraries, and thus not entirely original code. Code that originates from third party will be adequately attributed, but if there are any issues or concerns, please do not hesitate to contact me.
 
 Some third-party libraries used here (as optional dependencies) include:
+
 - [gmplib](https://gmplib.org/)
 - [libsodium](https://doc.libsodium.org/)
 - [zlib](https://zlib.net/)
 
 ## Example
+
 ```cpp
 import stdx;
 
@@ -111,23 +101,28 @@ int main(int argc, char* argv[]) {
 ```
 
 ## Build
+
 This supports building using CMake and XMake.
 
 Make (calls CMake):
+
 ```sh
 make
 ```
 
 CMake:
+
 ```sh
 cmake -S . -B build -G Ninja
 cmake --build build
 ```
 
 XMake:
+
 ```sh
 xmake
 ```
 
 ## Contributing
+
 Pull requests are always welcome - if you like this library and wish to contribute or solve bugs, feel free to make improvements.

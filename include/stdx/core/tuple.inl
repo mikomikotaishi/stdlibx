@@ -5,25 +5,31 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::prelude::Tuple;
-    using ::core::prelude::TupleSize;
-    using ::core::prelude::TupleSizeValue;
-    using ::core::prelude::TupleElement;
-    using ::core::prelude::TupleElementType;
+    template <typename T>
+    using TupleSize = std::tuple_size<T>;
 
-    using ::core::prelude::operator==;
-    using ::core::prelude::operator<=>;
+    template <typename T>
+    constexpr bool TupleSizeValue = std::tuple_size_v<T>;
 
-    using ::core::prelude::IgnoreType;
-    using ::core::prelude::IGNORE;
+    template <usize I, typename T>
+    using TupleElement = std::tuple_element<I, T>;
 
-    using ::core::prelude::make_tuple;
-    using ::core::prelude::tie;
-    using ::core::prelude::forward_as_tuple;
-    using ::core::prelude::tuple_cat;
-    using ::core::prelude::get;
-    using ::core::prelude::apply;
-    using ::core::prelude::make_from_tuple;
+    template <usize I, typename T>
+    using TupleElementType = std::tuple_element_t<I, T>;
 
-    using ::core::prelude::swap;
+    using IgnoreType = decltype(std::ignore);
+    constexpr auto IGNORE = std::ignore;
+
+    using std::operator==;
+    using std::operator<=>;
+
+    using std::make_tuple;
+    using std::tie;
+    using std::forward_as_tuple;
+    using std::tuple_cat;
+    using std::get;
+    using std::apply;
+    using std::make_from_tuple;
+
+    using std::swap;
 }

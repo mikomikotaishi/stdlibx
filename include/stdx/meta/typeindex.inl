@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for standard library metaprogramming operations.
  */
 export namespace stdx::meta {
-    using ::core::meta::TypeIndex;
+    using TypeIndex = std::type_index;
 
-    using ::core::meta::hash;
+    using std::hash;
 }

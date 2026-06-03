@@ -5,37 +5,107 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::prelude::SameAs;
-    using ::core::prelude::DerivedFrom;
-    using ::core::prelude::ConvertibleTo;
-    using ::core::prelude::CommonReferenceWith;
-    using ::core::prelude::CommonWith;
-    using ::core::prelude::Integral;
-    using ::core::prelude::SignedIntegral;
-    using ::core::prelude::UnsignedIntegral;
-    using ::core::prelude::FloatingPoint;
-    using ::core::prelude::AssignableFrom;
-    using ::core::prelude::Swappable;
-    using ::core::prelude::SwappableWith;
-    using ::core::prelude::Destructible;
-    using ::core::prelude::ConstructibleFrom;
-    using ::core::prelude::DefaultInitializable;
-    using ::core::prelude::MoveConstructible;
-    using ::core::prelude::CopyConstructible;
-    using ::core::prelude::EqualityComparable;
-    using ::core::prelude::EqualityComparableWith;
-    using ::core::prelude::TotallyOrdered;
-    using ::core::prelude::TotallyOrderedWith;
-    using ::core::prelude::Movable;
-    using ::core::prelude::Copyable;
-    using ::core::prelude::Semiregular;
-    using ::core::prelude::Regular;
-    using ::core::prelude::Invocable;
-    using ::core::prelude::RegularInvocable;
-    using ::core::prelude::Predicate;
-    using ::core::prelude::Relation;
-    using ::core::prelude::EquivalenceRelation;
-    using ::core::prelude::StrictWeakOrder;
-    using ::core::prelude::CharacterLike;
-    using ::core::prelude::Numeric;
+    template <typename T, typename U>
+    concept SameAs = std::same_as<T, U>;
+
+    template <typename Derived, typename Base>
+    concept DerivedFrom = std::derived_from<Derived, Base>;
+
+    template <typename From, typename To>
+    concept ConvertibleTo = std::convertible_to<From, To>;
+
+    template <typename T, typename U>
+    concept CommonReferenceWith = std::common_reference_with<T, U>;
+
+    template <typename T, typename U>
+    concept CommonWith = std::common_with<T, U>;
+
+    template <typename T>
+    concept Integral = std::integral<T>;
+
+    template <typename T>
+    concept SignedIntegral = std::signed_integral<T>;
+
+    template <typename T>
+    concept UnsignedIntegral = std::unsigned_integral<T>;
+
+    template <typename T>
+    concept FloatingPoint = std::floating_point<T>;
+
+    template <typename Lhs, typename Rhs>
+    concept AssignableFrom = std::assignable_from<Lhs, Rhs>;
+
+    template <typename T>
+    concept Swappable = std::swappable<T>;
+
+    template <typename T, typename U>
+    concept SwappableWith = std::swappable_with<T, U>;
+
+    template <typename T>
+    concept Destructible = std::destructible<T>;
+
+    template <typename T, typename... Args>
+    concept ConstructibleFrom = std::constructible_from<T, Args...>;
+
+    template <typename T>
+    concept DefaultInitializable = std::default_initializable<T>;
+
+    template <typename T>
+    concept MoveConstructible = std::move_constructible<T>;
+
+    template <typename T>
+    concept CopyConstructible = std::copy_constructible<T>;
+
+    template <typename T>
+    concept EqualityComparable = std::equality_comparable<T>;
+
+    template <typename T, typename U>
+    concept EqualityComparableWith = std::equality_comparable_with<T, U>;
+
+    template <typename T>
+    concept TotallyOrdered = std::totally_ordered<T>;
+
+    template <typename T, typename U>
+    concept TotallyOrderedWith = std::totally_ordered_with<T, U>;
+
+    template <typename T>
+    concept Movable = std::movable<T>;
+
+    template <typename T>
+    concept Copyable = std::copyable<T>;
+
+    template <typename T>
+    concept Semiregular = std::semiregular<T>;
+
+    template <typename T>
+    concept Regular = std::regular<T>;
+
+    template <typename Fn, typename... Args>
+    concept Invocable = std::invocable<Fn, Args...>;
+
+    template <typename Fn, typename... Args>
+    concept RegularInvocable = std::regular_invocable<Fn, Args...>;
+
+    template <typename Fn, typename... Args>
+    concept Predicate = std::predicate<Fn, Args...>;
+
+    template <typename Rel, typename T, typename U>
+    concept Relation = std::relation<Rel, T, U>;
+
+    template <typename Rel, typename T, typename U>
+    concept EquivalenceRelation = std::equivalence_relation<Rel, T, U>;
+
+    template <typename Rel, typename T, typename U>
+    concept StrictWeakOrder = std::strict_weak_order<Rel, T, U>;
+
+    template <typename T>
+    concept CharacterLike = SameAs<T, char>
+        || SameAs<T, unsigned char>
+        || SameAs<T, char8_t>
+        || SameAs<T, char16_t>
+        || SameAs<T, char32_t>
+        || SameAs<T, wchar_t>;
+
+    template <typename T>
+    concept Numeric = Integral<T> || FloatingPoint<T>;
 }

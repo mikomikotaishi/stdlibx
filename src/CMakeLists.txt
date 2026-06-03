@@ -1,21 +1,5 @@
 include("${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake")
 
-add_subdirectory(core)
+add_subdirectory(stdx)
 
-if(NOT STDLIBX_NO_ALLOC)
-    add_subdirectory(alloc)
-endif()
-
-if(NOT STDLIBX_NO_STDX)
-    add_subdirectory(stdx)
-endif()
-
-target_link_libraries(stdlibx INTERFACE stdlibx_core)
-
-if(NOT STDLIBX_NO_ALLOC)
-    target_link_libraries(stdlibx INTERFACE stdlibx_alloc)
-endif()
-
-if(NOT STDLIBX_NO_STDX)
-    target_link_libraries(stdlibx INTERFACE stdlibx_stdx)
-endif()
+target_link_libraries(stdlibx INTERFACE stdlibx_stdx)

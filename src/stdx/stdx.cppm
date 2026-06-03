@@ -12,10 +12,10 @@ export module stdx;
 
 export import :main;
 export import :arch;
-export import :audio;
 export import :crypto;
 export import :csv;
 export import :ffi;
+export import :gsl;
 export import :json;
 export import :lua;
 export import :math.gmp;
@@ -24,10 +24,10 @@ export import :sql;
 export import :xml;
 export import :zip;
 
-#if !defined(STDLIBX_NO_STD) && defined(STDLIBX_IMPLICIT_USING_CORE)
+#if defined(STDLIBX_IMPLICIT_USING_CORE)
 export using namespace stdx::core;
 #endif
 
-#if defined(STDLIBX_NO_STD) && defined(STDLIBX_IMPLICIT_USING_LITERALS)
+#if defined(STDLIBX_IMPLICIT_USING_LITERALS)
 export using namespace stdx::literals;
 #endif

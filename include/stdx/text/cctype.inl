@@ -5,18 +5,18 @@
  * @brief Wrapper namespace for standard library text operations.
  */
 export namespace stdx::text {
-    using ::core::text::isalnum;
-    using ::core::text::isalpha;
-    using ::core::text::islower;
-    using ::core::text::isupper;
-    using ::core::text::isdigit;
-    using ::core::text::isxdigit;
-    using ::core::text::iscntrl;
-    using ::core::text::isgraph;
-    using ::core::text::isspace;
-    using ::core::text::isblank;
-    using ::core::text::isprint;
-    using ::core::text::ispunct;
-    using ::core::text::tolower;
-    using ::core::text::toupper;
+    using std::isalnum;
+    using std::isalpha;
+    using std::islower;
+    using std::isupper;
+    using std::isdigit;
+    using std::isxdigit;
+    using std::iscntrl;
+    using std::isgraph;
+    using std::isspace;
+    using std::isblank;
+    using std::isprint;
+    using std::ispunct;
+    using std::tolower;
+    using std::toupper;
 }

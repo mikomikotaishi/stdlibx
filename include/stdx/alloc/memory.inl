@@ -5,19 +5,27 @@
  * @brief Wrapper namespace for standard library allocation operations.
  */
 export namespace stdx::alloc {
-    using ::alloc::PointerTraits;
-    using ::alloc::Allocator;
-    using ::alloc::AllocatorTraits;
+    template <typename Ptr>
+    using PointerTraits = std::pointer_traits<Ptr>;
+
+    template <typename Ptr>
+    using AllocatorTraits = std::allocator_traits<Ptr>;
+
     #ifdef __cpp_lib_allocate_at_least
-    using ::alloc::AllocationResult;
+    template <typename Ptr, typename Size = usize>
+    using AllocationResult = std::allocation_result<Ptr, Size>;
     #endif
-    using ::alloc::UsesAllocator;
-    using ::alloc::DefaultDelete;
 
-    using ::alloc::AllocatorArgumentTag;
-    using ::alloc::AllocatorArgument;
+    template <typename Ptr, typename Alloc>
+    using UsesAllocator = std::uses_allocator<Ptr, Alloc>;
 
-    using ::alloc::uses_allocator_construction_args;
-    using ::alloc::make_obj_using_allocator;
-    using ::alloc::uninitialized_construct_using_allocator;
+    template <typename T>
+    using DefaultDelete = std::default_delete<T>;
+
+    using AllocatorArgumentTag = std::allocator_arg_t;
+    inline constexpr AllocatorArgumentTag AllocatorArgument = std::allocator_arg;
+
+    using std::uses_allocator_construction_args;
+    using std::make_obj_using_allocator;
+    using std::uninitialized_construct_using_allocator;
 }

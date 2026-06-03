@@ -5,14 +5,15 @@
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace stdx::collections {
-    using ::core::collections::BitSet;
+    template <usize N>
+    using BitSet = std::bitset<N>;
 
-    using ::core::collections::operator&;
-    using ::core::collections::operator|;
-    using ::core::collections::operator^;
-    using ::core::collections::operator<<;
-    using ::core::collections::operator>>;
+    using std::operator&;
+    using std::operator|;
+    using std::operator^;
+    using std::operator<<;
+    using std::operator>>;
 
-    using ::core::collections::hash;
-    using ::core::collections::swap;
+    using std::hash;
+    using std::swap;
 }

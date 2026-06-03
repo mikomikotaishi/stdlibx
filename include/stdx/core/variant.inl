@@ -5,20 +5,22 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::prelude::Variant;
-    using ::core::prelude::Monostate;
-    using ::core::prelude::VariantSize;
-    using ::core::prelude::VariantAlternative;
-    using ::core::prelude::VariantAlternativeType;
-    using ::core::prelude::BadVariantAccessException;
+    template <typename V>
+    using VariantSize = std::variant_size<V>;
 
-    using ::core::prelude::hash;
+    template <usize I, typename V>
+    using VariantAlternative = std::variant_alternative<I, V>;
 
-    using ::core::prelude::VariantNoPosition;
+    template <usize I, typename T>
+    using VariantAlternativeType = std::variant_alternative_t<I, T>;
 
-    using ::core::prelude::visit;
-    using ::core::prelude::holds_alternative;
-    using ::core::prelude::get;
-    using ::core::prelude::get_if;
-    using ::core::prelude::swap;
+    using BadVariantAccessException = std::bad_variant_access;
+
+    inline constexpr usize VariantNoPosition = std::variant_npos;
+
+    using std::visit;
+    using std::holds_alternative;
+    using std::get;
+    using std::get_if;
+    using std::swap;
 }

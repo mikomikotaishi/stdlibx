@@ -122,7 +122,9 @@ int main() {
     System::out.printf(
         "Files in current directory (%s)%n:%s%n", 
         dir.string(),
-        Query(files).select([](const DirectoryEntry& e) -> String { return e.path().string(); }).to<Vector>()
+        Query(files)
+            .select([](const DirectoryEntry& e) -> String { return e.path().string(); })
+            .to<Vector>()
     );
 
     System::out.println(

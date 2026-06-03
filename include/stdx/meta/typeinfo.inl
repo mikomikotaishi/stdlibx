@@ -5,8 +5,8 @@
  * @brief Wrapper namespace for standard library metaprogramming operations.
  */
 export namespace stdx::meta {
-    using ::core::meta::TypeInfo;
+    using TypeInfo = std::type_info;
 
-    using ::core::meta::BadCastException;
-    using ::core::meta::BadTypeIDException;
+    using BadCastException = std::bad_cast;
+    using BadTypeIDException = std::bad_typeid;
 }

@@ -5,9 +5,9 @@
  * @brief Wrapper namespace for standard library allocation operations.
  */
 export namespace stdx::alloc {
-    using ::alloc::malloc;
-    using ::alloc::aligned_alloc;
-    using ::alloc::calloc;
-    using ::alloc::realloc;
-    using ::alloc::free;
+    using std::malloc;
+    using std::aligned_alloc;
+    using std::calloc;
+    using std::realloc;
+    using std::free;
 }

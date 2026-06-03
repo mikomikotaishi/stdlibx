@@ -26,7 +26,7 @@ export namespace stdx::future {
     private:
         const Self value;
     public:
-        constexpr LaunchPolicy() noexcept = default;
+        constexpr LaunchPolicy() noexcept = delete;
 
         constexpr LaunchPolicy(Self value) noexcept:
             value{value} {}
@@ -46,31 +46,9 @@ export namespace stdx::future {
     private:
         const Self value;
     public:
-        constexpr FutureStatus() noexcept = default;
+        constexpr FutureStatus() noexcept = delete;
 
         constexpr FutureStatus(Self value) noexcept:
-            value{value} {}
-
-        constexpr operator Self() const noexcept {
-            return value;
-        }
-    };
-
-    class [[nodiscard]] FutureErrc final {
-    public:
-        using Self = std::future_errc;
-
-        static constexpr Self SUCCESS = std::future_errc();
-        static constexpr Self FUTURE_ALREADY_RETRIEVED = std::future_errc::future_already_retrieved;
-        static constexpr Self PROMISE_ALREADY_SATISFIED = std::future_errc::promise_already_satisfied;
-        static constexpr Self NO_STATE = std::future_errc::no_state;
-        static constexpr Self BROKEN_PROMISE = std::future_errc::broken_promise;
-    private:
-        const Self value = SUCCESS;
-    public:
-        constexpr FutureErrc() noexcept = default;
-
-        constexpr FutureErrc(Self value) noexcept:
             value{value} {}
 
         constexpr operator Self() const noexcept {
@@ -96,8 +74,6 @@ export namespace stdx::future {
  * @brief Wrapper namespace for standard library core operations.
  */
 export namespace stdx::core {
-    using stdx::future::FutureErrc;
-
     using stdx::future::future_category;
     using stdx::future::make_error_code;
     using stdx::future::make_error_condition;

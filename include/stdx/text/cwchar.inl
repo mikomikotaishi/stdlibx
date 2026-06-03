@@ -5,36 +5,36 @@
  * @brief Wrapper namespace for standard library text operations.
  */
 export namespace stdx::text {
-    using ::core::text::MultiByteState;
-    using ::core::text::WideCharacterInt;
+    using MultiByteState = std::mbstate_t;
+    using WideCharacterInt = std::wint_t;
 
-    using ::core::text::wcscpy;
-    using ::core::text::wcsncpy;
-    using ::core::text::wcscat;
-    using ::core::text::wcsncat;
-    using ::core::text::wcsxfrm;
-    using ::core::text::wcslen;
-    using ::core::text::wcscmp;
-    using ::core::text::wcsncmp;
-    using ::core::text::wcscoll;
-    using ::core::text::wcschr;
-    using ::core::text::wcsrchr;
-    using ::core::text::wcsspn;
-    using ::core::text::wcscspn;
-    using ::core::text::wcspbrk;
-    using ::core::text::wcsstr;
-    using ::core::text::wcstok;
-    using ::core::text::wmemcpy;
-    using ::core::text::wmemmove;
-    using ::core::text::wmemcmp;
-    using ::core::text::wmemchr;
-    using ::core::text::wmemset;
-    using ::core::text::mbsinit;
-    using ::core::text::btowc;
-    using ::core::text::wctob;
-    using ::core::text::mbrlen;
-    using ::core::text::mbrtowc;
-    using ::core::text::wcrtomb;
-    using ::core::text::mbsrtowcs;
-    using ::core::text::wcsrtombs;
+    using std::wcscpy;
+    using std::wcsncpy;
+    using std::wcscat;
+    using std::wcsncat;
+    using std::wcsxfrm;
+    using std::wcslen;
+    using std::wcscmp;
+    using std::wcsncmp;
+    using std::wcscoll;
+    using std::wcschr;
+    using std::wcsrchr;
+    using std::wcsspn;
+    using std::wcscspn;
+    using std::wcspbrk;
+    using std::wcsstr;
+    using std::wcstok;
+    using std::wmemcpy;
+    using std::wmemmove;
+    using std::wmemcmp;
+    using std::wmemchr;
+    using std::wmemset;
+    using std::mbsinit;
+    using std::btowc;
+    using std::wctob;
+    using std::mbrlen;
+    using std::mbrtowc;
+    using std::wcrtomb;
+    using std::mbsrtowcs;
+    using std::wcsrtombs;
 }

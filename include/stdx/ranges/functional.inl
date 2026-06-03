@@ -5,10 +5,10 @@
  * @brief Wrapper namespace for standard library ranges operations.
  */
 export namespace stdx::ranges {
-    using ::core::ranges::equal_to;
-    using ::core::ranges::not_equal_to;
-    using ::core::ranges::greater;
-    using ::core::ranges::less;
-    using ::core::ranges::greater_equal;
-    using ::core::ranges::less_equal;
+    using std::ranges::equal_to;
+    using std::ranges::not_equal_to;
+    using std::ranges::greater;
+    using std::ranges::less;
+    using std::ranges::greater_equal;
+    using std::ranges::less_equal;
 }

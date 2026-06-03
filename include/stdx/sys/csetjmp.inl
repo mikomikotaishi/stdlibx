@@ -5,7 +5,7 @@
  * @brief Wrapper namespace for standard library system operations.
  */
 export namespace stdx::sys {
-    using ::core::sys::JumpBuffer;
+    using JumpBuffer = std::jmp_buf;
     
-    using ::core::sys::longjmp;
+    using std::longjmp;
 }

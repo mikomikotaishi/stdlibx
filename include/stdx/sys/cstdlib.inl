@@ -5,12 +5,12 @@
  * @brief Wrapper namespace for standard library system operations.
  */
 export namespace stdx::sys {
-    using ::core::sys::abort;
-    using ::core::sys::exit;
-    using ::core::sys::quick_exit;
-    using ::core::sys::_Exit;
-    using ::core::sys::atexit;
-    using ::core::sys::at_quick_exit;
-    using ::core::sys::system;
-    using ::core::sys::getenv;
+    using std::abort;
+    using std::exit;
+    using std::quick_exit;
+    using std::_Exit;
+    using std::atexit;
+    using std::at_quick_exit;
+    using std::system;
+    using std::getenv;
 }

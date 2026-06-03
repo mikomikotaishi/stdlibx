@@ -1,19 +1,32 @@
 #pragma once
 
+using stdx::meta::IsNothrowSwappableValue;
+using stdx::meta::IsSameValue;
+using stdx::meta::RemoveConstVolatile;
+
 /**
  * @namespace stdx::collections
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace stdx::collections {
     #ifdef __cpp_lib_flat_set
-    using ::alloc::collections::FlatSet;
-    using ::alloc::collections::FlatMultiset;
+    template <typename Key, typename Compare = Less<Key>, typename Container = Vector<Key>>
+        requires
+            IsSameValue<Key, typename Container::value_type> &&
+            IsNothrowSwappableValue<Container>
+    using FlatSet = std::flat_set<Key, Compare, Container>;
 
-    using ::alloc::collections::SortedUniqueTag;
-    using ::alloc::collections::SortedUnique;
-    using ::alloc::collections::SortedEquivalentTag;
-    using ::alloc::collections::SortedEquivalent;
+    template <typename Key, typename Compare = Less<Key>, typename Container = Vector<Key>>
+        requires
+            IsSameValue<Key, typename Container::value_type> &&
+            IsNothrowSwappableValue<Container>
+    using FlatMultiset = std::flat_multiset<Key, Compare, Container>;
 
-    using ::alloc::collections::erase_if;
+    using std::erase_if;
+
+    using SortedUniqueTag = std::sorted_unique_t;
+    inline constexpr SortedUniqueTag SortedUnique = std::sorted_unique;
+    using SortedEquivalentTag = std::sorted_equivalent_t;
+    inline constexpr SortedEquivalentTag SortedEquivalent = std::sorted_equivalent;
     #endif
 }

@@ -1,8 +1,12 @@
 #pragma once
 
 using stdx::collections::Vector;
+using stdx::meta::DecayType;
+using stdx::meta::IsBoundedArrayValue;
 using stdx::meta::IsLvalueReferenceValue;
+using stdx::meta::IsPointerValue;
 using stdx::meta::RemoveConstVolatileReferenceType;
+using stdx::meta::RemoveReferenceType;
 using stdx::ranges::Begin;
 using stdx::ranges::End;
 using stdx::ranges::EmptyView;
@@ -17,7 +21,7 @@ using namespace stdx::ranges::views;
  * @namespace stdx::linq
  * @brief Wrapper namespace for standard library extension LINQ libraries.
  */
-export namespace stdx::linq {
+namespace stdx::linq {
 
 /**
  * @concept Filterable
@@ -42,6 +46,40 @@ template <typename Ran, typename Func>
 concept Transformable = requires (Ran& r, Func&& f) {
     { Transform(r, Ops::forward<Func>(f)) };
 };
+
+/**
+ * @concept NormalizableDelimiter
+ * @brief Whether a split delimiter is a raw C-string — a `const char[N]` literal
+ *        or a `const char*` — over a character range, and so should be
+ *        reinterpreted as a BasicStringView to drop its terminating '\0' from the
+ *        pattern before splitting.
+ *
+ * The CharacterLike check is intentionally first: concept conjunction
+ * short-circuits substitution, so BasicStringView<RangeValue<Ran>> is only ever
+ * formed when RangeValue<Ran> is actually a character type.
+ *
+ * @tparam Ran The range type being split.
+ * @tparam Delim The delimiter type.
+ */
+template <typename Ran, typename Delim>
+concept NormalizableDelimiter = CharacterLike<RangeValue<Ran>>
+    && (IsBoundedArrayValue<RemoveReferenceType<Delim>> || IsPointerValue<DecayType<Delim>>)
+    && ConstructibleFrom<BasicStringView<RangeValue<Ran>>, Delim>;
+
+/**
+ * @concept Splittable
+ * @brief Concept that checks if Split can be applied to the range with a given
+ *        delimiter — either directly, or after normalising a raw C-string
+ *        delimiter (see NormalizableDelimiter) to a null-free BasicStringView.
+ *
+ * @tparam Ran The range type.
+ * @tparam Delim The delimiter type (a single element or a pattern range).
+ */
+template <typename Ran, typename Delim>
+concept Splittable =
+    requires (Ran& r, Delim&& d) { { Split(r, Ops::forward<Delim>(d)) }; }
+        || (NormalizableDelimiter<Ran, Delim>
+        && requires (Ran& r, BasicStringView<RangeValue<Ran>> p) { { Split(r, p) }; });
 
 /**
  * @concept Sortable
@@ -199,6 +237,14 @@ concept Foldable = requires (Ran& r, Init&& init, Func&& f) {
 };
 #endif
 
+}
+
+/**
+ * @namespace stdx::linq
+ * @brief Wrapper namespace for standard library extension LINQ libraries.
+ */
+export namespace stdx::linq {
+
 /**
  * @class Query
  * @brief Class for representing LINQ-like queries of collection types.
@@ -292,6 +338,45 @@ public:
         return Query<decltype(Join(Transform(range, Ops::forward<Func>(func))))>(
             Join(Transform(range, Ops::forward<Func>(func)))
         );
+    }
+
+    /**
+     * @brief Splits the range into a sequence of substrings using a delimiter.
+     *
+     * Each piece produced by the split is materialised into a string of type Str.
+     * This is primarily intended for splitting character ranges — a String,
+     * StringView, or string literal — into a Query of substrings. For example,
+     * `Query(StringView{"a,b,c"}).split(',').to<Vector>()` yields a Vector<String>,
+     * and `.split<StringView>(',')` yields views over the original buffer instead.
+     *
+     * @note The underlying range must itself be a range of characters. A raw
+     *       `const char*` is not a range, so wrap the source first:
+     *       `Query(StringView{ptr})`. The delimiter, however, may be a single
+     *       character (`','`), a string view/string, or a bare C-string literal
+     *       (`" :: "`): a `const char[N]` / `const char*` delimiter is reinterpreted
+     *       as a BasicStringView so its terminating '\0' is not folded into the
+     *       pattern (which would otherwise stop it ever matching).
+     *
+     * @tparam Str The string type each piece is materialised into (defaults to String).
+     * @tparam Delim The delimiter type (a single element or a pattern range).
+     * @param delim The delimiter to split on.
+     * @return A Query whose elements are the split substrings as Str.
+     */
+    template <typename Str = String, typename Delim>
+        requires Splittable<Ran, Delim>
+    [[nodiscard]]
+    constexpr auto split(Delim&& delim) noexcept {
+        auto materialise = [](auto&& piece) -> Str { return Str(Begin(piece), End(piece)); };
+        if constexpr (NormalizableDelimiter<Ran, Delim>) {
+            auto pieces = Transform(
+                Split(range, BasicStringView<RangeValue<Ran>>(Ops::forward<Delim>(delim))),
+                materialise
+            );
+            return Query<decltype(pieces)>(Ops::move(pieces));
+        } else {
+            auto pieces = Transform(Split(range, Ops::forward<Delim>(delim)), materialise);
+            return Query<decltype(pieces)>(Ops::move(pieces));
+        }
     }
 
     /**

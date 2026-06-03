@@ -6,6 +6,6 @@
  */
 namespace stdx::pmr::meta {
     #ifdef __cpp_lib_stacktrace
-    using ::core::pmr::meta::StackTrace;
+    using StackTrace = std::pmr::stacktrace;
     #endif
 }

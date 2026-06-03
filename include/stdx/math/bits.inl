@@ -5,19 +5,37 @@
  * @brief Wrapper namespace for standard library mathematical operations.
  */
 export namespace stdx::math {
-    using ::core::math::Endian;
+    class [[nodiscard]] Endian final {
+    public:
+        using Self = std::endian;
 
-    using ::core::math::bit_cast;
-    using ::core::math::byteswap;
-    using ::core::math::has_single_bit;
-    using ::core::math::bit_ceil;
-    using ::core::math::bit_floor;
-    using ::core::math::bit_width;
-    using ::core::math::rotl;
-    using ::core::math::rotr;
-    using ::core::math::countl_zero;
-    using ::core::math::countl_one;
-    using ::core::math::countr_zero;
-    using ::core::math::countr_one;
-    using ::core::math::popcount;
+        static constexpr Self LITTLE = std::endian::little;
+        static constexpr Self BIG = std::endian::big;
+        static constexpr Self NATIVE = std::endian::native;
+    private:
+        const Self value;
+    public:
+        constexpr Endian() noexcept = delete;
+
+        constexpr Endian(Self value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+    };
+
+    using std::bit_cast;
+    using std::byteswap;
+    using std::has_single_bit;
+    using std::bit_ceil;
+    using std::bit_floor;
+    using std::bit_width;
+    using std::rotl;
+    using std::rotr;
+    using std::countl_zero;
+    using std::countl_one;
+    using std::countr_zero;
+    using std::countr_one;
+    using std::popcount;
 }

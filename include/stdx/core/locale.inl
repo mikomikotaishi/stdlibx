@@ -1,53 +1,122 @@
 #pragma once
 
+using stdx::iter::InputStreamBufferIterator;
+using stdx::iter::OutputStreamBufferIterator;
+
 /**
  * @namespace stdx::core
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 namespace stdx::core {
-    using ::core::prelude::Locale;
-    using ::core::prelude::LocaleId;
-    using ::core::prelude::LocaleFacet;
-    using ::core::prelude::LocaleCategory;
-    using ::core::prelude::CharTypeBase;
-    using ::core::prelude::CodeConverterBase;
-    using ::core::prelude::MessagesBase;
-    using ::core::prelude::TimeBase;
-    using ::core::prelude::MoneyBase;
-    using ::core::prelude::CharType;
-    using ::core::prelude::CodeConvert;
-    using ::core::prelude::Collate;
-    using ::core::prelude::Messages;
-    using ::core::prelude::TimeGet;
-    using ::core::prelude::TimePut;
-    using ::core::prelude::NumericGet;
-    using ::core::prelude::NumericPut;
-    using ::core::prelude::NumericPunctuation;
-    using ::core::prelude::MoneyGet;
-    using ::core::prelude::MoneyPut;
-    using ::core::prelude::MoneyPunctuation;
-    using ::core::prelude::CharTypeByName;
-    using ::core::prelude::CodeConvertByName;
-    using ::core::prelude::MessagesByName;
-    using ::core::prelude::CollateByName;
-    using ::core::prelude::TimeGetByName;
-    using ::core::prelude::TimePutByName;
-    using ::core::prelude::NumericPunctuationByName;
-    using ::core::prelude::MoneyPunctuationByName;
+    using Locale = std::locale;
+    using LocaleId = std::locale::id;
+    using LocaleFacet = std::locale::facet;
 
-    using ::core::prelude::use_facet;
-    using ::core::prelude::has_facet;
-    using ::core::prelude::isspace;
-    using ::core::prelude::isprint;
-    using ::core::prelude::iscntrl;
-    using ::core::prelude::isupper;
-    using ::core::prelude::islower;
-    using ::core::prelude::isalpha;
-    using ::core::prelude::isdigit;
-    using ::core::prelude::ispunct;
-    using ::core::prelude::isxdigit;
-    using ::core::prelude::isalnum;
-    using ::core::prelude::isgraph;
-    using ::core::prelude::toupper;
-    using ::core::prelude::tolower;
+    class [[nodiscard]] LocaleCategory final {
+    public:
+        using Self = std::locale::category;
+
+        static constexpr Self NONE = std::locale::none;
+        static constexpr Self COLLATE = std::locale::collate;
+        static constexpr Self CTYPE = std::locale::ctype;
+        static constexpr Self MONETARY = std::locale::monetary;
+        static constexpr Self NUMERIC = std::locale::numeric;
+        static constexpr Self TIME = std::locale::time;
+        static constexpr Self MESSAGES = std::locale::messages;
+        static constexpr Self ALL = std::locale::all;
+    private:
+        const Self value = NONE;
+    public:
+        constexpr LocaleCategory() noexcept = default;
+
+        constexpr LocaleCategory(Self value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+    };
+
+    using CharTypeBase = std::ctype_base;
+    using CodeConverterBase = std::codecvt_base;
+    using MessagesBase = std::messages_base;
+    using TimeBase = std::time_base;
+    using MoneyBase = std::money_base;
+
+    template <typename Char>
+    using CharType = std::ctype<Char>;
+
+    template <typename Intern, typename Extern, typename State>
+    using CodeConvert = std::codecvt<Intern, Extern, State>;
+
+    template <typename Char>
+    using Collate = std::collate<Char>;
+
+    template <typename Char>
+    using Messages = std::messages<Char>;
+
+    template <typename Char, typename InputIt = InputStreamBufferIterator<Char>>
+    using TimeGet = std::time_get<Char, InputIt>;
+
+    template <typename Char, typename OutputIt = OutputStreamBufferIterator<Char>>
+    using TimePut = std::time_put<Char, OutputIt>;
+
+    template <typename Char, typename InputIt = InputStreamBufferIterator<Char>>
+    using NumericGet = std::num_get<Char, InputIt>;
+
+    template <typename Char, typename OutputIt = OutputStreamBufferIterator<Char>>
+    using NumericPut = std::num_put<Char, OutputIt>;
+
+    template <typename Char>
+    using NumericPunctuation = std::numpunct<Char>;
+
+    template <typename Char, typename InputIt = InputStreamBufferIterator<Char>>
+    using MoneyGet = std::money_get<Char, InputIt>;
+
+    template <typename Char, typename OutputIt = OutputStreamBufferIterator<Char>>
+    using MoneyPut = std::money_put<Char, OutputIt>;
+
+    template <typename Char, bool Intl = false>
+    using MoneyPunctuation = std::moneypunct<Char, Intl>;
+
+    template <typename Char>
+    using CharTypeByName = std::ctype_byname<Char>;
+
+    template <typename Intern, typename Extern, typename State>
+    using CodeConvertByName = std::codecvt_byname<Intern, Extern, State>;
+
+    template <typename Char>
+    using MessagesByName = std::messages_byname<Char>;
+
+    template <typename Char>
+    using CollateByName = std::collate_byname<Char>;
+
+    template <typename Char, typename InputIt = InputStreamBufferIterator<Char>>
+    using TimeGetByName = std::time_get_byname<Char, InputIt>;
+
+    template <typename Char, typename OutputIt = OutputStreamBufferIterator<Char>>
+    using TimePutByName = std::time_put_byname<Char, OutputIt>;
+
+    template <typename Char>
+    using NumericPunctuationByName = std::numpunct_byname<Char>;
+
+    template <typename Char, bool Intl = false>
+    using MoneyPunctuationByName = std::moneypunct_byname<Char, Intl>;
+
+    using std::use_facet;
+    using std::has_facet;
+
+    using std::isspace;
+    using std::isprint;
+    using std::iscntrl;
+    using std::isupper;
+    using std::islower;
+    using std::isalpha;
+    using std::isdigit;
+    using std::ispunct;
+    using std::isxdigit;
+    using std::isalnum;
+    using std::isgraph;
+    using std::toupper;
+    using std::tolower;
 }

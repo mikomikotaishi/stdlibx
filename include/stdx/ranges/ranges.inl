@@ -1,273 +1,459 @@
 #pragma once
 
+using stdx::iter::IndirectBinaryPredicate;
+using stdx::iter::IndirectUnaryPredicate;
+using stdx::iter::InputOrOutputIterator;
+using stdx::iter::SentinelFor;
+using stdx::iter::SizedSentinelFor;
+using stdx::iter::UnreachableSentinel;
+using stdx::iter::WeaklyIncrementable;
+
 /**
  * @namespace stdx::ranges
  * @brief Wrapper namespace for standard library ranges operations.
  */
 export namespace stdx::ranges {
     namespace access {
-        using ::core::ranges::access::Begin;
-        using ::core::ranges::access::End;
-        using ::core::ranges::access::ConstBegin;
-        using ::core::ranges::access::ConstEnd;
-        using ::core::ranges::access::ReverseBegin;
-        using ::core::ranges::access::ReverseEnd;
-        using ::core::ranges::access::ConstReverseBegin;
-        using ::core::ranges::access::ConstReverseEnd;
-        using ::core::ranges::access::Size;
-        using ::core::ranges::access::SignedSize;
-        using ::core::ranges::access::Empty;
-        using ::core::ranges::access::Data;
-        using ::core::ranges::access::ConstData;
+        using Begin = decltype(std::ranges::begin);
+        using End = decltype(std::ranges::end);
+        using ConstBegin = decltype(std::ranges::cbegin);
+        using ConstEnd = decltype(std::ranges::cend);
+        using ReverseBegin = decltype(std::ranges::rbegin);
+        using ReverseEnd = decltype(std::ranges::rend);
+        using ConstReverseBegin = decltype(std::ranges::crbegin);
+        using ConstReverseEnd = decltype(std::ranges::crend);
+        using Size = decltype(std::ranges::size);
+        using SignedSize = decltype(std::ranges::ssize);
+        using Empty = decltype(std::ranges::empty);
+        using Data = decltype(std::ranges::data);
+        using ConstData = decltype(std::ranges::cdata);
     }
 
     inline namespace range_cpo {
-        using ::core::ranges::range_cpo::Begin;
-        using ::core::ranges::range_cpo::End;
-        using ::core::ranges::range_cpo::ConstBegin;
-        using ::core::ranges::range_cpo::ConstEnd;
-        using ::core::ranges::range_cpo::ReverseBegin;
-        using ::core::ranges::range_cpo::ReverseEnd;
-        using ::core::ranges::range_cpo::ConstReverseBegin;
-        using ::core::ranges::range_cpo::ConstReverseEnd;
-        using ::core::ranges::range_cpo::Size;
-        using ::core::ranges::range_cpo::SignedSize;
-        using ::core::ranges::range_cpo::Empty;
-        using ::core::ranges::range_cpo::Data;
-        using ::core::ranges::range_cpo::ConstData;
+        inline constexpr access::Begin Begin = std::ranges::begin;
+        inline constexpr access::End End = std::ranges::end;
+        inline constexpr access::ConstBegin ConstBegin = std::ranges::cbegin;
+        inline constexpr access::ConstEnd ConstEnd = std::ranges::cend;
+        inline constexpr access::ReverseBegin ReverseBegin = std::ranges::rbegin;
+        inline constexpr access::ReverseEnd ReverseEnd = std::ranges::rend;
+        inline constexpr access::ConstReverseBegin ConstReverseBegin = std::ranges::crbegin;
+        inline constexpr access::ConstReverseEnd ConstReverseEnd = std::ranges::crend;
+        inline constexpr access::Size Size = std::ranges::size;
+        inline constexpr access::SignedSize SignedSize = std::ranges::ssize;
+        inline constexpr access::Empty Empty = std::ranges::empty;
+        inline constexpr access::Data Data = std::ranges::data;
+        inline constexpr access::ConstData ConstData = std::ranges::cdata;
     }
 
-    using ::core::ranges::Range;
-    using ::core::ranges::BorrowedRange;
-    using ::core::ranges::EnableBorrowedRange;
-    using ::core::ranges::SizedRange;
-    using ::core::ranges::DisableSizedRange;
-    using ::core::ranges::View;
-    using ::core::ranges::EnableView;
-    using ::core::ranges::InputRange;
-    using ::core::ranges::OutputRange;
-    using ::core::ranges::ForwardRange;
-    using ::core::ranges::BidirectionalRange;
-    using ::core::ranges::RandomAccessRange;
-    using ::core::ranges::ContiguousRange;
-    using ::core::ranges::CommonRange;
-    using ::core::ranges::ViewableRange;
-    using ::core::ranges::ConstantRange;
+    template <typename T>
+    concept Range = std::ranges::range<T>;
+
+    template <typename T>
+    concept BorrowedRange = std::ranges::borrowed_range<T>;
+
+    template <typename T>
+    constexpr bool EnableBorrowedRange = std::ranges::enable_borrowed_range<T>;
+
+    template <typename T>
+    concept SizedRange = std::ranges::sized_range<T>;
+
+    template <typename T>
+    constexpr bool DisableSizedRange = std::ranges::disable_sized_range<T>;
+
+    template <typename T>
+    concept View = std::ranges::view<T>;
+
+    template <typename T>
+    constexpr bool EnableView = std::ranges::enable_view<T>;
+
+    template <typename T>
+    concept InputRange = std::ranges::input_range<T>;
+
+    template <typename R, typename T>
+    concept OutputRange = std::ranges::output_range<R, T>;
+
+    template <typename T>
+    concept ForwardRange = std::ranges::forward_range<T>;
+
+    template <typename T>
+    concept BidirectionalRange = std::ranges::bidirectional_range<T>;
+
+    template <typename T>
+    concept RandomAccessRange = std::ranges::random_access_range<T>;
+
+    template <typename T>
+    concept ContiguousRange = std::ranges::contiguous_range<T>;
+
+    template <typename T>
+    concept CommonRange = std::ranges::common_range<T>;
+
+    template <typename T>
+    concept ViewableRange = std::ranges::viewable_range<T>;
+
+    template <typename T>
+    concept ConstantRange = std::ranges::constant_range<T>;
+
     #ifdef __cpp_lib_ranges_reserve_hint
-    using ::core::ranges::ApproximatelySizedRange;
+    template <typename T>
+    concept ApproximatelySizedRange = std::ranges::approximately_sized_range<T>;
     #endif
 
-    using ::core::ranges::RangeIterator;
-    using ::core::ranges::RangeConstIterator;
-    using ::core::ranges::RangeSentinel;
-    using ::core::ranges::RangeConstSentinel;
-    using ::core::ranges::RangeDifference;
-    using ::core::ranges::RangeSize;
-    using ::core::ranges::RangeValue;
-    using ::core::ranges::RangeReference;
-    using ::core::ranges::RangeConstReference;
-    using ::core::ranges::RangeRvalueReference;
-    using ::core::ranges::RangeCommonReference;
-    using ::core::ranges::ViewInterface;
-    using ::core::ranges::SubrangeKind;
-    using ::core::ranges::Subrange;
-    using ::core::ranges::Dangling;
-    using ::core::ranges::BorrowedIteratorType;
-    using ::core::ranges::BorrowedSubrangeType;
-    using ::alloc::ranges::ElementsOf;
-    using ::core::ranges::EmptyView;
-    using ::core::ranges::SingleView;
-    using ::core::ranges::IotaView;
-    using ::core::ranges::RepeatView;
-    using ::alloc::ranges::BasicInputStreamView;
+    using std::ranges::to;
+    using std::ranges::get;
+
+    template <typename T>
+    using RangeIterator = std::ranges::iterator_t<T>;
+
+    template <Range R>
+    using RangeConstIterator = std::ranges::const_iterator_t<R>;
+
+    template <Range R>
+    using RangeSentinel = std::ranges::sentinel_t<R>;
+
+    template <Range R>
+    using RangeConstSentinel = std::ranges::const_sentinel_t<R>;
+
+    template <Range R>
+    using RangeDifference = std::ranges::range_difference_t<R>;
+
+    template <SizedRange R>
+    using RangeSize = std::ranges::range_size_t<R>;
+
+    template <Range R>
+    using RangeValue = std::ranges::range_value_t<R>;
+
+    template <Range R>
+    using RangeReference = std::ranges::range_reference_t<R>;
+
+    template <Range R>
+    using RangeConstReference = std::ranges::range_const_reference_t<R>;
+
+    template <Range R>
+    using RangeRvalueReference = std::ranges::range_rvalue_reference_t<R>;
+
+    template <Range R>
+    using RangeCommonReference = std::ranges::range_common_reference_t<R>;
+
+    template <typename Derived>
+    using ViewInterface = std::ranges::view_interface<Derived>;
+
+    class [[nodiscard]] SubrangeKind final {
+    public:
+        using Self = std::ranges::subrange_kind;
+
+        static constexpr Self UNSIZED = std::ranges::subrange_kind::unsized;
+        static constexpr Self SIZED = std::ranges::subrange_kind::sized;
+
+        const Self value;
+
+        constexpr SubrangeKind() noexcept = delete;
+
+        constexpr SubrangeKind(Self value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+    };
+
+    template <
+        InputOrOutputIterator Iter, 
+        SentinelFor<Iter> Sent = Iter, 
+        SubrangeKind K = SizedSentinelFor<Sent, Iter> ? SubrangeKind::SIZED : SubrangeKind::UNSIZED
+    >
+    using Subrange = std::ranges::subrange<Iter, Sent, K>;
+
+    using Dangling = std::ranges::dangling;
+
+    template <Range R>
+    using BorrowedIteratorType = std::ranges::borrowed_iterator_t<R>;
+
+    template <Range R>
+    using BorrowedSubrangeType = std::ranges::borrowed_subrange_t<R>;
+
+    template <typename T>
+    using EmptyView = std::ranges::empty_view<T>;
+
+    template <Range R, typename Alloc = Allocator<ByteUnit>>
+    using ElementsOf = std::ranges::elements_of<R, Alloc>;
+
+    template <CopyConstructible T>
+    using SingleView = std::ranges::single_view<T>;
+
+    template <WeaklyIncrementable W, Semiregular Bound = UnreachableSentinel>
+    using IotaView = std::ranges::iota_view<W, Bound>;
+
+    template <MoveConstructible W, Semiregular Bound = UnreachableSentinel>
+    using RepeatView = std::ranges::repeat_view<W, Bound>;
+
+    template <Movable V, typename Char, typename Traits = CharTraits<Char>>
+    using BasicInputStreamView = std::ranges::basic_istream_view<V, Char, Traits>;
 
     namespace types {
-        using ::core::ranges::types::Empty;
-        using ::core::ranges::types::Single;
-        using ::core::ranges::types::Iota;
-        using ::core::ranges::types::Repeat;
-        using ::alloc::ranges::types::InputStream;
-        using ::core::ranges::types::All;
-        using ::core::ranges::types::AsRvalue;
-        using ::core::ranges::types::Filter;
-        using ::core::ranges::types::Transform;
-        using ::core::ranges::types::Take;
-        using ::core::ranges::types::TakeWhile;
-        using ::core::ranges::types::Drop;
-        using ::core::ranges::types::DropWhile;
-        using ::core::ranges::types::Join;
-        using ::core::ranges::types::JoinWith;
-        using ::core::ranges::types::LazySplit;
-        using ::core::ranges::types::Split;
-        #ifdef __cpp_lib_ranges_concat
-        using ::core::ranges::types::Concat;
-        #endif
-        using ::core::ranges::types::Counted;
-        using ::core::ranges::types::Common;
-        using ::core::ranges::types::Reverse;
-        #ifdef __cpp_lib_ranges_as_const
-        using ::core::ranges::types::AsConst;
-        #endif
-        using ::core::ranges::types::Elements;
-        using ::core::ranges::types::Keys;
-        using ::core::ranges::types::Values;
-        #ifdef __cpp_lib_ranges_enumerate
-        using ::core::ranges::types::Enumerate;
-        #endif
-        using ::core::ranges::types::Zip;
-        using ::core::ranges::types::ZipTransform;
-        using ::core::ranges::types::Adjacent;
-        using ::core::ranges::types::Pairwise;
-        using ::core::ranges::types::AdjacentTransform;
-        using ::core::ranges::types::PairwiseTransform;
-        #ifdef __cpp_lib_ranges_chunk
-        using ::core::ranges::types::Chunk;
-        #endif
-        #ifdef __cpp_lib_ranges_slide
-        using ::core::ranges::types::Slide;
-        #endif
-        #ifdef __cpp_lib_ranges_chunk_by
-        using ::core::ranges::types::ChunkBy;
-        #endif
-        #ifdef __cpp_lib_ranges_stride
-        using ::core::ranges::types::Stride;
-        #endif
-        #ifdef __cpp_lib_ranges_cartesian_product
-        using ::core::ranges::types::CartesianProduct;
-        #endif
-        #ifdef __cpp_lib_ranges_cache_latest
-        using ::core::ranges::types::CacheLatest;
-        #endif
-        #ifdef __cpp_lib_ranges_to_input
-        using ::core::ranges::types::ToInput;
-        #endif
-    }
-
-    using ::core::ranges::RangeAdaptorClosure;
-    using ::core::ranges::ReferenceView;
-    using ::core::ranges::OwningView;
-    using ::core::ranges::AsRvalueView;
-    using ::core::ranges::FilterView;
-    using ::core::ranges::TransformView;
-    using ::core::ranges::TakeView;
-    using ::core::ranges::TakeWhileView;
-    using ::core::ranges::DropView;
-    using ::core::ranges::DropWhileView;
-    using ::core::ranges::JoinView;
-    using ::core::ranges::JoinWithView;
-    using ::core::ranges::LazySplitView;
-    using ::core::ranges::SplitView;
-    #ifdef __cpp_lib_ranges_concat
-    using ::core::ranges::ConcatView;
-    #endif
-    using ::core::ranges::CommonView;
-    using ::core::ranges::ReverseView;
-    #ifdef __cpp_lib_ranges_as_const
-    using ::core::ranges::AsConstView;
-    #endif
-    using ::core::ranges::ElementsView;
-    using ::core::ranges::KeysView;
-    using ::core::ranges::ValuesView;
-    #ifdef __cpp_lib_ranges_enumerate
-    using ::core::ranges::EnumerateView;
-    #endif
-    using ::core::ranges::ZipView;
-    using ::core::ranges::ZipTransformView;
-    using ::core::ranges::AdjacentView;
-    using ::core::ranges::AdjacentTransformView;
-    #ifdef __cpp_lib_ranges_chunk
-    using ::core::ranges::ChunkView;
-    #endif
-    #ifdef __cpp_lib_ranges_slide
-    using ::core::ranges::SlideView;
-    #endif
-    #ifdef __cpp_lib_ranges_chunk_by
-    using ::core::ranges::ChunkByView;
-    #endif
-    #ifdef __cpp_lib_ranges_stride
-    using ::core::ranges::StrideView;
-    #endif
-    #ifdef __cpp_lib_ranges_cartesian_product
-    using ::core::ranges::CartesianProductView;
-    #endif
-    #ifdef __cpp_lib_ranges_cache_latest
-    using ::core::ranges::CacheLatestView;
-    #endif
-    #ifdef __cpp_lib_ranges_to_input
-    using ::core::ranges::ToInputView;
-    #endif
-
-    namespace views {
-        using ::core::ranges::views::Empty;
-        using ::core::ranges::views::Single;
-        using ::core::ranges::views::Iota;
-        using ::core::ranges::views::Repeat;
-        using ::alloc::ranges::views::InputStream;
-        using ::core::ranges::views::AllTag;
-        using ::core::ranges::views::All;
-        using ::core::ranges::views::AsRvalue;
-        using ::core::ranges::views::Filter;
-        using ::core::ranges::views::Transform;
-        using ::core::ranges::views::Take;
-        using ::core::ranges::views::TakeWhile;
-        using ::core::ranges::views::Drop;
-        using ::core::ranges::views::DropWhile;
-        using ::core::ranges::views::Join;
+        template <typename T>
+        using Empty = decltype(std::ranges::views::empty<T>);
+        using Single = decltype(std::ranges::views::single);
+        using Iota = decltype(std::ranges::views::iota);
+        using Repeat = decltype(std::ranges::views::repeat);
+        template <typename T>
+        using InputStream = decltype(std::ranges::views::istream<T>);
+        using All = decltype(std::ranges::views::all);
+        using AsRvalue = decltype(std::ranges::views::as_rvalue);
+        using Filter = decltype(std::ranges::views::filter);
+        using Transform = decltype(std::ranges::views::transform);
+        using Take = decltype(std::ranges::views::take);
+        using TakeWhile = decltype(std::ranges::views::take_while);
+        using Drop = decltype(std::ranges::views::drop);
+        using DropWhile = decltype(std::ranges::views::drop_while);
+        using Join = decltype(std::ranges::views::join);
         #ifdef __cpp_lib_ranges_join_with
-        using ::core::ranges::views::JoinWith;
+        using JoinWith = decltype(std::ranges::views::join_with);
         #endif
-        using ::core::ranges::views::LazySplit;
-        using ::core::ranges::views::Split;
+        using LazySplit = decltype(std::ranges::views::lazy_split);
+        using Split = decltype(std::ranges::views::split);
         #ifdef __cpp_lib_ranges_concat
-        using ::core::ranges::views::Concat;
+        using Concat = decltype(std::ranges::views::concat);
         #endif
-        using ::core::ranges::views::Counted;
-        using ::core::ranges::views::Common;
-        using ::core::ranges::views::Reverse;
-        using ::core::ranges::views::AsConst;
-        using ::core::ranges::views::Elements;
-        using ::core::ranges::views::Keys;
-        using ::core::ranges::views::Values;
+        using Counted = decltype(std::ranges::views::counted);
+        using Common = decltype(std::ranges::views::common);
+        using Reverse = decltype(std::ranges::views::reverse);
+        #ifdef __cpp_lib_ranges_as_const
+        using AsConst = decltype(std::ranges::views::as_const);
+        #endif
+        template <usize N>
+        using Elements = decltype(std::ranges::views::elements<N>);
+        using Keys = decltype(std::ranges::views::keys);
+        using Values = decltype(std::ranges::views::values);
         #ifdef __cpp_lib_ranges_enumerate
-        using ::core::ranges::views::Enumerate;
+        using Enumerate = decltype(std::ranges::views::enumerate);
         #endif
-        using ::core::ranges::views::Zip;
-        using ::core::ranges::views::ZipTransform;
-        using ::core::ranges::views::Adjacent;
-        using ::core::ranges::views::Pairwise;
-        using ::core::ranges::views::AdjacentTransform;
-        using ::core::ranges::views::PairwiseTransform;
+        using Zip = decltype(std::ranges::views::zip);
+        using ZipTransform = decltype(std::ranges::views::zip_transform);
+        template <usize N>
+        using Adjacent = decltype(std::ranges::views::adjacent<N>);
+        using Pairwise = decltype(std::ranges::views::pairwise);
+        template <usize N>
+        using AdjacentTransform = decltype(std::ranges::views::adjacent_transform<N>);
+        using PairwiseTransform = decltype(std::ranges::views::pairwise_transform);
         #ifdef __cpp_lib_ranges_chunk
-        using ::core::ranges::views::Chunk;
+        using Chunk = decltype(std::ranges::views::chunk);
         #endif
         #ifdef __cpp_lib_ranges_slide
-        using ::core::ranges::views::Slide;
+        using Slide = decltype(std::ranges::views::slide);
         #endif
         #ifdef __cpp_lib_ranges_chunk_by
-        using ::core::ranges::views::ChunkBy;
+        using ChunkBy = decltype(std::ranges::views::chunk_by);
         #endif
         #ifdef __cpp_lib_ranges_stride
-        using ::core::ranges::views::Stride;
+        using Stride = decltype(std::ranges::views::stride);
         #endif
         #ifdef __cpp_lib_ranges_cartesian_product
-        using ::core::ranges::views::CartesianProduct;
+        using CartesianProduct = decltype(std::ranges::views::cartesian_product);
         #endif
         #ifdef __cpp_lib_ranges_cache_latest
-        using ::core::ranges::views::CacheLatest;
+        using CacheLatest = decltype(std::ranges::views::cache_latest);
         #endif
         #ifdef __cpp_lib_ranges_to_input
-        using ::core::ranges::views::ToInput;
+        using ToInput = decltype(std::ranges::views::to_input);
         #endif
     }
 
-    using ::core::ranges::to;
-    using ::core::ranges::get;
+    template <typename Derived>
+    using RangeAdaptorClosure = std::ranges::range_adaptor_closure<Derived>;
 
-    using ::core::ranges::FromRangeTag;
-    using ::core::ranges::FromRange;
+    template <Range R>
+    using ReferenceView = std::ranges::ref_view<R>;
 
-    using ::core::ranges::tuple_size;
-    using ::core::ranges::tuple_element;
+    template <Range R>
+    using OwningView = std::ranges::owning_view<R>;
+
+    template <InputRange V>
+    using AsRvalueView = std::ranges::as_rvalue_view<V>;
+
+    template <InputRange V, IndirectUnaryPredicate<RangeIterator<V>> Pred>
+    using FilterView = std::ranges::filter_view<V, Pred>;
+
+    template <InputRange V, CopyConstructible F>
+    using TransformView = std::ranges::transform_view<V, F>;
+
+    template <View V>
+    using TakeView = std::ranges::take_view<V>;
+
+    template <View V, typename Pred>
+    using TakeWhileView = std::ranges::take_while_view<V, Pred>;
+
+    template <View V>
+    using DropView = std::ranges::drop_view<V>;
+
+    template <View V, typename Pred>
+    using DropWhileView = std::ranges::drop_while_view<V, Pred>;
+
+    template <InputRange V>
+    using JoinView = std::ranges::join_view<V>;
+
+    #ifdef __cpp_lib_ranges_join_with
+    template <InputRange V, ForwardRange Pattern>
+    using JoinWithView = std::ranges::join_with_view<V, Pattern>;
+    #endif
+
+    template <InputRange V, ForwardRange Pattern>
+    using LazySplitView = std::ranges::lazy_split_view<V, Pattern>;
+
+    template <ForwardRange V, ForwardRange Pattern>
+    using SplitView = std::ranges::split_view<V, Pattern>;
+
+    #ifdef __cpp_lib_ranges_concat
+    template <InputRange... Vs>
+    using ConcatView = std::ranges::concat_view<Vs...>;
+    #endif
+
+    template <View V>
+    using CommonView = std::ranges::common_view<V>;
+
+    template <View V>
+    using ReverseView = std::ranges::reverse_view<V>;
+
+    #ifdef __cpp_lib_ranges_as_const
+    template <View V>
+    using AsConstView = std::ranges::as_const_view<V>;
+    #endif
+
+    template <InputRange V, usize N>
+    using ElementsView = std::ranges::elements_view<V, N>;
+
+    template <typename R>
+    using KeysView = std::ranges::keys_view<R>;
+
+    template <typename R>
+    using ValuesView = std::ranges::values_view<R>;
+
+    #ifdef __cpp_lib_ranges_enumerate
+    template <View V>
+    using EnumerateView = std::ranges::enumerate_view<V>;
+    #endif
+
+    template <InputRange... Vs>
+    using ZipView = std::ranges::zip_view<Vs...>;
+
+    template <MoveConstructible F, InputRange... Vs>
+    using ZipTransformView = std::ranges::zip_transform_view<F, Vs...>;
+
+    template <ForwardRange V, usize N>
+    using AdjacentView = std::ranges::adjacent_view<V, N>;
+
+    template <ForwardRange V, MoveConstructible F, usize N>
+    using AdjacentTransformView = std::ranges::adjacent_transform_view<V, F, N>;
+
+    #ifdef __cpp_lib_ranges_chunk
+    template <View V>
+    using ChunkView = std::ranges::chunk_view<V>;
+    #endif
+
+    #ifdef __cpp_lib_ranges_slide
+    template <ForwardRange V>
+    using SlideView = std::ranges::slide_view<V>;
+    #endif
+
+    #ifdef __cpp_lib_ranges_chunk_by
+    template <ForwardRange V, IndirectBinaryPredicate<RangeIterator<V>, RangeIterator<V>> Pred>
+    using ChunkByView = std::ranges::chunk_by_view<V, Pred>;
+    #endif
+
+    #ifdef __cpp_lib_ranges_stride
+    template <InputRange V>
+    using StrideView = std::ranges::stride_view<V>;
+    #endif
+
+    #ifdef __cpp_lib_ranges_cartesian_product
+    template <InputRange First, ForwardRange... Vs>
+    using CartesianProductView = std::ranges::cartesian_product_view<First, Vs...>;
+    #endif
+
+    #ifdef __cpp_lib_ranges_cache_latest
+    template <InputRange V>
+    using CacheLatestView = std::ranges::cache_latest_view<V>;
+    #endif
+
+    #ifdef __cpp_lib_ranges_to_input
+    template <InputRange V>
+    using ToInputView = std::ranges::to_input_view<V>;
+    #endif
+    
+    namespace views {
+        template <typename T>
+        inline constexpr types::Empty<T> Empty = std::ranges::views::empty<T>;
+        inline constexpr types::Single Single = std::ranges::views::single;
+        inline constexpr types::Iota Iota = std::ranges::views::iota;
+        inline constexpr types::Repeat Repeat = std::ranges::views::repeat;
+        template <typename T>
+        inline constexpr types::InputStream<T> InputStream = std::ranges::views::istream<T>;
+        template <ViewableRange R>
+        using AllTag = std::ranges::views::all_t<R>;
+        inline constexpr types::All All = std::ranges::views::all;
+        inline constexpr types::AsRvalue AsRvalue = std::ranges::views::as_rvalue;
+        inline constexpr types::Filter Filter = std::ranges::views::filter;
+        inline constexpr types::Transform Transform = std::ranges::views::transform;
+        inline constexpr types::Take Take = std::ranges::views::take;
+        inline constexpr types::TakeWhile TakeWhile = std::ranges::views::take_while;
+        inline constexpr types::Drop Drop = std::ranges::views::drop;
+        inline constexpr types::DropWhile DropWhile = std::ranges::views::drop_while;
+        inline constexpr types::Join Join = std::ranges::views::join;
+        #ifdef __cpp_lib_ranges_join_with
+        inline constexpr types::JoinWith JoinWith = std::ranges::views::join_with;
+        #endif
+        inline constexpr types::LazySplit LazySplit = std::ranges::views::lazy_split;
+        inline constexpr types::Split Split = std::ranges::views::split;
+        #ifdef __cpp_lib_ranges_concat
+        inline constexpr types::Concat Concat = std::ranges::views::concat;
+        #endif
+        inline constexpr types::Counted Counted = std::ranges::views::counted;
+        inline constexpr types::Common Common = std::ranges::views::common;
+        inline constexpr types::Reverse Reverse = std::ranges::views::reverse;
+        #ifdef __cpp_lib_ranges_as_const
+        inline constexpr types::AsConst AsConst = std::ranges::views::as_const;
+        #endif
+        template <usize N>
+        inline constexpr types::Elements<N> Elements = std::ranges::views::elements<N>;
+        inline constexpr types::Keys Keys = std::ranges::views::keys;
+        inline constexpr types::Values Values = std::ranges::views::values;
+        #ifdef __cpp_lib_ranges_enumerate 	
+        inline constexpr types::Enumerate Enumerate = std::ranges::views::enumerate;
+        #endif
+        inline constexpr types::Zip Zip = std::ranges::views::zip;
+        inline constexpr types::ZipTransform ZipTransform = std::ranges::views::zip_transform;
+        template <usize N>
+        inline constexpr types::Adjacent<N> Adjacent = std::ranges::views::adjacent<N>;
+        inline constexpr types::Pairwise Pairwise = std::ranges::views::pairwise;
+        template <usize N>
+        inline constexpr types::AdjacentTransform<N> AdjacentTransform = std::ranges::views::adjacent_transform<N>;
+        inline constexpr types::PairwiseTransform PairwiseTransform = std::ranges::views::pairwise_transform;
+        #ifdef __cpp_lib_ranges_chunk
+        inline constexpr types::Chunk Chunk = std::ranges::views::chunk;
+        #endif
+        #ifdef __cpp_lib_ranges_slide
+        inline constexpr types::Slide Slide = std::ranges::views::slide;
+        #endif
+        #ifdef __cpp_lib_ranges_chunk_by
+        inline constexpr types::ChunkBy ChunkBy = std::ranges::views::chunk_by;
+        #endif
+        #ifdef __cpp_lib_ranges_stride
+        inline constexpr types::Stride Stride = std::ranges::views::stride;
+        #endif
+        #ifdef __cpp_lib_ranges_cartesian_product
+        inline constexpr types::CartesianProduct CartesianProduct = std::ranges::views::cartesian_product;
+        #endif
+        #ifdef __cpp_lib_ranges_cache_latest
+        inline constexpr types::CacheLatest CacheLatest = std::ranges::views::cache_latest;
+        #endif
+        #ifdef __cpp_lib_ranges_to_input
+        inline constexpr types::ToInput ToInput = std::ranges::views::to_input;
+        #endif
+    }
+
+    using std::tuple_size;
+    using std::tuple_element;
+    using FromRangeTag = std::from_range_t;
+    inline constexpr FromRangeTag FromRange = std::from_range;
 }
 
 export namespace stdx {

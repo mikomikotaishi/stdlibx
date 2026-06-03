@@ -8,23 +8,6 @@ export namespace stdx::os::linux::sys {
     #if defined(__linux__) && __has_include(<sys/capability.h>)
     using Capability = ::cap_t;
     using CapabilityValue = ::cap_value_t;
-    
-    enum class CapabilityFlag: u8 {
-        EFFECTIVE = 0, ///< Specifies the effective flag
-        PERMITTED = 1, ///< Specifies the permitted flag
-        INHERITABLE = 2 ///< Specifies the inheritable flag
-    };
-
-    enum class CapabilityIABVector: u8 {
-        INH = 2,
-        AMB = 3,
-        BOUND = 4
-    };
-
-    enum class CapFlagValue: u8 {
-        CLEAR = 0, ///< The flag is cleared/disabled
-        SET = 1 ///< The flag is set/enabled
-    };
 
     using CapabilityIabStruct = ::cap_iab_s;
     using CapabilityIab = ::cap_iab_t;

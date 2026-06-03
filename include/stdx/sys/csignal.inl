@@ -5,51 +5,130 @@
  * @brief Wrapper namespace for standard library system operations.
  */
 export namespace stdx::sys {
-    using ::core::sys::SignalAtomic;
+    using Handler = void (*)(int);    
+    
+    using SignalAtomic = std::sig_atomic_t;
 
-    using ::core::sys::signal;
-    using ::core::sys::raise;
+    using std::signal;
+    using std::raise;
 
-    using ::core::sys::Signal;
+    /**
+     * @class Signal
+     * @brief Represents a system signal that can be raised and handled.
+     */
+    class Signal {
+    private:
+        int sig;
+    public:
+        using Handler = void (*)(int);
+        
+        // Signal handler constants
+        static inline const Handler DEFAULT = SIG_DFL; ///< Default signal handler.
+        static inline const Handler IGNORE = SIG_IGN; ///< Ignore signal handler.
+        static inline const Handler ERROR = SIG_ERR; ///< Error return value.
 
-    using ::core::sys::SIG_DFL; ///< Default signal handler.
-    using ::core::sys::SIG_IGN; ///< Ignore signal handler.
-    using ::core::sys::SIG_ERR; ///< Error return value.
+        // Signal number constants
+        static constexpr int HANGUP = SIGHUP; ///< Hangup.
+        static constexpr int INTERRUPT = SIGINT; ///< Interactive attention signal.
+        static constexpr int QUIT = SIGQUIT; ///< Quit.
+        static constexpr int ILLEGAL = SIGILL; ///< Illegal instruction.
+        static constexpr int TRAP = SIGTRAP; ///< Trace/breakpoint trap.
+        static constexpr int ABORT = SIGABRT; ///< Abnormal termination.
+        static constexpr int BUS_ERROR = SIGBUS; ///< Bus error.
+        static constexpr int FLOATING_POINT_EXCEPTION = SIGFPE; ///< Erroneous arithmetic operation.
+        static constexpr int KILL = SIGKILL; ///< Killed.
+        static constexpr int USER_DEFINED_1 = SIGUSR1; ///< User-defined signal 1.
+        static constexpr int SEGMENTATION_VIOLATION = SIGSEGV; ///< Invalid access to storage.
+        static constexpr int USER_DEFINED_2 = SIGUSR2; ///< User-defined signal 2.
+        static constexpr int BROKEN_PIPE = SIGPIPE; ///< Broken pipe.
+        static constexpr int ALARM = SIGALRM; ///< Alarm clock.
+        static constexpr int TERMINATE = SIGTERM; ///< Termination request.
+        static constexpr int STACK_FAULT = SIGSTKFLT; ///< Stack fault (obsolete).
+        static constexpr int CHILD = SIGCHLD; ///< Child terminated or stopped.
+        static constexpr int CONTINUE = SIGCONT; ///< Continue.
+        static constexpr int STOP = SIGSTOP; ///< Stop, unblockable.
+        static constexpr int TERMINAL_STOP = SIGTSTP; ///< Keyboard stop.
+        static constexpr int TERMINAL_INPUT = SIGTTIN; ///< Background read from control terminal.
+        static constexpr int TERMINAL_OUTPUT = SIGTTOU; ///< Background write to control terminal.
+        static constexpr int URGENT = SIGURG; ///< Urgent data is available at a socket.
+        static constexpr int CPU_LIMIT = SIGXCPU; ///< CPU time limit exceeded.
+        static constexpr int FILE_SIZE_LIMIT = SIGXFSZ; ///< File size limit exceeded.
+        static constexpr int VIRTUAL_ALARM = SIGVTALRM; ///< Virtual timer expired.
+        static constexpr int PROFILING = SIGPROF; ///< Profiling timer expired.
+        static constexpr int WINDOW_CHANGE = SIGWINCH; ///< Window size change (4.3 BSD, Sun).
+        static constexpr int POLL = SIGPOLL; ///< Pollable event occurred (System V).
+        static constexpr int POWER_FAILURE = SIGPWR; ///< Power failure imminent.
+        static constexpr int BAD_SYSTEM_CALL = SIGSYS; ///< Bad system call.
+        static constexpr int IO = SIGIO; ///< I/O now possible (4.2 BSD).
+        static constexpr int IOT = SIGIOT; ///< IOT instruction, abort() on a PDP-11.
 
-    using ::core::sys::SIGHUP; ///< Hangup.
-    using ::core::sys::SIGINT; ///< Interactive attention signal.
-    using ::core::sys::SIGQUIT; ///< Quit.
-    using ::core::sys::SIGILL; ///< Illegal instruction.
-    using ::core::sys::SIGTRAP; ///< Trace/breakpoint trap.
-    using ::core::sys::SIGABRT; ///< Abnormal termination.
-    using ::core::sys::SIGBUS; ///< Bus error.
-    using ::core::sys::SIGFPE; ///< Erroneous arithmetic operation.
-    using ::core::sys::SIGKILL; ///< Killed.
-    using ::core::sys::SIGUSR1; ///< User-defined signal 1.
-    using ::core::sys::SIGSEGV; ///< Invalid access to storage.
-    using ::core::sys::SIGUSR2; ///< User-defined signal 2.
-    using ::core::sys::SIGPIPE; ///< Broken pipe.
-    using ::core::sys::SIGALRM; ///< Alarm clock.
-    using ::core::sys::SIGTERM; ///< Termination request.
-    using ::core::sys::SIGSTKFLT; ///< Stack fault (obsolete).
-    using ::core::sys::SIGCHLD; ///< Child terminated or stopped.
-    using ::core::sys::SIGCONT; ///< Continue.
-    using ::core::sys::SIGSTOP; ///< Stop, unblockable.
-    using ::core::sys::SIGTSTP; ///< Keyboard stop.
-    using ::core::sys::SIGTTIN; ///< Background read from control terminal.
-    using ::core::sys::SIGTTOU; ///< Background write to control terminal.
-    using ::core::sys::SIGURG; ///< Urgent data is available at a socket.
-    using ::core::sys::SIGXCPU; ///< CPU time limit exceeded.
-    using ::core::sys::SIGXFSZ; ///< File size limit exceeded.
-    using ::core::sys::SIGVTALRM; ///< Virtual timer expired.
-    using ::core::sys::SIGPROF; ///< Profiling timer expired.
-    using ::core::sys::SIGWINCH; ///< Window size change (4.3 BSD, Sun).
-    using ::core::sys::SIGPOLL; ///< Pollable event occurred (System V).
-    using ::core::sys::SIGPWR; ///< Power failure imminent.
-    using ::core::sys::SIGSYS; ///< Bad system call.
+        /**
+         * @brief Constructs a Signal object for the specified signal number.
+         * @param sig The signal number.
+         */
+        explicit Signal(int sig) noexcept:
+            sig{sig} {}
 
-    // Historical signals and archaic names for compatibility
-    using ::core::sys::SIGIO; ///< I/O now possible (4.2 BSD).
-    using ::core::sys::SIGIOT; ///< IOT instruction, abort() on a PDP-11.
-    using ::core::sys::SIGCLD; ///< Old System V name for SIGCHLD.
+        /**
+         * @brief Gets the signal number.
+         * @return The signal number.
+         */
+        [[nodiscard]]
+        int number() const noexcept {
+            return sig;
+        }
+
+        /**
+         * @brief Sets a signal handler for this signal.
+         * @param handler The signal handler function.
+         * @return The previous signal handler, or SIG_ERR on error.
+         */
+        Handler set_handler(Handler handler) const noexcept {
+            return std::signal(sig, handler);
+        }
+
+        /**
+         * @brief Raises this signal.
+         * @return 0 on success, non-zero on failure.
+         */
+        int raise() const noexcept {
+            return std::raise(sig);
+        }
+
+        /**
+         * @brief Ignores this signal.
+         * @return The previous signal handler, or SIG_ERR on error.
+         */
+        Handler ignore() const noexcept {
+            return std::signal(sig, IGNORE);
+        }
+
+        /**
+         * @brief Resets this signal to default behavior.
+         * @return The previous signal handler, or SIG_ERR on error.
+         */
+        Handler reset() const noexcept {
+            return std::signal(sig, DEFAULT);
+        }
+
+        // Static methods for direct access
+        /**
+         * @brief Sets a signal handler for the specified signal.
+         * @param sig The signal number.
+         * @param handler The signal handler function.
+         * @return The previous signal handler, or SIG_ERR on error.
+         */
+        static Handler handle(int sig, Handler handler) noexcept {
+            return std::signal(sig, handler);
+        }
+
+        /**
+         * @brief Raises the specified signal.
+         * @param sig The signal number.
+         * @return 0 on success, non-zero on failure.
+         */
+        static int raise(int sig) noexcept {
+            return std::raise(sig);
+        }
+    };
 }

@@ -1,31 +1,35 @@
 #pragma once
 
+using stdx::meta::IsSameValue;
+
 /**
  * @namespace stdx::collections
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace stdx::collections {
-    using ::alloc::collections::Stack;
+    template <typename T, typename Container = Deque<T>>
+        requires IsSameValue<T, typename Container::value_type>
+    using Stack = std::stack<T, Container>;
 
-    using ::alloc::collections::erase;
-    using ::alloc::collections::erase_if;
+    using std::erase;
+    using std::erase_if;
 
-    using ::alloc::collections::operator==;
-    using ::alloc::collections::operator<=>;
+    using std::operator==;
+    using std::operator<=>;
 
-    using ::alloc::collections::begin;
-    using ::alloc::collections::cbegin;
-    using ::alloc::collections::end;
-    using ::alloc::collections::cend;
-    using ::alloc::collections::rbegin;
-    using ::alloc::collections::crbegin;
-    using ::alloc::collections::rend;
-    using ::alloc::collections::crend;
-    using ::alloc::collections::size;
-    using ::alloc::collections::ssize;
-    using ::alloc::collections::empty;
-    using ::alloc::collections::data;
+    using std::begin;
+    using std::cbegin;
+    using std::end;
+    using std::cend;
+    using std::rbegin;
+    using std::crbegin;
+    using std::rend;
+    using std::crend;
+    using std::size;
+    using std::ssize;
+    using std::empty;
+    using std::data;
 
-    using ::alloc::collections::hash;
-    using ::alloc::collections::swap;
+    using std::hash;
+    using std::swap;
 }

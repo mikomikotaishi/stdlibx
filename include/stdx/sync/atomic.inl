@@ -27,7 +27,7 @@ export namespace stdx::sync {
     private:
         const Self value;
     public:
-        constexpr MemoryOrder() noexcept = default;
+        constexpr MemoryOrder() noexcept = delete;
 
         constexpr MemoryOrder(Self value) noexcept:
             value{value} {}

@@ -163,7 +163,7 @@ export namespace stdx::time {
                             kind = FieldKind::ERA;
                             break;
                         default:
-                            throw DateTimeException("Unsupported pattern letter: " + letter);
+                            throw DateTimeException(stdx::fmt::format("Unsupported pattern letter: {}", letter));
                     }
                     tokens.emplace_back(kind, count, "");
                 } else {

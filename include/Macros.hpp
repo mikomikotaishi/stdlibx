@@ -10,31 +10,17 @@
 #define throws(...) noexcept(__VA_OPT__(!) true)
 
 /**
- * @brief Utility macro to import the core::prelude namespace within the module.
- */
-#define STDLIBX_CORE_PREPARE_IMPORT_PRELUDE() \
-    namespace core::prelude {} \
-    using namespace core::prelude;
-
-/**
- * @brief Utility macro to import the core::literals namespace within the module.
- */
-#define STDLIBX_CORE_PREPARE_IMPORT_LITERALS() \
-    namespace core::inline literals {} \
-    using namespace core::literals;
-
-/**
  * @brief Utility macro to import the stdx::core namespace within the module.
  */
-#define STDLIBX_STDX_PREPARE_IMPORT_CORE() \
+#define STDLIBX_PREPARE_IMPORT_CORE() \
     namespace stdx::core {} \
     using namespace stdx::core;
 
 /**
  * @brief Utility macro to import the stdx::literals namespace within the module.
  */
-#define STDLIBX_STDX_PREPARE_IMPORT_LITERALS() \
-    namespace stdx::inline literals {} \
+#define STDLIBX_PREPARE_IMPORT_LITERALS() \
+    namespace stdx::literals {} \
     using namespace stdx::literals;
 
 /**

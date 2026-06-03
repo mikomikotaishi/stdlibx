@@ -6,10 +6,12 @@
  */
 export namespace stdx::pmr::mem {
     #ifdef __cpp_lib_indirect
-    using ::alloc::pmr::mem::Indirect;
+    template <typename T>
+    using Indirect = std::pmr::indirect<T>;
     #endif
 
     #ifdef __cpp_lib_polymorphic
-    using ::alloc::pmr::mem::Polymorphic;
+    template <typename T>
+    using Polymorphic = std::pmr::polymorphic<T>;
     #endif
 }

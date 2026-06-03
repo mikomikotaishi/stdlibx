@@ -6,28 +6,53 @@
  */
 export namespace stdx::core {
     #ifdef __cpp_lib_mdspan
-    using ::core::prelude::Extents;
-    using ::core::prelude::DynamicExtents;
-    using ::core::prelude::Dims;
-    using ::core::prelude::LayoutLeftPadded;
-    using ::core::prelude::LayoutRightPadded;
-    using ::core::prelude::DefaultAccessor;
-    using ::core::prelude::LayoutLeft;
-    using ::core::prelude::LayoutRight;
-    using ::core::prelude::LayoutStride;
-    using ::core::prelude::MultiDimensionalSpan;
-    // using ::core::prelude::StridedSlice;
-    using ::core::prelude::SubMultiDimensionalSpanMappingResult;
-    using ::core::prelude::FullExtentTag;
-    using ::core::prelude::FullExtent;
+    template <typename IdxT, usize... Exts>
+    using Extents = std::extents<IdxT, Exts...>;
+
+    template <typename IdxT, usize Rank>
+    using DynamicExtents = std::dextents<IdxT, Rank>;
+
+    template <usize Rank, typename IdxT = usize>
+    using Dims = std::dims<Rank, IdxT>;
+
+    template <usize PaddingValue = DYNAMIC_EXTENT>
+    using LayoutLeftPadded = std::layout_left_padded<PaddingValue>;
+
+    template <usize PaddingValue = DYNAMIC_EXTENT>
+    using LayoutRightPadded = std::layout_right_padded<PaddingValue>;
+
+    template <typename E>
+    using DefaultAccessor = std::default_accessor<E>;
+
+    using LayoutLeft = std::layout_left;
+    using LayoutRight = std::layout_right;
+    using LayoutStride = std::layout_stride;
+
+    template <
+        typename E,
+        typename Exts,
+        typename LayoutPolicy = LayoutRight,
+        typename AccessorPolicy = DefaultAccessor<E>
+    >
+    using MultiDimensionalSpan = std::mdspan<E, Exts, LayoutPolicy, AccessorPolicy>;
+
+    // template <typename OffsetT, typename LengthT, typename StrideT>
+    // using StridedSlice = std::strided_slice<OffsetT, LengthT, StrideT>;
+
+    template <typename LayoutMapping>
+    using SubMultiDimensionalSpanMappingResult = std::submdspan_mapping_result<LayoutMapping>;
+
+    using FullExtentTag = std::full_extent_t;
+    inline constexpr FullExtentTag FullExtent = std::full_extent;
     #endif
 
     #ifdef __cpp_lib_submdspan
-    // using ::core::prelude::submdspan_extents;
-    using ::core::prelude::submdspan;
+    // using std::submdspan_extents;
+    using std::submdspan;
     #endif
 
     #ifdef __cpp_lib_aligned_accessor
-    using ::core::prelude::AlignedAccessor;
+    template <typename E, u64 ByteAlign>
+    using AlignedAccessor = std::aligned_accessor<E, ByteAlign>;
     #endif
 }

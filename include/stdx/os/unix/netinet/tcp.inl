@@ -8,14 +8,6 @@ export namespace stdx::os::unix::netinet {
     #ifdef __unix__
     using TcpHeader = ::tcphdr;
 
-    enum class TcpCongestionAlgorithmState: u8 {
-        OPEN = 0,
-        DISORDER = 1,
-        CWR = 2,
-        RECOVERY = 3,
-        LOSS = 4
-    };
-
     using TcpInfo = ::tcp_info;
 
     using TcpMd5Signature = ::tcp_md5sig;

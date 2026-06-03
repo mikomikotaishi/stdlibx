@@ -6,15 +6,18 @@
  */
 export namespace stdx::debug {
     #ifdef __cpp_lib_stacktrace
-    using ::core::debug::StackTraceEntry;
-    using ::core::debug::BasicStackTrace;
-    using ::core::debug::StackTrace;
+    using StackTraceEntry = std::stacktrace_entry;
 
-    using ::core::debug::hash;
-    using ::core::debug::formatter;
-    using ::core::debug::swap;
+    template <typename Allocator>
+    using BasicStackTrace = std::basic_stacktrace<Allocator>;
 
-    using ::core::debug::to_string;
-    using ::core::debug::operator<<;
+    using StackTrace = std::stacktrace;
+
+    using std::hash;
+    using std::formatter;
+    using std::swap;
+
+    using std::to_string;
+    using std::operator<<;
     #endif
 }

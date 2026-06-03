@@ -1,78 +1,95 @@
 #pragma once
 
+using stdx::alloc::DefaultDelete;
+using stdx::meta::RemoveExtentType;
+
 /**
  * @namespace stdx::mem
  * @brief Wrapper namespace for standard library memory operations.
  */
 export namespace stdx::mem {
-    using ::alloc::mem::UniquePointer;
-    using ::alloc::mem::SharedPointer;
-    using ::alloc::mem::WeakPointer;
-    using ::alloc::mem::OwnerLess;
-    using ::alloc::mem::EnableSharedFromThis;
+    template <typename T, typename Deleter = DefaultDelete<T>>
+    using UniquePointer = std::unique_ptr<T, Deleter>;
 
-    using ::alloc::mem::hash;
+    template <typename T>
+    using SharedPointer = std::shared_ptr<T>;
+
+    template <typename T>
+    using WeakPointer = std::weak_ptr<T>;
+
+    template <typename T>
+    using OwnerLess = std::owner_less<T>;
+
+    template <typename T>
+    using EnableSharedFromThis = std::enable_shared_from_this<T>;
+
+    using std::hash;
 
     #ifdef __cpp_lib_out_ptr
-    using ::alloc::mem::OutputPointer;
-    using ::alloc::mem::InOutPointer;
+    template <typename Smart, typename Pointer, typename... Args>
+    using OutputPointer = std::out_ptr_t<Smart, Pointer, Args...>;
+
+    template <typename Smart, typename Pointer, typename... Args>
+    using InOutPointer = std::inout_ptr_t<Smart, Pointer, Args...>;
     #endif
 
-    using ::alloc::mem::BadWeakPointerException;
+    using BadWeakPointerException = std::bad_weak_ptr;
 
     #ifdef __cpp_lib_indirect
-    using ::alloc::mem::Indirect;
+    template <typename T, typename Alloc = Allocator<T>>
+    using Indirect = std::indirect<T, Alloc>;
     #endif
 
     #ifdef __cpp_lib_polymorphic
-    using ::alloc::mem::Polymorphic;
+    template <typename T, typename Alloc = Allocator<T>>
+    using Polymorphic = std::polymorphic<T, Alloc>;
     #endif
 
-    using ::alloc::mem::to_address;
-    using ::alloc::mem::addressof;
-    using ::alloc::mem::align;
-    using ::alloc::mem::assume_aligned;
+    using std::to_address;
+    using std::addressof;
+    using std::align;
+    using std::assume_aligned;
     #ifdef __cpp_lib_is_sufficiently_aligned
-    using ::alloc::mem::is_sufficiently_aligned;
+    using std::is_sufficiently_aligned;
     #endif
 
     #ifdef __cpp_lib_start_lifetime_as
-    using ::alloc::mem::start_lifetime_as;
-    using ::alloc::mem::start_lifetime_as_array;
+    using std::start_lifetime_as;
+    using std::start_lifetime_as_array;
     #endif
 
-    using ::alloc::mem::uninitialized_copy;
-    using ::alloc::mem::uninitialized_copy_n;
-    using ::alloc::mem::uninitialized_fill;
-    using ::alloc::mem::uninitialized_fill_n;
-    using ::alloc::mem::uninitialized_move;
-    using ::alloc::mem::uninitialized_move_n;
-    using ::alloc::mem::uninitialized_default_construct;
-    using ::alloc::mem::uninitialized_default_construct_n;
-    using ::alloc::mem::uninitialized_value_construct;
-    using ::alloc::mem::uninitialized_value_construct_n;
-    using ::alloc::mem::construct_at;
-    using ::alloc::mem::destroy_at;
-    using ::alloc::mem::destroy;
-    using ::alloc::mem::destroy_n;
+    using std::uninitialized_copy;
+    using std::uninitialized_copy_n;
+    using std::uninitialized_fill;
+    using std::uninitialized_fill_n;
+    using std::uninitialized_move;
+    using std::uninitialized_move_n;
+    using std::uninitialized_default_construct;
+    using std::uninitialized_default_construct_n;
+    using std::uninitialized_value_construct;
+    using std::uninitialized_value_construct_n;
+    using std::construct_at;
+    using std::destroy_at;
+    using std::destroy;
+    using std::destroy_n;
 
-    using ::alloc::mem::make_unique;
-    using ::alloc::mem::make_unique_for_overwrite;
-    using ::alloc::mem::make_shared;
-    using ::alloc::mem::make_shared_for_overwrite;
-    using ::alloc::mem::allocate_shared;
-    using ::alloc::mem::allocate_shared_for_overwrite;
-    using ::alloc::mem::static_pointer_cast;
-    using ::alloc::mem::dynamic_pointer_cast;
-    using ::alloc::mem::const_pointer_cast;
-    using ::alloc::mem::reinterpret_pointer_cast;
-    using ::alloc::mem::get_deleter;
+    using std::make_unique;
+    using std::make_unique_for_overwrite;
+    using std::make_shared;
+    using std::make_shared_for_overwrite;
+    using std::allocate_shared;
+    using std::allocate_shared_for_overwrite;
+    using std::static_pointer_cast;
+    using std::dynamic_pointer_cast;
+    using std::const_pointer_cast;
+    using std::reinterpret_pointer_cast;
+    using std::get_deleter;
 
-    using ::alloc::mem::swap;
+    using std::swap;
 
     #ifdef __cpp_lib_out_ptr
-    using ::alloc::mem::out_ptr;
-    using ::alloc::mem::inout_ptr;
+    using std::out_ptr;
+    using std::inout_ptr;
     #endif
 
     /**
@@ -80,21 +97,248 @@ export namespace stdx::mem {
      * @brief Wrapper namespace for standard library memory operations over ranges.
      */
     namespace ranges {
-        using ::alloc::mem::ranges::uninitialized_copy;
-        using ::alloc::mem::ranges::uninitialized_copy_n;
-        using ::alloc::mem::ranges::uninitialized_fill;
-        using ::alloc::mem::ranges::uninitialized_fill_n;
-        using ::alloc::mem::ranges::uninitialized_move;
-        using ::alloc::mem::ranges::uninitialized_move_n;
-        using ::alloc::mem::ranges::uninitialized_default_construct;
-        using ::alloc::mem::ranges::uninitialized_default_construct_n;
-        using ::alloc::mem::ranges::uninitialized_value_construct;
-        using ::alloc::mem::ranges::uninitialized_value_construct_n;
-        using ::alloc::mem::ranges::destroy;
-        using ::alloc::mem::ranges::destroy_n;
-        using ::alloc::mem::ranges::destroy_at;
-        using ::alloc::mem::ranges::construct_at;
+        using std::ranges::uninitialized_copy;
+        using std::ranges::uninitialized_copy_n;
+        using std::ranges::uninitialized_fill;
+        using std::ranges::uninitialized_fill_n;
+        using std::ranges::uninitialized_move;
+        using std::ranges::uninitialized_move_n;
+        using std::ranges::uninitialized_default_construct;
+        using std::ranges::uninitialized_default_construct_n;
+        using std::ranges::uninitialized_value_construct;
+        using std::ranges::uninitialized_value_construct_n;
+        using std::ranges::destroy;
+        using std::ranges::destroy_n;
+        using std::ranges::destroy_at;
+        using std::ranges::construct_at;
     }
 
-    using ::alloc::mem::Pointers;
+    class Pointers final {
+    public:
+        Pointers() = delete;
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T* to_address(T* p) noexcept {
+            return p;
+        }
+
+        template <typename Ptr>
+        [[nodiscard]]
+        static constexpr auto to_address(const Ptr& sp) noexcept {
+            return std::to_address(sp);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T* addressof(T& arg) noexcept {
+            return std::addressof(arg);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static const T* addressof(T&&) = delete;
+
+        [[nodiscard]]
+        void* align(usize alignment, usize size, void*& ptr, usize& space) noexcept {
+            return std::align(alignment, size, ptr, space);
+        }
+
+        template <usize N, typename T>
+        [[nodiscard]]
+        static constexpr T* assume_aligned(T* p) noexcept {
+            return std::assume_aligned<N>(p);
+        }
+
+        #ifdef __cpp_lib_is_sufficiently_aligned
+        template <usize N, typename T>
+        [[nodiscard]]
+        static bool is_sufficiently_aligned(T* p) noexcept {
+            return std::is_sufficiently_aligned<N>(p);
+        }
+        #endif
+
+        template <typename T, typename... Args>
+        [[nodiscard]]
+        static constexpr UniquePointer<T> unique(Args&&... args) {
+            return std::make_unique<T>(std::forward<Args>(args)...);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr UniquePointer<T> unique(usize size) {
+            return std::make_unique<T>(size);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr UniquePointer<T> unique_for_overwrite() {
+            return std::make_unique_for_overwrite<T>();
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr UniquePointer<T> unique_for_overwrite(usize size) {
+            return std::make_unique_for_overwrite<T>(size);
+        }
+
+        template <typename T, typename... Args>
+        [[nodiscard]]
+        static SharedPointer<T> shared(Args&&... args) {
+            return std::make_shared<T>(std::forward<Args>(args)...);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static SharedPointer<T> shared(usize size) {
+            return std::make_shared<T>(size);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static SharedPointer<T> shared() {
+            return std::make_shared_for_overwrite<T>();
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static SharedPointer<T> shared(usize size, const RemoveExtentType<T>& u) {
+            return std::make_shared_for_overwrite<T>(size, u);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static SharedPointer<T> shared(const RemoveExtentType<T>& u) {
+            return std::make_shared_for_overwrite<T>(u);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static SharedPointer<T> shared_for_overwrite() {
+            return std::make_shared_for_overwrite<T>();
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static SharedPointer<T> shared_for_overwrite(usize size) {
+            return std::make_shared_for_overwrite<T>(size);
+        }
+
+        template <typename T, typename Alloc, typename... Args>
+        [[nodiscard]]
+        static SharedPointer<T> allocate_shared(const Alloc& alloc, Args&&... args) {
+            return std::allocate_shared<T>(alloc, std::forward<Args>(args)...);
+        }
+
+        template <typename T, typename Alloc>
+        [[nodiscard]]
+        static SharedPointer<T> allocate_shared(const Alloc& alloc, usize size) {
+            return std::allocate_shared<T>(alloc, size);
+        }
+
+        template <typename T, typename Alloc>
+        [[nodiscard]]
+        static SharedPointer<T> allocate_shared(const Alloc& alloc) {
+            return std::allocate_shared<T>(alloc);
+        }
+
+        template <typename T, typename Alloc>
+        [[nodiscard]]
+        static SharedPointer<T> allocate_shared(const Alloc& alloc, usize size, const RemoveExtentType<T>& u) {
+            return std::allocate_shared<T>(alloc, size, u);
+        }
+
+        template <typename T, typename Alloc>
+        [[nodiscard]]
+        static SharedPointer<T> allocate_shared(const Alloc& alloc, const RemoveExtentType<T>& u) {
+            return std::allocate_shared<T>(alloc, u);
+        }
+
+        template <typename T, typename Alloc>
+        [[nodiscard]]
+        static SharedPointer<T> allocate_shared_for_overwrite(const Alloc& alloc) {
+            return std::allocate_shared_for_overwrite<T>(alloc);
+        }
+
+        template <typename T, typename Alloc>
+        [[nodiscard]]
+        static SharedPointer<T> allocate_shared_for_overwrite(const Alloc& alloc, usize size) {
+            return std::allocate_shared_for_overwrite<T>(alloc, size);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static SharedPointer<T> static_pointer_cast(const SharedPointer<U>& sp) noexcept {
+            return std::static_pointer_cast<T>(sp);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static SharedPointer<T> static_pointer_cast(SharedPointer<U>&& sp) noexcept {
+            return std::static_pointer_cast<T>(std::move(sp));
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static SharedPointer<T> dynamic_pointer_cast(const SharedPointer<U>& sp) noexcept {
+            return std::dynamic_pointer_cast<T>(sp);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static SharedPointer<T> dynamic_pointer_cast(SharedPointer<U>&& sp) noexcept {
+            return std::dynamic_pointer_cast<T>(std::move(sp));
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static SharedPointer<T> const_pointer_cast(const SharedPointer<U>& sp) noexcept {
+            return std::const_pointer_cast<T>(sp);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static SharedPointer<T> const_pointer_cast(SharedPointer<U>&& sp) noexcept {
+            return std::const_pointer_cast<T>(std::move(sp));
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static SharedPointer<T> reinterpret_pointer_cast(const SharedPointer<U>& sp) noexcept {
+            return std::reinterpret_pointer_cast<T>(sp);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static SharedPointer<T> reinterpret_pointer_cast(SharedPointer<U>&& sp) noexcept {
+            return std::reinterpret_pointer_cast<T>(std::move(sp));
+        }
+
+        template <typename Del, typename T>
+        [[nodiscard]]
+        static Del* get_deleter(const SharedPointer<T>& sp) noexcept {
+            return std::get_deleter<Del>(sp);
+        }
+
+        #ifdef __cpp_lib_out_ptr
+        template <typename Ptr = void, typename Smart, typename... Args>
+        [[nodiscard]]
+        static auto out_ptr(Smart& s, Args&&... args) {
+            return std::out_ptr<Ptr>(s, std::forward<Args>(args)...);
+        }
+
+        template <typename Ptr = void, typename Smart, typename... Args>
+        [[nodiscard]]
+        static auto inout_ptr(Smart& s, Args&&... args) {
+            return std::inout_ptr<Ptr>(s, std::forward<Args>(args)...);
+        }
+        #endif
+
+        #ifdef __cpp_lib_hazard_pointer
+        [[nodiscard]]
+        static HazardPointer hazard_pointer() noexcept {
+            return std::make_hazard_pointer();
+        }
+        #endif
+    };
 }

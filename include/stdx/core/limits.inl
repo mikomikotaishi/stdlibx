@@ -5,7 +5,9 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::prelude::NumericLimits;
-    using ::core::prelude::FloatRoundStyle;
-    using ::core::prelude::FloatDenormStyle;
+    template <typename T>
+    using NumericLimits = std::numeric_limits<T>;
+
+    using FloatRoundStyle = std::float_round_style;
+    using FloatDenormStyle = std::float_denorm_style;
 }

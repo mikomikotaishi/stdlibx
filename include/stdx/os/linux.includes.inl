@@ -80,4 +80,16 @@
 #if __has_include(<sys/psx_syscall.h>)
 #include <sys/psx_syscall.h>
 #endif
+
+#if __has_include(<alsa/asoundlib.h>)
+#include <alsa/asoundlib.h>
+#endif
+
+#if __has_include(<alsa/topology.h>)
+#include <alsa/topology.h>
+#endif
+
+#if __has_include(<alsa/use-case.h>)
+#include <alsa/use-case.h>
+#endif
 #endif

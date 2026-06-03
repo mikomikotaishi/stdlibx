@@ -5,236 +5,675 @@
  * @brief Wrapper namespace for standard library metaprogramming operations.
  */
 export namespace stdx::meta {
-    using ::core::meta::IntegralConstant;
-    using ::core::meta::BooleanConstant;
-    using ::core::meta::TrueType;
-    using ::core::meta::FalseType;
-    using ::core::meta::IsVoid;
-    using ::core::meta::IsVoidValue;
-    using ::core::meta::IsNullPointer;
-    using ::core::meta::IsNullPointerValue;
-    using ::core::meta::IsIntegral;
-    using ::core::meta::IsIntegralValue;
-    using ::core::meta::IsFloatingPoint;
-    using ::core::meta::IsFloatingPointValue;
-    using ::core::meta::IsArray;
-    using ::core::meta::IsArrayValue;
-    using ::core::meta::IsEnum;
-    using ::core::meta::IsEnumValue;
-    using ::core::meta::IsUnion;
-    using ::core::meta::IsUnionValue;
-    using ::core::meta::IsClass;
-    using ::core::meta::IsClassValue;
-    using ::core::meta::IsFunction;
-    using ::core::meta::IsFunctionValue;
-    #ifdef __cpp_impl_reflection
-    using ::core::meta::IsReflection;
-    using ::core::meta::IsReflectionValue;
-    #endif
-    using ::core::meta::IsPointer;
-    using ::core::meta::IsPointerValue;
-    using ::core::meta::IsLvalueReference;
-    using ::core::meta::IsLvalueReferenceValue;
-    using ::core::meta::IsRvalueReference;
-    using ::core::meta::IsRvalueReferenceValue;
-    using ::core::meta::IsMemberObjectPointer;
-    using ::core::meta::IsMemberObjectPointerValue;
-    using ::core::meta::IsMemberFunctionPointer;
-    using ::core::meta::IsMemberFunctionPointerValue;
-    using ::core::meta::IsFundamental;
-    using ::core::meta::IsFundamentalValue;
-    using ::core::meta::IsArithmetic;
-    using ::core::meta::IsArithmeticValue;
-    using ::core::meta::IsScalar;
-    using ::core::meta::IsScalarValue;
-    using ::core::meta::IsObject;
-    using ::core::meta::IsObjectValue;
-    using ::core::meta::IsCompound;
-    using ::core::meta::IsCompoundValue;
-    using ::core::meta::IsReference;
-    using ::core::meta::IsReferenceValue;
-    using ::core::meta::IsMemberPointer;
-    using ::core::meta::IsMemberPointerValue;
-    using ::core::meta::IsConst;
-    using ::core::meta::IsConstValue;
-    using ::core::meta::IsVolatile;
-    using ::core::meta::IsVolatileValue;
-    using ::core::meta::IsTriviallyCopyable;
-    using ::core::meta::IsTriviallyCopyableValue;
-    using ::core::meta::IsStandardLayout;
-    using ::core::meta::IsStandardLayoutValue;
-    using ::core::meta::HasUniqueObjectRepresentations;
-    using ::core::meta::HasUniqueObjectRepresentationsValue;
-    using ::core::meta::IsEmpty;
-    using ::core::meta::IsEmptyValue;
-    using ::core::meta::IsPolymorphic;
-    using ::core::meta::IsPolymorphicValue;
-    using ::core::meta::IsAbstract;
-    using ::core::meta::IsAbstractValue;
-    using ::core::meta::IsFinal;
-    using ::core::meta::IsFinalValue;
-    using ::core::meta::IsAggregate;
-    using ::core::meta::IsAggregateValue;
-    using ::core::meta::IsSigned;
-    using ::core::meta::IsSignedValue;
-    using ::core::meta::IsUnsigned;
-    using ::core::meta::IsUnsignedValue;
-    using ::core::meta::IsBoundedArray;
-    using ::core::meta::IsBoundedArrayValue;
-    using ::core::meta::IsUnboundedArray;
-    using ::core::meta::IsUnboundedArrayValue;
-    using ::core::meta::IsConstructible;
-    using ::core::meta::IsConstructibleValue;
-    using ::core::meta::IsTriviallyConstructible;
-    using ::core::meta::IsTriviallyConstructibleValue;
-    using ::core::meta::IsNothrowConstructible;
-    using ::core::meta::IsNothrowConstructibleValue;
-    using ::core::meta::IsDefaultConstructible;
-    using ::core::meta::IsDefaultConstructibleValue;
-    using ::core::meta::IsTriviallyDefaultConstructible;
-    using ::core::meta::IsTriviallyDefaultConstructibleValue;
-    using ::core::meta::IsNothrowDefaultConstructible;
-    using ::core::meta::IsNothrowDefaultConstructibleValue;
-    using ::core::meta::IsCopyConstructible;
-    using ::core::meta::IsCopyConstructibleValue;
-    using ::core::meta::IsTriviallyCopyConstructible;
-    using ::core::meta::IsTriviallyCopyConstructibleValue;
-    using ::core::meta::IsNothrowCopyConstructible;
-    using ::core::meta::IsNothrowCopyConstructibleValue;
-    using ::core::meta::IsMoveConstructible;
-    using ::core::meta::IsMoveConstructibleValue;
-    using ::core::meta::IsTriviallyMoveConstructible;
-    using ::core::meta::IsTriviallyMoveConstructibleValue;
-    using ::core::meta::IsNothrowMoveConstructible;
-    using ::core::meta::IsNothrowMoveConstructibleValue;
-    using ::core::meta::IsAssignable;
-    using ::core::meta::IsAssignableValue;
-    using ::core::meta::IsTriviallyAssignable;
-    using ::core::meta::IsTriviallyAssignableValue;
-    using ::core::meta::IsNothrowAssignable;
-    using ::core::meta::IsNothrowAssignableValue;
-    using ::core::meta::IsCopyAssignable;
-    using ::core::meta::IsCopyAssignableValue;
-    using ::core::meta::IsTriviallyCopyAssignable;
-    using ::core::meta::IsTriviallyCopyAssignableValue;
-    using ::core::meta::IsNothrowCopyAssignable;
-    using ::core::meta::IsNothrowCopyAssignableValue;
-    using ::core::meta::IsMoveAssignable;
-    using ::core::meta::IsMoveAssignableValue;
-    using ::core::meta::IsTriviallyMoveAssignable;
-    using ::core::meta::IsTriviallyMoveAssignableValue;
-    using ::core::meta::IsNothrowMoveAssignable;
-    using ::core::meta::IsNothrowMoveAssignableValue;
-    using ::core::meta::IsDestructible;
-    using ::core::meta::IsDestructibleValue;
-    using ::core::meta::IsTriviallyDestructible;
-    using ::core::meta::IsTriviallyDestructibleValue;
-    using ::core::meta::IsNothrowDestructible;
-    using ::core::meta::IsNothrowDestructibleValue;
-    using ::core::meta::HasVirtualDestructor;
-    using ::core::meta::HasVirtualDestructorValue;
-    using ::core::meta::IsSwappableWith;
-    using ::core::meta::IsSwappableWithValue;
-    using ::core::meta::IsSwappable;
-    using ::core::meta::IsSwappableValue;
-    using ::core::meta::IsNothrowSwappableWith;
-    using ::core::meta::IsNothrowSwappableWithValue;
-    using ::core::meta::IsNothrowSwappable;
-    using ::core::meta::IsNothrowSwappableValue;
-    #ifdef __cpp_lib_reference_from_temporary
-    using ::core::meta::ReferenceConstructsFromTemporary;
-    using ::core::meta::ReferenceConstructsFromTemporaryValue;
-    using ::core::meta::ReferenceConvertsFromTemporary;
-    using ::core::meta::ReferenceConvertsFromTemporaryValue;
-    #endif
-    using ::core::meta::AlignmentOf;
-    using ::core::meta::AlignmentOfValue;
-    using ::core::meta::Rank;
-    using ::core::meta::RankValue;
-    using ::core::meta::Extent;
-    using ::core::meta::ExtentValue;
-    using ::core::meta::IsSame;
-    using ::core::meta::IsSameValue;
-    using ::core::meta::IsBaseOf;
-    using ::core::meta::IsBaseOfValue;
-    using ::core::meta::IsConvertible;
-    using ::core::meta::IsConvertibleValue;
-    using ::core::meta::IsNothrowConvertible;
-    using ::core::meta::IsNothrowConvertibleValue;
-    #ifdef __cpp_lib_is_layout_compatible
-    using ::core::meta::IsLayoutCompatible;
-    using ::core::meta::IsLayoutCompatibleValue;
-    #endif
-    #ifdef __cpp_lib_is_pointer_interconvertible
-    using ::core::meta::IsPointerInterconvertibleBaseOf;
-    using ::core::meta::IsPointerInterconvertibleBaseOfValue;
-    #endif
-    using ::core::meta::IsInvocable;
-    using ::core::meta::IsInvocableValue;
-    using ::core::meta::IsInvocableReturn;
-    using ::core::meta::IsInvocableReturnValue;
-    using ::core::meta::IsNothrowInvocable;
-    using ::core::meta::IsNothrowInvocableValue;
-    using ::core::meta::IsNothrowInvocableReturn;
-    using ::core::meta::IsNothrowInvocableReturnValue;
-    using ::core::meta::RemoveConstVolatile;
-    using ::core::meta::RemoveConstVolatileType;
-    using ::core::meta::RemoveConst;
-    using ::core::meta::RemoveConstType;
-    using ::core::meta::RemoveVolatile;
-    using ::core::meta::RemoveVolatileType;
-    using ::core::meta::AddConstVolatile;
-    using ::core::meta::AddConstVolatileType;
-    using ::core::meta::AddConst;
-    using ::core::meta::AddConstType;
-    using ::core::meta::AddVolatile;
-    using ::core::meta::AddVolatileType;
-    using ::core::meta::RemoveReference;
-    using ::core::meta::RemoveReferenceType;
-    using ::core::meta::AddLvalueReference;
-    using ::core::meta::AddLvalueReferenceType;
-    using ::core::meta::AddRvalueReference;
-    using ::core::meta::AddRvalueReferenceType;
-    using ::core::meta::RemovePointer;
-    using ::core::meta::RemovePointerType;
-    using ::core::meta::AddPointer;
-    using ::core::meta::AddPointerType;
-    using ::core::meta::MakeSigned;
-    using ::core::meta::MakeSignedType;
-    using ::core::meta::MakeUnsigned;
-    using ::core::meta::MakeUnsignedType;
-    using ::core::meta::RemoveExtent;
-    using ::core::meta::RemoveExtentType;
-    using ::core::meta::RemoveAllExtents;
-    using ::core::meta::RemoveAllExtentsType;
-    using ::core::meta::Decay;
-    using ::core::meta::DecayType;
-    using ::core::meta::RemoveConstVolatileReference;
-    using ::core::meta::RemoveConstVolatileReferenceType;
-    using ::core::meta::EnableIf;
-    using ::core::meta::EnableIfType;
-    using ::core::meta::Conditional;
-    using ::core::meta::ConditionalType;
-    using ::core::meta::UnderlyingType;
-    using ::core::meta::UnderlyingTypeType;
-    using ::core::meta::CommonType;
-    using ::core::meta::CommonTypeType;
-    using ::core::meta::CommonReference;
-    using ::core::meta::CommonReferenceType;
-    using ::core::meta::BasicCommonReference;
-    using ::core::meta::InvokeResult;
-    using ::core::meta::InvokeResultType;
-    using ::core::meta::VoidType;
-    using ::core::meta::TypeIdentity;
-    using ::core::meta::TypeIdentityType;
-    using ::core::meta::UnwrapReference;
-    using ::core::meta::UnwrapReferenceType;
-    using ::core::meta::Conjunction;
-    using ::core::meta::ConjunctionValue;
-    using ::core::meta::Disjunction;
-    using ::core::meta::DisjunctionValue;
-    using ::core::meta::Negation;
-    using ::core::meta::NegationValue;
+    template <typename T, T v>
+    using IntegralConstant = std::integral_constant<T, v>;
 
-    using ::core::meta::is_constant_evaluated;
+    template <bool B>
+    using BooleanConstant = std::bool_constant<B>;
+
+    using TrueType = std::true_type;
+    using FalseType = std::false_type;
+
+    template <typename T>
+    using IsVoid = std::is_void<T>;
+
+    template <typename T>
+    constexpr bool IsVoidValue = std::is_void_v<T>;
+
+    template <typename T>
+    using IsNullPointer = std::is_null_pointer<T>;
+
+    template <typename T>
+    constexpr bool IsNullPointerValue = std::is_null_pointer_v<T>;
+
+    template <typename T>
+    using IsIntegral = std::is_integral<T>;
+
+    template <typename T>
+    constexpr bool IsIntegralValue = std::is_integral_v<T>;
+
+    template <typename T>
+    using IsFloatingPoint = std::is_floating_point<T>;
+
+    template <typename T>
+    constexpr bool IsFloatingPointValue = std::is_floating_point_v<T>;
+
+    template <typename T>
+    using IsArray = std::is_array<T>;
+
+    template <typename T>
+    constexpr bool IsArrayValue = std::is_array_v<T>;
+
+    template <typename T>
+    using IsEnum = std::is_enum<T>;
+
+    template <typename T>
+    constexpr bool IsEnumValue = std::is_enum_v<T>;
+
+    template <typename T>
+    using IsUnion = std::is_union<T>;
+
+    template <typename T>
+    constexpr bool IsUnionValue = std::is_union_v<T>;
+
+    template <typename T>
+    using IsClass = std::is_class<T>;
+
+    template <typename T>
+    constexpr bool IsClassValue = std::is_class_v<T>;
+
+    template <typename T>
+    using IsFunction = std::is_function<T>;
+
+    template <typename T>
+    constexpr bool IsFunctionValue = std::is_function_v<T>;
+
+    #ifdef __cpp_impl_reflection
+    template <typename T>
+    using IsReflection = std::is_reflection<T>;
+
+    template <typename T>
+    constexpr bool IsReflectionValue = std::is_reflection_v<T>;
+    #endif
+
+    template <typename T>
+    using IsPointer = std::is_pointer<T>;
+
+    template <typename T>
+    constexpr bool IsPointerValue = std::is_pointer_v<T>;
+
+    template <typename T>
+    using IsLvalueReference = std::is_lvalue_reference<T>;
+
+    template <typename T>
+    constexpr bool IsLvalueReferenceValue = std::is_lvalue_reference_v<T>;
+
+    template <typename T>
+    using IsRvalueReference = std::is_rvalue_reference<T>;
+
+    template <typename T>
+    constexpr bool IsRvalueReferenceValue = std::is_rvalue_reference_v<T>;
+
+    template <typename T>
+    using IsMemberObjectPointer = std::is_member_object_pointer<T>;
+
+    template <typename T>
+    constexpr bool IsMemberObjectPointerValue = std::is_member_object_pointer_v<T>;
+
+    template <typename T>
+    using IsMemberFunctionPointer = std::is_member_function_pointer<T>;
+
+    template <typename T>
+    constexpr bool IsMemberFunctionPointerValue = std::is_member_function_pointer_v<T>;
+
+    template <typename T>
+    using IsFundamental = std::is_fundamental<T>;
+
+    template <typename T>
+    constexpr bool IsFundamentalValue = std::is_fundamental_v<T>;
+
+    template <typename T>
+    using IsArithmetic = std::is_arithmetic<T>;
+
+    template <typename T>
+    constexpr bool IsArithmeticValue = std::is_arithmetic_v<T>;
+
+    template <typename T>
+    using IsScalar = std::is_scalar<T>;
+
+    template <typename T>
+    constexpr bool IsScalarValue = std::is_scalar_v<T>;
+
+    template <typename T>
+    using IsObject = std::is_object<T>;
+
+    template <typename T>
+    constexpr bool IsObjectValue = std::is_object_v<T>;
+
+    template <typename T>
+    using IsCompound = std::is_compound<T>;
+
+    template <typename T>
+    constexpr bool IsCompoundValue = std::is_compound_v<T>;
+
+    template <typename T>
+    using IsReference = std::is_reference<T>;
+
+    template <typename T>
+    constexpr bool IsReferenceValue = std::is_reference_v<T>;
+
+    template <typename T>
+    using IsMemberPointer = std::is_member_pointer<T>;
+
+    template <typename T>
+    constexpr bool IsMemberPointerValue = std::is_member_pointer_v<T>;
+
+    template <typename T>
+    using IsConst = std::is_const<T>;
+
+    template <typename T>
+    constexpr bool IsConstValue = std::is_const_v<T>;
+
+    template <typename T>
+    using IsVolatile = std::is_volatile<T>;
+
+    template <typename T>
+    constexpr bool IsVolatileValue = std::is_volatile_v<T>;
+
+    template <typename T>
+    using IsTriviallyCopyable = std::is_trivially_copyable<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyCopyableValue = std::is_trivially_copyable_v<T>;
+
+    template <typename T>
+    using IsStandardLayout = std::is_standard_layout<T>;
+
+    template <typename T>
+    constexpr bool IsStandardLayoutValue = std::is_standard_layout_v<T>;
+
+    template <typename T>
+    using HasUniqueObjectRepresentations = std::has_unique_object_representations<T>;
+
+    template <typename T>
+    constexpr bool HasUniqueObjectRepresentationsValue = std::has_unique_object_representations_v<T>;
+
+    template <typename T>
+    using IsEmpty = std::is_empty<T>;
+
+    template <typename T>
+    constexpr bool IsEmptyValue = std::is_empty_v<T>;
+
+    template <typename T>
+    using IsPolymorphic = std::is_polymorphic<T>;
+
+    template <typename T>
+    constexpr bool IsPolymorphicValue = std::is_polymorphic_v<T>;
+
+    template <typename T>
+    using IsAbstract = std::is_abstract<T>;
+
+    template <typename T>
+    constexpr bool IsAbstractValue = std::is_abstract_v<T>;
+
+    template <typename T>
+    using IsFinal = std::is_final<T>;
+
+    template <typename T>
+    constexpr bool IsFinalValue = std::is_final_v<T>;
+
+    template <typename T>
+    using IsAggregate = std::is_aggregate<T>;
+
+    template <typename T>
+    constexpr bool IsAggregateValue = std::is_aggregate_v<T>;
+
+    template <typename T>
+    using IsSigned = std::is_signed<T>;
+
+    template <typename T>
+    constexpr bool IsSignedValue = std::is_signed_v<T>;
+
+    template <typename T>
+    using IsUnsigned = std::is_unsigned<T>;
+
+    template <typename T>
+    constexpr bool IsUnsignedValue = std::is_unsigned_v<T>;
+
+    template <typename T>
+    using IsBoundedArray = std::is_bounded_array<T>;
+
+    template <typename T>
+    constexpr bool IsBoundedArrayValue = std::is_bounded_array_v<T>;
+
+    template <typename T>
+    using IsUnboundedArray = std::is_unbounded_array<T>;
+
+    template <typename T>
+    constexpr bool IsUnboundedArrayValue = std::is_unbounded_array_v<T>;
+
+    template <typename T>
+    using IsConstructible = std::is_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsConstructibleValue = std::is_constructible_v<T>;
+
+    template <typename T>
+    using IsTriviallyConstructible = std::is_trivially_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyConstructibleValue = std::is_trivially_constructible_v<T>;
+
+    template <typename T>
+    using IsNothrowConstructible = std::is_nothrow_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowConstructibleValue = std::is_nothrow_constructible_v<T>;
+
+    template <typename T>
+    using IsDefaultConstructible = std::is_default_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsDefaultConstructibleValue = std::is_default_constructible_v<T>;
+
+    template <typename T>
+    using IsTriviallyDefaultConstructible = std::is_trivially_default_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyDefaultConstructibleValue = std::is_trivially_default_constructible_v<T>;
+
+    template <typename T>
+    using IsNothrowDefaultConstructible = std::is_nothrow_default_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowDefaultConstructibleValue = std::is_nothrow_default_constructible_v<T>;
+
+    template <typename T>
+    using IsCopyConstructible = std::is_copy_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsCopyConstructibleValue = std::is_copy_constructible_v<T>;
+
+    template <typename T>
+    using IsTriviallyCopyConstructible = std::is_trivially_copy_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyCopyConstructibleValue = std::is_trivially_copy_constructible_v<T>;
+
+    template <typename T>
+    using IsNothrowCopyConstructible = std::is_nothrow_copy_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowCopyConstructibleValue = std::is_nothrow_copy_constructible_v<T>;
+
+    template <typename T>
+    using IsMoveConstructible = std::is_move_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsMoveConstructibleValue = std::is_move_constructible_v<T>;
+    
+    template <typename T>
+    using IsTriviallyMoveConstructible = std::is_trivially_move_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyMoveConstructibleValue = std::is_trivially_move_constructible_v<T>;
+    
+    template <typename T>
+    using IsNothrowMoveConstructible = std::is_nothrow_move_constructible<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowMoveConstructibleValue = std::is_nothrow_move_constructible_v<T>;
+
+    template <typename T, typename U>
+    using IsAssignable = std::is_assignable<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsAssignableValue = std::is_assignable_v<T, U>;
+
+    template <typename T, typename U>
+    using IsTriviallyAssignable = std::is_trivially_assignable<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsTriviallyAssignableValue = std::is_trivially_assignable_v<T, U>;
+
+    template <typename T, typename U>
+    using IsNothrowAssignable = std::is_nothrow_assignable<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsNothrowAssignableValue = std::is_nothrow_assignable_v<T, U>;
+
+    template <typename T>
+    using IsCopyAssignable = std::is_copy_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsCopyAssignableValue = std::is_copy_assignable_v<T>;
+
+    template <typename T>
+    using IsTriviallyCopyAssignable = std::is_trivially_copy_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyCopyAssignableValue = std::is_trivially_copy_assignable_v<T>;
+
+    template <typename T>
+    using IsNothrowCopyAssignable = std::is_nothrow_copy_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowCopyAssignableValue = std::is_nothrow_copy_assignable_v<T>;
+
+    template <typename T>
+    using IsMoveAssignable = std::is_move_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsMoveAssignableValue = std::is_move_assignable_v<T>;
+
+    template <typename T>
+    using IsTriviallyMoveAssignable = std::is_trivially_move_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyMoveAssignableValue = std::is_trivially_move_assignable_v<T>;
+
+    template <typename T>
+    using IsNothrowMoveAssignable = std::is_nothrow_move_assignable<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowMoveAssignableValue = std::is_nothrow_move_assignable_v<T>;
+
+    template <typename T>
+    using IsDestructible = std::is_destructible<T>;
+
+    template <typename T>
+    constexpr bool IsDestructibleValue = std::is_destructible_v<T>;
+
+    template <typename T>
+    using IsTriviallyDestructible = std::is_trivially_destructible<T>;
+
+    template <typename T>
+    constexpr bool IsTriviallyDestructibleValue = std::is_trivially_destructible_v<T>;
+
+    template <typename T>
+    using IsNothrowDestructible = std::is_nothrow_destructible<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowDestructibleValue = std::is_nothrow_destructible_v<T>;
+
+    template <typename T>
+    using HasVirtualDestructor = std::has_virtual_destructor<T>;
+
+    template <typename T>
+    constexpr bool HasVirtualDestructorValue = std::has_virtual_destructor_v<T>;
+
+    template <typename T, typename U>
+    using IsSwappableWith = std::is_swappable_with<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsSwappableWithValue = std::is_swappable_with_v<T, U>;
+
+    template <typename T>
+    using IsSwappable = std::is_swappable<T>;
+
+    template <typename T>
+    constexpr bool IsSwappableValue = std::is_swappable_v<T>;
+
+    template <typename T, typename U>
+    using IsNothrowSwappableWith = std::is_nothrow_swappable_with<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsNothrowSwappableWithValue = std::is_nothrow_swappable_with_v<T, U>;
+
+    template <typename T>
+    using IsNothrowSwappable = std::is_nothrow_swappable<T>;
+
+    template <typename T>
+    constexpr bool IsNothrowSwappableValue = std::is_nothrow_swappable_v<T>;
+
+    #ifdef __cpp_lib_reference_from_temporary
+    template <typename T, typename U>
+    using ReferenceConstructsFromTemporary = std::reference_constructs_from_temporary<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool ReferenceConstructsFromTemporaryValue = std::reference_constructs_from_temporary_v<T, U>;
+
+    template <typename T, typename U>
+    using ReferenceConvertsFromTemporary = std::reference_converts_from_temporary<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool ReferenceConvertsFromTemporaryValue = std::reference_converts_from_temporary_v<T, U>;
+    #endif
+
+    template <typename T>
+    using AlignmentOf = std::alignment_of<T>;
+
+    template <typename T>
+    constexpr bool AlignmentOfValue = std::alignment_of_v<T>;
+
+    template <typename T>
+    using Rank = std::rank<T>;
+
+    template <typename T>
+    constexpr bool RankValue = std::rank_v<T>;
+
+    template <typename T, unsigned int Index = 0>
+    using Extent = std::extent<T, Index>;
+
+    template <typename T, unsigned int Index = 0>
+    constexpr bool ExtentValue = std::extent_v<T, Index>;
+
+    template <typename T, typename U>
+    using IsSame = std::is_same<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsSameValue = std::is_same_v<T, U>;
+
+    template <typename Base, typename Derived>
+    using IsBaseOf = std::is_base_of<Base, Derived>;
+
+    template <typename Base, typename Derived>
+    constexpr bool IsBaseOfValue = std::is_base_of_v<Base, Derived>;
+
+    template <typename From, typename To>
+    using IsConvertible = std::is_convertible<From, To>;
+
+    template <typename From, typename To>
+    constexpr bool IsConvertibleValue = std::is_convertible_v<From, To>;
+
+    template <typename From, typename To>
+    using IsNothrowConvertible = std::is_nothrow_convertible<From, To>;
+
+    template <typename From, typename To>
+    constexpr bool IsNothrowConvertibleValue = std::is_nothrow_convertible_v<From, To>;
+
+    #ifdef __cpp_lib_is_layout_compatible
+    template <typename T, typename U>
+    using IsLayoutCompatible = std::is_layout_compatible<T, U>;
+
+    template <typename T, typename U>
+    constexpr bool IsLayoutCompatibleValue = std::is_layout_compatible_v<T, U>;
+    #endif
+
+    #ifdef __cpp_lib_is_pointer_interconvertible
+    template <typename Base, typename Derived>
+    using IsPointerInterconvertibleBaseOf = std::is_pointer_interconvertible_base_of<Base, Derived>;
+
+    template <typename Base, typename Derived>
+    constexpr bool IsPointerInterconvertibleBaseOfValue = std::is_pointer_interconvertible_base_of_v<Base, Derived>;
+    #endif
+
+    template <typename Fn, typename... ArgTypes>
+    using IsInvocable = std::is_invocable<Fn, ArgTypes...>;
+
+    template <typename Fn, typename... ArgTypes>
+    constexpr bool IsInvocableValue = std::is_invocable_v<Fn, ArgTypes...>;
+
+    template <typename R, typename Fn, typename... ArgTypes>
+    using IsInvocableReturn = std::is_invocable_r<R, Fn, ArgTypes...>;
+
+    template <typename R, typename Fn, typename... ArgTypes>
+    constexpr bool IsInvocableReturnValue = std::is_invocable_r_v<R, Fn, ArgTypes...>;
+
+    template <typename Fn, typename... ArgTypes>
+    using IsNothrowInvocable = std::is_nothrow_invocable<Fn, ArgTypes...>;
+
+    template <typename Fn, typename... ArgTypes>
+    constexpr bool IsNothrowInvocableValue = std::is_nothrow_invocable_v<Fn, ArgTypes...>;
+
+    template <typename R, typename Fn, typename... ArgTypes>
+    using IsNothrowInvocableReturn = std::is_nothrow_invocable_r<R, Fn, ArgTypes...>;
+
+    template <typename R, typename Fn, typename... ArgTypes>
+    constexpr bool IsNothrowInvocableReturnValue = std::is_nothrow_invocable_r_v<R, Fn, ArgTypes...>;
+
+    template <typename T>
+    using RemoveConstVolatile = std::remove_cv<T>;
+
+    template <typename T>
+    using RemoveConstVolatileType = std::remove_cv_t<T>;
+
+    template <typename T>
+    using RemoveConst = std::remove_const<T>;
+
+    template <typename T>
+    using RemoveConstType = std::remove_const_t<T>;
+
+    template <typename T>
+    using RemoveVolatile = std::remove_volatile<T>;
+
+    template <typename T>
+    using RemoveVolatileType = std::remove_volatile_t<T>;
+
+    template <typename T>
+    using AddConstVolatile = std::add_cv<T>;
+
+    template <typename T>
+    using AddConstVolatileType = std::add_cv_t<T>;
+
+    template <typename T>
+    using AddConst = std::add_const<T>;
+
+    template <typename T>
+    using AddConstType = std::add_const_t<T>;
+
+    template <typename T>
+    using AddVolatile = std::add_volatile<T>;
+
+    template <typename T>
+    using AddVolatileType = std::add_volatile_t<T>;
+
+    template <typename T>
+    using RemoveReference = std::remove_reference<T>;
+
+    template <typename T>
+    using RemoveReferenceType = std::remove_reference_t<T>;
+
+    template <typename T>
+    using AddLvalueReference = std::add_lvalue_reference<T>;
+
+    template <typename T>
+    using AddLvalueReferenceType = std::add_lvalue_reference_t<T>;
+
+    template <typename T>
+    using AddRvalueReference = std::add_rvalue_reference<T>;
+
+    template <typename T>
+    using AddRvalueReferenceType = std::add_lvalue_reference_t<T>;
+
+    template <typename T>
+    using RemovePointer = std::remove_pointer<T>;
+
+    template <typename T>
+    using RemovePointerType = std::remove_pointer_t<T>;
+
+    template <typename T>
+    using AddPointer = std::add_pointer<T>;
+
+    template <typename T>
+    using AddPointerType = std::add_pointer_t<T>;
+
+    template <typename T>
+    using MakeSigned = std::make_signed<T>;
+
+    template <typename T>
+    using MakeSignedType = std::make_signed_t<T>;
+
+    template <typename T>
+    using MakeUnsigned = std::make_unsigned<T>;
+
+    template <typename T>
+    using MakeUnsignedType = std::make_unsigned_t<T>;
+
+    template <typename T>
+    using RemoveExtent = std::remove_extent<T>;
+
+    template <typename T>
+    using RemoveExtentType = std::remove_extent_t<T>;
+
+    template <typename T>
+    using RemoveAllExtents = std::remove_all_extents<T>;
+
+    template <typename T>
+    using RemoveAllExtentsType = std::remove_all_extents_t<T>;
+
+    template <typename T>
+    using Decay = std::decay<T>;
+
+    template <typename T>
+    using DecayType = std::decay_t<T>;
+
+    template <typename T>
+    using RemoveConstVolatileReference = std::remove_cvref<T>;
+
+    template <typename T>
+    using RemoveConstVolatileReferenceType = std::remove_cvref_t<T>;
+
+    template <bool B, typename T>
+    using EnableIf = std::enable_if<B, T>;
+
+    template <bool B, typename T = void>
+    using EnableIfType = std::enable_if_t<B, T>;
+
+    template <bool Cond, typename IfTrue, typename IfFalse>
+    using Conditional = std::conditional<Cond, IfTrue, IfFalse>;
+
+    template <bool Cond, typename IfTrue, typename IfFalse>
+    using ConditionalType = std::conditional_t<Cond, IfTrue, IfFalse>;
+
+    template <typename T>
+    using UnderlyingType = std::underlying_type<T>;
+
+    template <typename T>
+    using UnderlyingTypeType = std::underlying_type_t<T>;
+
+    template <typename T, typename U>
+    using CommonType = std::common_type<T, U>;
+
+    template <typename... T>
+    using CommonTypeType = std::common_type_t<T...>;
+
+    template <typename... T>
+    using CommonReference = std::common_reference<T...>;
+
+    template <typename... T>
+    using CommonReferenceType = std::common_reference_t<T...>;
+
+    template <typename T, typename U, template <typename> class TQual, template <typename> class UQual>
+    using BasicCommonReference = std::basic_common_reference<T, U, TQual, UQual>;
+
+    template <typename Functor, typename... ArgTypes>
+    using InvokeResult = std::invoke_result<Functor, ArgTypes...>;
+
+    template <typename Functor, typename... ArgTypes>
+    using InvokeResultType = std::invoke_result_t<Functor, ArgTypes...>;
+
+    using VoidType = std::void_t<>;
+
+    template <typename T>
+    using TypeIdentity = std::type_identity<T>;
+
+    template <typename T>
+    using TypeIdentityType = std::type_identity_t<T>;
+
+    template <typename T>
+    using UnwrapReference = std::unwrap_reference<T>;
+
+    template <typename T>
+    using UnwrapReferenceType = std::unwrap_reference_t<T>;
+
+    template <typename Bn>
+    using Conjunction = std::conjunction<Bn>;
+
+    template <typename Bn>
+    constexpr bool ConjunctionValue = std::conjunction_v<Bn>;
+
+    template <typename Bn>
+    using Disjunction = std::disjunction<Bn>;
+
+    template <typename Bn>
+    constexpr bool DisjunctionValue = std::disjunction_v<Bn>;
+
+    template <typename Bn>
+    using Negation = std::negation<Bn>;
+
+    template <typename Bn>
+    constexpr bool NegationValue = std::negation_v<Bn>;
+
+    using std::is_constant_evaluated;
 }

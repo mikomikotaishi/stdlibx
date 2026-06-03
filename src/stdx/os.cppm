@@ -11,17 +11,12 @@ module;
 #include "stdx/os/unix.includes.inl"
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY
+#include "stdx/os/darwin.includes.inl"
 #include "stdx/os/linux.includes.inl"
 #include "stdx/os/win32.includes.inl"
 #endif
 
 export module stdx:os;
-
-export import :os.constants;
-
-import core;
-
-using namespace core::prelude;
 
 #include "stdx/os/unix/aio.inl"
 #include "stdx/os/unix/dirent.inl"
@@ -80,6 +75,11 @@ using namespace core::prelude;
 #include "stdx/os/unix/sys/wait.inl"
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY
+
+#include "stdx/os/darwin/coreaudio.inl"
+#include "stdx/os/darwin/audiounit.inl"
+#include "stdx/os/darwin/audiotoolbox.inl"
+#include "stdx/os/darwin/coremidi.inl"
 
 #include "stdx/os/linux/posix_types.inl"
 #include "stdx/os/linux/sysinfo.inl"
@@ -148,7 +148,44 @@ using namespace core::prelude;
 #include "stdx/os/linux/sys/vlimit.inl"
 #include "stdx/os/linux/sys/xattr.inl"
 
+#include "stdx/os/linux/alsa/conf.inl"
+#include "stdx/os/linux/alsa/control.inl"
+#include "stdx/os/linux/alsa/error.inl"
+#include "stdx/os/linux/alsa/global.inl"
+#include "stdx/os/linux/alsa/hwdep.inl"
+#include "stdx/os/linux/alsa/input.inl"
+#include "stdx/os/linux/alsa/mixer.inl"
+#include "stdx/os/linux/alsa/output.inl"
+#include "stdx/os/linux/alsa/pcm.inl"
+#include "stdx/os/linux/alsa/rawmidi.inl"
+#include "stdx/os/linux/alsa/seq.inl"
+#include "stdx/os/linux/alsa/seq_event.inl"
+#include "stdx/os/linux/alsa/seqmid.inl"
+#include "stdx/os/linux/alsa/seq_midi_event.inl"
+#include "stdx/os/linux/alsa/timer.inl"
+#include "stdx/os/linux/alsa/topology.inl"
+#include "stdx/os/linux/alsa/ump.inl"
+#include "stdx/os/linux/alsa/ump_msg.inl"
+#include "stdx/os/linux/alsa/use-case.inl"
+
+#include "stdx/os/win32/commctrl.inl"
+#include "stdx/os/win32/dbghelp.inl"
+#include "stdx/os/win32/dwmapi.inl"
+#include "stdx/os/win32/exception.inl"
+#include "stdx/os/win32/errhandlingapi.inl"
+#include "stdx/os/win32/fileapi.inl"
+#include "stdx/os/win32/interlocked.inl"
 #include "stdx/os/win32/intrin.inl"
-#include "stdx/os/win32/windows.inl"
+#include "stdx/os/win32/io.inl"
+#include "stdx/os/win32/libloader.inl"
+#include "stdx/os/win32/memoryapi.inl"
+#include "stdx/os/win32/mmsystem.inl"
+#include "stdx/os/win32/process.inl"
+#include "stdx/os/win32/shellapi.inl"
+#include "stdx/os/win32/synchapi.inl"
+#include "stdx/os/win32/wincrypt.inl"
+#include "stdx/os/win32/wincodec.inl"
+#include "stdx/os/win32/windows_base.inl"
+#include "stdx/os/win32/winsock.inl"
 
 #endif

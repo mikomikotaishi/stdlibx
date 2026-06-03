@@ -455,6 +455,50 @@ void test_complex_chain() {
     System::out.println("Distinct even count: {}", n);
 }
 
+void test_split() {
+    // StringView -> Vector<String>
+    StringView csv = "alpha,beta,gamma";
+    Vector<String> parts = Query(csv)
+        .split(',')
+        .to<Vector>();
+    System::out.println("Split StringView: {}", parts);
+
+    // String -> Vector<String>
+    String sentence = "The quick brown fox jumps over the lazy dog";
+    Vector<String> tokens = Query(sentence)
+        .split(' ')
+        .to<Vector>();
+    System::out.println("Split String: {}", tokens);
+
+    // const char* -> wrap in StringView first
+    const char* raw = "a/b/c/d";
+    Vector<String> segments = Query(StringView(raw))
+        .split('/')
+        .to<Vector>();
+    System::out.println("Split const char*: {}", segments);
+
+    // Choose a different output string type via the template parameter
+    Vector<StringView> views = Query(csv)
+        .split<StringView>(',')
+        .to<Vector>();
+    System::out.println("Split into StringViews: {}", views);
+
+    // Multi-character delimiter: a bare C-string literal works directly now -
+    // its trailing '\0' is dropped instead of being folded into the pattern.
+    StringView log = "INFO :: load :: INFO :: ready";
+    Vector<String> infos = Query(log)
+        .split(" :: ")
+        .where([](const String& s) -> bool { return s != "INFO"; })
+        .to<Vector>();
+    System::out.println("Split + filter: {}", infos);
+
+    // A single-element char delimiter is preserved (not turned into a string).
+    Vector<String> single = Query(StringView("x,,y"))
+        .split(',')
+        .to<Vector>();
+    System::out.println("Split keeps empty fields: {}", single);
+}
+
 int main() {
     test_basic_operations();
     test_chaining();
@@ -474,6 +518,5 @@ int main() {
     test_zip();
     test_for_each();
     test_complex_chain();
-
-    return 0;
+    test_split();
 }

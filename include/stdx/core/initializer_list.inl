@@ -5,8 +5,9 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::prelude::InitializerList;
+    template <typename T>
+    using InitializerList = std::initializer_list<T>;
 
-    using ::core::prelude::begin;
-    using ::core::prelude::end;
+    using std::begin;
+    using std::end;
 }

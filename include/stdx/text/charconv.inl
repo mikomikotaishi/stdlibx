@@ -5,9 +5,30 @@
  * @brief Wrapper namespace for standard library text operations.
  */
 export namespace stdx::text {
-    using ::core::text::CharsFormat;
-    using ::core::text::FromCharsResult;
-    using ::core::text::ToCharsResult;
-    using ::core::text::from_chars;
-    using ::core::text::to_chars;
+    class [[nodiscard]] CharsFormat final {
+    public:
+        using Self = ::std::chars_format;
+
+        static constexpr Self SCIENTIFIC = ::std::chars_format::scientific;
+        static constexpr Self FIXED = ::std::chars_format::fixed;
+        static constexpr Self HEX = ::std::chars_format::hex;
+        static constexpr Self GENERAL = ::std::chars_format::general;
+    private:
+        const Self value;
+    public:
+        constexpr CharsFormat() noexcept = delete;
+
+        constexpr CharsFormat(Self value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+    };
+
+    using FromCharsResult = std::from_chars_result;
+    using ToCharsResult = std::to_chars_result;
+
+    using std::from_chars;
+    using std::to_chars;
 }

@@ -5,9 +5,9 @@
  * @brief Wrapper namespace for standard library memory operations.
  */
 export namespace stdx::mem {
-    using ::alloc::mem::wmemchr;
-    using ::alloc::mem::wmemcmp;
-    using ::alloc::mem::wmemset;
-    using ::alloc::mem::wmemcpy;
-    using ::alloc::mem::wmemmove;
+    using std::wmemchr;
+    using std::wmemcmp;
+    using std::wmemset;
+    using std::wmemcpy;
+    using std::wmemmove;
 }

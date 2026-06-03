@@ -62,6 +62,8 @@ export namespace stdx::exec {
     private:
         const Self value;
     public:
+        constexpr ForwardProgressGuarantee() noexcept = delete;
+
         constexpr ForwardProgressGuarantee(Self value) noexcept:
             value{value} {}
 

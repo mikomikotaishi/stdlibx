@@ -1,30 +1,38 @@
 #pragma once
 
+using stdx::alloc::Allocator;
+using stdx::meta::IsSameValue;
+
 /**
  * @namespace stdx::collections
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace stdx::collections {
-    using ::alloc::collections::TreeMap;
-    using ::alloc::collections::TreeMultimap;
+    template <typename Key, typename Value, typename Compare = Less<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
+        requires IsSameValue<typename Alloc::value_type, Pair<const Key, Value>>
+    using TreeMap = std::map<Key, Value, Compare, Alloc>;
 
-    using ::alloc::collections::erase_if;
+    template <typename Key, typename Value, typename Compare = Less<Key>, typename Alloc = Allocator<Pair<const Key, Value>>>
+        requires IsSameValue<typename Alloc::value_type, Pair<const Key, Value>>
+    using TreeMultimap = std::multimap<Key, Value, Compare, Alloc>;
 
-    using ::alloc::collections::operator==;
-    using ::alloc::collections::operator<=>;
+    using std::erase_if;
 
-    using ::alloc::collections::begin;
-    using ::alloc::collections::cbegin;
-    using ::alloc::collections::end;
-    using ::alloc::collections::cend;
-    using ::alloc::collections::rbegin;
-    using ::alloc::collections::crbegin;
-    using ::alloc::collections::rend;
-    using ::alloc::collections::crend;
-    using ::alloc::collections::size;
-    using ::alloc::collections::ssize;
-    using ::alloc::collections::empty;
-    using ::alloc::collections::data;
+    using std::operator==;
+    using std::operator<=>;
 
-    using ::alloc::collections::swap;
+    using std::begin;
+    using std::cbegin;
+    using std::end;
+    using std::cend;
+    using std::rbegin;
+    using std::crbegin;
+    using std::rend;
+    using std::crend;
+    using std::size;
+    using std::ssize;
+    using std::empty;
+    using std::data;
+
+    using std::swap;
 }

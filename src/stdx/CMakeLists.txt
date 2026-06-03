@@ -14,12 +14,14 @@ target_sources(stdlibx_stdx
 
 configure_cpp_module_target(stdlibx_stdx)
 
-target_link_libraries(stdlibx_stdx PUBLIC stdlibx_core stdlibx_alloc)
-
 target_include_directories(stdlibx_stdx 
     PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
 )
+
+if(STDLIB_NAME_GCC)
+    target_link_libraries(stdlibx_stdx PUBLIC stdc++exp)
+endif()
 
 add_library(stdlibx::stdx ALIAS stdlibx_stdx)
 
@@ -41,14 +43,6 @@ elseif(ARCH_ARM64)
     target_compile_definitions(stdlibx_stdx PRIVATE ARCH_ARM64)
 elseif(ARCH_ARM)
     target_compile_definitions(stdlibx_stdx PRIVATE ARCH_ARM)
-endif()
-
-if(STDLIBX_NO_STDX)
-    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_NO_STDX)
-endif()
-
-if(STDLIBX_NO_ALLOC)
-    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_NO_ALLOC)
 endif()
 
 if(STDLIBX_EXPORT_IMPORT_STD)

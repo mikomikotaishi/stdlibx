@@ -5,52 +5,62 @@
  * @brief Wrapper namespace for standard library collection operations.
  */
 export namespace stdx::collections {
-    using ::alloc::collections::ValArray;
-    using ::alloc::collections::SliceArray;
-    using ::alloc::collections::GeneralSliceArray;
-    using ::alloc::collections::MaskArray;
-    using ::alloc::collections::IndirectArray;
-    using ::alloc::collections::Slice;
-    using ::alloc::collections::GeneralSlice;
+    template <typename T>
+    using ValArray = std::valarray<T>;
+    
+    template <typename T>
+    using SliceArray = std::slice_array<T>;
 
-    using ::alloc::collections::operator+;
-    using ::alloc::collections::operator-;
-    using ::alloc::collections::operator*;
-    using ::alloc::collections::operator/;
-    using ::alloc::collections::operator%;
-    using ::alloc::collections::operator&;
-    using ::alloc::collections::operator|;
-    using ::alloc::collections::operator^;
-    using ::alloc::collections::operator<<;
-    using ::alloc::collections::operator>>;
-    using ::alloc::collections::operator&&;
-    using ::alloc::collections::operator||;
+    template <typename T>
+    using GeneralSliceArray = std::gslice_array<T>;
 
-    using ::alloc::collections::operator==;
-    using ::alloc::collections::operator!=;
-    using ::alloc::collections::operator<;
-    using ::alloc::collections::operator<=;
-    using ::alloc::collections::operator>;
-    using ::alloc::collections::operator>=;
-    using ::alloc::collections::operator<=>;
+    template <typename T>
+    using MaskArray = std::mask_array<T>;
 
-    using ::alloc::collections::abs;
-    using ::alloc::collections::exp;
-    using ::alloc::collections::log;
-    using ::alloc::collections::log10;
-    using ::alloc::collections::pow;
-    using ::alloc::collections::sqrt;
-    using ::alloc::collections::sin;
-    using ::alloc::collections::cos;
-    using ::alloc::collections::tan;
-    using ::alloc::collections::asin;
-    using ::alloc::collections::acos;
-    using ::alloc::collections::atan;
-    using ::alloc::collections::atan2;
-    using ::alloc::collections::sinh;
-    using ::alloc::collections::cosh;
-    using ::alloc::collections::tanh;
+    template <typename T>
+    using IndirectArray = std::indirect_array<T>;
 
-    using ::alloc::collections::hash;
-    using ::alloc::collections::swap;
+    using Slice = std::slice;
+    using GeneralSlice = std::gslice;
+
+    using std::operator+;
+    using std::operator-;
+    using std::operator*;
+    using std::operator/;
+    using std::operator%;
+    using std::operator&;
+    using std::operator|;
+    using std::operator^;
+    using std::operator<<;
+    using std::operator>>;
+    using std::operator&&;
+    using std::operator||;
+
+    using std::operator==;
+    using std::operator!=;
+    using std::operator<;
+    using std::operator<=;
+    using std::operator>;
+    using std::operator>=;
+    using std::operator<=>;
+
+    using std::abs;
+    using std::exp;
+    using std::log;
+    using std::log10;
+    using std::pow;
+    using std::sqrt;
+    using std::sin;
+    using std::cos;
+    using std::tan;
+    using std::asin;
+    using std::acos;
+    using std::atan;
+    using std::atan2;
+    using std::sinh;
+    using std::cosh;
+    using std::tanh;
+
+    using std::hash;
+    using std::swap;
 }

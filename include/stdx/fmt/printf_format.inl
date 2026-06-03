@@ -1,8 +1,7 @@
 #pragma once
 
-using core::meta::DecayType;
-
 using stdx::collections::BitSet;
+using stdx::meta::DecayType;
 
 namespace stdx::fmt {
     #if defined(_WIN32)

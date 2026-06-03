@@ -243,8 +243,6 @@ include(FetchContent)
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
-option(STDLIBX_NO_STDX "Disable the stdx::* namespace and only use core::* and alloc::*" OFF)
-option(STDLIBX_NO_ALLOC "Disable the alloc::* namespace and only use core::*" OFF)
 option(STDLIBX_EXPORT_IMPORT_STD "Enable export import std" OFF)
 option(STDLIBX_IMPLICIT_USING_CORE "Make the stdx::core::* namespace implicitly imported at module import" ON)
 option(STDLIBX_IMPLICIT_USING_LITERALS "Make the stdx::literals::* namespace implicitly imported at module import" ON)
@@ -261,10 +259,6 @@ option(STDLIBX_BUILD_TESTS "Build the tests for stdlibx" ON)
 
 if(STDLIBX_NO_STD AND STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
     set(STDLIBX_USE_RESERVED_STD_IDENTIFIERS OFF CACHE BOOL "Disabled because STDLIBX_NO_STD is ON" FORCE)
-endif()
-
-if(STDLIBX_NO_ALLOC AND NOT STDLIBX_NO_STD)
-    set(STDLIBX_NO_STD ON CACHE BOOL "Implied because STDLIBX_NO_ALLOC disables stdx.*" FORCE)
 endif()
 
 if(COMPILER_GCC AND NOT STDLIBX_EXPORT_IMPORT_STD)
@@ -312,14 +306,6 @@ endif()
 
 if(STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
-endif()
-
-if(STDLIBX_NO_STDX)
-    target_compile_definitions(stdlibx INTERFACE STDLIBX_NO_STDX)
-endif()
-
-if(STDLIBX_NO_ALLOC)
-    target_compile_definitions(stdlibx INTERFACE STDLIBX_NO_ALLOC)
 endif()
 
 if(STDLIBX_NO_EXPORT_IMPORT_STD)

@@ -34,7 +34,7 @@ export namespace stdx::net {
     private:
         const Self value;
     public:
-        constexpr ForkEvent() noexcept = default;
+        constexpr ForkEvent() noexcept = delete;
 
         constexpr ForkEvent(Self value) noexcept:
             value{value} {}

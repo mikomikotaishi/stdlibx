@@ -2,6 +2,7 @@
 
 #ifdef __cpp_lib_reflection
 using stdx::collections::EnumSet;
+using stdx::collections::Vector;
 using stdx::debug::SourceLocation;
 
 namespace reflect = stdx::meta::reflect;

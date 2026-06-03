@@ -5,9 +5,11 @@
  * @brief Wrapper namespace for standard library input/output operations.
  */
 export namespace stdx::io {
-    using ::core::io::BasicStreamBuffer;
-    using ::core::io::StreamBuffer;
-    using ::core::io::WideStreamBuffer;
+    template <typename CharT>
+    using BasicStreamBuffer = std::basic_streambuf<CharT>;
 
-    using ::core::io::swap;
+    using StreamBuffer = std::streambuf;
+    using WideStreamBuffer = std::wstreambuf;
+
+    using std::swap;
 }

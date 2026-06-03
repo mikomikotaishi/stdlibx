@@ -5,48 +5,69 @@
  * @brief Wrapper namespace for standard library mathematical operations.
  */
 export namespace stdx::math::inline ratio {
-    using ::core::math::ratio::Ratio;
-    using ::core::math::ratio::RatioAdd;
-    using ::core::math::ratio::RatioSubtract;
-    using ::core::math::ratio::RatioMultiply;
-    using ::core::math::ratio::RatioDivide;
-    using ::core::math::ratio::RatioEqual;
-    using ::core::math::ratio::RatioNotEqual;
-    using ::core::math::ratio::RatioLess;
-    using ::core::math::ratio::RatioLessEqual;
-    using ::core::math::ratio::RatioGreater;
-    using ::core::math::ratio::RatioGreaterEqual;
-    
+    template <intmax Num, intmax Denom = 1>
+    using Ratio = std::ratio<Num, Denom>;
+
+    template <typename R1, typename R2>
+    using RatioAdd = std::ratio_add<R1, R2>;
+
+    template <typename R1, typename R2>
+    using RatioSubtract = std::ratio_subtract<R1, R2>;
+
+    template <typename R1, typename R2>
+    using RatioMultiply = std::ratio_multiply<R1, R2>;
+
+    template <typename R1, typename R2>
+    using RatioDivide = std::ratio_divide<R1, R2>;
+
+    template <typename R1, typename R2>
+    using RatioEqual = std::ratio_equal<R1, R2>;
+
+    template <typename R1, typename R2>
+    using RatioNotEqual = std::ratio_not_equal<R1, R2>;
+
+    template <typename R1, typename R2>
+    using RatioLess = std::ratio_less<R1, R2>;
+
+    template <typename R1, typename R2>
+    using RatioLessEqual = std::ratio_less_equal<R1, R2>;
+
+    template <typename R1, typename R2>
+    using RatioGreater = std::ratio_greater<R1, R2>;
+
+    template <typename R1, typename R2>
+    using RatioGreaterEqual = std::ratio_greater_equal<R1, R2>;
+
     #if __INTMAX_WIDTH__ >= 96
     #if __INTMAX_WIDTH__ >= 128
-    using ::core::math::ratio::Quecto;
+    using Quecto = std::quecto;
     #endif 
-    using ::core::math::ratio::Ronna;
-    using ::core::math::ratio::Yocto;
-    using ::core::math::ratio::Zepto;
+    using Ronto = std::ronto;
+    using Yocto = std::yocto;
+    using Zepto = std::zepto;
     #endif
-    using ::core::math::ratio::Atto;
-    using ::core::math::ratio::Femto;
-    using ::core::math::ratio::Pico;
-    using ::core::math::ratio::Nano;
-    using ::core::math::ratio::Micro;
-    using ::core::math::ratio::Milli;
-    using ::core::math::ratio::Centi;
-    using ::core::math::ratio::Deci;
-    using ::core::math::ratio::Deca;
-    using ::core::math::ratio::Hecto;
-    using ::core::math::ratio::Kilo;
-    using ::core::math::ratio::Mega;
-    using ::core::math::ratio::Giga;
-    using ::core::math::ratio::Tera;
-    using ::core::math::ratio::Peta;
-    using ::core::math::ratio::Exa;
+    using Atto = std::atto;
+    using Femto =std::femto;
+    using Pico = std::pico;
+    using Nano = std::nano;
+    using Micro = std::micro;
+    using Milli = std::milli;
+    using Centi = std::centi;
+    using Deci = std::deci;
+    using Deca = std::deca;
+    using Hecto = std::hecto;
+    using Kilo = std::kilo;
+    using Mega = std::mega;
+    using Giga = std::giga;
+    using Tera = std::tera;
+    using Peta = std::peta;
+    using Exa = std::exa;
     #if __INTMAX_WIDTH__ >= 96
-    using ::core::math::ratio::Zetta;
-    using ::core::math::ratio::Yotta;
-    using ::core::math::ratio::Ronna;
+    using Zetta = std::zetta;
+    using Yotta = std::yotta;
+    using Ronna = std::ronna;
     #if __INTMAX_WIDTH__ >= 128
-    using ::core::math::ratio::Quetta;
+    using Quetta = std::quetta;
     #endif 
     #endif
 }

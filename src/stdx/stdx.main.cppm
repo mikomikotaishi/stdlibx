@@ -47,15 +47,8 @@ import std;
 
 export import :constants;
 
+import :gsl;
 import :os;
-
-import core;
-import alloc;
-
-STDLIBX_CORE_PREPARE_IMPORT_PRELUDE();
-STDLIBX_CORE_PREPARE_IMPORT_LITERALS();
-STDLIBX_STDX_PREPARE_IMPORT_CORE();
-STDLIBX_STDX_PREPARE_IMPORT_LITERALS();
 
 extern "C" {
     #ifdef __unix__
@@ -65,25 +58,29 @@ extern "C" {
     #endif
 }
 
-#include "stdx/core/string.inl"
-#include "stdx/core/string_view.inl"
+STDLIBX_PREPARE_IMPORT_CORE();
+STDLIBX_PREPARE_IMPORT_LITERALS();
+
+#include "Foundation.inl"
+
+#include "stdx/meta/type_traits.inl"
+#include "stdx/meta/typeindex.inl"
+#include "stdx/meta/typeinfo.inl"
+
+#include "stdx/core/cstddef.inl"
 #include "stdx/core/any.inl"
 #include "stdx/core/array.inl"
 #include "stdx/core/clocale.inl"
 #include "stdx/core/compare.inl"
 #include "stdx/core/concepts.inl"
 #include "stdx/core/contracts.inl"
-#include "stdx/core/cstddef.inl"
 #include "stdx/core/exception.inl"
 #include "stdx/core/expected.inl"
 #include "stdx/core/functional.inl"
-#include "stdx/core/gsl.inl"
 #include "stdx/core/initializer_list.inl"
 #include "stdx/core/limits.inl"
-#include "stdx/core/locale.inl"
 #include "stdx/core/mdspan.inl"
 #include "stdx/core/optional.inl"
-#include "stdx/core/pair.inl"
 #include "stdx/core/sequence.inl"
 #include "stdx/core/span.inl"
 #include "stdx/core/system_error.inl"
@@ -91,19 +88,14 @@ extern "C" {
 #include "stdx/core/tuple.inl"
 #include "stdx/core/variant.inl"
 
-#include "stdx/util/algorithm.inl"
-#include "stdx/util/cstdlib.inl"
-#include "stdx/util/numeric.inl"
-#include "stdx/util/utility.inl"
+#include "stdx/fmt/charconv.inl"
+#include "stdx/fmt/cinttypes.inl"
+#include "stdx/fmt/format.inl"
 
-#include "stdx/alloc/cstdlib.inl"
-#include "stdx/alloc/memory.inl"
-#include "stdx/alloc/new.inl"
-#include "stdx/alloc/scoped_allocator.inl"
-
+#include "stdx/collections/deque.inl"
+#include "stdx/collections/vector.inl"
 #include "stdx/collections/bitset.inl"
 #include "stdx/collections/colony.inl"
-#include "stdx/collections/deque.inl"
 #include "stdx/collections/flat_map.inl"
 #include "stdx/collections/flat_set.inl"
 #include "stdx/collections/hash_map.inl"
@@ -116,26 +108,49 @@ extern "C" {
 #include "stdx/collections/tree_map.inl"
 #include "stdx/collections/tree_set.inl"
 #include "stdx/collections/valarray.inl"
-#include "stdx/collections/vector.inl"
 
 #include "stdx/debug/debugging.inl"
 #include "stdx/debug/source_location.inl"
 #include "stdx/debug/stacktrace.inl"
 
-#include "stdx/exec/execution.inl"
+#include "stdx/future/coroutine.inl"
+#include "stdx/future/future.inl"
 
-#include "stdx/fmt/charconv.inl"
-#include "stdx/fmt/cinttypes.inl"
-#include "stdx/fmt/format.inl"
+#include "stdx/iter/iterator.inl"
+
+#include "stdx/ranges/algorithm.inl"
+#include "stdx/ranges/functional.inl"
+#include "stdx/ranges/generator.inl"
+#include "stdx/ranges/iterator.inl"
+#include "stdx/ranges/memory.inl"
+#include "stdx/ranges/ranges.inl"
+#include "stdx/ranges/random.inl"
+
+#include "stdx/meta/meta.inl"
+#include "stdx/collections/enum_set.inl"
+#include "stdx/meta/reflect.inl"
+
+#include "stdx/core/ops.inl"
+
+#include "stdx/os/constants.inl"
+
+#include "stdx/util/algorithm.inl"
+#include "stdx/util/cstdlib.inl"
+#include "stdx/util/numeric.inl"
+#include "stdx/util/utility.inl"
+
+#include "stdx/alloc/cstdlib.inl"
+#include "stdx/alloc/memory.inl"
+#include "stdx/alloc/new.inl"
+#include "stdx/alloc/scoped_allocator.inl"
+
+#include "stdx/exec/execution.inl"
 
 #include "stdx/core/numbers.inl"
 
 #include "stdx/fmt/printf_format.inl"
 
 #include "stdx/fs/fs.inl"
-
-#include "stdx/future/coroutine.inl"
-#include "stdx/future/future.inl"
 
 #include "stdx/text/cctype.inl"
 #include "stdx/text/charconv.inl"
@@ -147,7 +162,11 @@ extern "C" {
 #include "stdx/text/text_encoding.inl"
 #include "stdx/text/string/cstring.inl"
 #include "stdx/text/string/string.inl"
-#include "stdx/text/string/string_view.inl"
+
+#include "stdx/mem/cstring.inl"
+#include "stdx/mem/cwchar.inl"
+#include "stdx/mem/memory.inl"
+#include "stdx/mem/new.inl"
 
 #include "stdx/io/cwchar.inl"
 #include "stdx/io/fstream.inl"
@@ -163,7 +182,7 @@ extern "C" {
 #include "stdx/io/string.inl"
 #include "stdx/io/syncstream.inl"
 
-#include "stdx/iter/iterator.inl"
+#include "stdx/core/locale.inl"
 
 #include "stdx/random/random.inl"
 
@@ -182,17 +201,8 @@ extern "C" {
 
 #include "stdx/core/math.inl"
 
-#include "stdx/mem/cstring.inl"
-#include "stdx/mem/cwchar.inl"
-#include "stdx/mem/memory.inl"
-#include "stdx/mem/new.inl"
-
 #include "stdx/io/cstdio.inl"
 #include "stdx/io/print.inl"
-
-#include "stdx/meta/type_traits.inl"
-#include "stdx/meta/typeindex.inl"
-#include "stdx/meta/typeinfo.inl"
 
 #include "stdx/net/buffer.inl"
 #include "stdx/net/executor.inl"
@@ -208,18 +218,6 @@ extern "C" {
 #include "stdx/pmr/stacktrace.inl"
 #include "stdx/pmr/regex.inl"
 #include "stdx/pmr/string.inl"
-
-#include "stdx/ranges/algorithm.inl"
-#include "stdx/ranges/functional.inl"
-#include "stdx/ranges/generator.inl"
-#include "stdx/ranges/iterator.inl"
-#include "stdx/ranges/memory.inl"
-#include "stdx/ranges/ranges.inl"
-#include "stdx/ranges/random.inl"
-
-#include "stdx/meta/meta.inl"
-#include "stdx/collections/enum_set.inl"
-#include "stdx/meta/reflect.inl"
 
 #include "stdx/compiler/annotations.inl"
 #include "stdx/compiler/attributes.inl"
@@ -252,7 +250,6 @@ extern "C" {
 #include "stdx/time/ctime.inl"
 #include "stdx/time/time.inl"
 
-#include "stdx/core/ops.inl"
 #include "stdx/core/system.inl"
 #include "stdx/core/uuid.inl"
 

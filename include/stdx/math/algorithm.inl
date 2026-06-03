@@ -5,17 +5,17 @@
  * @brief Wrapper namespace for standard library mathematical operations.
  */
 export namespace stdx::math {
-    using ::core::math::includes;
-    using ::core::math::set_difference;
-    using ::core::math::set_intersection;
-    using ::core::math::set_symmetric_difference;
-    using ::core::math::set_union;
+    using std::includes;
+    using std::set_difference;
+    using std::set_intersection;
+    using std::set_symmetric_difference;
+    using std::set_union;
 
-    using ::core::math::max;
-    using ::core::math::max_element;
-    using ::core::math::min;
-    using ::core::math::min_element;
-    using ::core::math::minmax;
-    using ::core::math::minmax_element;
-    using ::core::math::clamp;
+    using std::max;
+    using std::max_element;
+    using std::min;
+    using std::min_element;
+    using std::minmax;
+    using std::minmax_element;
+    using std::clamp;
 }

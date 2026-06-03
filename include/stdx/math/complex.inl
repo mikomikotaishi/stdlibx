@@ -5,50 +5,41 @@
  * @brief Wrapper namespace for standard library mathematical operations.
  */
 export namespace stdx::math {
-    using ::core::math::Complex;
+    template <typename T>
+    using Complex = std::complex<T>;
 
-    using ::core::math::operator+;
-    using ::core::math::operator-;
-    using ::core::math::operator*;
-    using ::core::math::operator/;
-    using ::core::math::operator==;
-    using ::core::math::operator<<;
-    using ::core::math::operator>>;
+    using std::operator+;
+    using std::operator-;
+    using std::operator*;
+    using std::operator/;
+    using std::operator==;
+    using std::operator<<;
+    using std::operator>>;
 
-    using ::core::math::real;
-    using ::core::math::imag;
-    using ::core::math::abs;
-    using ::core::math::arg;
-    using ::core::math::norm;
-    using ::core::math::conj;
-    using ::core::math::proj;
-    using ::core::math::polar;
+    using std::real;
+    using std::imag;
+    using std::abs;
+    using std::arg;
+    using std::norm;
+    using std::conj;
+    using std::proj;
+    using std::polar;
 
-    using ::core::math::exp;
-    using ::core::math::log;
-    using ::core::math::log10;
-    using ::core::math::pow;
-    using ::core::math::sqrt;
-    using ::core::math::sin;
-    using ::core::math::cos;
-    using ::core::math::tan;
-    using ::core::math::asin;
-    using ::core::math::acos;
-    using ::core::math::atan;
-    using ::core::math::sinh;
-    using ::core::math::cosh;
-    using ::core::math::tanh;
-    using ::core::math::asinh;
-    using ::core::math::acosh;
-    using ::core::math::atanh;
-}
-
-/**
- * @namespace stdx::literals::complex_literals
- * @brief Complex literals namespace
- */
-export namespace stdx::inline literals::inline complex_literals {
-    using ::core::literals::complex_literals::operator""i;
-    using ::core::literals::complex_literals::operator""if;
-    using ::core::literals::complex_literals::operator""il;
+    using std::exp;
+    using std::log;
+    using std::log10;
+    using std::pow;
+    using std::sqrt;
+    using std::sin;
+    using std::cos;
+    using std::tan;
+    using std::asin;
+    using std::acos;
+    using std::atan;
+    using std::sinh;
+    using std::cosh;
+    using std::tanh;
+    using std::asinh;
+    using std::acosh;
+    using std::atanh;
 }

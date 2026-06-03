@@ -301,7 +301,7 @@ export namespace stdx::time {
     private:
         const Self value;
     public:
-        constexpr Choose() noexcept = default;
+        constexpr Choose() noexcept = delete;
 
         constexpr Choose(Self value) noexcept:
             value{value} {}
@@ -443,20 +443,6 @@ export namespace stdx::time {
         LocalTime<Seconds> currentTime = stdx::time::current_zone()->to_local(stdx::time::floor<Seconds>(now));
         return stdx::fmt::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
     }
-}
-
-/**
- * @namespace stdx::literals::chrono_literals
- * @brief Chrono literals namespace
- */
-export namespace stdx::inline literals::inline chrono_literals  {
-    using ::std::literals::chrono_literals::operator""d;
-    using ::std::literals::chrono_literals::operator""h;
-    using ::std::literals::chrono_literals::operator""min;
-    using ::std::literals::chrono_literals::operator""ms;
-    using ::std::literals::chrono_literals::operator""s;
-    using ::std::literals::chrono_literals::operator""us;
-    using ::std::literals::chrono_literals::operator""y; 
 }
 
 using stdx::time::Month;

@@ -9,7 +9,6 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     # Create executable
     add_executable(${TEST_NAME} ${TEST_SOURCE})
     
-    # Link directly to stdx module (which transitively includes core and alloc)
     target_link_libraries(${TEST_NAME} PRIVATE stdlibx::stdx)
     
     # Force test to wait for stdx and its dependencies to be completely built

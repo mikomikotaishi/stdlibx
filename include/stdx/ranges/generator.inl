@@ -6,6 +6,7 @@
  */
 export namespace stdx::ranges {
     #ifdef __cpp_lib_generator
-    using ::core::ranges::Generator;
+    template <typename Ref, typename V = void, typename Allocator = void>
+    using Generator = std::generator<Ref, V, Allocator>;
     #endif
 }

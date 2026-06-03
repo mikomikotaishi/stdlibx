@@ -1,5 +1,6 @@
 #pragma once
 
+using stdx::collections::Vector;
 using stdx::fs::Path;
 using stdx::ranges::RangeValue;
 using stdx::sys::Signal;

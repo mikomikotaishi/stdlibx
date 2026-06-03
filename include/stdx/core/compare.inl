@@ -5,44 +5,172 @@
  * @brief Wrapper namespace for the core objects of the standard library.
  */
 export namespace stdx::core {
-    using ::core::prelude::ThreeWayComparable;
-    using ::core::prelude::ThreeWayComparableWith;
+    template <typename T>
+    concept ThreeWayComparable = std::three_way_comparable<T>;
 
-    using ::core::prelude::Compare;
+    template <typename T, typename U>
+    concept ThreeWayComparableWith = std::three_way_comparable_with<T, U>;
 
-    using ::core::prelude::PartialOrdering;
-    using ::core::prelude::WeakOrdering;
-    using ::core::prelude::StrongOrdering;
+    class Compare final {
+    public:
+        Compare() = delete;
 
-    using ::core::prelude::CommonComparisonCategory;
-    using ::core::prelude::CompareThreeWayResult;
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool equal(T t, U u) noexcept {
+            return std::cmp_equal(t, u);
+        }
 
-    using ::core::prelude::CompareThreeWay;
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool not_equal(T t, U u) noexcept {
+            return std::cmp_not_equal(t, u);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool less(T t, U u) noexcept {
+            return std::cmp_less(t, u);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool greater(T t, U u) noexcept {
+            return std::cmp_greater(t, u);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool less_equal(T t, U u) noexcept {
+            return std::cmp_less_equal(t, u);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr bool greater_equal(T t, U u) noexcept {
+            return std::cmp_greater_equal(t, u);
+        }
+    };
+
+    class [[nodiscard]] PartialOrdering final {
+    public:
+        using Self = std::partial_ordering;
+
+        static constexpr Self LESS = std::partial_ordering::less;
+        static constexpr Self EQUIVALENT = std::partial_ordering::equivalent;
+        static constexpr Self GREATER = std::partial_ordering::greater;
+        static constexpr Self UNORDERED = std::partial_ordering::unordered;
+    private:
+        const Self value;
+    public:
+        constexpr PartialOrdering() noexcept = delete;
+
+        constexpr PartialOrdering(Self value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+    };
+
+    class [[nodiscard]] WeakOrdering final {
+    public:
+        using Self = std::weak_ordering;
+
+        static constexpr Self LESS = std::weak_ordering::less;
+        static constexpr Self EQUIVALENT = std::weak_ordering::equivalent;
+        static constexpr Self GREATER = std::weak_ordering::greater;
+    private:
+        const Self value;
+    public:
+        constexpr WeakOrdering() noexcept = delete;
+
+        constexpr WeakOrdering(Self value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+
+        constexpr operator PartialOrdering() const noexcept {
+            return *this;
+        }
+
+        constexpr operator PartialOrdering::Self() const noexcept {
+            return static_cast<PartialOrdering::Self>(value);
+        }
+    };
+
+    class [[nodiscard]] StrongOrdering final {
+    public:
+        using Self = std::strong_ordering;
+
+        static constexpr Self LESS = std::strong_ordering::less;
+        static constexpr Self EQUIVALENT = std::strong_ordering::equivalent;
+        static constexpr Self EQUAL = std::strong_ordering::equal;
+        static constexpr Self GREATER = std::strong_ordering::greater;
+    private:
+        const Self value;
+    public:
+        constexpr StrongOrdering() noexcept = delete;
+
+        constexpr StrongOrdering(Self value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+
+        constexpr operator WeakOrdering() const noexcept {
+            return *this;
+        }
+
+        constexpr operator WeakOrdering::Self() const noexcept {
+            return static_cast<WeakOrdering::Self>(value);
+        }
+
+        constexpr operator PartialOrdering() const noexcept {
+            return *this;
+        }
+
+        constexpr operator PartialOrdering::Self() const noexcept {
+            return static_cast<PartialOrdering::Self>(value);
+        }
+    };
+
+    template <typename... Ts>
+    using CommonComparisonCategory = std::common_comparison_category<Ts...>;
+
+    template <typename T>
+    using CompareThreeWayResult = std::compare_three_way_result<T>;
+
+    using CompareThreeWay = std::compare_three_way;
     
-    using ::core::prelude::StrongFallback;
-    using ::core::prelude::WeakFallback;
-    using ::core::prelude::PartialFallback;
+    using StrongFallback = decltype(std::compare_strong_order_fallback);
+    using WeakFallback = decltype(std::compare_weak_order_fallback);
+    using PartialFallback = decltype(std::compare_partial_order_fallback);
 
     inline namespace comparison {
-        using ::core::prelude::comparison::StrongOrder;
-        using ::core::prelude::comparison::WeakOrder;
-        using ::core::prelude::comparison::PartialOrder;
-        using ::core::prelude::comparison::CompareStrongOrderFallback;
-        using ::core::prelude::comparison::CompareWeakOrderFallback;
-        using ::core::prelude::comparison::ComparePartialOrderFallback;
+        inline constexpr decltype(std::strong_order) StrongOrder = std::strong_order;
+        inline constexpr decltype(std::weak_order) WeakOrder = std::weak_order;
+        inline constexpr decltype(std::partial_order) PartialOrder = std::partial_order;
+
+        inline constexpr StrongFallback CompareStrongOrderFallback = std::compare_strong_order_fallback;
+        inline constexpr WeakFallback CompareWeakOrderFallback = std::compare_weak_order_fallback;
+        inline constexpr PartialFallback ComparePartialOrderFallback = std::compare_partial_order_fallback;
     }
 
-    using ::core::prelude::is_eq;
-    using ::core::prelude::is_neq;
-    using ::core::prelude::is_lt;
-    using ::core::prelude::is_lteq;
-    using ::core::prelude::is_gt;
-    using ::core::prelude::is_gteq;
+    using std::is_eq;
+    using std::is_neq;
+    using std::is_lt;
+    using std::is_lteq;
+    using std::is_gt;
+    using std::is_gteq;
 
-    using ::core::prelude::operator==;
-    using ::core::prelude::operator<;
-    using ::core::prelude::operator>;
-    using ::core::prelude::operator<=;
-    using ::core::prelude::operator>=;
-    using ::core::prelude::operator<=>;
+    using std::operator==;
+    using std::operator<;
+    using std::operator>;
+    using std::operator<=;
+    using std::operator>=;
+    using std::operator<=>;
 }

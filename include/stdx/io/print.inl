@@ -1,12 +1,11 @@
 #pragma once
 
-using core::meta::IsConvertibleValue;
-using core::meta::TypeIdentityType;
-
 using stdx::fmt::FormatException;
 using stdx::fmt::FormatString;
 using stdx::fmt::Formatter;
 using stdx::fmt::PrintfString;
+using stdx::meta::IsConvertibleValue;
+using stdx::meta::TypeIdentityType;
 
 using namespace stdx::os;
 using namespace stdx::os::win32;
@@ -40,7 +39,7 @@ namespace stdx::io {
             return false;
         }
 
-        StringView term = ::core::sys::getenv("TERM");
+        StringView term = std::getenv("TERM");
         if (!term.empty() || term == "dumb") {
             return false;
         }
