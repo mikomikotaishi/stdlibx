@@ -109,7 +109,17 @@ if(COMPILER_GCC
     AND STDLIBX_CXX_STANDARD GREATER_EQUAL 26
     AND STDLIBX_ENABLE_CONTRACTS)
     message(STATUS "Contracts enabled")
-    add_compile_options(-fcontracts)
+    # Must live in CMAKE_CXX_FLAGS, not add_compile_options(). -fcontracts puts
+    # GCC into the C++26/contracts language dialect, which it bakes into every
+    # module BMI. CMake's synthesised `import std` module target does NOT
+    # inherit directory- or target-scope compile options, so under the older
+    # import-std implementations it gets built as plain C++26; importing that
+    # std BMI from our contracts TUs then fails with
+    # "language dialect differs 'C++26', expected 'C++26/contracts'".
+    # CMAKE_CXX_FLAGS is threaded into the std-module compile (it's how the
+    # libc++/libstdc++ -stdlib= selection above reaches it), so it keeps the
+    # std BMI in the matching dialect regardless of CMake version.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcontracts")
 endif()
 
 if(COMPILER_GCC
@@ -117,7 +127,9 @@ if(COMPILER_GCC
     AND STDLIBX_CXX_STANDARD GREATER_EQUAL 26
     AND STDLIBX_ENABLE_REFLECTION)
     message(STATUS "Reflection enabled")
-    add_compile_options(-freflection)
+    # Same reasoning as -fcontracts above: keep it in CMAKE_CXX_FLAGS so the
+    # std-module target is compiled in the matching dialect.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -freflection")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
@@ -252,7 +264,6 @@ option(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY "Enable libsodium mod
 option(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY "Enable Microsoft Guidelines Support Library modules in stdx::core::gsl::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx::lua::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY "Enable GNU Multiple Precision Arithmetic modules in stdx::math::*" ON)
-option(STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY "Enable operating system header modules in stdx::os::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules in stdx::sql::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY "Enable ZIP (zlib) wrapper modules in stdx::zip::*" ON)
 option(STDLIBX_BUILD_TESTS "Build the tests for stdlibx" ON)
@@ -266,12 +277,19 @@ if(COMPILER_GCC AND NOT STDLIBX_EXPORT_IMPORT_STD)
 endif()
 
 if(COMPILER_GCC AND STDLIBX_ENABLE_REFLECTION)
-    set(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
-    set(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
-    set(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
-    set(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
-    set(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
-    set(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY OFF CACHE BOOL "Does not work on GCC 16 with reflection enabled" FORCE)
+    # SQL, Zip, and Microsoft GSL build and pass under GCC 16 + reflection
+    # (verified: SqlTest 34/34 incl. the reflection Connection::query<T>,
+    # ZipTest 15/15), so they are intentionally NOT forced off and stay ON.
+    #
+    # Lua, GMP, and Crypto (libsodium) still fail, but NOT due to the old
+    # (now-fixed) StandardInteger main-module bug: their C headers pull libc
+    # types (__mbstate_t, pthread_mutex_t, std::streampos, ...) into the global
+    # module fragment that clash with `import std` ("conflicting imported
+    # declaration"); GMP additionally trips __gmp_expr vs std::error_condition.
+    # These are C++-modules / C-header interop issues - re-enable once sorted.
+    set(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
+    set(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
+    set(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
 endif()
 
 add_library(stdlibx INTERFACE)
@@ -338,10 +356,6 @@ endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY)
-endif()
-
-if(STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY)
-    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY)
 endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)

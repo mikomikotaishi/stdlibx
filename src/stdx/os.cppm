@@ -9,12 +9,9 @@
 module;
 
 #include "stdx/os/unix.includes.inl"
-
-#ifdef STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY
 #include "stdx/os/darwin.includes.inl"
 #include "stdx/os/linux.includes.inl"
 #include "stdx/os/win32.includes.inl"
-#endif
 
 export module stdx:os;
 
@@ -47,6 +44,7 @@ export module stdx:os;
 #include "stdx/os/unix/stdlib.inl"
 #include "stdx/os/unix/strings.inl"
 #include "stdx/os/unix/termios.inl"
+#include "stdx/os/unix/time.inl"
 #include "stdx/os/unix/unistd.inl"
 #include "stdx/os/unix/utime.inl"
 #include "stdx/os/unix/utmpx.inl"
@@ -73,8 +71,6 @@ export module stdx:os;
 #include "stdx/os/unix/sys/un.inl"
 #include "stdx/os/unix/sys/utsname.inl"
 #include "stdx/os/unix/sys/wait.inl"
-
-#ifdef STDLIBX_EXTENSIONS_COMPILE_OS_LIBRARY
 
 #include "stdx/os/darwin/coreaudio.inl"
 #include "stdx/os/darwin/audiounit.inl"
@@ -168,6 +164,7 @@ export module stdx:os;
 #include "stdx/os/linux/alsa/ump_msg.inl"
 #include "stdx/os/linux/alsa/use-case.inl"
 
+#include "stdx/os/win32/windows_base.inl"
 #include "stdx/os/win32/commctrl.inl"
 #include "stdx/os/win32/dbghelp.inl"
 #include "stdx/os/win32/dwmapi.inl"
@@ -185,7 +182,4 @@ export module stdx:os;
 #include "stdx/os/win32/synchapi.inl"
 #include "stdx/os/win32/wincrypt.inl"
 #include "stdx/os/win32/wincodec.inl"
-#include "stdx/os/win32/windows_base.inl"
 #include "stdx/os/win32/winsock.inl"
-
-#endif

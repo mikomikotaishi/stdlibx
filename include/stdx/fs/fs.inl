@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::fs
- * @brief Wrapper namespace for standard library file system operations.
+ * @brief Standard library file system operations.
  */
 export namespace stdx::fs {
     using Path = std::filesystem::path;
@@ -188,15 +188,4 @@ export namespace stdx::fs {
     using std::filesystem::is_socket;
     using std::filesystem::is_symlink;
     using std::filesystem::status_known;
-
-    using std::operator|;
-    using std::operator&;
-    using std::operator^;
-    using std::operator~;
-    using std::operator|=;
-    using std::operator&=;
-    using std::operator^=;
-
-    using std::hash;
-    using std::swap;
 }

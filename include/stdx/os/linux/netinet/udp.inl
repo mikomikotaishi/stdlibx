@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux::netinet
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::posix::netinet {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<netinet/udp.h>)
     using UdpHeader = ::udphdr;
     #endif
 }

@@ -19,7 +19,7 @@ using namespace stdx::ranges::views;
 
 /**
  * @namespace stdx::linq
- * @brief Wrapper namespace for standard library extension LINQ libraries.
+ * @brief Standard library extension LINQ libraries.
  */
 namespace stdx::linq {
 
@@ -49,8 +49,8 @@ concept Transformable = requires (Ran& r, Func&& f) {
 
 /**
  * @concept NormalizableDelimiter
- * @brief Whether a split delimiter is a raw C-string — a `const char[N]` literal
- *        or a `const char*` — over a character range, and so should be
+ * @brief Whether a split delimiter is a raw C-string - a `const char[N]` literal
+ *        or a `const char*` - over a character range, and so should be
  *        reinterpreted as a BasicStringView to drop its terminating '\0' from the
  *        pattern before splitting.
  *
@@ -69,7 +69,7 @@ concept NormalizableDelimiter = CharacterLike<RangeValue<Ran>>
 /**
  * @concept Splittable
  * @brief Concept that checks if Split can be applied to the range with a given
- *        delimiter — either directly, or after normalising a raw C-string
+ *        delimiter - either directly, or after normalising a raw C-string
  *        delimiter (see NormalizableDelimiter) to a null-free BasicStringView.
  *
  * @tparam Ran The range type.
@@ -241,7 +241,7 @@ concept Foldable = requires (Ran& r, Init&& init, Func&& f) {
 
 /**
  * @namespace stdx::linq
- * @brief Wrapper namespace for standard library extension LINQ libraries.
+ * @brief Standard library extension LINQ libraries.
  */
 export namespace stdx::linq {
 
@@ -341,41 +341,40 @@ public:
     }
 
     /**
-     * @brief Splits the range into a sequence of substrings using a delimiter.
+     * @brief Splits the range into a sequence of pieces using a delimiter.
      *
-     * Each piece produced by the split is materialised into a string of type Str.
-     * This is primarily intended for splitting character ranges — a String,
-     * StringView, or string literal — into a Query of substrings. For example,
-     * `Query(StringView{"a,b,c"}).split(',').to<Vector>()` yields a Vector<String>,
-     * and `.split<StringView>(',')` yields views over the original buffer instead.
+     * @note As a convenience for character sources, a raw C-string delimiter
+     * (`const char[N]` / `const char*`) is reinterpreted as a BasicStringView
+     * so its terminating '\0' is not folded into the pattern (which would
+     * otherwise stop it ever matching). A raw `const char*` *source* is not a
+     * range, so it must be wrapped first: `Query(StringView{ptr})`.
      *
-     * @note The underlying range must itself be a range of characters. A raw
-     *       `const char*` is not a range, so wrap the source first:
-     *       `Query(StringView{ptr})`. The delimiter, however, may be a single
-     *       character (`','`), a string view/string, or a bare C-string literal
-     *       (`" :: "`): a `const char[N]` / `const char*` delimiter is reinterpreted
-     *       as a BasicStringView so its terminating '\0' is not folded into the
-     *       pattern (which would otherwise stop it ever matching).
-     *
-     * @tparam Str The string type each piece is materialised into (defaults to String).
+     * @tparam Into The type each piece is materialised into, or void to yield the
+     * raw subranges (defaults to void).
      * @tparam Delim The delimiter type (a single element or a pattern range).
      * @param delim The delimiter to split on.
-     * @return A Query whose elements are the split substrings as Str.
+     * @return A Query over the split pieces.
      */
-    template <typename Str = String, typename Delim>
+    template <typename Into = void, typename Delim>
         requires Splittable<Ran, Delim>
     [[nodiscard]]
     constexpr auto split(Delim&& delim) noexcept {
-        auto materialise = [](auto&& piece) -> Str { return Str(Begin(piece), End(piece)); };
+        auto build = [this]<typename Pattern>(Pattern&& pattern) {
+            auto parts = Split(range, Ops::forward<Pattern>(pattern));
+            if constexpr (SameAs<Into, void>) {
+                return Query<decltype(parts)>(Ops::move(parts));
+            } else {
+                auto pieces = Transform(
+                    Ops::move(parts),
+                    [](auto&& piece) -> Into { return Into(Begin(piece), End(piece)); }
+                );
+                return Query<decltype(pieces)>(Ops::move(pieces));
+            }
+        };
         if constexpr (NormalizableDelimiter<Ran, Delim>) {
-            auto pieces = Transform(
-                Split(range, BasicStringView<RangeValue<Ran>>(Ops::forward<Delim>(delim))),
-                materialise
-            );
-            return Query<decltype(pieces)>(Ops::move(pieces));
+            return build(BasicStringView<RangeValue<Ran>>(Ops::forward<Delim>(delim)));
         } else {
-            auto pieces = Transform(Split(range, Ops::forward<Delim>(delim)), materialise);
-            return Query<decltype(pieces)>(Ops::move(pieces));
+            return build(Ops::forward<Delim>(delim));
         }
     }
 
@@ -501,11 +500,18 @@ public:
     /**
      * @brief Creates a sliding window of n elements over the range.
      *
+     * Constrained (and a member template) so that Query remains instantiable
+     * over input-only ranges - e.g. the join produced by select_many - for which
+     * Slide (which needs a forward range) is simply unavailable rather than a
+     * hard error.
+     *
      * @param n The window size.
      * @return A Query of sliding windows (sub-ranges).
      */
+    template <typename R = Ran>
+        requires requires (R& r, RangeDifference<R> count) { Slide(r, count); }
     [[nodiscard]]
-    constexpr auto slide(RangeDifference<Ran> n) noexcept -> Query<decltype(Slide(range, n))> {
+    constexpr auto slide(RangeDifference<Ran> n) noexcept {
         return Query<decltype(Slide(range, n))>(Slide(range, n));
     }
     #endif

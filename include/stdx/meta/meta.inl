@@ -5,7 +5,7 @@ using stdx::ranges::RangeValue;
 
 /**
  * @namespace stdx::meta::reflect
- * @brief Wrapper namespace for standard library reflection operations.
+ * @brief Standard library reflection operations.
  */
 export namespace stdx::meta::reflect {
     #ifdef __cpp_lib_reflection

@@ -106,7 +106,7 @@ export namespace stdx::time {
         static Vector<Token> parse_pattern(StringView p) throws (DateTimeException) {
             Vector<Token> tokens;
             String literal_buf;
-            auto flush_literal = [&]() -> void {
+            auto flush_literal = [&] -> void {
                 if (!literal_buf.empty()) {
                     tokens.emplace_back(FieldKind::LITERAL, 0, Ops::move(literal_buf));
                     literal_buf.clear();

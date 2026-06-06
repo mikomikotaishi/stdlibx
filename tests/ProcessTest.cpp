@@ -7,6 +7,7 @@ using stdx::process::Command;
 using stdx::process::ExitStatus;
 using stdx::process::Output;
 using stdx::process::Stdio;
+using stdx::sys::Signal;
 
 #ifdef __GNUC__
 using namespace stdx::core;
@@ -247,8 +248,10 @@ void test_large_output(TestContext& ctx) {
     }
 
     ctx.check("large output: exit success", result->success());
-    ctx.check("large output: stdout > 40000 bytes",
-              result->stdout_data.size() > 40000);
+    ctx.check(
+        "large output: stdout > 40000 bytes",
+        result->stdout_data.size() > 40000
+    );
 }
 
 void test_python_basic(TestContext& ctx) {
@@ -357,8 +360,81 @@ void test_python_env(TestContext& ctx) {
 }
 
 void test_current_process(TestContext& ctx) {
-    u32 pid = stdx::process::current::id();
+    u32 pid = Environment::pid();
     ctx.check("current::id: pid > 0", pid > 0);
+}
+
+void test_terminate_on_parent_exit(TestContext& ctx) {
+    #ifdef __linux__
+    // PR_SET_PDEATHSIG: a child spawned with terminate_on_parent_exit() must die when
+    // its spawner dies, even with no kill()/wait(). This process runs the
+    // assertions, so it can't be the one that dies - fork an intermediate
+    // "spawner" that launches `sleep`, reports the sleep PID up a pipe, then
+    // _exit()s. The kernel should then SIGKILL the orphaned sleep.
+    i32 fds[2];
+    if (unix::pipe(fds) == -1) {
+        ctx.check("terminate_on_parent_exit: pipe created", false);
+        return;
+    }
+
+    i32 spawner = static_cast<i32>(unix::fork());
+    if (spawner == -1) {
+        unix::close(fds[0]);
+        unix::close(fds[1]);
+        ctx.check("terminate_on_parent_exit: forked spawner", false);
+        return;
+    }
+
+    if (spawner == 0) {
+        unix::close(fds[0]);
+        Expected<Child, ErrorCode> sleeper = Command::from("sleep")
+            .arg("60")
+            .stdin(Stdio::NULL_DEV)
+            .stdout(Stdio::NULL_DEV)
+            .stderr(Stdio::NULL_DEV)
+            .terminate_on_parent_exit()
+            .spawn();
+        u32 sleeper_pid = sleeper.has_value() ? sleeper->id() : 0u;
+        (void)unix::write(fds[1], &sleeper_pid, sizeof(sleeper_pid));
+        unix::close(fds[1]);
+        // Deliberately leak the Child (no wait) and die; PDEATHSIG must reap it.
+        unix::_exit(0);
+    }
+
+    unix::close(fds[1]);
+    u32 sleeper_pid = 0;
+    isize n = unix::read(fds[0], &sleeper_pid, sizeof(sleeper_pid));
+    unix::close(fds[0]);
+
+    i32 wstatus = 0;
+    unix::sys::waitpid(spawner, &wstatus, 0);
+
+    ctx.check(
+        "terminate_on_parent_exit: spawner reported child pid",
+        n == static_cast<isize>(sizeof(sleeper_pid)) && sleeper_pid > 0
+    );
+    if (sleeper_pid == 0) {
+        return;
+    }
+
+    // The kernel delivers SIGKILL when the spawner dies; wait (up to ~2s) for the
+    // orphan to be reaped, after which kill(pid, 0) reports ESRCH (-1).
+    bool dead = false;
+    for (i32 i = 0; i < 100; ++i) {
+        if (unix::kill(static_cast<i32>(sleeper_pid), 0) == -1) {
+            dead = true;
+            break;
+        }
+        System::Thread::sleep_for(stdx::time::Milliseconds{20});
+    }
+    if (!dead) {
+        // Don't leak the survivor if the assertion is about to fail.
+        (void)unix::kill(static_cast<i32>(sleeper_pid), Signal::KILL);
+    }
+    ctx.check("terminate_on_parent_exit: child killed when spawner died", dead);
+    #else
+    ctx.check("terminate_on_parent_exit: skipped (non-Linux)", true);
+    #endif
 }
 
 int main() {
@@ -395,6 +471,10 @@ int main() {
     System::out.println();
     System::out.println("--- Current process ---");
     test_current_process(ctx);
+
+    System::out.println();
+    System::out.println("--- Parent-death linkage ---");
+    test_terminate_on_parent_exit(ctx);
 
     System::out.println();
     System::out.println("=== Results: {} passed, {} failed ===", ctx.tests_passed, ctx.tests_failed);

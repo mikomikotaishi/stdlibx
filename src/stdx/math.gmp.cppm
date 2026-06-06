@@ -19,11 +19,13 @@ export module stdx:math.gmp;
 
 import :main;
 
+#ifdef __GNUC__
 using namespace stdx::core;
+#endif
 
 /**
  * @namespace stdx::math::gmp
- * @brief Wrapper namespace for GNU Multiple Precision Arithmetic Library operations within stdx::math.
+ * @brief GNU Multiple Precision Arithmetic Library operations within stdx::math.
  */
 export namespace stdx::math::inline gmp {
 

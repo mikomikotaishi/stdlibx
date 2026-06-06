@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux::net
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::linux::net {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<net/route.h>)
     using RouteEntry = ::rtentry;
     using Internet6RouteMessage = ::in6_rtmsg;
     #endif

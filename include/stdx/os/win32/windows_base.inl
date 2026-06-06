@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::os::win32
- * @brief Wrapper namespace for Windows API operations.
+ * @brief Windows API operations.
  *
  * Type aliases drop Win32 Hungarian notation:
  *   - HXxx (handles)         -> XxxHandle               (HWND -> WindowHandle)
@@ -46,7 +46,7 @@ export namespace stdx::os::win32 {
         return (0x80070000 | (x));
     }
 
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<windows.h>)
     // Primitive integers and characters
     using WinBool = ::BOOL;
     using WinBoolean = ::BOOLEAN;

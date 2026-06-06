@@ -9,7 +9,7 @@
  * ReadFile, WriteFile, ...) see windows.inl.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<io.h>)
     using FSizeT = ::_fsize_t;
     using FindDataA = ::_finddata_t;
     using FindDataW = ::_wfinddata_t;

@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::text
- * @brief Wrapper namespace for standard library text operations.
+ * @brief Standard library text operations.
  */
 export namespace stdx::text {
     using std::atof;

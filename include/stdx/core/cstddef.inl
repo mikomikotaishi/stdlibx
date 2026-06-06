@@ -8,7 +8,7 @@
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
     using i8 = std::int8_t;
@@ -63,9 +63,9 @@ export namespace stdx::core {
 
     using Void = void;
 
-    using Div = std::div_t;
-    using LongDiv = std::ldiv_t;
-    using LongLongDiv = std::lldiv_t;
-    using IntegerMaxDiv = std::imaxdiv_t;
-    using MaximumAlignment = std::max_align_t;
+    using divres = std::div_t;
+    using ldivres = std::ldiv_t;
+    using lldivres = std::lldiv_t;
+    using imaxdiv = std::imaxdiv_t;
+    using maxalign = std::max_align_t;
 }

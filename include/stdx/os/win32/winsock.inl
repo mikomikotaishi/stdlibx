@@ -5,7 +5,7 @@
  * @brief Winsock2 + WS2_32 + IP6 type and function wrappers.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<winsock2.h>)
     // Core socket types
     using Socket = ::SOCKET;
     using SocketPointer = ::LPSOCKET;

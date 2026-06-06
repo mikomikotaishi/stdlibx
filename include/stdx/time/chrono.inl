@@ -298,7 +298,7 @@ export namespace stdx::time::chrono {
          * std::chrono sense (year_month_day::ok() is true). For lunisolar
          * chronologies (Hebrew, Chinese) the month or day may fall outside
          * std::chrono's valid range (e.g., Hebrew Adar II is month 13) and
-         * year_month_day::ok() will return false — the wrapper is still
+         * year_month_day::ok() will return false - the wrapper is still
          * useful as a transport struct but should not be fed back to
          * std::chrono arithmetic.
          */

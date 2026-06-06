@@ -2,13 +2,12 @@
 
 /**
  * @namespace stdx::text
- * @brief Wrapper namespace for standard library text operations.
+ * @brief Standard library text operations.
  */
 export namespace stdx::text {
     #ifdef __cpp_lib_text_encoding
     using TextEncoding = std::text_encoding;
     using TextEncodingAliasesView = std::text_encoding::aliases_view;
-    using std::hash;
 
     class [[nodiscard]] TextEncodingId final {
     public:

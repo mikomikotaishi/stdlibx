@@ -2,49 +2,48 @@
 
 /**
  * @namespace stdx::os::darwin::coremidi
- * @brief CoreMIDI — <CoreMIDI/CoreMIDI.h>, MIDIServices.h, MIDISetup.h,
+ * @brief CoreMIDI - <CoreMIDI/CoreMIDI.h>, MIDIServices.h, MIDISetup.h,
  *        MIDIThruConnection.h.
  */
 export namespace stdx::os::darwin::coremidi {
-    #ifdef __APPLE__
-    #if __has_include(<CoreMIDI/CoreMIDI.h>)
+    #if defined(__APPLE__) && defined(__BLOCKS__) && __has_include(<CoreMIDI/CoreMIDI.h>)
     // Object reference handles (all UInt32-backed opaque refs)
-    using ObjectRef = ::MIDIObjectRef;
-    using ClientRef = ::MIDIClientRef;
-    using PortRef = ::MIDIPortRef;
-    using DeviceRef = ::MIDIDeviceRef;
-    using EntityRef = ::MIDIEntityRef;
-    using EndpointRef = ::MIDIEndpointRef;
-    using ExternalDeviceRef = ::MIDIDeviceRef;
-    using ObjectType = ::MIDIObjectType;
-    using TimeStamp = ::MIDITimeStamp;
-    using UniqueId = ::MIDIUniqueID;
+    using MidiObjectRef = ::MIDIObjectRef;
+    using MidiClientRef = ::MIDIClientRef;
+    using MidiPortRef = ::MIDIPortRef;
+    using MidiDeviceRef = ::MIDIDeviceRef;
+    using MidiEntityRef = ::MIDIEntityRef;
+    using MidiEndpointRef = ::MIDIEndpointRef;
+    using MidiExternalDeviceRef = ::MIDIDeviceRef;
+    using MidiObjectType = ::MIDIObjectType;
+    using MidiTimeStamp = ::MIDITimeStamp;
+    using MidiUniqueId = ::MIDIUniqueID;
 
     // Packet / message types (MIDI 1.0)
-    using Packet = ::MIDIPacket;
-    using PacketList = ::MIDIPacketList;
-    using SysexSendRequest = ::MIDISysexSendRequest;
-    using NotificationMessage = ::MIDINotification;
-    using NotificationType = ::MIDINotificationMessageID;
+    using MidiPacket = ::MIDIPacket;
+    using MidiPacketList = ::MIDIPacketList;
+    using MidiSysexSendRequest = ::MIDISysexSendRequest;
+    using MidiNotificationMessage = ::MIDINotification;
+    using MidiNotificationType = ::MIDINotificationMessageID;
 
     // MIDI 2.0 / Universal MIDI Packet types (macOS 11+)
-    #if defined(__MAC_11_0)
-    using EventList = ::MIDIEventList;
-    using EventPacket = ::MIDIEventPacket;
-    using Protocol = ::MIDIProtocolID;
-    using ReceiveBlock = ::MIDIReceiveBlock;
+    #ifdef __MAC_11_0
+    using MidiEventList = ::MIDIEventList;
+    using MidiEventPacket = ::MIDIEventPacket;
+    using MidiProtocol = ::MIDIProtocolID;
+    using MidiReceiveBlock = ::MIDIReceiveBlock;
     #endif
 
     // Callbacks
-    using NotifyProc = ::MIDINotifyProc;
-    using ReadProc = ::MIDIReadProc;
-    using ReadBlock = ::MIDIReadBlock;
-    using CompletionProc = ::MIDICompletionProc;
+    using MidiNotifyProc = ::MIDINotifyProc;
+    using MidiReadProc = ::MIDIReadProc;
+    using MidiReadBlock = ::MIDIReadBlock;
+    using MidiCompletionProc = ::MIDICompletionProc;
 
     // Thru connection
-    using ThruConnectionRef = ::MIDIThruConnectionRef;
-    using ThruConnectionParams = ::MIDIThruConnectionParams;
-    using ThruConnectionEndpoint = ::MIDIThruConnectionEndpoint;
+    using MidiThruConnectionRef = ::MIDIThruConnectionRef;
+    using MidiThruConnectionParams = ::MIDIThruConnectionParams;
+    using MidiThruConnectionEndpoint = ::MIDIThruConnectionEndpoint;
 
     // Client / port lifecycle
     using ::MIDIClientCreate;
@@ -111,6 +110,5 @@ export namespace stdx::os::darwin::coremidi {
     using ::MIDIThruConnectionGetParams;
     using ::MIDIThruConnectionSetParams;
     using ::MIDIThruConnectionFind;
-    #endif
     #endif
 }

@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::util
- * @brief Wrapper namespace for standard library utility operations.
+ * @brief Standard library utility operations.
  */
 export namespace stdx::util {
     using std::iota;

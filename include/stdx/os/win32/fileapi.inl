@@ -8,7 +8,7 @@
  * For CRT POSIX-style I/O (_open / _read / _write) see io.inl.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<fileapi.h>)
     // Find / file info structures
     using FindData = ::WIN32_FIND_DATAA;
     using FindDataW = ::WIN32_FIND_DATAW;

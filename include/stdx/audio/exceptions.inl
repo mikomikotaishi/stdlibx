@@ -14,8 +14,7 @@ export namespace stdx::audio {
      */
     class AudioException: public IOException {
     public:
-        explicit AudioException(const String& msg = ""):
-            IOException(msg) {}
+        using IOException::IOException;
     };
 
     /**
@@ -25,8 +24,7 @@ export namespace stdx::audio {
      */
     class UnsupportedAudioFormatException: public AudioException {
     public:
-        explicit UnsupportedAudioFormatException(const String& msg = ""):
-            AudioException(msg) {}
+        using AudioException::AudioException;
     };
 
     /**
@@ -36,40 +34,58 @@ export namespace stdx::audio {
      */
     class AudioDeviceNotAvailableException: public AudioException {
     public:
-        explicit AudioDeviceNotAvailableException(const String& msg = ""):
-            AudioException(msg) {}
+        using AudioException::AudioException;
     };
 
     /**
-     * @class LineUnavailableException
-     * @brief Thrown when a sampled Line cannot be opened or started.
-     * @extends AudioException
+     * @namespace sampled
      */
-    class LineUnavailableException: public AudioException {
-    public:
-        explicit LineUnavailableException(const String& msg = ""):
-            AudioException(msg) {}
-    };
+    namespace sampled {
+        /**
+         * @class LineUnavailableException
+         * @brief Thrown when a sampled Line cannot be opened or started.
+         * @extends AudioException
+         */
+        class LineUnavailableException: public AudioException {
+        public:
+            using AudioException::AudioException;
+        };
+
+        /**
+         * @class UnsupportedAudioFileException
+         * @brief Thrown when an audio file cannot be decoded - unrecognized
+         * container, missing required chunks, or a compression codec the
+         * built-in decoders don't support.
+         * @extends AudioException
+         */
+        class UnsupportedAudioFileException: public AudioException {
+        public:
+            using AudioException::AudioException;
+        };
+    }
 
     /**
-     * @class MidiException
-     * @brief Base class for MIDI subsystem failures.
-     * @extends AudioException
+     * @namespace midi
      */
-    class MidiException: public AudioException {
-    public:
-        explicit MidiException(const String& msg = ""):
-            AudioException(msg) {}
-    };
+    namespace midi {
+        /**
+         * @class MidiException
+         * @brief Base class for MIDI subsystem failures.
+         * @extends AudioException
+         */
+        class MidiException: public AudioException {
+        public:
+            using AudioException::AudioException;
+        };
 
-    /**
-     * @class InvalidMidiDataException
-     * @brief Thrown when a MidiMessage / Sequence is malformed.
-     * @extends MidiException
-     */
-    class InvalidMidiDataException: public MidiException {
-    public:
-        explicit InvalidMidiDataException(const String& msg = ""):
-            MidiException(msg) {}
-    };
+        /**
+         * @class InvalidMidiDataException
+         * @brief Thrown when a MidiMessage / Sequence is malformed.
+         * @extends MidiException
+         */
+        class InvalidMidiDataException: public MidiException {
+        public:
+            using MidiException::MidiException;
+        };
+    }
 }

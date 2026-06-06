@@ -1,6 +1,7 @@
 #pragma once
 
 export namespace std {
+    #ifndef STDLIBX_EXPORT_IMPORT_STD
     using std::operator<<;
     using std::operator>>;
     using std::operator+;
@@ -23,18 +24,6 @@ export namespace std {
     using std::operator||;
     using std::operator<<=;
     using std::operator>>=;
-    using std::operator""s;
-    using std::operator""sv;
-    using std::operator""i;
-    using std::operator""if;
-    using std::operator""il;
-    using std::operator""y;
-    using std::operator""d;
-    using std::operator""h;
-    using std::operator""min;
-    using std::operator""ms;
-    using std::operator""ns;
-    using std::operator""us;
 
     using std::begin;
     using std::cbegin;
@@ -54,9 +43,49 @@ export namespace std {
     using std::type_info;
     using std::swap;
 
+    namespace chrono {
+        using std::chrono::operator+;
+        using std::chrono::operator-;
+        using std::chrono::operator<;
+        using std::chrono::operator>;
+        using std::chrono::operator<=;
+        using std::chrono::operator>=;
+        using std::chrono::operator==;
+        using std::chrono::operator<=>;
+    }
+
     namespace filesystem {
         using std::filesystem::begin;
         using std::filesystem::end;
+        using std::filesystem::hash_value;
+        using std::filesystem::swap;
+    }
+
+    inline namespace literals {
+        inline namespace string_literals {
+            using std::operator""s;
+        }
+
+        inline namespace string_view_literals {
+            using std::operator""sv;
+        }
+
+        inline namespace complex_literals {
+            using std::operator""i;
+            using std::operator""if;
+            using std::operator""il;
+        }
+
+        inline namespace chrono_literals {
+            using std::operator""y;
+            using std::operator""d;
+            using std::operator""h;
+            using std::operator""min;
+            using std::operator""s;
+            using std::operator""ms;
+            using std::operator""ns;
+            using std::operator""us;
+        }
     }
 
     namespace ranges {
@@ -74,4 +103,5 @@ export namespace std {
         using std::ranges::data;
         using std::ranges::cdata;
     }
+    #endif
 }

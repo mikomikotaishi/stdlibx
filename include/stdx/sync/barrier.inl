@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::sync
- * @brief Wrapper namespace for standard library synchronisation operations.
+ * @brief Standard library synchronisation operations.
  */
 export namespace stdx::sync {
     struct EmptyCompletion {

@@ -8,7 +8,7 @@
  * Vista+ prefer CNG (bcrypt.h / ncrypt.h); a separate .inl can wrap those.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<wincrypt.h>)
     // Algorithm IDs
     using AlgId = ::ALG_ID;
 

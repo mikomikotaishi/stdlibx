@@ -1,5 +1,5 @@
 # Find all test source files
-file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+file(GLOB_RECURSE TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
 # Create an executable for each test file
 foreach(TEST_SOURCE ${TEST_SOURCES})
@@ -30,7 +30,24 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     if(COMMAND add_sanitisers)
         add_sanitisers(${TEST_NAME})
     endif()
-    
+
+    # Propagate the optional-extension flags so tests can #ifdef on them and
+    # become no-ops cleanly when the extension is not built into the library.
+    # The src/stdx/CMakeLists.txt already sets these PRIVATE on the library
+    # target itself; they're not propagated to consumers, so we re-apply here.
+    foreach(EXT
+            STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY
+            STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY
+            STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
+            STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY
+            STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY
+            STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY
+            STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY)
+        if(${${EXT}})
+            target_compile_definitions(${TEST_NAME} PRIVATE ${EXT})
+        endif()
+    endforeach()
+
     # Add to CTest
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
     

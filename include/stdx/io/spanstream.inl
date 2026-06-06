@@ -4,7 +4,7 @@ using stdx::text::CharTraits;
 
 /**
  * @namespace stdx::io
- * @brief Wrapper namespace for standard library IO operations.
+ * @brief Standard library IO operations.
  */
 export namespace stdx::io {
     #if __has_include(<spanstream>)

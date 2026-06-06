@@ -2,48 +2,47 @@
 
 /**
  * @namespace stdx::os::darwin::audiotoolbox
- * @brief AudioToolbox — <AudioToolbox/AudioToolbox.h>.
+ * @brief AudioToolbox - <AudioToolbox/AudioToolbox.h>.
  *        Higher-level audio: file I/O, format conversion, audio queues,
  *        extended file I/O, MusicSequence.
  */
 export namespace stdx::os::darwin::audiotoolbox {
-    #ifdef __APPLE__
-    #if __has_include(<AudioToolbox/AudioToolbox.h>)
+    #if defined(__APPLE__) && defined(__BLOCKS__) && __has_include(<AudioToolbox/AudioToolbox.h>)
     // AudioFile (decode/encode at the packet level)
-    using FileId = ::AudioFileID;
-    using FileTypeId = ::AudioFileTypeID;
-    using FilePropertyId = ::AudioFilePropertyID;
-    using FilePermissions = ::AudioFilePermissions;
-    using FilePacketTableInfo = ::AudioFilePacketTableInfo;
+    using AudioFileId = ::AudioFileID;
+    using AudioFileTypeId = ::AudioFileTypeID;
+    using AudioFilePropertyId = ::AudioFilePropertyID;
+    using AudioFilePermissions = ::AudioFilePermissions;
+    using AudioFilePacketTableInfo = ::AudioFilePacketTableInfo;
 
     // AudioConverter (PCM/compressed transcoding)
-    using ConverterRef = ::AudioConverterRef;
-    using ConverterPropertyId = ::AudioConverterPropertyID;
-    using ConverterInputDataProc = ::AudioConverterInputDataProc;
-    using ConverterComplexInputDataProc = ::AudioConverterComplexInputDataProc;
+    using AudioConverterRef = ::AudioConverterRef;
+    using AudioConverterPropertyId = ::AudioConverterPropertyID;
+    using AudioConverterInputDataProc = ::AudioConverterInputDataProc;
+    using AudioConverterComplexInputDataProc = ::AudioConverterComplexInputDataProc;
 
     // AudioQueue (callback-driven device I/O)
-    using QueueRef = ::AudioQueueRef;
-    using QueueBuffer = ::AudioQueueBuffer;
-    using QueueBufferRef = ::AudioQueueBufferRef;
-    using QueueOutputCallback = ::AudioQueueOutputCallback;
-    using QueueInputCallback = ::AudioQueueInputCallback;
-    using QueuePropertyId = ::AudioQueuePropertyID;
-    using QueueTimelineRef = ::AudioQueueTimelineRef;
-    using QueueLevelMeterState = ::AudioQueueLevelMeterState;
+    using AudioQueueRef = ::AudioQueueRef;
+    using AudioQueueBuffer = ::AudioQueueBuffer;
+    using AudioQueueBufferRef = ::AudioQueueBufferRef;
+    using AudioQueueOutputCallback = ::AudioQueueOutputCallback;
+    using AudioQueueInputCallback = ::AudioQueueInputCallback;
+    using AudioQueuePropertyId = ::AudioQueuePropertyID;
+    using AudioQueueTimelineRef = ::AudioQueueTimelineRef;
+    using AudioQueueLevelMeterState = ::AudioQueueLevelMeterState;
 
     // ExtAudioFile (file I/O with auto-format conversion)
-    using ExtFileRef = ::ExtAudioFileRef;
-    using ExtFilePropertyId = ::ExtAudioFilePropertyID;
+    using AudioExtFileRef = ::ExtAudioFileRef;
+    using AudioExtFilePropertyId = ::ExtAudioFilePropertyID;
 
     // MusicSequence / MusicPlayer (MIDI playback)
-    using MusicSequence = ::MusicSequence;
-    using MusicTrack = ::MusicTrack;
-    using MusicPlayer = ::MusicPlayer;
-    using MusicEventIterator = ::MusicEventIterator;
-    using MusicSequenceLoadFlags = ::MusicSequenceLoadFlags;
-    using MusicSequenceType = ::MusicSequenceType;
-    using MusicTimeStamp = ::MusicTimeStamp;
+    using AudioMusicSequence = ::MusicSequence;
+    using AudioMusicTrack = ::MusicTrack;
+    using AudioMusicPlayer = ::MusicPlayer;
+    using AudioMusicEventIterator = ::MusicEventIterator;
+    using AudioMusicSequenceLoadFlags = ::MusicSequenceLoadFlags;
+    using AudioMusicSequenceType = ::MusicSequenceType;
+    using AudioMusicTimeStamp = ::MusicTimeStamp;
 
     // AudioFile lifecycle
     using ::AudioFileOpenURL;
@@ -118,6 +117,5 @@ export namespace stdx::os::darwin::audiotoolbox {
     using ::MusicTrackNewMIDIChannelEvent;
     using ::MusicTrackNewMIDIRawDataEvent;
     using ::MusicTrackNewExtendedTempoEvent;
-    #endif
     #endif
 }

@@ -2,25 +2,24 @@
 
 /**
  * @namespace stdx::os::linux::alsa
- * @brief ALSA MIDI sequencer (snd_seq) — alsa/seq.h wrappers.
+ * @brief ALSA MIDI sequencer (snd_seq) - alsa/seq.h wrappers.
  */
 export namespace stdx::os::linux::alsa {
-    #ifdef __linux__
-    #if __has_include(<alsa/asoundlib.h>)
-    using Sequencer = ::snd_seq_t;
-    using SequencerSystemInfo = ::snd_seq_system_info_t;
-    using SequencerClientInfo = ::snd_seq_client_info_t;
-    using SequencerClientPool = ::snd_seq_client_pool_t;
-    using SequencerPortInfo = ::snd_seq_port_info_t;
-    using SequencerPortSubscribe = ::snd_seq_port_subscribe_t;
-    using SequencerQuerySubscribe = ::snd_seq_query_subscribe_t;
-    using SequencerQueueInfo = ::snd_seq_queue_info_t;
-    using SequencerQueueStatus = ::snd_seq_queue_status_t;
-    using SequencerQueueTempo = ::snd_seq_queue_tempo_t;
-    using SequencerQueueTimer = ::snd_seq_queue_timer_t;
-    using SequencerRemoveEvents = ::snd_seq_remove_events_t;
-    using SequencerType = ::snd_seq_type_t;
-    using SequencerClientType = ::snd_seq_client_type_t;
+    #if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+    using SoundSequencer = ::snd_seq_t;
+    using SoundSequencerSystemInfo = ::snd_seq_system_info_t;
+    using SoundSequencerClientInfo = ::snd_seq_client_info_t;
+    using SoundSequencerClientPool = ::snd_seq_client_pool_t;
+    using SoundSequencerPortInfo = ::snd_seq_port_info_t;
+    using SoundSequencerPortSubscribe = ::snd_seq_port_subscribe_t;
+    using SoundSequencerQuerySubscribe = ::snd_seq_query_subscribe_t;
+    using SoundSequencerQueueInfo = ::snd_seq_queue_info_t;
+    using SoundSequencerQueueStatus = ::snd_seq_queue_status_t;
+    using SoundSequencerQueueTempo = ::snd_seq_queue_tempo_t;
+    using SoundSequencerQueueTimer = ::snd_seq_queue_timer_t;
+    using SoundSequencerRemoveEvents = ::snd_seq_remove_events_t;
+    using SoundSequencerType = ::snd_seq_type_t;
+    using SoundSequencerClientType = ::snd_seq_client_type_t;
 
     // Lifecycle
     using ::snd_seq_open;
@@ -57,6 +56,13 @@ export namespace stdx::os::linux::alsa {
     using ::snd_seq_get_any_client_info;
     using ::snd_seq_query_next_client;
     using ::snd_seq_set_client_name;
+    using ::snd_seq_client_info_get_client;
+    using ::snd_seq_client_info_get_name;
+    using ::snd_seq_client_info_get_broadcast_filter;
+    using ::snd_seq_client_info_get_error_bounce;
+    using ::snd_seq_client_info_get_num_ports;
+    using ::snd_seq_client_info_set_client;
+    using ::snd_seq_client_info_set_name;
 
     // Port info
     using ::snd_seq_port_info_malloc;
@@ -67,6 +73,18 @@ export namespace stdx::os::linux::alsa {
     using ::snd_seq_set_port_info;
     using ::snd_seq_get_any_port_info;
     using ::snd_seq_query_next_port;
+    using ::snd_seq_port_info_get_client;
+    using ::snd_seq_port_info_get_port;
+    using ::snd_seq_port_info_get_name;
+    using ::snd_seq_port_info_get_capability;
+    using ::snd_seq_port_info_get_type;
+    using ::snd_seq_port_info_get_midi_channels;
+    using ::snd_seq_port_info_get_direction;
+    using ::snd_seq_port_info_set_client;
+    using ::snd_seq_port_info_set_port;
+    using ::snd_seq_port_info_set_name;
+    using ::snd_seq_port_info_set_capability;
+    using ::snd_seq_port_info_set_type;
 
     // Subscriptions
     using ::snd_seq_port_subscribe_malloc;
@@ -103,6 +121,5 @@ export namespace stdx::os::linux::alsa {
     using ::snd_seq_drop_input_buffer;
     using ::snd_seq_remove_events;
     using ::snd_seq_extract_output;
-    #endif
     #endif
 }

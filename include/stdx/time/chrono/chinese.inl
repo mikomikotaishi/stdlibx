@@ -449,7 +449,7 @@ export namespace stdx::time::chrono {
          *
          * The Chinese New Year is the second new moon after the winter solstice
          * of the preceding year, unless there is a leap month between the
-         * solstice new moon and the second new moon — in which case it is the
+         * solstice new moon and the second new moon - in which case it is the
          * third new moon.
          *
          * @see ICU4J ChineseCalendar.newYear

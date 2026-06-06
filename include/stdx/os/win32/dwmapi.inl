@@ -5,7 +5,7 @@
  * @brief Desktop Window Manager (dwmapi.h) wrappers.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<dwmapi.h>)
     // Handles / scalars
     using ThumbnailHandle = ::HTHUMBNAIL;
     using ThumbnailHandlePointer = ::PHTHUMBNAIL;

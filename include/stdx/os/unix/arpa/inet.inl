@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::unix::arpa
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::unix::arpa {
-    #ifdef __unix__
+    #if defined(__unix__) && __has_include(<arpa/inet.h>)
     using ::inet_addr;
     using ::inet_lnaof;
     using ::inet_makeaddr;

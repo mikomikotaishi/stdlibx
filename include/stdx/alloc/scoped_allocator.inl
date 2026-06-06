@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::alloc
- * @brief Wrapper namespace for standard library allocation operations.
+ * @brief Standard library allocation operations.
  */
 export namespace stdx::alloc {
     template <typename OuterAlloc, typename... InnerAllocs>

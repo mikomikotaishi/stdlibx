@@ -17,15 +17,23 @@ using stdx::meta::IsNothrowInvocableValue;
 using stdx::meta::IsNothrowMoveConstructibleValue;
 using stdx::meta::RemoveReferenceType;
 using stdx::meta::TypeIdentityType;
+using stdx::time::Duration;
+using stdx::time::Instant;
 using stdx::time::Milliseconds;
 using stdx::time::Nanoseconds;
+using stdx::time::SteadyClock;
 using stdx::time::SystemClock;
+using stdx::thread::ThreadId;
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
+    /**
+     * @class System
+     * @brief Utility class for system-level operations, constants, and global streams.
+     */
     class System final {
     public:
         static constexpr auto EXIT_SUCCESS = ::stdx::core::EXIT_SUCCESS;
@@ -93,30 +101,6 @@ export namespace stdx::core {
         };
     public:
         System() = delete;
-
-        [[noreturn]]
-        static void abort() noexcept {
-            std::abort();
-        }
-
-        [[noreturn]]
-        static void exit(i32 status) noexcept {
-            std::exit(status);
-        }
-
-        [[noreturn]]
-        static void quick_exit(i32 status) noexcept {
-            std::quick_exit(status);
-        }
-
-        [[noreturn]]
-        static void immediate_exit(i32 status) noexcept {
-            std::exit(status);
-        }
-
-        static i32 system_command(StringView command) noexcept {
-            return std::system(command.data());
-        }
 
         class In final: public GlobalInputStream {
         private:
@@ -372,7 +356,7 @@ export namespace stdx::core {
         static u64 nano_time() noexcept {
             return static_cast<u64>(
                 stdx::time::duration_cast<Nanoseconds>(
-                    SystemClock::now().time_since_epoch()
+                    SteadyClock::now().time_since_epoch()
                 ).count()
             );
         }
@@ -386,27 +370,50 @@ export namespace stdx::core {
             #endif
         }
 
-        [[nodiscard]]
-        static HashMap<String, StringView> getenv() {
-            HashMap<String, StringView> map;
-            #ifdef __unix__
-            char** env_list = ::environ;
-            #elifdef _WIN32
-            char** env_list = ::_environ;
-            #endif
-            for (char** env = env_list; *env != nullptr; ++env) {
-                StringView entry(*env);
-                if (auto pos = entry.find('='); pos != StringView::npos) {
-                    map.emplace(String(entry.substr(0, pos)), entry.substr(pos + 1));
-                }
+        /**
+         * @class Thread
+         * @brief Utility class for operations on the current thread.
+         */
+        class Thread final {
+        public:
+            Thread() = delete;
+
+            /**
+             * @brief The ID of the current thread.
+             * @return ThreadId The thread ID.
+             */
+            static ThreadId id() noexcept {
+                return std::this_thread::get_id();
             }
-            return map;
-        }
 
-        [[nodiscard]]
-        static StringView getenv(StringView var) noexcept {
-            return std::getenv(var.data());
-        }
+            /**
+             * @brief Sleep for the given duration.
+             * @tparam Rep The duration representation type.
+             * @tparam Period The duration period type.
+             * @param duration The duration to sleep for.
+             */
+            template <typename Rep, typename Period>
+            static void sleep_for(const Duration<Rep, Period>& duration) {
+                std::this_thread::sleep_for(duration);
+            }
+
+            /**
+             * @brief Sleep until the given time point. The clock of the time point determines the clock used for sleeping.
+             * @tparam Clock The clock type of the time point.
+             * @tparam Dur The duration type of the time point.
+             * @param time_point The time point to sleep until.
+             */
+            template <typename Clock, typename Dur>
+            static void sleep_until(const Instant<Clock, Dur>& time_point) {
+                std::this_thread::sleep_until(time_point);
+            }
+
+            /**
+             * @brief Yield execution to another thread. Does not guarantee any particular scheduling behavior.
+             */
+            static void yield() noexcept {
+                std::this_thread::yield();
+            }
+        };
     };
-
 }

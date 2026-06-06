@@ -6,7 +6,7 @@ using stdx::meta::RemoveConstVolatile;
 
 /**
  * @namespace stdx::collections
- * @brief Wrapper namespace for standard library collection operations.
+ * @brief Standard library collection operations.
  */
 export namespace stdx::collections {
     #ifdef __cpp_lib_flat_map
@@ -25,7 +25,5 @@ export namespace stdx::collections {
             IsNothrowSwappableValue<KeyContainer> &&
             IsNothrowSwappableValue<ValueContainer>
     using FlatMultimap = std::flat_multimap<Key, Value, Compare, KeyContainer, ValueContainer>;
-
-    using std::erase_if;
     #endif
 }

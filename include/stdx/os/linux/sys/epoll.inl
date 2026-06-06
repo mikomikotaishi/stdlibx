@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux::sys
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::linux::sys {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<sys/epoll.h>)
     using EpollData = ::epoll_data;
     using EpollEvent = ::epoll_event;
     // using EpollParams = ::epoll_params;

@@ -2,16 +2,15 @@
 
 /**
  * @namespace stdx::os::linux::alsa
- * @brief ALSA global helpers — alsa/global.h.
+ * @brief ALSA global helpers - alsa/global.h.
  *        Async handlers, dl-loading, timestamps, shared-memory areas.
  */
 export namespace stdx::os::linux::alsa {
-    #ifdef __linux__
-    #if __has_include(<alsa/asoundlib.h>)
-    using AsyncHandler = ::snd_async_handler_t;
-    using AsyncCallback = ::snd_async_callback_t;
-    using Timestamp = ::snd_timestamp_t;
-    using HighResolutionTimestamp = ::snd_htimestamp_t;
+    #if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+    using SoundAsyncHandler = ::snd_async_handler_t;
+    using SoundAsyncCallback = ::snd_async_callback_t;
+    using SoundTimestamp = ::snd_timestamp_t;
+    using SoundHighResolutionTimestamp = ::snd_htimestamp_t;
 
     // Dynamic loader paths
     using ::snd_dlopen;
@@ -28,6 +27,5 @@ export namespace stdx::os::linux::alsa {
 
     // User config / paths
     using ::snd_user_file;
-    #endif
     #endif
 }

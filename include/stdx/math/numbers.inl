@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::math::numbers
- * @brief Wrapper namespace for standard library numerical constants (for compatibility).
+ * @brief Standard library numerical constants (for compatibility).
  */
 export namespace stdx::math::inline numbers {
     inline constexpr f64 E = std::numbers::e; ///< e

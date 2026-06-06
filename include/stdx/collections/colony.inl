@@ -6,7 +6,7 @@ using stdx::meta::RemoveConstVolatile;
 
 /**
  * @namespace stdx::collections
- * @brief Wrapper namespace for standard library collection operations.
+ * @brief Standard library collection operations.
  */
 export namespace stdx::collections {
     #ifdef __cpp_lib_hive
@@ -17,9 +17,5 @@ export namespace stdx::collections {
             IsSameValue<typename RemoveConstVolatile<T>::type, T> &&
             IsSameValue<typename Alloc::value_type, T>
     using Colony = std::hive<T, Alloc>;
-
-    using std::swap;
-    using std::erase;
-    using std::erase_if;
     #endif
 }

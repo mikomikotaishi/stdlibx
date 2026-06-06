@@ -5,7 +5,7 @@
  * @brief Common Controls (commctrl.h) wrappers.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<commctrl.h>)
     // Handles
     using ImageListHandle = ::HIMAGELIST;
     using PropertySheetPageHandle = ::HPROPSHEETPAGE;

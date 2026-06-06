@@ -2,7 +2,11 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <time.h>
+
+#if __has_include(<threads.h>)
 #include <threads.h>
+#endif
 
 #ifdef __unix__
 #include <aio.h>

@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::os::win32
- * @brief Multimedia subsystem (mmsystem.h) wrappers — waveform audio, MIDI,
+ * @brief Multimedia subsystem (mmsystem.h) wrappers - waveform audio, MIDI,
  *        mixer, multimedia timer, and MMIO.
  *
  * These are the legacy WinMM APIs (winmm.lib). Modern audio/MIDI work on
@@ -10,7 +10,7 @@
  * and broad compatibility.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<mmsystem.h>)
     // Result + version
     using MmResult = ::MMRESULT;
     using MmVersion = ::MMVERSION;

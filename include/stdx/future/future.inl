@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::future
- * @brief Wrapper namespace for standard library concurrency operations.
+ * @brief Standard library concurrency operations.
  */
 export namespace stdx::future {
     template <typename T>
@@ -71,7 +71,7 @@ export namespace stdx::future {
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for standard library core operations.
+ * @brief Standard library core operations.
  */
 export namespace stdx::core {
     using stdx::future::future_category;

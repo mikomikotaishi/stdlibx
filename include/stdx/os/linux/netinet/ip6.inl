@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux::netinet
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::linux::netinet {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<netinet/ip6.h>)
     using Ip6Header = ::ip6_hdr;
     using Ip6Extension = ::ip6_ext;
     using Ip6HopByHop = ::ip6_hbh;

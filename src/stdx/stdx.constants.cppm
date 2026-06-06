@@ -187,7 +187,11 @@ namespace _detail {
     constexpr auto HugeValL = HUGE_VALL;
     constexpr auto Infinity = INFINITY;
     constexpr auto NaN = NAN;
+    #ifdef __APPLE__
+    inline const auto MathErrHandling = math_errhandling;
+    #else
     constexpr auto MathErrHandling = math_errhandling;
+    #endif
     constexpr auto MathErrNo = MATH_ERRNO;
     constexpr auto MathErrExcept = MATH_ERREXCEPT;
     constexpr auto FpNormal = FP_NORMAL;
@@ -327,7 +331,7 @@ namespace _detail {
 export namespace stdx {
     /**
      * @namespace core
-     * @brief Wrapper namespace for the core objects of the standard library.
+     * @brief The core objects of the standard library.
      */
     namespace core {
         constexpr auto LC_ALL = _detail::LcAll;
@@ -361,7 +365,11 @@ export namespace stdx {
         constexpr auto HUGE_VALL = _detail::HugeValL;
         constexpr auto INFINITY = _detail::Infinity;
         constexpr auto NAN = _detail::NaN;
+        #ifdef __APPLE__
+        inline const int MATH_ERRHANDLING = _detail::MathErrHandling;
+        #else
         constexpr auto MATH_ERRHANDLING = _detail::MathErrHandling;
+        #endif
         constexpr auto MATH_ERRNO = _detail::MathErrNo;
         constexpr auto MATH_ERREXCEPT = _detail::MathErrExcept;
         constexpr auto FP_NORMAL = _detail::FpNormal;
@@ -414,7 +422,7 @@ export namespace stdx {
 
     /**
      * @namespace sys
-     * @brief Wrapper namespace for standard library system operations.
+     * @brief Standard library system operations.
      */
     namespace sys {
         constexpr int SIGHUP = _detail::SigHup; ///< Hangup.
@@ -495,7 +503,7 @@ namespace _detail {
 
 /**
  * @namespace stdx::io
- * @brief Wrapper namespace for standard library input/output operations.
+ * @brief Standard library input/output operations.
  */
 export namespace stdx::io {
     constexpr auto EOF = _detail::Eof;
@@ -512,7 +520,13 @@ export namespace stdx::io {
     constexpr auto L_tmpnam = _detail::Ltmpnam;
 
     using CFilePosition = ::fpos_t;
+    #ifdef __GLIBC__
     using CFilePosition64 = ::fpos64_t;
+    #else
+    // `fpos64_t` is a glibc large-file-support extension; on macOS, the BSDs and
+    // Windows `fpos_t` is already 64-bit, so there is no distinct 64-bit type.
+    using CFilePosition64 = ::fpos_t;
+    #endif
 
     FILE* popen(const char* command, const char* mode) noexcept {
         #ifdef _WIN32

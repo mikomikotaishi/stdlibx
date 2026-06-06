@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::random
- * @brief Wrapper namespace for standard library random number operations.
+ * @brief Standard library random number operations.
  */
 export namespace stdx::random {
     template <typename G>

@@ -28,6 +28,10 @@ using stdx::time::chrono::ThaiBuddhistEra;
 using namespace stdx::core;
 #endif
 
+/**
+ * @struct JapaneseEraCase
+ * @brief Test case for Japanese chronology era calculations.
+ */
 struct JapaneseEraCase {
     StringView label;
     JapaneseEra era;

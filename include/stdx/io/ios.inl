@@ -4,7 +4,7 @@ using stdx::collections::Vector;
 
 /**
  * @namespace stdx::io
- * @brief Wrapper namespace for standard library IO operations.
+ * @brief Standard library IO operations.
  */
 export namespace stdx::io {
     using IOSBase = std::ios_base;
@@ -355,18 +355,13 @@ export namespace stdx::io {
      */
     class InterruptedIOException: public IOException {
     public:
-        /**
-         * @brief Constructor that initialises the exception with a message.
-         * @param msg The exception message.
-         */
-        explicit InterruptedIOException(const String& msg = ""):
-            IOException(msg) {}
+        using IOException::IOException;
     };
 }
 
 /**
  * @namespace stdx::meta
- * @brief Wrapper namespace for standard library metaprogramming operations.
+ * @brief Standard library metaprogramming operations.
  */
 export namespace stdx::meta {
     template <typename T>

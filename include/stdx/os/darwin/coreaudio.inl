@@ -2,56 +2,55 @@
 
 /**
  * @namespace stdx::os::darwin::coreaudio
- * @brief CoreAudio HAL — <CoreAudio/CoreAudio.h>, <CoreAudio/CoreAudioTypes.h>,
+ * @brief CoreAudio HAL - <CoreAudio/CoreAudio.h>, <CoreAudio/CoreAudioTypes.h>,
  *        <CoreAudio/AudioHardware.h>, <CoreAudio/HostTime.h>.
  *
  * Low-level access to audio devices, streams, and the property-based
  * Hardware Abstraction Layer.
  */
 export namespace stdx::os::darwin::coreaudio {
-    #ifdef __APPLE__
-    #if __has_include(<CoreAudio/CoreAudio.h>)
+    #if defined(__APPLE__) && defined(__BLOCKS__) && __has_include(<CoreAudio/CoreAudio.h>)
     // Core scalars / IDs
-    using ObjectId = ::AudioObjectID;
-    using ClassId = ::AudioClassID;
-    using DeviceId = ::AudioDeviceID;
-    using StreamId = ::AudioStreamID;
-    using ObjectPropertySelector = ::AudioObjectPropertySelector;
-    using ObjectPropertyScope = ::AudioObjectPropertyScope;
-    using ObjectPropertyElement = ::AudioObjectPropertyElement;
-    using ObjectPropertyAddress = ::AudioObjectPropertyAddress;
+    using AudioObjectId = ::AudioObjectID;
+    using AudioClassId = ::AudioClassID;
+    using AudioDeviceId = ::AudioDeviceID;
+    using AudioStreamId = ::AudioStreamID;
+    using AudioObjectPropertySelector = ::AudioObjectPropertySelector;
+    using AudioObjectPropertyScope = ::AudioObjectPropertyScope;
+    using AudioObjectPropertyElement = ::AudioObjectPropertyElement;
+    using AudioObjectPropertyAddress = ::AudioObjectPropertyAddress;
 
     // Time
-    using TimeStamp = ::AudioTimeStamp;
-    using TimeStampFlags = ::AudioTimeStampFlags;
+    using AudioTimeStamp = ::AudioTimeStamp;
+    using AudioTimeStampFlags = ::AudioTimeStampFlags;
     using SmpteTime = ::SMPTETime;
 
     // Stream description (format)
-    using StreamBasicDescription = ::AudioStreamBasicDescription;
-    using StreamRangedDescription = ::AudioStreamRangedDescription;
-    using StreamPacketDescription = ::AudioStreamPacketDescription;
-    using ChannelLayout = ::AudioChannelLayout;
-    using ChannelDescription = ::AudioChannelDescription;
-    using ChannelLabel = ::AudioChannelLabel;
-    using ChannelBitmap = ::AudioChannelBitmap;
-    using ChannelLayoutTag = ::AudioChannelLayoutTag;
+    using AudioStreamBasicDescription = ::AudioStreamBasicDescription;
+    using AudioStreamRangedDescription = ::AudioStreamRangedDescription;
+    using AudioStreamPacketDescription = ::AudioStreamPacketDescription;
+    using AudioChannelLayout = ::AudioChannelLayout;
+    using AudioChannelDescription = ::AudioChannelDescription;
+    using AudioChannelLabel = ::AudioChannelLabel;
+    using AudioChannelBitmap = ::AudioChannelBitmap;
+    using AudioChannelLayoutTag = ::AudioChannelLayoutTag;
 
     // Buffers
-    using Buffer = ::AudioBuffer;
-    using BufferList = ::AudioBufferList;
+    using AudioBuffer = ::AudioBuffer;
+    using AudioBufferList = ::AudioBufferList;
 
     // Value types
-    using ValueRange = ::AudioValueRange;
-    using ValueTranslation = ::AudioValueTranslation;
-    using FormatId = ::AudioFormatID;
-    using FormatFlags = ::AudioFormatFlags;
+    using AudioValueRange = ::AudioValueRange;
+    using AudioValueTranslation = ::AudioValueTranslation;
+    using AudioFormatID = ::AudioFormatID;
+    using AudioFormatFlags = ::AudioFormatFlags;
 
     // Listeners / callbacks
-    using ObjectPropertyListenerProc = ::AudioObjectPropertyListenerProc;
-    using DeviceIoProc = ::AudioDeviceIOProc;
-    using DeviceIoProcId = ::AudioDeviceIOProcID;
+    using AudioObjectPropertyListenerProc = ::AudioObjectPropertyListenerProc;
+    using AudioDeviceIOProc = ::AudioDeviceIOProc;
+    using AudioDeviceIOProcId = ::AudioDeviceIOProcID;
 
-    // HAL — property access
+    // HAL - property access
     using ::AudioObjectShow;
     using ::AudioObjectHasProperty;
     using ::AudioObjectIsPropertySettable;
@@ -63,7 +62,7 @@ export namespace stdx::os::darwin::coreaudio {
     using ::AudioObjectAddPropertyListenerBlock;
     using ::AudioObjectRemovePropertyListenerBlock;
 
-    // HAL — devices and streams
+    // HAL - devices and streams
     using ::AudioDeviceCreateIOProcID;
     using ::AudioDeviceCreateIOProcIDWithBlock;
     using ::AudioDeviceDestroyIOProcID;
@@ -80,6 +79,5 @@ export namespace stdx::os::darwin::coreaudio {
     using ::AudioGetHostClockMinimumTimeDelta;
     using ::AudioConvertHostTimeToNanos;
     using ::AudioConvertNanosToHostTime;
-    #endif
     #endif
 }

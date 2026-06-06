@@ -2,7 +2,7 @@
 
 /**
  * @namespace std::math::random
- * @brief Wrapper namespace for standard library random number operations.
+ * @brief Standard library random number operations.
  */
 export namespace stdx::math::inline random {
     using stdx::random::UniformRandomBitGenerator;

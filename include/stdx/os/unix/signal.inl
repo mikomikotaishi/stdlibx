@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::unix
- * @brief Wrapper namespace for Unix POSIX signal operations.
+ * @brief Unix POSIX signal operations.
  */
 export namespace stdx::os::unix {
-    #ifdef __unix__
+    #if defined(__unix__) && __has_include(<signal.h>)
     using ::kill;
     using ::killpg;
     using ::sigaction;

@@ -2,19 +2,18 @@
 
 /**
  * @namespace stdx::os::linux::alsa
- * @brief ALSA mixer API — alsa/mixer.h wrappers.
+ * @brief ALSA mixer API - alsa/mixer.h wrappers.
  */
 export namespace stdx::os::linux::alsa {
-    #ifdef __linux__
-    #if __has_include(<alsa/asoundlib.h>)
-    using Mixer = ::snd_mixer_t;
-    using MixerClass = ::snd_mixer_class_t;
-    using MixerElement = ::snd_mixer_elem_t;
-    using MixerSimpleElementId = ::snd_mixer_selem_id_t;
-    using MixerSimpleChannelId = ::snd_mixer_selem_channel_id_t;
-    using MixerElementType = ::snd_mixer_elem_type_t;
-    using MixerElementCallback = ::snd_mixer_elem_callback_t;
-    using MixerCallback = ::snd_mixer_callback_t;
+    #if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+    using SoundMixer = ::snd_mixer_t;
+    using SoundMixerClass = ::snd_mixer_class_t;
+    using SoundMixerElement = ::snd_mixer_elem_t;
+    using SoundMixerSimpleElementId = ::snd_mixer_selem_id_t;
+    using SoundMixerSimpleChannelId = ::snd_mixer_selem_channel_id_t;
+    using SoundMixerElementType = ::snd_mixer_elem_type_t;
+    using SoundMixerElementCallback = ::snd_mixer_elem_callback_t;
+    using SoundMixerCallback = ::snd_mixer_callback_t;
 
     // Mixer lifecycle
     using ::snd_mixer_open;
@@ -43,13 +42,11 @@ export namespace stdx::os::linux::alsa {
     using ::snd_mixer_last_elem;
     using ::snd_mixer_elem_next;
     using ::snd_mixer_elem_prev;
-    using ::snd_mixer_elem_get_name;
-    using ::snd_mixer_elem_get_index;
     using ::snd_mixer_elem_set_callback;
     using ::snd_mixer_elem_set_callback_private;
     using ::snd_mixer_elem_get_callback_private;
 
-    // Simple-mixer (selem) — most commonly used
+    // Simple-mixer (selem) - most commonly used
     using ::snd_mixer_selem_register;
     using ::snd_mixer_selem_id_malloc;
     using ::snd_mixer_selem_id_free;
@@ -93,6 +90,5 @@ export namespace stdx::os::linux::alsa {
     using ::snd_mixer_selem_get_capture_switch;
     using ::snd_mixer_selem_set_capture_switch;
     using ::snd_mixer_selem_set_capture_switch_all;
-    #endif
     #endif
 }

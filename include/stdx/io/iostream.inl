@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::io
- * @brief Wrapper namespace for standard library input/output operations.
+ * @brief Standard library input/output operations.
  */
 export namespace stdx::io {
     inline OutputStream& Cout = std::cout;

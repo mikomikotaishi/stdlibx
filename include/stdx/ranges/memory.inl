@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::ranges
- * @brief Wrapper namespace for standard library ranges operations.
+ * @brief Standard library ranges operations.
  */
 export namespace stdx::ranges {
     using std::ranges::uninitialized_copy;

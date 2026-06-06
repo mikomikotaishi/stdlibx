@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::os::unix
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::unix {
     #if defined(__unix__) && __has_include(<ndbm.h>)

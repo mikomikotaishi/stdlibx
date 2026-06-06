@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::unix::net
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::unix::net {
-    #ifdef __unix__
+    #if defined(__unix__) && __has_include(<net/if.h>)
     using InterfaceAddress = ::ifaddr;
     using InterfaceMap = ::ifmap;
     using InterfaceRequest = ::ifreq;

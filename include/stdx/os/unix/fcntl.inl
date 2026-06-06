@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::unix
- * @brief Wrapper namespace for Unix POSIX file-control operations.
+ * @brief Unix POSIX file-control operations.
  */
 export namespace stdx::os::unix {
-    #ifdef __unix__
+    #if defined(__unix__) && __has_include(<fcntl.h>)
     using ::open;
     using ::open64;
     using ::openat;

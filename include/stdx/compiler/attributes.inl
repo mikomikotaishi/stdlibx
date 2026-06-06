@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::compiler
- * @brief Wrapper namespace for the compiler interaction functionality in standard library.
+ * @brief The compiler interaction functionality in standard library.
  */
 export namespace stdx::compiler {
     #ifdef __cpp_lib_reflection

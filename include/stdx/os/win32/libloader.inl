@@ -5,7 +5,7 @@
  * @brief Module/library loading (libloaderapi.h).
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<libloaderapi.h>)
     using DllDirectoryCookie = ::DLL_DIRECTORY_COOKIE;
     using EnumResLangProc = ::ENUMRESLANGPROCA;
     using EnumResLangProcW = ::ENUMRESLANGPROCW;

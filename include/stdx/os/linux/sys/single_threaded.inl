@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux::sys
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::linux::sys {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<sys/single_threaded.h>)
     using ::__libc_single_threaded;
     #endif
 }

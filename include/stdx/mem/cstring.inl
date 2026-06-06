@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::mem
- * @brief Wrapper namespace for standard library memory operations.
+ * @brief Standard library memory operations.
  */
 export namespace stdx::mem {
     using std::memchr;

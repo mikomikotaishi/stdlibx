@@ -2,32 +2,31 @@
 
 /**
  * @namespace stdx::os::linux::alsa
- * @brief ALSA control (CTL) API — alsa/control.h wrappers.
+ * @brief ALSA control (CTL) API - alsa/control.h wrappers.
  *        Card-level control: card enumeration, mixer elements, events.
  */
 export namespace stdx::os::linux::alsa {
-    #ifdef __linux__
-    #if __has_include(<alsa/asoundlib.h>)
+    #if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
     // Card / control handles
-    using Control = ::snd_ctl_t;
-    using StaticControl = ::snd_sctl_t;
-    using HardwareControl = ::snd_hctl_t;
-    using HardwareControlElement = ::snd_hctl_elem_t;
-    using HardwareControlCallback = ::snd_hctl_callback_t;
-    using HardwareControlElementCallback = ::snd_hctl_elem_callback_t;
+    using SoundControl = ::snd_ctl_t;
+    using SoundStaticControl = ::snd_sctl_t;
+    using SoundHardwareControl = ::snd_hctl_t;
+    using SoundHardwareControlElement = ::snd_hctl_elem_t;
+    using SoundHardwareControlCallback = ::snd_hctl_callback_t;
+    using SoundHardwareControlElementCallback = ::snd_hctl_elem_callback_t;
 
     // Info / element / value / event
-    using ControlCardInfo = ::snd_ctl_card_info_t;
-    using ControlElementId = ::snd_ctl_elem_id_t;
-    using ControlElementList = ::snd_ctl_elem_list_t;
-    using ControlElementInfo = ::snd_ctl_elem_info_t;
-    using ControlElementValue = ::snd_ctl_elem_value_t;
-    using ControlEvent = ::snd_ctl_event_t;
+    using SoundControlCardInfo = ::snd_ctl_card_info_t;
+    using SoundControlElementId = ::snd_ctl_elem_id_t;
+    using SoundControlElementList = ::snd_ctl_elem_list_t;
+    using SoundControlElementInfo = ::snd_ctl_elem_info_t;
+    using SoundControlElementValue = ::snd_ctl_elem_value_t;
+    using SoundControlEvent = ::snd_ctl_event_t;
 
     // Enums
-    using ControlElementType = ::snd_ctl_elem_type_t;
-    using ControlElementInterface = ::snd_ctl_elem_iface_t;
-    using ControlEventType = ::snd_ctl_event_type_t;
+    using SoundControlElementType = ::snd_ctl_elem_type_t;
+    using SoundControlElementInterface = ::snd_ctl_elem_iface_t;
+    using SoundControlEventType = ::snd_ctl_event_type_t;
 
     // Card enumeration
     using ::snd_card_load;
@@ -42,7 +41,6 @@ export namespace stdx::os::linux::alsa {
     using ::snd_ctl_open_fallback;
     using ::snd_ctl_close;
     using ::snd_ctl_nonblock;
-    using ::snd_ctl_async;
     using ::snd_ctl_poll_descriptors;
     using ::snd_ctl_poll_descriptors_count;
     using ::snd_ctl_poll_descriptors_revents;
@@ -82,6 +80,5 @@ export namespace stdx::os::linux::alsa {
     using ::snd_ctl_subscribe_events;
     using ::snd_ctl_read;
     using ::snd_ctl_wait;
-    #endif
     #endif
 }

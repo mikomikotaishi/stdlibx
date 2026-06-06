@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 namespace stdx::core {
     template <typename T, typename Derived>
@@ -14,7 +14,7 @@ namespace stdx::core {
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
     /**
@@ -32,6 +32,7 @@ export namespace stdx::core {
     public:
         static constexpr T MAX_VALUE = NumericLimits<T>::max(); ///< A constant representing the maximum value of the number type.
         static constexpr T MIN_VALUE = NumericLimits<T>::min(); ///< A constant representing the minimum value of the number type.
+        static constexpr T LOWEST = NumericLimits<T>::lowest(); ///< A constant representing the lowest value of the number type (same as MIN_VALUE for unsigned types, but may differ for signed types).
 
         constexpr Number() = default;
 
@@ -458,9 +459,13 @@ export namespace stdx::core {
     template <FloatingPoint F, typename Derived>
     class [[nodiscard]] FloatingPointBase {
     public:
+        static constexpr F EPSILON = NumericLimits<F>::epsilon(); ///< A constant representing the smallest difference between two representable floating-point numbers.
+        static constexpr F ROUND_ERROR = NumericLimits<F>::round_error(); ///< A constant representing the maximum rounding error for floating-point types.
         static constexpr F POSITIVE_INFINITY = NumericLimits<F>::infinity(); ///< A constant representing positive infinity for the floating-point type.
         static constexpr F NEGATIVE_INFINITY = -NumericLimits<F>::infinity(); ///< A constant representing negative infinity for the floating-point type.
         static constexpr F NaN = NumericLimits<F>::quiet_NaN(); ///< A constant representing Not-a-Number (NaN) for the floating-point type.
+        static constexpr F SIGNALLING_NaN = NumericLimits<F>::signaling_NaN(); ///< A constant representing a signaling NaN for the floating-point type.
+        static constexpr F MIN_SUBNORMAL = NumericLimits<F>::denorm_min(); ///< A constant representing the minimum positive subnormal value for the floating-point type.
 
         [[nodiscard]]
         bool is_nan() const noexcept requires HasGet<F, Derived> {

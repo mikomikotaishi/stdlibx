@@ -188,24 +188,24 @@ namespace stdx::fmt {
 
 /**
  * @namespace stdx::fmt
- * @brief Wrapper namespace for standard library format operations.
+ * @brief Standard library format operations.
  */
 export namespace stdx::fmt {
     //
     // Supported specifiers:
-    //   %d / %i  — integer (decimal)
-    //   %f       — floating-point (fixed)
-    //   %e / %E  — scientific notation
-    //   %g / %G  — general float
-    //   %a / %A  — hex float
-    //   %s       — string
-    //   %c       — character
-    //   %b / %B  — boolean / any (no type letter)
-    //   %x / %X  — hex integer
-    //   %o       — octal
-    //   %h / %H  — hash (-> hex)
-    //   %n       — newline (literal)
-    //   %%       — literal percent
+    //   %d / %i  - integer (decimal)
+    //   %f       - floating-point (fixed)
+    //   %e / %E  - scientific notation
+    //   %g / %G  - general float
+    //   %a / %A  - hex float
+    //   %s       - string
+    //   %c       - character
+    //   %b / %B  - boolean / any (no type letter)
+    //   %x / %X  - hex integer
+    //   %o       - octal
+    //   %h / %H  - hash (-> hex)
+    //   %n       - newline (literal)
+    //   %%       - literal percent
     //
     // Flags:
     //   - (left-align)

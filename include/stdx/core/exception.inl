@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
     using Exception = std::exception;
@@ -48,12 +48,7 @@ export namespace stdx::core {
      */
     class ArithmeticException: public RuntimeException {
     public:
-        /**
-        * @brief Constructor that initialises the exception with a message.
-        * @param msg The exception message.
-        */
-        explicit ArithmeticException(const String& msg = ""):
-            RuntimeException(msg) {}
+        using RuntimeException::RuntimeException;
     };
 
     /**
@@ -66,12 +61,7 @@ export namespace stdx::core {
      */
     class InvalidOperationException: public RuntimeException {
     public:
-        /**
-        * @brief Constructor that initialises the exception with a message.
-        * @param msg The exception message.
-        */
-        explicit InvalidOperationException(const String& msg = ""):
-            RuntimeException(msg) {}
+        using RuntimeException::RuntimeException;
     };
 
     /**
@@ -84,12 +74,7 @@ export namespace stdx::core {
      */
     class IllegalStateException: public LogicException {
     public:
-        /**
-         * @brief Constructor that initialises the exception with a message.
-         * @param msg The exception message.
-         */
-        explicit IllegalStateException(const String& msg = ""):
-            LogicException(msg) {}
+        using LogicException::LogicException;
     };
 
     /**
@@ -105,12 +90,7 @@ export namespace stdx::core {
      */
     class NullPointerException: public InvalidArgumentException {
     public:
-        /**
-        * @brief Constructor that initialises the exception with a message.
-        * @param msg The exception message.
-        */
-        explicit NullPointerException(const String& msg = ""):
-            InvalidArgumentException(msg) {}
+        using InvalidArgumentException::InvalidArgumentException;
     };
 
     /**
@@ -124,12 +104,7 @@ export namespace stdx::core {
      */
     class NumberFormatException: public InvalidArgumentException {
     public:
-        /**
-         * @brief Constructor that initialises the exception with a message.
-         * @param msg The exception message.
-         */
-        explicit NumberFormatException(const String& msg = ""):
-            InvalidArgumentException(msg) {}
+        using InvalidArgumentException::InvalidArgumentException;
     };
 
     /**
@@ -142,12 +117,7 @@ export namespace stdx::core {
      */
     class UnsupportedOperationException: public RuntimeException {
     public:
-        /**
-         * @brief Constructor that initialises the exception with a message.
-         * @param msg The exception message.
-         */
-        explicit UnsupportedOperationException(const String& msg = ""):
-            RuntimeException(msg) {}
+        using RuntimeException::RuntimeException;
     };
 
     /**
@@ -161,12 +131,7 @@ export namespace stdx::core {
      */
     class NotImplementedException: public UnsupportedOperationException {
     public:
-        /**
-        * @brief Constructor that initialises the exception with a message.
-        * @param msg The exception message.
-        */
-        explicit NotImplementedException(const String& msg = ""):
-            UnsupportedOperationException(msg) {}
+        using UnsupportedOperationException::UnsupportedOperationException;
     };
 
     /**
@@ -177,7 +142,6 @@ export namespace stdx::core {
      */
     class NoSuchElementException: public RuntimeException {
     public:
-        explicit NoSuchElementException(const String& msg = ""):
-            RuntimeException(msg) {}
+        using RuntimeException::RuntimeException;
     };
 }

@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::math::ratio
- * @brief Wrapper namespace for standard library mathematical operations.
+ * @brief Standard library mathematical operations.
  */
 export namespace stdx::math::inline ratio {
     template <intmax Num, intmax Denom = 1>

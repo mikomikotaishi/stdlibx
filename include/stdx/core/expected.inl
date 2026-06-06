@@ -4,7 +4,7 @@ using stdx::meta::DecayType;
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
     #ifdef __cpp_lib_expected

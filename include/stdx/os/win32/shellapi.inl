@@ -5,7 +5,7 @@
  * @brief Shell API (shellapi.h) wrappers.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<shellapi.h>)
     // File-op flags
     using FileOpFlags = ::FILEOP_FLAGS;
     using PrinterOpFlags = ::PRINTEROP_FLAGS;

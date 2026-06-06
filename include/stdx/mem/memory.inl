@@ -5,7 +5,7 @@ using stdx::meta::RemoveExtentType;
 
 /**
  * @namespace stdx::mem
- * @brief Wrapper namespace for standard library memory operations.
+ * @brief Standard library memory operations.
  */
 export namespace stdx::mem {
     template <typename T, typename Deleter = DefaultDelete<T>>
@@ -22,8 +22,6 @@ export namespace stdx::mem {
 
     template <typename T>
     using EnableSharedFromThis = std::enable_shared_from_this<T>;
-
-    using std::hash;
 
     #ifdef __cpp_lib_out_ptr
     template <typename Smart, typename Pointer, typename... Args>
@@ -94,7 +92,7 @@ export namespace stdx::mem {
 
     /**
      * @namespace ranges
-     * @brief Wrapper namespace for standard library memory operations over ranges.
+     * @brief Standard library memory operations over ranges.
      */
     namespace ranges {
         using std::ranges::uninitialized_copy;

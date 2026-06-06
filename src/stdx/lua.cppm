@@ -16,11 +16,13 @@ export module stdx:lua;
 
 import :main;
 
+#ifdef __GNUC__
 using namespace stdx::core;
+#endif
 
 /**
  * @namespace stdx::lua
- * @brief Wrapper namespace for standard library extension Lua libraries.
+ * @brief Standard library extension Lua libraries.
  */
 export namespace stdx::lua {
     #ifdef STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY

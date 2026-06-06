@@ -5,7 +5,7 @@
  * @brief CONTEXT / EXCEPTION_* / NT_TIB and exception-filter wrappers.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<windows.h>)
     // Thread Information Block
     using NtThreadInformationBlock = ::NT_TIB;
     using NtThreadInformationBlockPointer = ::PNT_TIB;

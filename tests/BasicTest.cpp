@@ -15,7 +15,7 @@ using stdx::linq::Query;
 using stdx::mem::Pointers;
 using stdx::mem::SharedPointer;
 using stdx::mem::UniquePointer;
-using stdx::thread::JoiningThread;
+using stdx::thread::Thread;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
@@ -28,6 +28,7 @@ enum class Status {
     FAILURE,
 };
 
+[[nodiscard]]
 Expected<u32, Status> perform_operation(bool succeed) {
     if (succeed) {
         return 42;
@@ -36,7 +37,7 @@ Expected<u32, Status> perform_operation(bool succeed) {
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     ArgumentParser parser("test_program", "1.0", DefaultArguments::NONE);
     parser.add_argument("--name")
         .default_value("world");
@@ -52,10 +53,11 @@ int main() {
     System::out.println("[argparse] count   = {}", parser.get<i32>("--count"));
     System::out.println("[argparse] verbose = {}", parser.get<bool>("--verbose"));
 
-    JoiningThread t;
-    if (t.joinable()) {
-        System::out.println("t.joinable() returned true");
-    }
+    Thread t([] -> void {
+        System::out.println("[thread] Hello from worker thread {}", System::Thread::id());
+    });
+    System::out.println("[thread] Main thread is {}", System::Thread::id());
+    t.join();
 
     String s = "This is a test string";
     System::out.println("{}", s);
@@ -67,7 +69,7 @@ int main() {
     for (usize i = 0; i < v.size(); ++i) {
         System::out.println("v[{}] = {}", i, v[i]);
     }
-    for (int i: v) {
+    for (i32 i: v) {
         System::out.println("i = {}", i);
     }
 
@@ -99,7 +101,7 @@ int main() {
         System::err.println("Failed to write!");
     }
 
-    System::out.printf("All environment variables: %s%n", System::getenv());
+    System::out.printf("All environment variables: %s%n", Environment::variables());
 
     System::out.print(v);
     System::out.println();
@@ -123,9 +125,18 @@ int main() {
         "Files in current directory (%s)%n:%s%n", 
         dir.string(),
         Query(files)
-            .select([](const DirectoryEntry& e) -> String { return e.path().string(); })
+            .select([](const DirectoryEntry& e) -> String { return e.path(); })
             .to<Vector>()
     );
+
+    Vector<Path> cpp_sources = stdx::fs::glob_recursive("tests/**/*.cpp");
+    System::out.println(
+        "\nFound {} .cpp file(s) under tests/ (recursive):",
+        cpp_sources.size()
+    );
+    for (const Path& src: cpp_sources) {
+        System::out.println("  {}", src.string());
+    }
 
     System::out.println(
         "The current time is {}, or {}",

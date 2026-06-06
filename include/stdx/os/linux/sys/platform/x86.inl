@@ -1,6 +1,10 @@
 #pragma once
 
-namespace __detail {
+/**
+ * @namespace stdx::os::linux::sys::platform
+ * @brief Unix POSIX operations.
+ */
+namespace stdx::os::linux::sys::platform {
     [[nodiscard]]
     inline bool x86_cpu_cet_active_ext(unsigned int index) noexcept {
         #ifdef __x86_64__
@@ -23,10 +27,10 @@ namespace __detail {
 
 /**
  * @namespace stdx::os::linux::sys::platform
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::linux::sys::platform {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<sys/platform/x86.h>)
     using CpuIdFeature = ::cpuid_feature;
     enum class CpuIdRegisterIndex: u8 {
         INDEX_EAX = static_cast<int>(cpuid_register_index::cpuid_register_index_eax),
@@ -52,7 +56,7 @@ export namespace stdx::os::linux::sys::platform {
     [[nodiscard]]
     inline bool x86_cpu_active(unsigned int index) noexcept {
         if (index == x86_cpu_IBT || index == x86_cpu_SHSTK) {
-            return __detail::x86_cpu_cet_active_ext(index);
+            return x86_cpu_cet_active_ext(index);
         }
 
         static constexpr usize BITS_PER_UINT = 8 * sizeof(unsigned int);

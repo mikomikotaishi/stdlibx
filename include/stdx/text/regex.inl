@@ -5,7 +5,7 @@ using stdx::meta::UnderlyingTypeType;
 
 /**
  * @namespace stdx::text::regex
- * @brief Wrapper namespace for standard library regular expressions operations.
+ * @brief Standard library regular expressions operations.
  */
 export namespace stdx::text::regex {
     template <typename T>
@@ -101,6 +101,7 @@ export namespace stdx::text::regex {
         #endif
         static constexpr Self MULTILINE = std::regex_constants::multiline;
     private:
+        // Intentionally not const to allow bitwise operators to modify it.
         Self value = NONE;
     public:
         constexpr SyntaxOption() noexcept = default;
@@ -184,6 +185,7 @@ export namespace stdx::text::regex {
         static constexpr Self FORMAT_NO_COPY = std::regex_constants::format_no_copy;
         static constexpr Self FORMAT_FIRST_ONLY = std::regex_constants::format_first_only;
     private:
+        // Intentionally not const to allow bitwise operators to modify it.
         Self value = DEFAULT;
     public:
         constexpr MatchFlag() noexcept = default;

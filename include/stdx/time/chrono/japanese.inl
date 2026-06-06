@@ -362,7 +362,7 @@ export namespace stdx::time::chrono {
                     return e;
                 }
             }
-            return {};
+            return nullopt;
         }
 
         /**

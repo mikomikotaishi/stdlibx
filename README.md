@@ -97,6 +97,8 @@ int main(int argc, char* argv[]) {
     } else {
         System::out.println("No .txt files found in directory: {}", dir.string());
     }
+
+    return System::EXIT_SUCCESS;
 }
 ```
 
@@ -122,6 +124,17 @@ XMake:
 ```sh
 xmake
 ```
+
+## Tests
+
+Testing is enabled with the CMake flag `STDLIBX_BUILD_TESTS`. Various tests for sections of the library are provided. Test executables, once built, can be found at `./build/tests/`.
+
+Assets from the following places are used:
+
+- [SimTheNep/Touhou_6_SD-90_MIDI_Collection](https://github.com/SimTheNep/Touhou_6_SD-90_MIDI_Collection/tree/main), for MIDI and WAV files
+- [Lumines_Block_Challenge_MIDI (MediaFire)](https://www.mediafire.com/file/2u0c411wovcpyjo/Lumines_Block_Challenge_MIDI.zip/file) for MIDI files
+
+If you are the owner of any of these assets and would like them removed from this repository, do not hesitate to contact me.
 
 ## Contributing
 

@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::fmt
- * @brief Wrapper namespace for standard library format operations.
+ * @brief Standard library format operations.
  */
 export namespace stdx::fmt {
     using CharsFormat = std::chars_format;

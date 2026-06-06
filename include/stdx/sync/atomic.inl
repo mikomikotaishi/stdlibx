@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::sync
- * @brief Wrapper namespace for standard library synchronisation operations.
+ * @brief Standard library synchronisation operations.
  */
 export namespace stdx::sync {
     // Atomic template class
@@ -158,8 +158,4 @@ export namespace stdx::sync {
     // Fence functions
     using std::atomic_thread_fence;
     using std::atomic_signal_fence;
-    
-    // Hash function
-    using std::hash;
-    using std::swap;
 }

@@ -5,7 +5,7 @@ using stdx::io::InterruptedIOException;
 
 /**
  * @namespace stdx::net
- * @brief Wrapper namespace for (experimental) standard library networking operations.
+ * @brief Experimental standard library networking operations.
  */
 export namespace stdx::net {
     /**
@@ -18,12 +18,7 @@ export namespace stdx::net {
      */
     class SocketException: public IOException {
     public:
-        /**
-         * @brief Constructor that initialises the exception with a message.
-         * @param msg The exception message.
-         */
-        explicit SocketException(const String& msg = ""):
-            IOException(msg) {}
+        using IOException::IOException;
     };
 
     /**
@@ -36,12 +31,7 @@ export namespace stdx::net {
      */
     class SocketTimeoutException: public InterruptedIOException {
     public:
-        /**
-         * @brief Constructor that initialises the exception with a message.
-         * @param msg The exception message.
-         */
-        explicit SocketTimeoutException(const String& msg = ""):
-            InterruptedIOException(msg) {}
+        using InterruptedIOException::InterruptedIOException;
     };
 
     /**
@@ -54,12 +44,7 @@ export namespace stdx::net {
      */
     class PortUnreachableException: public SocketException {
     public:
-        /**
-         * @brief Constructor that initialises the exception with a message.
-         * @param msg The exception message.
-         */
-        explicit PortUnreachableException(const String& msg = ""):
-            SocketException(msg) {}
+        using SocketException::SocketException;
     };
 
     /**
@@ -72,12 +57,7 @@ export namespace stdx::net {
      */
     class BindException: public SocketException {
     public:
-        /**
-         * @brief Constructor that initialises the exception with a message.
-         * @param msg The exception message.
-         */
-        explicit BindException(const String& msg = ""):
-            SocketException(msg) {}
+        using SocketException::SocketException;
     };
 
     /**
@@ -90,12 +70,7 @@ export namespace stdx::net {
      */
     class NoRouteToHostException: public SocketException {
     public:
-        /**
-         * @brief Constructor that initialises the exception with a message.
-         * @param msg The exception message.
-         */
-        explicit NoRouteToHostException(const String& msg = ""):
-            SocketException(msg) {}
+        using SocketException::SocketException;
     };
 
     #if __has_include(<experimental/socket>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS

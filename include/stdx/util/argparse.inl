@@ -28,6 +28,10 @@ using stdx::meta::TrueType;
 using stdx::ranges::IotaView;
 using stdx::text::CharTraits;
 
+#ifdef __cpp_lib_reflection
+using stdx::meta::reflect::ReflectableClass;
+#endif
+
 using namespace stdx::literals;
 
 namespace stdx::util {
@@ -86,15 +90,6 @@ String represent(const T& val) {
         return "<Not representable!>";
     }
 }
-
-template <typename T>
-concept StandardSignedInteger = IsSameValue<T, i8> || IsSameValue<T, i16> || IsSameValue<T, i32> || IsSameValue<T, i64>;
-
-template <typename T>
-concept StandardUnsignedInteger = IsSameValue<T, u8> || IsSameValue<T, u16> || IsSameValue<T, u32> || IsSameValue<T, u64>;
-
-template <typename T>
-concept StandardInteger = StandardSignedInteger<T> || StandardUnsignedInteger<T>;
 
 template <typename F, typename Tpl, typename Ext, usize... I>
 constexpr decltype(auto) apply_plus_one_impl(F&& f, Tpl&& t, Ext&& x, [[maybe_unused]] IndexSequence<I...> ind_seq) noexcept {
@@ -267,9 +262,6 @@ struct ParseNumber<T> {
     }
 };
 
-template <typename T>
-concept FloatingPoint = IsSameValue<T, float> || IsSameValue<T, double> || IsSameValue<T, long double>;
-
 template <FloatingPoint T>
 T perform_floating_from_chars(StringView s, CharsFormat fmt) throws (InvalidArgumentException, InvalidRangeException) {
     if (Character::is_whitespace(static_cast<unsigned char>(s[0])) || s[0] == '+') {
@@ -437,7 +429,7 @@ concept CanInvokeToString = requires(T val) {
 };
 
 template <typename T>
-concept ChoiceTypeSupported = []() -> bool {
+concept ChoiceTypeSupported = [] -> bool {
     return IsIntegralValue<DecayType<T>>
         || IsSameValue<DecayType<T>, String>
         || IsSameValue<DecayType<T>, StringView>
@@ -492,7 +484,7 @@ consteval bool is_one_of(char c, Ts... xs) noexcept {
 
 /**
  * @namespace stdx::util
- * @brief Wrapper namespace for standard library extension utility operations.
+ * @brief Standard library extension utility operations.
  */
 export namespace stdx::util {
 
@@ -521,8 +513,7 @@ constexpr DefaultArguments operator|(DefaultArguments a, DefaultArguments b) noe
 
 class CommandLineParserException: public RuntimeException {
 public:
-    explicit CommandLineParserException(const String& msg = ""):
-        RuntimeException(msg) {}
+    using RuntimeException::RuntimeException;
 };
 
 class ArgumentParser;
@@ -900,7 +891,7 @@ public:
         return *this;
     }
 
-    template <StandardInteger T>
+    template <Integral T>
     Argument& store_into(T& var) {
         if (default_val.has_value()) {
             var = any_cast<T>(default_val);
@@ -1001,17 +992,17 @@ public:
     template <char Shape, typename T>
     Argument& scan() {
         static_assert(!(IsConstValue<T> || IsVolatileValue<T>), "T should not be cv-qualified");
-        if constexpr (is_one_of(Shape, 'd') && StandardInteger<T>) {
+        if constexpr (is_one_of(Shape, 'd') && Integral<T>) {
             action(ParseNumber<T, 10uz>());
-        } else if constexpr (is_one_of(Shape, 'i') && StandardInteger<T>) {
+        } else if constexpr (is_one_of(Shape, 'i') && Integral<T>) {
             action(ParseNumber<T>());
-        } else if constexpr (is_one_of(Shape, 'u') && StandardUnsignedInteger<T>) {
+        } else if constexpr (is_one_of(Shape, 'u') && UnsignedIntegral<T>) {
             action(ParseNumber<T, 10uz>());
-        } else if constexpr (is_one_of(Shape, 'b') && StandardUnsignedInteger<T>) {
+        } else if constexpr (is_one_of(Shape, 'b') && UnsignedIntegral<T>) {
             action(ParseNumber<T, 2uz>());
-        } else if constexpr (is_one_of(Shape, 'o') && StandardUnsignedInteger<T>) {
+        } else if constexpr (is_one_of(Shape, 'o') && UnsignedIntegral<T>) {
             action(ParseNumber<T, 8uz>());
-        } else if constexpr (is_one_of(Shape, 'x', 'X') && StandardUnsignedInteger<T>) {
+        } else if constexpr (is_one_of(Shape, 'x', 'X') && UnsignedIntegral<T>) {
             action(ParseNumber<T, 16uz>());
         } else if constexpr (is_one_of(Shape, 'a', 'A') && FloatingPoint<T>) {
             action(ParseNumber<T, static_cast<usize>(CharsFormat::HEX)>());
@@ -1735,7 +1726,7 @@ public:
                     [&]([[maybe_unused]] const auto& _) -> void {
                         os << help().str();
                         if (exit_on_default_arguments) {
-                            System::exit(0);
+                            Environment::exit(0);
                         }
                     }
                 )
@@ -1746,7 +1737,7 @@ public:
                 .action([&]([[maybe_unused]] const auto& _) -> void {
                     os << stdx::fmt::format("{}\n", ver);
                     if (exit_on_default_arguments) {
-                        System::exit(0);
+                        Environment::exit(0);
                     }
                 })
                 .default_value(false)
@@ -1896,8 +1887,47 @@ public:
         parse_args({argv, argv + argc});
     }
 
+    void parse_args(i32 argc, char* argv[]) throws (CommandLineParserException) {
+        parse_args({argv, argv + argc});
+    }
+
+    #ifdef __cpp_lib_reflection
+    /**
+     * @brief Reflect over the annotated struct @p T and parse argc/argv into a
+     * fresh instance - the declarative counterpart to parse_args().
+     *
+     * Describe the arguments as the fields of @p T, optionally decorating them
+     * with the ShortName / Description / Env annotations; see
+     * argparse.annotations.inl for the field-to-flag and annotation conventions.
+     *
+     * @tparam T A reflectable, default-constructible struct describing the args.
+     * @throws CommandLineParserException on a missing required argument, a
+     * missing value, or an option given in both its long and short forms.
+     * @throws InvalidArgumentException, InvalidRangeException if a value fails to
+     * convert to a field's type.
+     */
+    template <ReflectableClass T>
+    [[nodiscard]]
+    static T parse(int argc, char* argv[])
+        throws (CommandLineParserException, InvalidArgumentException, InvalidRangeException);
+
+    /**
+     * @brief Render usage text for the annotated struct @p T, one block per
+     * field (flags, Description, friendly type, and default/optional markers).
+     * @tparam T A reflectable, default-constructible struct describing the args.
+     */
+    template <ReflectableClass T>
+    [[nodiscard]]
+    static String help(int argc, char* argv[]);
+    #endif
+
     [[nodiscard]]
     Vector<String> parse_known_args(i32 argc, const char* argv[]) throws (CommandLineParserException) {
+        return parse_known_args({argv, argv + argc});
+    }
+
+    [[nodiscard]]
+    Vector<String> parse_known_args(i32 argc, char* argv[]) throws (CommandLineParserException) {
         return parse_known_args({argv, argv + argc});
     }
 

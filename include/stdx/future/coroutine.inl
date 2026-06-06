@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::future
- * @brief Wrapper namespace for standard library concurrency operations.
+ * @brief Standard library concurrency operations.
  */
 export namespace stdx::future {
     // template <typename R, typename... Args>
@@ -23,6 +23,4 @@ export namespace stdx::future {
     using SuspendAlways = std::suspend_always;
 
     using std::noop_coroutine;
-
-    using std::hash;
 }

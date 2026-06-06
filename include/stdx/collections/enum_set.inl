@@ -48,7 +48,7 @@ namespace stdx::collections {
 
 /**
  * @namespace stdx::collections
- * @brief Wrapper namespace for standard library collection operations.
+ * @brief Standard library collection operations.
  */
 export namespace stdx::collections {
     #ifdef __cpp_lib_reflection

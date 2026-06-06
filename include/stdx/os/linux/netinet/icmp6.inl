@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux::netinet
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::linux::netinet {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<netinet/icmp6.h>)
     using ICmp6Filter = ::icmp6_filter;
     using ICmp6Header = ::icmp6_hdr;
     using NdRouterSolicit = ::nd_router_solicit;

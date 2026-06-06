@@ -7,7 +7,7 @@ using stdx::time::Milliseconds;
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
     /**
@@ -27,7 +27,7 @@ export namespace stdx::core {
         explicit constexpr Uuid(Array<ByteUnit, 16> bytes) noexcept:
             data{bytes} {}
 
-        static constexpr char HEX_DIGITS[] = "0123456789abcdef";
+        static constexpr StringView HEX_DIGITS = "0123456789abcdef";
 
         [[nodiscard]]
         static constexpr u8 hex_value(char c) {

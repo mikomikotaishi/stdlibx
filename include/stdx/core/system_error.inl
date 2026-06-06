@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
     using ErrorCategory = std::error_category;
@@ -19,7 +19,7 @@ export namespace stdx::core {
 
 /**
  * @namespace stdx::meta
- * @brief Wrapper namespace for standard library metaprogramming operations.
+ * @brief Standard library metaprogramming operations.
  */
 export namespace stdx::meta {
     template <typename T>

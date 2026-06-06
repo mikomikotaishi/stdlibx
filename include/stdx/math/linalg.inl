@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::math::linalg
- * @brief Wrapper namespace for standard library linear algebra operations.
+ * @brief Standard library linear algebra operations.
  */
 export namespace stdx::math::linalg {
     #ifdef __cpp_lib_linalg

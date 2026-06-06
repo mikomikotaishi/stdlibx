@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::io
- * @brief Wrapper namespace for standard library input/output manipulation operations.
+ * @brief Standard library input/output manipulation operations.
  */
 export namespace stdx::io {
     using std::resetiosflags;

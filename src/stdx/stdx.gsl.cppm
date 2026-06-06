@@ -39,7 +39,7 @@ using usize = std::size_t;
 
 /**
  * @namespace stdx::gsl
- * @brief Wrapper namespace for the Microsoft GSL objects.
+ * @brief The Microsoft GSL objects.
  */
 export namespace stdx::gsl {
     #if defined(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY) && __has_include(<gsl/gsl>)

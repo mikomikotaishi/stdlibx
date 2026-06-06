@@ -2,17 +2,16 @@
 
 /**
  * @namespace stdx::os::linux::alsa
- * @brief ALSA configuration tree — alsa/conf.h wrappers.
+ * @brief ALSA configuration tree - alsa/conf.h wrappers.
  */
 export namespace stdx::os::linux::alsa {
-    #ifdef __linux__
-    #if __has_include(<alsa/asoundlib.h>)
-    using Config = ::snd_config_t;
-    using ConfigIterator = ::snd_config_iterator_t;
-    using ConfigUpdate = ::snd_config_update_t;
-    using ConfigType = ::snd_config_type_t;
-    using ConfigExpandFn = ::snd_config_expand_fcn_t;
-    using DeviceName = ::snd_devname_t;
+    #if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+    using SoundConfig = ::snd_config_t;
+    using SoundConfigIterator = ::snd_config_iterator_t;
+    using SoundConfigUpdate = ::snd_config_update_t;
+    using SoundConfigType = ::snd_config_type_t;
+    using SoundConfigExpandFn = ::snd_config_expand_fcn_t;
+    using SoundDeviceName = ::snd_devname_t;
 
     // Top-level
     using ::snd_config_top;
@@ -44,8 +43,6 @@ export namespace stdx::os::linux::alsa {
     // Search / set / get
     using ::snd_config_search;
     using ::snd_config_searchv;
-    using ::snd_config_search_alias;
-    using ::snd_config_search_alias_hooks;
     using ::snd_config_get_type;
     using ::snd_config_get_id;
     using ::snd_config_set_id;
@@ -68,6 +65,5 @@ export namespace stdx::os::linux::alsa {
     using ::snd_config_iterator_next;
     using ::snd_config_iterator_end;
     using ::snd_config_iterator_entry;
-    #endif
     #endif
 }

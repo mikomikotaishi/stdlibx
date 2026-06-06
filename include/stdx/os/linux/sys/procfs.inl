@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux::sys
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::linux::sys {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<sys/procfs.h>)
     using ElfSignatureInfo = ::elf_siginfo;
     using ElfProcessStatus = ::elf_prstatus;
     using ElfProcessStateInfo = ::elf_prpsinfo;

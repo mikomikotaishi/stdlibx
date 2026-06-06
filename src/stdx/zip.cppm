@@ -20,7 +20,9 @@ import :main;
 using stdx::io::ByteBuffer;
 using stdx::io::IOException;
 
+#ifdef __GNUC__
 using namespace stdx::core;
+#endif
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY
 namespace stdx::zip {
@@ -49,8 +51,7 @@ export namespace stdx::zip {
  */
 class ZipException: public IOException {
 public:
-    explicit ZipException(const String& msg):
-        IOException(msg) {}
+    using IOException::IOException;
 };
 
 /**
@@ -60,8 +61,7 @@ public:
  */
 class DataFormatException: public ZipException {
 public:
-    explicit DataFormatException(const String& msg):
-        ZipException(msg) {}
+    using ZipException::ZipException;
 };
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY
@@ -121,6 +121,20 @@ enum class DataType: u8 {
 enum class CompressionMethod: u16 {
     STORED = 0, ///< No compression; raw data is stored.
     DEFLATED = 8, ///< Compressed with the DEFLATE algorithm.
+};
+
+/**
+ * @enum WrapperFormat
+ * @brief Selects the framing applied around a raw deflate stream.
+ *
+ * Determines how {@code Deflater} packages (or {@code Inflater} interprets)
+ * the compressed bytes. The byte payload is always DEFLATE; only the
+ * surrounding header and trailer differ.
+ */
+enum class WrapperFormat: u8 {
+    ZLIB, ///< RFC 1950 zlib wrapping: 2-byte header, Adler-32 trailer.
+    RAW, ///< No wrapping; raw DEFLATE bytes with no header or trailer.
+    GZIP, ///< RFC 1952 gzip wrapping: 10-byte header, CRC-32 + ISIZE trailer.
 };
 
 /**
@@ -268,6 +282,14 @@ private:
     bool opened; ///< Whether the zlib stream is live.
     bool finished_stream; ///< Whether Z_STREAM_END has been seen.
 
+    void init(CompressionLevel level, i32 window_bits) throws (ZipException) {
+        const i32 rc = deflateInit2(&stream, static_cast<i32>(level), Z_DEFLATED, window_bits, 8, Z_DEFAULT_STRATEGY);
+        if (rc != Z_OK) {
+            throw ZipException(build_error_message("Failed to initialize deflater", stream, rc));
+        }
+        opened = true;
+    }
+
 public:
     /**
      * @param level The compression level.
@@ -276,12 +298,23 @@ public:
      */
     explicit Deflater(CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION, bool nowrap = false) throws (ZipException):
         input_offset{0}, opened{false}, finished_stream{false} {
-        const i32 window_bits = nowrap ? -MAX_WBITS : MAX_WBITS;
-        const i32 rc = deflateInit2(&stream, static_cast<i32>(level), Z_DEFLATED, window_bits, 8, Z_DEFAULT_STRATEGY);
-        if (rc != Z_OK) {
-            throw ZipException(build_error_message("Failed to initialize deflater", stream, rc));
+        init(level, nowrap ? -MAX_WBITS : MAX_WBITS);
+    }
+
+    /**
+     * @param level The compression level.
+     * @param format Which framing to wrap the deflate stream in.
+     * @throws ZipException if zlib initialisation fails.
+     */
+    Deflater(CompressionLevel level, WrapperFormat format) throws (ZipException):
+        input_offset{0}, opened{false}, finished_stream{false} {
+        i32 window_bits = MAX_WBITS;
+        switch (format) {
+            case WrapperFormat::ZLIB: window_bits = MAX_WBITS; break;
+            case WrapperFormat::RAW: window_bits = -MAX_WBITS; break;
+            case WrapperFormat::GZIP: window_bits = 16 + MAX_WBITS; break;
         }
-        opened = true;
+        init(level, window_bits);
     }
 
     Deflater(const Deflater&) = delete;
@@ -478,6 +511,14 @@ private:
     bool opened; ///< Whether the zlib stream is live.
     bool finished_stream; ///< Whether Z_STREAM_END has been seen.
 
+    void init(i32 window_bits) throws (ZipException) {
+        const i32 rc = inflateInit2(&stream, window_bits);
+        if (rc != Z_OK) {
+            throw ZipException(build_error_message("Failed to initialize inflater", stream, rc));
+        }
+        opened = true;
+    }
+
 public:
     /**
      * @param nowrap If {@code true}, expect raw deflate data (no zlib header/trailer).
@@ -485,12 +526,22 @@ public:
      */
     explicit Inflater(bool nowrap = false) throws (ZipException):
         opened{false}, finished_stream{false}, input{}, input_offset{0} {
-        const i32 window_bits = nowrap ? -MAX_WBITS : MAX_WBITS;
-        const i32 rc = inflateInit2(&stream, window_bits);
-        if (rc != Z_OK) {
-            throw ZipException(build_error_message("Failed to initialize inflater", stream, rc));
+        init(nowrap ? -MAX_WBITS : MAX_WBITS);
+    }
+
+    /**
+     * @param format Which framing to expect around the deflate stream.
+     * @throws ZipException if zlib initialisation fails.
+     */
+    explicit Inflater(WrapperFormat format) throws (ZipException):
+        opened{false}, finished_stream{false}, input{}, input_offset{0} {
+        i32 window_bits = MAX_WBITS;
+        switch (format) {
+            case WrapperFormat::ZLIB: window_bits = MAX_WBITS; break;
+            case WrapperFormat::RAW: window_bits = -MAX_WBITS; break;
+            case WrapperFormat::GZIP: window_bits = 16 + MAX_WBITS; break;
         }
-        opened = true;
+        init(window_bits);
     }
 
     Inflater(const Inflater&) = delete;
@@ -704,7 +755,7 @@ public:
      * @throws ZipException if zlib initialisation fails.
      */
     explicit GZIPDeflater(CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION) throws (ZipException):
-        Deflater(level, false) {}
+        Deflater(level, WrapperFormat::GZIP) {}
 };
 
 /**
@@ -727,7 +778,7 @@ public:
      * @throws ZipException if zlib initialisation fails.
      */
     explicit GZIPInflater() throws (ZipException):
-        Inflater(false) {}
+        Inflater(WrapperFormat::GZIP) {}
 };
 
 /**

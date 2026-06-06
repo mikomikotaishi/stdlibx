@@ -5,7 +5,7 @@ using stdx::iter::OutputStreamBufferIterator;
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 namespace stdx::core {
     using Locale = std::locale;

@@ -2,12 +2,35 @@
 
 /**
  * @namespace stdx
- * @brief Wrapper namespace of the standard library.
+ * @brief The standard library.
  */
 export namespace stdx {
+    using std::operator<<;
+    using std::operator>>;
+    using std::operator+;
+    using std::operator-;
+    using std::operator*;
+    using std::operator/;
+    using std::operator%;
+    using std::operator&;
+    using std::operator|;
+    using std::operator^;
+    using std::operator~;
+    using std::operator<;
+    using std::operator>;
+    using std::operator<=;
+    using std::operator>=;
+    using std::operator==;
+    using std::operator!=;
+    using std::operator<=>;
+    using std::operator&&;
+    using std::operator||;
+    using std::operator<<=;
+    using std::operator>>=;
+
     /**
      * @namespace alloc
-     * @brief Wrapper namespace for standard library allocation operations.
+     * @brief Standard library allocation operations.
      */
     namespace alloc {
         template <typename Ptr>
@@ -15,8 +38,30 @@ export namespace stdx {
     }
 
     /**
+     * @namespace collections
+     * @brief Collection objects of the standard library.
+     */
+    namespace collections {
+        using std::erase;
+        using std::erase_if;
+
+        using std::begin;
+        using std::cbegin;
+        using std::end;
+        using std::cend;
+        using std::rbegin;
+        using std::crbegin;
+        using std::rend;
+        using std::crend;
+        using std::size;
+        using std::ssize;
+        using std::empty;
+        using std::data;
+    }
+
+    /**
      * @namespace core
-     * @brief Wrapper namespace for the core objects of the standard library.
+     * @brief Core objects of the standard library.
      */
     namespace core {
         using i8 = std::int8_t;
@@ -226,7 +271,7 @@ export namespace stdx {
 
     /**
      * @namespace stdx::io
-     * @brief Wrapper namespace for standard library IO operations.
+     * @brief Standard library IO operations.
      */
     namespace io {
         class [[nodiscard]] IOErrc final {
@@ -251,7 +296,7 @@ export namespace stdx {
 
     /**
      * @namespace future
-     * @brief Wrapper namespace for standard library concurrency operations.
+     * @brief Standard library concurrency operations.
      */
     namespace future {
         class [[nodiscard]] FutureErrc final {
@@ -279,7 +324,7 @@ export namespace stdx {
 
     /**
      * @namespace literals
-     * @brief Wrapper namespace for standard library literals.
+     * @brief Standard library literals.
      */
     namespace literals {
         /**
@@ -325,7 +370,7 @@ export namespace stdx {
 
     /**
     * @namespace text
-    * @brief Wrapper namespace for standard library text operations.
+    * @brief Standard library text operations.
     */
     namespace text {
         template <typename Char>
@@ -333,7 +378,7 @@ export namespace stdx {
 
         /**
          * @namespace stdx::text::string
-         * @brief Wrapper namespace for standard library string operations.
+         * @brief Standard library string operations.
          */
         namespace string {
             using String = std::string;
@@ -361,7 +406,7 @@ export namespace stdx {
 
     /**
      * @namespace core
-     * @brief Wrapper namespace for the core objects of the standard library.
+     * @brief Core objects of the standard library.
      */
     namespace core {
         using ::stdx::io::IOErrc;

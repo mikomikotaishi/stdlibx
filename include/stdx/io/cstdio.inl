@@ -14,7 +14,7 @@ extern "C" std::FILE* stderr;
 
 /**
  * @namespace stdx::io
- * @brief Wrapper namespace for standard library input/output operations.
+ * @brief Standard library input/output operations.
  */
 export namespace stdx::io {
     
@@ -236,21 +236,21 @@ export namespace stdx::io {
         [[nodiscard]]
         Optional<u64> size() const noexcept {
             if (!handle) {
-                return {};
+                return nullopt;
             }
             i64 current_pos = cstdio::ftell(handle.get());
             if (current_pos < 0) {
-                return {};
+                return nullopt;
             }
             if (cstdio::fseek(handle.get(), 0, SEEK_END) != 0) {
-                return {};
+                return nullopt;
             }
             i64 end_pos = cstdio::ftell(handle.get());
             if (end_pos < 0) {
-                return {};
+                return nullopt;
             }
             if (cstdio::fseek(handle.get(), current_pos, SEEK_SET) != 0) {
-                return {};
+                return nullopt;
             }
             return static_cast<u64>(end_pos);
         }
@@ -263,11 +263,11 @@ export namespace stdx::io {
         [[nodiscard]]
         Optional<u64> position() const noexcept {
             if (!handle) {
-                return {};
+                return nullopt;
             }
             i64 pos = cstdio::ftell(handle.get());
             if (pos < 0) {
-                return {};
+                return nullopt;
             }
             return static_cast<u64>(pos);
         }
@@ -420,7 +420,7 @@ export namespace stdx::io {
         [[nodiscard]]
         Optional<uintmax> try_file_size() const noexcept {
             if (!exists()) {
-                return {};
+                return nullopt;
             }
             return stdx::fs::file_size(*file_path);
         }
@@ -453,7 +453,7 @@ export namespace stdx::io {
         static Optional<File> try_open(const Path& path, StringView mode) noexcept {
             File file(path, mode);
             if (!file) {
-                return {};
+                return nullopt;
             }
             return file;
         }
@@ -484,7 +484,7 @@ export namespace stdx::io {
         [[nodiscard]]
         static Optional<File> try_create(const Path& path) noexcept {
             if (stdx::fs::exists(path)) {
-                return {};
+                return nullopt;
             }
             return try_open(path, "w");
         }

@@ -4,7 +4,7 @@ using stdx::text::CharTraits;
 
 /**
  * @namespace stdx::iter
- * @brief Wrapper namespace for standard library iterator operations.
+ * @brief Standard library iterator operations.
  */
 export namespace stdx::iter {
     template <typename In>

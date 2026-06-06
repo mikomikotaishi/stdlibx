@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         compiler:
-          - { name: GCC, cc: gcc-15, cxx: g++-15 }
+          - { name: GCC, cc: gcc-16, cxx: g++-16 }
           - { name: Clang, cc: clang-22, cxx: clang++-22 }
         build_type: [Debug, Release]
     

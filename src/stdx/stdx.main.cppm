@@ -88,6 +88,11 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/core/tuple.inl"
 #include "stdx/core/variant.inl"
 
+#include "stdx/sys/csetjmp.inl"
+#include "stdx/sys/csignal.inl"
+#include "stdx/sys/cstdlib.inl"
+#include "stdx/sys/utility.inl"
+
 #include "stdx/fmt/charconv.inl"
 #include "stdx/fmt/cinttypes.inl"
 #include "stdx/fmt/format.inl"
@@ -132,7 +137,9 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 
 #include "stdx/core/ops.inl"
 
-#include "stdx/os/constants.inl"
+#include "stdx/os/unix.constants.inl"
+#include "stdx/os/linux.constants.inl"
+#include "stdx/os/win32.constants.inl"
 
 #include "stdx/util/algorithm.inl"
 #include "stdx/util/cstdlib.inl"
@@ -167,6 +174,8 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/mem/cwchar.inl"
 #include "stdx/mem/memory.inl"
 #include "stdx/mem/new.inl"
+
+#include "stdx/core/environment.inl"
 
 #include "stdx/io/cwchar.inl"
 #include "stdx/io/fstream.inl"
@@ -235,14 +244,6 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/sync/semaphore.inl"
 #include "stdx/sync/shared_mutex.inl"
 
-#include "stdx/sys/cinttypes.inl"
-#include "stdx/sys/csetjmp.inl"
-#include "stdx/sys/csignal.inl"
-#include "stdx/sys/cstdlib.inl"
-#include "stdx/sys/utility.inl"
-
-#include "stdx/fs/glob.inl"
-
 #include "stdx/thread/hazard_pointer.inl"
 #include "stdx/thread/stop_token.inl"
 #include "stdx/thread/thread.inl"
@@ -257,14 +258,38 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 
 #include "stdx/linq/linq.inl"
 
+#include "stdx/fs/glob.inl"
+
 #include "stdx/process/process.inl"
 
 #include "stdx/time/chrono.inl"
 #include "stdx/time/format.inl"
 
 #include "stdx/util/argparse.inl"
+#include "stdx/util/argparse.annotations.inl"
 #include "stdx/util/logging.inl"
 
-#ifndef STDLIBX_EXPORT_IMPORT_STD
+#include "stdx/audio/exceptions.inl"
+
+#include "stdx/audio/sampled/format.inl"
+#include "stdx/audio/sampled/device.inl"
+#include "stdx/audio/sampled/line.inl"
+#include "stdx/audio/sampled/stream.inl"
+#include "stdx/audio/sampled/wav.inl"
+#include "stdx/audio/sampled/aiff.inl"
+#include "stdx/audio/sampled/system.inl"
+#include "stdx/audio/sampled/audio_file.inl"
+#include "stdx/audio/sampled/clip.inl"
+
+#include "stdx/audio/midi/message.inl"
+#include "stdx/audio/midi/device.inl"
+#include "stdx/audio/midi/sequence.inl"
+#include "stdx/audio/midi/sequencer.inl"
+#include "stdx/audio/midi/smf.inl"
+#include "stdx/audio/midi/soft_sequencer.inl"
+#include "stdx/audio/midi/soundbank.inl"
+#include "stdx/audio/midi/synthesizer.inl"
+#include "stdx/audio/midi/system.inl"
+#include "stdx/audio/midi/dispatch.inl"
+
 #include "operators.inl"
-#endif

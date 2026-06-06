@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux::arpa
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::linux::arpa {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<arpa/nameser.h>)
     using NsTsigKey = ::ns_tsig_key;
     using NsTcpTsigState = ::ns_tcp_tsig_state;
 

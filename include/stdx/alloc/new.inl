@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::alloc
- * @brief Wrapper namespace for standard library allocation operations.
+ * @brief Standard library allocation operations.
  */
 export namespace stdx::alloc {
     using AlignValue = std::align_val_t;

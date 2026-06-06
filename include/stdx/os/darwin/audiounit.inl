@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::os::darwin::audiounit
- * @brief AudioUnit — <AudioUnit/AudioUnit.h>, AUComponent.h,
+ * @brief AudioUnit - <AudioUnit/AudioUnit.h>, AUComponent.h,
  *        AudioComponent.h, AudioOutputUnit.h, AUAudioUnit.h.
  *
  * Apple's plugin/render-graph API for audio processing units. Use for
@@ -10,34 +10,33 @@
  * effects.
  */
 export namespace stdx::os::darwin::audiounit {
-    #ifdef __APPLE__
-    #if __has_include(<AudioUnit/AudioUnit.h>)
+    #if defined(__APPLE__) && defined(__BLOCKS__) && __has_include(<AudioUnit/AudioUnit.h>)
     // Component subsystem
-    using Component = ::AudioComponent;
-    using ComponentDescription = ::AudioComponentDescription;
-    using ComponentInstance = ::AudioComponentInstance;
-    using ComponentInstantiationOptions = ::AudioComponentInstantiationOptions;
-    using ComponentMethod = ::AudioComponentMethod;
-    using ComponentPlugInInterface = ::AudioComponentPlugInInterface;
+    using AudioComponent = ::AudioComponent;
+    using AudioComponentDescription = ::AudioComponentDescription;
+    using AudioComponentInstance = ::AudioComponentInstance;
+    using AudioComponentInstantiationOptions = ::AudioComponentInstantiationOptions;
+    using AudioComponentMethod = ::AudioComponentMethod;
+    using AudioComponentPlugInInterface = ::AudioComponentPlugInInterface;
 
     // AudioUnit handle (typedef of ComponentInstance)
-    using Unit = ::AudioUnit;
-    using UnitElement = ::AudioUnitElement;
-    using UnitScope = ::AudioUnitScope;
-    using UnitParameterId = ::AudioUnitParameterID;
-    using UnitParameterValue = ::AudioUnitParameterValue;
-    using UnitParameterEvent = ::AudioUnitParameterEvent;
-    using UnitPropertyId = ::AudioUnitPropertyID;
-    using UnitConnection = ::AudioUnitConnection;
-    using UnitRenderActionFlags = ::AudioUnitRenderActionFlags;
-    using UnitParameter = ::AudioUnitParameter;
-    using UnitParameterInfo = ::AudioUnitParameterInfo;
+    using AudioUnit = ::AudioUnit;
+    using AudioUnitElement = ::AudioUnitElement;
+    using AudioUnitScope = ::AudioUnitScope;
+    using AudioUnitParameterId = ::AudioUnitParameterID;
+    using AudioUnitParameterValue = ::AudioUnitParameterValue;
+    using AudioUnitParameterEvent = ::AudioUnitParameterEvent;
+    using AudioUnitPropertyId = ::AudioUnitPropertyID;
+    using AudioUnitConnection = ::AudioUnitConnection;
+    using AudioUnitRenderActionFlags = ::AudioUnitRenderActionFlags;
+    using AudioUnitParameter = ::AudioUnitParameter;
+    using AudioUnitParameterInfo = ::AudioUnitParameterInfo;
 
     // Callbacks
-    using RenderCallback = ::AURenderCallback;
-    using RenderCallbackStruct = ::AURenderCallbackStruct;
-    using PropertyListener = ::AudioUnitPropertyListenerProc;
-    using InputSamplesInOutputCallback = ::AUInputSamplesInOutputCallback;
+    using AURenderCallback = ::AURenderCallback;
+    using AURenderCallbackStruct = ::AURenderCallbackStruct;
+    using AudioUnitPropertyListenerProc = ::AudioUnitPropertyListenerProc;
+    using AUInputSamplesInOutputCallback = ::AUInputSamplesInOutputCallback;
 
     // Component discovery / instantiation
     using ::AudioComponentFindNext;
@@ -74,6 +73,5 @@ export namespace stdx::os::darwin::audiounit {
     // Output unit (audiotoolbox-style start/stop)
     using ::AudioOutputUnitStart;
     using ::AudioOutputUnitStop;
-    #endif
     #endif
 }

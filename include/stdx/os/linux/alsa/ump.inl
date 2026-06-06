@@ -2,15 +2,14 @@
 
 /**
  * @namespace stdx::os::linux::alsa
- * @brief Universal MIDI Packet (UMP) I/O — alsa/ump.h.
+ * @brief Universal MIDI Packet (UMP) I/O - alsa/ump.h.
  *        MIDI 2.0 endpoint access.
  */
 export namespace stdx::os::linux::alsa {
-    #ifdef __linux__
-    #if __has_include(<alsa/asoundlib.h>)
-    using Ump = ::snd_ump_t;
-    using UmpEndpointInfo = ::snd_ump_endpoint_info_t;
-    using UmpBlockInfo = ::snd_ump_block_info_t;
+    #if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+    using SoundUmp = ::snd_ump_t;
+    using SoundUmpEndpointInfo = ::snd_ump_endpoint_info_t;
+    using SoundUmpBlockInfo = ::snd_ump_block_info_t;
 
     using ::snd_ump_open;
     using ::snd_ump_close;
@@ -27,8 +26,5 @@ export namespace stdx::os::linux::alsa {
     using ::snd_ump_drop;
     using ::snd_ump_write;
     using ::snd_ump_read;
-    using ::snd_ump_tx_msg;
-    using ::snd_ump_rx_msg;
-    #endif
     #endif
 }

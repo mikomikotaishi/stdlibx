@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::fmt
- * @brief Wrapper namespace for standard library format operations.
+ * @brief Standard library format operations.
  */
 export namespace stdx::fmt {
     // Print format specifiers for 32-bit integers
@@ -41,8 +41,6 @@ export namespace stdx::fmt {
     constexpr char SCNx32[] = "x"; ///< Format specifier for scanning uint32_t as hex (both cases)
     constexpr char SCNxLEAST32[] = "x"; ///< Format specifier for scanning uint_least32_t as hex (both cases)
     constexpr char SCNxFAST32[] = "x"; ///< Format specifier for scanning uint_fast32_t as hex (both cases)
-
-    using IntegerMaximumDivision = std::imaxdiv_t;
 
     using std::imaxabs;
     using std::imaxdiv;

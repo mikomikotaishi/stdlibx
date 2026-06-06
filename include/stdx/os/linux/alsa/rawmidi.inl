@@ -2,16 +2,15 @@
 
 /**
  * @namespace stdx::os::linux::alsa
- * @brief ALSA raw MIDI I/O — alsa/rawmidi.h wrappers.
+ * @brief ALSA raw MIDI I/O - alsa/rawmidi.h wrappers.
  */
 export namespace stdx::os::linux::alsa {
-    #ifdef __linux__
-    #if __has_include(<alsa/asoundlib.h>)
-    using RawMidi = ::snd_rawmidi_t;
-    using RawMidiInfo = ::snd_rawmidi_info_t;
-    using RawMidiParams = ::snd_rawmidi_params_t;
-    using RawMidiStatus = ::snd_rawmidi_status_t;
-    using RawMidiStream = ::snd_rawmidi_stream_t;
+    #if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+    using SoundRawMidi = ::snd_rawmidi_t;
+    using SoundRawMidiInfo = ::snd_rawmidi_info_t;
+    using SoundRawMidiParams = ::snd_rawmidi_params_t;
+    using SoundRawMidiStatus = ::snd_rawmidi_status_t;
+    using SoundRawMidiStream = ::snd_rawmidi_stream_t;
 
     // Lifecycle
     using ::snd_rawmidi_open;
@@ -47,6 +46,5 @@ export namespace stdx::os::linux::alsa {
     using ::snd_rawmidi_drop;
     using ::snd_rawmidi_write;
     using ::snd_rawmidi_read;
-    #endif
     #endif
 }

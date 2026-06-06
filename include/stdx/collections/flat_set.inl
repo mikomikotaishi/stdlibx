@@ -6,7 +6,7 @@ using stdx::meta::RemoveConstVolatile;
 
 /**
  * @namespace stdx::collections
- * @brief Wrapper namespace for standard library collection operations.
+ * @brief Standard library collection operations.
  */
 export namespace stdx::collections {
     #ifdef __cpp_lib_flat_set
@@ -21,8 +21,6 @@ export namespace stdx::collections {
             IsSameValue<Key, typename Container::value_type> &&
             IsNothrowSwappableValue<Container>
     using FlatMultiset = std::flat_multiset<Key, Compare, Container>;
-
-    using std::erase_if;
 
     using SortedUniqueTag = std::sorted_unique_t;
     inline constexpr SortedUniqueTag SortedUnique = std::sorted_unique;

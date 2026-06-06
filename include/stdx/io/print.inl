@@ -39,12 +39,8 @@ namespace stdx::io {
             return false;
         }
 
-        StringView term = std::getenv("TERM");
-        if (!term.empty() || term == "dumb") {
-            return false;
-        }
-
-        return true;
+        Optional<StringView> term = Environment::get("TERM");
+        return !term.has_value() || *term != "dumb";
         #endif
     }
 
@@ -56,7 +52,7 @@ namespace stdx::io {
 
 /**
  * @namespace stdx::io
- * @brief Wrapper namespace for standard library input/output operations.
+ * @brief Standard library input/output operations.
  */
 export namespace stdx::io {
     #ifdef __cpp_lib_print
@@ -274,7 +270,7 @@ export namespace stdx::io {
         static constexpr String ANSI_RESET = "\033[0m";
 
         // Color is stored as a packed u32 value alongside a type tag.
-        // RGB: (r<<16)|(g<<8)|b  — reuses the same layout as Color enum values.
+        // RGB: (r<<16)|(g<<8)|b  - reuses the same layout as Color enum values.
         // TerminalColor: the raw ANSI code (30–37, 90–97).
         enum class ColorType: u8 {
             NONE,
@@ -451,7 +447,7 @@ export namespace stdx::io {
             s.reserve(32);
             s += "\033[";
             bool first = true;
-            auto sep = [&]() -> void {
+            auto sep = [&] -> void {
                 if (!first) {
                     s += ';';
                 }

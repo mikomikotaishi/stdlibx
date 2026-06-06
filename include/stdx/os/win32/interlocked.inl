@@ -8,7 +8,7 @@
  * (without the leading underscore that MinGW exposes).
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<intrin.h>)
     using InterlockedExchange8 = ::_InterlockedExchange8;
     using InterlockedExchangeAdd8 = ::_InterlockedExchangeAdd8;
     using InterlockedExchangeAnd8 = ::_InterlockedExchangeAnd8;

@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::unix::sys
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::unix::sys {
-    #ifdef __unix__
+    #if defined(__unix__) && __has_include(<sys/times.h>)
     using Times = ::tms;
 
     using ::times;

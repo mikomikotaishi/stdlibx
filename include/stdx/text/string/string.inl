@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::text::string
- * @brief Wrapper namespace for standard library string operations.
+ * @brief Standard library string operations.
  */
 export namespace stdx::text::string {
     using std::stoi;

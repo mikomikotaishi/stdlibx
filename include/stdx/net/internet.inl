@@ -5,7 +5,7 @@ using stdx::io::InterruptedIOException;
 
 /**
  * @namespace stdx::net
- * @brief Wrapper namespace for (experimental) standard library networking operations.
+ * @brief Experimental standard library networking operations.
  */
 export namespace stdx::net {
     /**
@@ -18,12 +18,7 @@ export namespace stdx::net {
      */
     class UnknownHostException: public IOException {
     public:
-        /**
-        * @brief Constructor that initialises the exception with a message.
-        * @param msg The exception message.
-        */
-        explicit UnknownHostException(const String& msg = ""):
-            IOException(msg) {}
+        using IOException::IOException;
     };
 
     /**
@@ -36,12 +31,7 @@ export namespace stdx::net {
      */
     class UnknownServiceException: public IOException {
     public:
-        /**
-        * @brief Constructor that initialises the exception with a message.
-        * @param msg The exception message.
-        */
-        explicit UnknownServiceException(const String& msg = ""):
-            IOException(msg) {}
+        using IOException::IOException;
     };
 
     /**
@@ -54,12 +44,7 @@ export namespace stdx::net {
      */
     class ProtocolException: public IOException {
     public:
-        /**
-        * @brief Constructor that initialises the exception with a message.
-        * @param msg The exception message.
-        */
-        explicit ProtocolException(const String& msg = ""):
-            IOException(msg) {}
+        using IOException::IOException;
     };
 
     /**

@@ -295,7 +295,7 @@ export namespace stdx::time::chrono {
             if (text == era_name(Era::BCE, style)) {
                 return Era::BCE;
             }
-            return {};
+            return nullopt;
         }
 
         /**
@@ -319,7 +319,7 @@ export namespace stdx::time::chrono {
                     return m;
                 }
             }
-            return {};
+            return nullopt;
         }
 
         /**

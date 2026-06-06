@@ -2,29 +2,27 @@
 
 /**
  * @namespace stdx::os::linux::alsa
- * @brief ALSA sequencer event types — alsa/seq_event.h wrappers.
+ * @brief ALSA sequencer event types - alsa/seq_event.h wrappers.
  *        Most contents are #define constants for event types; this file
  *        exposes the structural typedefs.
  */
 export namespace stdx::os::linux::alsa {
-    #ifdef __linux__
-    #if __has_include(<alsa/asoundlib.h>)
+    #if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
     // Time scalars
-    using SequencerEventTypeId = ::snd_seq_event_type_t;
-    using SequencerTickTime = ::snd_seq_tick_time_t;
-    using SequencerRealTime = ::snd_seq_real_time_t;
-    using SequencerTimestamp = ::snd_seq_timestamp_t;
+    using SoundSequencerEventTypeId = ::snd_seq_event_type_t;
+    using SoundSequencerTickTime = ::snd_seq_tick_time_t;
+    using SoundSequencerRealTime = ::snd_seq_real_time_t;
+    using SoundSequencerTimestamp = ::snd_seq_timestamp_t;
 
     // Endpoint addressing
-    using SequencerAddress = ::snd_seq_addr_t;
-    using SequencerConnect = ::snd_seq_connect_t;
+    using SoundSequencerAddress = ::snd_seq_addr_t;
+    using SoundSequencerConnect = ::snd_seq_connect_t;
 
     // Event union and helpers
-    using SequencerEvent = ::snd_seq_event_t;
-    using SequencerExtendedEvent = ::snd_seq_ev_ext_t;
-    using SequencerNoteEvent = ::snd_seq_ev_note_t;
-    using SequencerControlEvent = ::snd_seq_ev_ctrl_t;
-    using SequencerQueueControlEvent = ::snd_seq_ev_queue_control_t;
-    #endif
+    using SoundSequencerEvent = ::snd_seq_event_t;
+    using SoundSequencerExtendedEvent = ::snd_seq_ev_ext_t;
+    using SoundSequencerNoteEvent = ::snd_seq_ev_note_t;
+    using SoundSequencerControlEvent = ::snd_seq_ev_ctrl_t;
+    using SoundSequencerQueueControlEvent = ::snd_seq_ev_queue_control_t;
     #endif
 }

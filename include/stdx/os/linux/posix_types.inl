@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux
- * @brief Wrapper namespace for Linux operations.
+ * @brief Linux operations.
  */
 export namespace stdx::os::linux {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<linux/posix_types.h>)
     using KernelFileDescriptorSet = ::__kernel_fd_set;
     using KernelSignalHandler = ::__kernel_sighandler_t;
     using KernelKey = ::__kernel_key_t;

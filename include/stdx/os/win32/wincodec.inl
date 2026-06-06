@@ -10,7 +10,7 @@
  * ::IWICXxx names too.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<wincodec.h>)
     // Factory / top-level
     using WicImagingFactory = ::IWICImagingFactory;
     using WicImagingFactory2 = ::IWICImagingFactory2;

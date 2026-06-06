@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::linux::sys
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::linux::sys {
-    #ifdef __linux__
+    #if defined(__linux__) && __has_include(<sys/rseq.h>)
     using RestartableSequenceCpuIdState = ::rseq_cpu_id_state;
     using RestartableSequenceFlags = ::rseq_flags;
     using RestartableSequenceCsFlagsBit = ::rseq_cs_flags_bit;

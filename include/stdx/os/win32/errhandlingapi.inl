@@ -9,7 +9,7 @@
  * formatting, and error-mode controls.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<errhandlingapi.h>)
     using ::GetLastError;
     using ::SetLastError;
     using ::RestoreLastError;

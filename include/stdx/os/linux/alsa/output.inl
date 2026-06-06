@@ -2,13 +2,12 @@
 
 /**
  * @namespace stdx::os::linux::alsa
- * @brief Abstract output sink — alsa/output.h.
+ * @brief Abstract output sink - alsa/output.h.
  */
 export namespace stdx::os::linux::alsa {
-    #ifdef __linux__
-    #if __has_include(<alsa/asoundlib.h>)
-    using Output = ::snd_output_t;
-    using OutputType = ::snd_output_type_t;
+    #if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+    using SoundOutput = ::snd_output_t;
+    using SoundOutputType = ::snd_output_type_t;
 
     using ::snd_output_stdio_open;
     using ::snd_output_stdio_attach;
@@ -21,6 +20,5 @@ export namespace stdx::os::linux::alsa {
     using ::snd_output_puts;
     using ::snd_output_putc;
     using ::snd_output_flush;
-    #endif
     #endif
 }

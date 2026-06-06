@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::time
- * @brief Wrapper namespace for standard library time operations.
+ * @brief Standard library time operations.
  */
 export namespace stdx::time {
     using Time = std::tm;

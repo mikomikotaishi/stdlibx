@@ -1,16 +1,21 @@
 #pragma once
 
 namespace stdx::os::unix {
+    #if __has_include(<threads.h>)
     constexpr auto TssDtorIterations = TSS_DTOR_ITERATIONS;
+    #endif
 }
 
+#if __has_include(<threads.h>)
 #undef TSS_DTOR_ITERATIONS
+#endif
 
 /**
  * @namespace stdx::os::unix
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::unix {
+    #if __has_include(<threads.h>)
     using C11Thread = ::thrd_t;
     using C11Mutex = ::mtx_t;
     using C11ConditionVariable = ::cnd_t;
@@ -26,6 +31,7 @@ export namespace stdx::os::unix {
     using ::thrd_exit;
     using ::thrd_detach;
     using ::thrd_join;
+
     constexpr auto THREAD_SUCCESS = ::thrd_success;
     constexpr auto THREAD_TIMEDOUT = ::thrd_timedout;
     constexpr auto THREAD_ERROR = ::thrd_error;
@@ -38,6 +44,7 @@ export namespace stdx::os::unix {
     using ::mtx_trylock;
     using ::mtx_unlock;
     using ::mtx_destroy;
+
     constexpr auto MUTEX_PLAIN = ::mtx_plain;
     constexpr auto MUTEX_RECURSIVE = ::mtx_recursive;
     constexpr auto MUTEX_TIMED = ::mtx_timed;
@@ -58,4 +65,5 @@ export namespace stdx::os::unix {
     using ::tss_delete;
 
     constexpr auto TSS_DTOR_ITERATIONS = TssDtorIterations;
+    #endif
 }

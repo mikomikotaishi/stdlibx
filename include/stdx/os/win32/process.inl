@@ -5,7 +5,7 @@
  * @brief Process / thread management (processthreadsapi.h + tlhelp32.h).
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<processthreadsapi.h>)
     // Process / thread startup
     using StartupInfo = ::STARTUPINFOA;
     using StartupInfoW = ::STARTUPINFOW;
@@ -46,6 +46,22 @@ export namespace stdx::os::win32 {
     using ::GetProcessTimes;
     using ::GetProcessHandleCount;
     using ::FlushInstructionCache;
+
+    // Job objects (parent-death linkage via kill-on-close)
+    using ::CreateJobObjectW;
+    using ::AssignProcessToJobObject;
+    using ::SetInformationJobObject;
+
+    using JobObjectBasicLimitInformation = ::JOBOBJECT_BASIC_LIMIT_INFORMATION;
+    using JobObjectExtendedLimitInformation = ::JOBOBJECT_EXTENDED_LIMIT_INFORMATION;
+    using JobObjectInfoClass = ::JOBOBJECTINFOCLASS;
+
+    /// JOBOBJECTINFOCLASS value that selects JOBOBJECT_EXTENDED_LIMIT_INFORMATION.
+    inline constexpr JobObjectInfoClass JobObjectExtendedLimitInfoClass = ::JobObjectExtendedLimitInformation;
+    /// Limit flag (a <winnt.h> macro): kill every process in the job when its last handle closes.
+    inline constexpr WinDWord JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE_FLAG = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+    /// CreateProcess flag (a <winbase.h> macro): start the primary thread suspended.
+    inline constexpr WinDWord CREATE_SUSPENDED_FLAG = CREATE_SUSPENDED;
 
     // Thread creation / control
     using ::CreateThread;

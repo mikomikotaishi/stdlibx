@@ -6,7 +6,7 @@
  *        VirtualAlloc/Free/Protect/Query, HeapAlloc, Global/Local heap.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<memoryapi.h>)
     using MemoryBasicInformation = ::MEMORY_BASIC_INFORMATION;
     using MemoryBasicInformationPointer = ::PMEMORY_BASIC_INFORMATION;
     using ProcessHeapEntry = ::PROCESS_HEAP_ENTRY;
@@ -56,7 +56,7 @@ export namespace stdx::os::win32 {
     using ::HeapSetInformation;
 
     // Global heap (legacy but still used). Note: ::GlobalHandle (function)
-    // is shadowed by the GlobalHandle type alias in windows_base.inl —
+    // is shadowed by the GlobalHandle type alias in windows_base.inl -
     // call it qualified as ::GlobalHandle(...).
     using ::GlobalAlloc;
     using ::GlobalReAlloc;

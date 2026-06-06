@@ -7,7 +7,7 @@
  *        wait functions, init-once.
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<synchapi.h>)
     // Lock and CV primitives
     using CriticalSection = ::CRITICAL_SECTION;
     using CriticalSectionPointer = ::LPCRITICAL_SECTION;

@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::meta
- * @brief Wrapper namespace for standard library metaprogramming operations.
+ * @brief Standard library metaprogramming operations.
  */
 export namespace stdx::meta {
     template <typename T, T v>

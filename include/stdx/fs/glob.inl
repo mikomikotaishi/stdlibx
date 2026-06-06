@@ -2,14 +2,14 @@
 
 using stdx::collections::TreeMap;
 using stdx::collections::Vector;
+using stdx::linq::Query;
 using stdx::ranges::views::Filter;
-using stdx::ranges::views::Join;
-using stdx::ranges::views::Transform;
 using stdx::text::regex::Regex;
+using stdx::text::regex::SyntaxOption;
 
 /**
  * @namespace stdx::fs
- * @brief Wrapper namespace for standard library file system operations.
+ * @brief Standard library file system operations.
  */
 namespace stdx::fs {
     bool string_replace(String& s, const String& from, const String& to) noexcept {
@@ -105,17 +105,17 @@ namespace stdx::fs {
                     break;
                 default:
                     static constexpr StringView SPECIAL_CHARACTERS = "()[]{}?*+-|^$\\.&~# \t\n\r\v\f";
-                    static TreeMap<int, String> special_characters_map;
+                    static TreeMap<i32, String> special_characters_map;
                     if (special_characters_map.empty()) {
                         for (const char& sc: SPECIAL_CHARACTERS) {
                             special_characters_map.insert(
-                                {static_cast<int>(sc), stdx::fmt::format("\\{}", String(1, sc))}
+                                {static_cast<i32>(sc), stdx::fmt::format("\\{}", String(1, sc))}
                             );
                         }
                     }
 
                     if (SPECIAL_CHARACTERS.find(ch) != StringView::npos) {
-                        result += special_characters_map[static_cast<int>(ch)];
+                        result += special_characters_map[static_cast<i32>(ch)];
                     } else {
                         result += ch;
                     }
@@ -126,7 +126,7 @@ namespace stdx::fs {
 
     [[nodiscard]]
     Regex compile_pattern(const String& pattern) {
-        return Regex(translate(pattern), Regex::ECMAScript);
+        return Regex(translate(pattern), SyntaxOption::ECMASCRIPT);
     }
 
     bool filename_match(const Path& name, const String& pattern) {
@@ -135,17 +135,11 @@ namespace stdx::fs {
 
     [[nodiscard]]
     Vector<Path> filter(const Vector<Path>& names, const String& pattern) noexcept {
-        return names |
-            Filter([&pattern](const Path& name) -> bool {
+        return Query(names)
+            .where([pattern](const Path& name) {
                 return filename_match(name, pattern);
-            }) |
-            stdx::ranges::to<Vector<Path>>();
-    }
-
-    [[nodiscard]]
-    String get_env_var(StringView var) noexcept {
-        const char* v = stdx::sys::getenv(var.data());
-        return String(v ? v : "");
+            })
+            .to<Vector<Path>>();
     }
 
     [[nodiscard]]
@@ -158,13 +152,13 @@ namespace stdx::fs {
         #else
         static constexpr StringView HOME_VARIABLE = "USER";
         #endif
-        String home = get_env_var(HOME_VARIABLE);
-        if (home.empty()) {
+        Optional<StringView> home = Environment::get(HOME_VARIABLE);
+        if (!home.has_value()) {
             return nullopt; // `~` could not be expanded due to HOME variable not being set
         }
         String s = p.string();
         if (s[0] == '~') {
-            s = stdx::fmt::format("{}{}", home, s.substr(1, s.length() - 1));
+            s = stdx::fmt::format("{}{}", home.value(), s.substr(1, s.length() - 1));
             return Path(s);
         }
         return p;
@@ -327,7 +321,7 @@ namespace stdx::fs {
 
 /**
  * @namespace stdx::fs
- * @brief Wrapper namespace for standard library file system operations.
+ * @brief Standard library file system operations.
  */
 export namespace stdx::fs {
     [[nodiscard]]
@@ -342,22 +336,20 @@ export namespace stdx::fs {
 
     [[nodiscard]]
     Vector<Path> glob(const Vector<String>& paths) noexcept {
-        return paths |
-            Transform([](const String& path) -> Vector<Path> {
+        return Query(paths)
+            .select_many([](const String& path) -> Vector<Path> {
                 return glob_impl(path, false);
-            }) | 
-            Join |
-            stdx::ranges::to<Vector<Path>>();
+            })
+            .to<Vector<Path>>();
     }
 
     [[nodiscard]]
     Vector<Path> glob_recursive(const Vector<String>& paths) noexcept {
-        return paths |
-            Transform([](const String& path) -> Vector<Path> {
+        return Query(paths)
+            .select_many([](const String& path) -> Vector<Path> {
                 return glob_impl(path, true);
-            }) | 
-            Join |
-            stdx::ranges::to<Vector<Path>>();
+            })
+            .to<Vector<Path>>();
     }
 
     [[nodiscard]]

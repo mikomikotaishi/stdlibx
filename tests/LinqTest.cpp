@@ -402,7 +402,7 @@ void test_enumerate() {
     System::out.println("Enumerated:");
     Query(words)
         .enumerate()
-        .for_each([](auto pair) {
+        .for_each([](auto pair) -> void {
             auto [i, w] = pair;
             System::out.println("  [{}] = {}", i, w);
         });
@@ -456,47 +456,76 @@ void test_complex_chain() {
 }
 
 void test_split() {
+    // split<Into>(delim) materialises each piece as Into; the bare split(delim)
+    // mirrors std::views::split and yields the lazy subranges.
+
     // StringView -> Vector<String>
     StringView csv = "alpha,beta,gamma";
     Vector<String> parts = Query(csv)
-        .split(',')
+        .split<String>(',')
         .to<Vector>();
     System::out.println("Split StringView: {}", parts);
 
     // String -> Vector<String>
     String sentence = "The quick brown fox jumps over the lazy dog";
     Vector<String> tokens = Query(sentence)
-        .split(' ')
+        .split<String>(' ')
         .to<Vector>();
     System::out.println("Split String: {}", tokens);
 
     // const char* -> wrap in StringView first
     const char* raw = "a/b/c/d";
     Vector<String> segments = Query(StringView(raw))
-        .split('/')
+        .split<String>('/')
         .to<Vector>();
     System::out.println("Split const char*: {}", segments);
 
-    // Choose a different output string type via the template parameter
+    // Materialise into non-owning StringViews over the original buffer instead.
     Vector<StringView> views = Query(csv)
         .split<StringView>(',')
         .to<Vector>();
     System::out.println("Split into StringViews: {}", views);
 
-    // Multi-character delimiter: a bare C-string literal works directly now -
-    // its trailing '\0' is dropped instead of being folded into the pattern.
+    // Multi-character C-string delimiter still has its trailing '\0' dropped.
     StringView log = "INFO :: load :: INFO :: ready";
     Vector<String> infos = Query(log)
-        .split(" :: ")
+        .split<String>(" :: ")
         .where([](const String& s) -> bool { return s != "INFO"; })
         .to<Vector>();
     System::out.println("Split + filter: {}", infos);
 
-    // A single-element char delimiter is preserved (not turned into a string).
-    Vector<String> single = Query(StringView("x,,y"))
-        .split(',')
+    // Empty fields are preserved.
+    Vector<String> empties = Query(StringView("x,,y"))
+        .split<String>(',')
         .to<Vector>();
-    System::out.println("Split keeps empty fields: {}", single);
+    System::out.println("Split keeps empty fields: {}", empties);
+
+    // Generality: any collection, not just strings. Split a Vector<i32> on an
+    // element value, materialising each piece into an owning Vector<i32>.
+    Vector<i32> numbers = {1, 2, 0, 3, 4, 0, 0, 5};
+    Vector<Vector<i32>> groups = Query(numbers)
+        .split<Vector<i32>>(0)
+        .to<Vector>();
+    System::out.println(
+        "Split Vector<i32> on 0, group sizes: {}",
+        Query(groups)
+            .select([](const Vector<i32>& g) -> usize { return g.size(); })
+            .to<Vector>()
+    );
+
+    // The bare default yields the lazy subranges - consume them without
+    // materialising by summing each piece in place.
+    Vector<i32> sums = Query(numbers)
+        .split(0)
+        .select([](auto&& piece) -> i32 {
+            i32 total = 0;
+            for (i32 x: piece) {
+                total += x;
+            }
+            return total;
+        })
+        .to<Vector>();
+    System::out.println("Sum of each split piece: {}", sums);
 }
 
 int main() {

@@ -20,7 +20,9 @@ using stdx::collections::Vector;
 using stdx::io::ByteBuffer;
 using stdx::sync::OnceFlag;
 
+#ifdef __GNUC__
 using namespace stdx::core;
+#endif
 
 /**
  * @namespace stdx::crypto
@@ -53,8 +55,7 @@ public:
  */
 class CryptoInitializationException: public CryptoException {
 public:
-	explicit CryptoInitializationException(const String& msg = ""):
-		CryptoException(msg) {}
+	using CryptoException::CryptoException;
 };
 
 /**
@@ -64,8 +65,7 @@ public:
  */
 class SignatureException: public CryptoException {
 public:
-	explicit SignatureException(const String& msg = ""):
-		CryptoException(msg) {}
+	using CryptoException::CryptoException;
 };
 
 /**
@@ -75,8 +75,7 @@ public:
  */
 class NoSuchAlgorithmException: public CryptoException {
 public:
-	explicit NoSuchAlgorithmException(const String& msg = ""):
-		CryptoException(msg) {}
+	using CryptoException::CryptoException;
 };
 
 /**
@@ -86,8 +85,7 @@ public:
  */
 class KeyException: public CryptoException {
 public:
-	explicit KeyException(const String& msg = ""):
-		CryptoException(msg) {}
+	using CryptoException::CryptoException;
 };
 
 /**
@@ -97,8 +95,7 @@ public:
  */
 class InvalidKeyException: public KeyException {
 public:
-	explicit InvalidKeyException(const String& msg = ""):
-		KeyException(msg) {}
+	using KeyException::KeyException;
 };
 
 /**
@@ -108,8 +105,7 @@ public:
  */
 class KeyGenerationException: public KeyException {
 public:
-	explicit KeyGenerationException(const String& msg = ""):
-		KeyException(msg) {}
+	using KeyException::KeyException;
 };
 
 /**
@@ -119,8 +115,7 @@ public:
  */
 class HashFailedException: public CryptoException {
 public:
-	explicit HashFailedException(const String& msg = ""):
-		CryptoException(msg) {}
+	using CryptoException::CryptoException;
 };
 
 /**
@@ -130,8 +125,7 @@ public:
  */
 class BadPaddingException: public CryptoException {
 public:
-	explicit BadPaddingException(const String& msg = ""):
-		CryptoException(msg) {}
+	using CryptoException::CryptoException;
 };
 
 /**
@@ -141,8 +135,7 @@ public:
  */
 class AEADBadTagException: public CryptoException {
 public:
-	explicit AEADBadTagException(const String& msg = ""):
-		CryptoException(msg) {}
+	using CryptoException::CryptoException;
 };
 
 }
@@ -163,7 +156,7 @@ namespace stdx::crypto {
 	 */
 	void ensure_sodium_initialized() throws (CryptoInitializationException) {
 		static OnceFlag sodium_init_flag;
-		stdx::sync::call_once(sodium_init_flag, []() -> void {
+		stdx::sync::call_once(sodium_init_flag, [] -> void {
 			if (sodium_init() < 0) {
 				throw CryptoInitializationException("Failed to initialise libsodium");
 			}

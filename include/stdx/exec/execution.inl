@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
     template <typename T>
@@ -10,19 +10,8 @@ export namespace stdx::core {
 }
 
 /**
- * @namespace std::thread::current
- * @brief Namespace for operations on the current thread.
- */
-export namespace stdx::thread::current {
-    #ifdef __cpp_lib_senders
-    using std::this_thread::sync_wait;
-    using std::this_thread::sync_wait_with_variant;
-    #endif
-}
-
-/**
  * @namespace std::exec
- * @brief Wrapper namespace for standard library execution operations.
+ * @brief Standard library execution operations.
  */
 export namespace stdx::exec {
     using SequencedPolicy = std::execution::sequenced_policy;

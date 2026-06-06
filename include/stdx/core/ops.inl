@@ -24,7 +24,7 @@ using stdx::meta::reflect::Union;
 
 /**
  * @namespace stdx::core
- * @brief Wrapper namespace for the core objects of the standard library.
+ * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
     class Ops final {

@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::unix
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::unix {
-    #ifdef __unix__
+    #if defined(__unix__) && __has_include(<iconv.h>)
     using ::iconv_close;
     using ::iconv_open;
     using ::iconv;

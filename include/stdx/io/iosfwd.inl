@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::io
- * @brief Wrapper namespace for standard library IO operations.
+ * @brief Standard library IO operations.
  */
 export namespace stdx::io {
     using StreamPosition = std::streampos;

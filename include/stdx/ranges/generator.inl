@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::ranges
- * @brief Wrapper namespace for standard library ranges operations.
+ * @brief Standard library ranges operations.
  */
 export namespace stdx::ranges {
     #ifdef __cpp_lib_generator

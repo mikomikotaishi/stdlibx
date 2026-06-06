@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::debug
- * @brief Wrapper namespace for standard library debugging operations.
+ * @brief Standard library debugging operations.
  */
 export namespace stdx::debug {
     #ifdef __cpp_lib_stacktrace
@@ -12,12 +12,5 @@ export namespace stdx::debug {
     using BasicStackTrace = std::basic_stacktrace<Allocator>;
 
     using StackTrace = std::stacktrace;
-
-    using std::hash;
-    using std::formatter;
-    using std::swap;
-
-    using std::to_string;
-    using std::operator<<;
     #endif
 }

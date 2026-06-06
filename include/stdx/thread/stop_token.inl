@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::thread
- * @brief Wrapper namespace for standard library threading operations.
+ * @brief Standard library threading operations.
  */
 export namespace stdx::thread {
     using StopToken = std::stop_token;

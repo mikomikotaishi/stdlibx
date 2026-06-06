@@ -5,7 +5,7 @@
  * @brief Debugger and DbgHelp symbol/stack API wrappers (dbghelp.h + debugapi.h).
  */
 export namespace stdx::os::win32 {
-    #ifdef _WIN32
+    #if defined(_WIN32) && __has_include(<dbghelp.h>)
     // DbgHelp value types and callbacks
     using SymEnumerateSymbolsCallback = ::PSYM_ENUMERATESYMBOLS_CALLBACK;
     using SymEnumerateSymbolsCallbackW = ::PSYM_ENUMERATESYMBOLS_CALLBACKW;

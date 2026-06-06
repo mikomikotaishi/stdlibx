@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::net
- * @brief Wrapper namespace for (experimental) standard library networking operations.
+ * @brief Experimental standard library networking operations.
  */
 export namespace stdx::net {
     #if __has_include(<experimental/buffer>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS

@@ -2,10 +2,8 @@
 
 /**
  * @namespace stdx::meta
- * @brief Wrapper namespace for standard library metaprogramming operations.
+ * @brief Standard library metaprogramming operations.
  */
 export namespace stdx::meta {
     using TypeIndex = std::type_index;
-
-    using std::hash;
 }

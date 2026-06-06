@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::math
- * @brief Wrapper namespace for standard library mathematical operations.
+ * @brief Standard library mathematical operations.
  */
 export namespace stdx::math {
     class [[nodiscard]] Endian final {

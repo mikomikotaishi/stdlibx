@@ -2,10 +2,10 @@
 
 /**
  * @namespace stdx::os::unix::netinet
- * @brief Wrapper namespace for Unix POSIX operations.
+ * @brief Unix POSIX operations.
  */
 export namespace stdx::os::unix::netinet {
-    #ifdef __unix__
+    #if defined(__unix__) && __has_include(<netinet/in.h>)
     using InternetAddress = ::in_addr;
     using Internet6Address = ::in6_addr;
 

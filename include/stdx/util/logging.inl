@@ -9,8 +9,6 @@ using stdx::io::IOException;
 using stdx::io::IOS;
 using stdx::io::OpenMode;
 using stdx::io::OutputFileStream;
-using stdx::io::Stderr;
-using stdx::io::Stdout;
 using stdx::mem::Pointers;
 using stdx::mem::SharedPointer;
 using stdx::mem::UniquePointer;
@@ -23,7 +21,7 @@ using stdx::time::SystemClock;
 
 /**
  * @namespace stdx::util::logging
- * @brief Wrapper namespace for standard library extension utility operations.
+ * @brief Standard library extension utility operations.
  */
 export namespace stdx::util::logging {
 
@@ -82,7 +80,7 @@ SPECIALIZE_FORMATTER(Level);
 
 /**
  * @namespace stdx::util::logging
- * @brief Wrapper namespace for standard library extension utility operations.
+ * @brief Standard library extension utility operations.
  */
 export namespace stdx::util::logging {
 
@@ -185,7 +183,7 @@ public:
     /**
      * @brief Constructor.
      * 
-     * @param toStderr If true, write to stderr; otherwise stdout
+     * @param to_stderr If true, write to stderr; otherwise stdout
      */
     explicit ConsoleSink(bool to_stderr = true):
         use_stderr{to_stderr} {}
@@ -201,15 +199,15 @@ public:
         ScopedLock<Mutex> lock(mutex);
         if (enable_source_location) {
             if (use_stderr) {
-                stdx::io::println(
-                    Stderr, "[{}] {} [{}] [{}:{}:{}]: {}", 
+                System::err.println(
+                    "[{}] {} [{}] [{}:{}:{}]: {}", 
                     timestamp, level, logger_name,
                     location.file_name(), location.line(), location.function_name(),
                     message
                 );
             } else {
-                stdx::io::println(
-                    Stdout, "[{}] {} [{}] [{}:{}:{}]: {}", 
+                System::out.println(
+                    "[{}] {} [{}] [{}:{}:{}]: {}", 
                     timestamp, level, logger_name,
                     location.file_name(), location.line(), location.function_name(),
                     message
@@ -217,9 +215,9 @@ public:
             }
         } else {
             if (use_stderr) {
-                stdx::io::println(Stderr, "[{}] {} [{}]: {}", timestamp, level, logger_name, message);
+                System::err.println("[{}] {} [{}]: {}", timestamp, level, logger_name, message);
             } else {
-                stdx::io::println(Stdout, "[{}] {} [{}]: {}", timestamp, level, logger_name, message);
+                System::out.println("[{}] {} [{}]: {}", timestamp, level, logger_name, message);
             }
         }
     }
@@ -227,9 +225,9 @@ public:
     void flush() override {
         ScopedLock<Mutex> lock(mutex);
         if (use_stderr) {
-            stdx::io::cstdio::fflush(Stderr);
+            stdx::io::cstdio::fflush(System::err);
         } else {
-            stdx::io::cstdio::fflush(Stdout);
+            stdx::io::cstdio::fflush(System::out);
         }
     }
 };
@@ -319,7 +317,7 @@ public:
         }
 
         String message = stdx::fmt::format(fmt, Ops::forward<Args>(args)...);
-        String timestamp = stdx::time::current_time_as_string();
+        String timestamp = System::current_time_as_string();
 
         for (const SharedPointer<LogSink>& sink: sinks) {
             sink->write(timestamp, level, logger_name, message, enable_source_location, location);

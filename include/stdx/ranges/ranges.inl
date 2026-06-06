@@ -10,7 +10,7 @@ using stdx::iter::WeaklyIncrementable;
 
 /**
  * @namespace stdx::ranges
- * @brief Wrapper namespace for standard library ranges operations.
+ * @brief Standard library ranges operations.
  */
 export namespace stdx::ranges {
     namespace access {
