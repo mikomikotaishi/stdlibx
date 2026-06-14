@@ -19,8 +19,10 @@ using stdx::meta::RemoveReferenceType;
 using stdx::meta::TypeIdentityType;
 using stdx::time::Duration;
 using stdx::time::Instant;
+using stdx::time::LocalTime;
 using stdx::time::Milliseconds;
 using stdx::time::Nanoseconds;
+using stdx::time::Seconds;
 using stdx::time::SteadyClock;
 using stdx::time::SystemClock;
 using stdx::thread::ThreadId;
@@ -348,8 +350,11 @@ export namespace stdx::core {
         }
 
         [[nodiscard]]
-        static String current_time_as_string() {
-            return stdx::time::current_time_as_string();
+        static String current_time_formatted() {
+            Instant<SystemClock> now = SystemClock::now();
+            LocalTime<Seconds> currentTime = stdx::time::current_zone()
+                ->to_local(stdx::time::floor<Seconds>(now));
+            return stdx::fmt::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
         }
 
         [[nodiscard]]

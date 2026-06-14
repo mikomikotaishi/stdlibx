@@ -19,4 +19,12 @@ export namespace stdx::math {
     using std::gcd;
     using std::lcm;
     using std::midpoint;
+
+    #ifdef __cpp_lib_saturation_arithmetic
+    using std::saturating_add;
+    using std::saturating_sub;
+    using std::saturating_mul;
+    using std::saturating_div;
+    using std::saturating_cast;
+    #endif
 }

@@ -91,7 +91,7 @@ concept Splittable =
  */
 template <typename Ran, typename KeySelector, typename Collection = Vector<RangeValue<Ran>>>
 concept Sortable = ForwardRange<Ran> && requires (Collection c, KeySelector&& k) {
-    { stdx::ranges::sort(c, Less<>{}, Ops::forward<KeySelector>(k)) };
+    { stdx::ranges::sort(c, Less<>(), Ops::forward<KeySelector>(k)) };
 };
 
 /**
@@ -578,7 +578,7 @@ public:
     [[nodiscard]]
     constexpr auto order_by(KeySelector&& keySelector) noexcept -> Query<Collection> {
         Collection temp(begin(), end());
-        stdx::ranges::sort(temp, Less<>{}, Ops::forward<KeySelector>(keySelector));
+        stdx::ranges::sort(temp, Less<>(), Ops::forward<KeySelector>(keySelector));
         return Query<Collection>(Ops::move(temp));
     }
 
@@ -595,7 +595,7 @@ public:
     [[nodiscard]]
     constexpr auto order_by_descending(KeySelector&& keySelector) noexcept -> Query<Collection> {
         Collection temp(begin(), end());
-        stdx::ranges::sort(temp, Greater<>{}, Ops::forward<KeySelector>(keySelector));
+        stdx::ranges::sort(temp, Greater<>(), Ops::forward<KeySelector>(keySelector));
         return Query<Collection>(Ops::move(temp));
     }
 
@@ -925,7 +925,7 @@ public:
      */
     [[nodiscard]]
     constexpr auto sum() noexcept {
-        return stdx::ranges::fold_left(range, RangeValue<Ran>{}, Plus<>{});
+        return stdx::ranges::fold_left(range, RangeValue<Ran>(), Plus<>());
     }
     #endif
 

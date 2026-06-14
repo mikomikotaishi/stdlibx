@@ -3,11 +3,12 @@
  * @module stdx:sql
  * @brief Implementation of the SQL library.
  *
- * This file contains the implementation of the SQL library, which wraps
- * ODBC in a JDBC-like interface for C++.
+ * This file contains the implementation of the SQL library, which wraps ODBC.
  */
 
 module;
+
+#include <version>
 
 #ifdef STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
 #include <sql.h>
@@ -22,8 +23,6 @@ import :main;
 
 using stdx::collections::Queue;
 using stdx::collections::Vector;
-using stdx::iter::DefaultSentinel;
-using stdx::iter::InputIteratorTag;
 using stdx::meta::DecayType;
 using stdx::meta::IsSameValue;
 using stdx::sync::ConditionVariable;
@@ -35,6 +34,10 @@ using stdx::sync::UniqueLock;
 using stdx::meta::reflect::AccessContext;
 using stdx::meta::reflect::Field;
 using stdx::meta::reflect::ReflectableClass;
+#endif
+
+#ifdef __cpp_lib_generator
+using stdx::ranges::Generator;
 #endif
 
 #ifdef __GNUC__
@@ -1536,6 +1539,30 @@ public:
     DefaultSentinel end() const noexcept {
         return {};
     }
+
+    #ifdef __cpp_lib_generator
+    /**
+     * @brief Lazily yields each remaining row as a standalone range.
+     *
+     * Equivalent in traversal to begin()/end(), but produces a self-contained
+     * range object that composes with range adaptors and can be returned or
+     * stored independently of an explicit loop. The cursor is consumed as the
+     * generator is advanced; the owning ResultSet must outlive the result.
+     *
+     * @return A Generator yielding a Row view of each successive row.
+     * @throws SQLException on a fetch error, propagated out of advancement.
+     *
+     * @note Synchronous: each step performs a blocking ODBC fetch. This is
+     *       lazy iteration, not asynchronous I/O. Traverse the result set
+     *       once, and do not interleave with manual next() or begin()/end().
+     */
+    [[nodiscard]]
+    Generator<Row> rows() throws (SQLException) {
+        while (next()) {
+            co_yield Row(this);
+        }
+    }
+    #endif
 };
 
 /**
@@ -3589,13 +3616,13 @@ public:
         if (!committed) {
             try {
                 conn.rollback();
-            } catch ([[maybe_unused]] const SQLException& e) {
+            } catch (const SQLException& _) {
                 // do nothing
             }
         }
         try {
             conn.set_auto_commit(prev_auto_commit);
-        } catch ([[maybe_unused]] const SQLException& _) {
+        } catch (const SQLException& _) {
             // do nothing
         }
     }
@@ -3779,7 +3806,7 @@ public:
 
         try {
             return DriverManager::connection(connection_string);
-        } catch ([[maybe_unused]] const SQLException& e) {
+        } catch (const SQLException& _) {
             ScopedLock<Mutex> guard(mtx);
             --active;
             cv.notify_one();

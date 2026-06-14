@@ -266,6 +266,7 @@ option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in
 option(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY "Enable GNU Multiple Precision Arithmetic modules in stdx::math::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules in stdx::sql::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY "Enable ZIP (zlib) wrapper modules in stdx::zip::*" ON)
+option(STDLIBX_BUILD_EXAMPLES "Build the examples for stdlibx" ON)
 option(STDLIBX_BUILD_TESTS "Build the tests for stdlibx" ON)
 
 if(STDLIBX_NO_STD AND STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
@@ -392,6 +393,10 @@ if(COMMAND configure_cpp_module_target)
 endif()
 
 add_library(stdlibx::stdlibx ALIAS stdlibx)
+
+if(STDLIBX_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
 
 if(STDLIBX_BUILD_TESTS)
     enable_testing()

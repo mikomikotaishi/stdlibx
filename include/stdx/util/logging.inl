@@ -76,7 +76,8 @@ namespace stdx::fmt {
     };
 }
 
-SPECIALIZE_FORMATTER(Level);
+template <>
+struct stdx::fmt::formatter<Level> : stdx::fmt::Formatter<Level> {};
 
 /**
  * @namespace stdx::util::logging
@@ -317,7 +318,7 @@ public:
         }
 
         String message = stdx::fmt::format(fmt, Ops::forward<Args>(args)...);
-        String timestamp = System::current_time_as_string();
+        String timestamp = System::current_time_formatted();
 
         for (const SharedPointer<LogSink>& sink: sinks) {
             sink->write(timestamp, level, logger_name, message, enable_source_location, location);
@@ -567,7 +568,11 @@ public:
             return it->second;
         }
 
-        SharedPointer<Logger> logger = Pointers::shared<Logger>(key, default_level, enable_source_location);
+        SharedPointer<Logger> logger = Pointers::shared<Logger>(
+            key,
+            default_level,
+            enable_source_location
+        );
         
         for (const SharedPointer<LogSink>& sink: global_sinks) {
             logger->add_sink(sink);

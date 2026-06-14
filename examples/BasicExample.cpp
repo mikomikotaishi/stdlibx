@@ -23,11 +23,20 @@ using stdx::util::DefaultArguments;
 using namespace stdx::core;
 #endif
 
-enum class Status {
+/**
+ * @struct BasicOptions
+ * @brief Example struct for command-line argument parsing.
+ */
+enum class Status: u8 {
     SUCCESS,
     FAILURE,
 };
 
+/**
+ * @brief Example function to demonstrate Expected/Unexpected usage.
+ * @param succeed Whether the operation should succeed or fail.
+ * @return Expected containing the result if successful, or an Unexpected containing the error status if failed.
+ */
 [[nodiscard]]
 Expected<u32, Status> perform_operation(bool succeed) {
     if (succeed) {
@@ -47,7 +56,7 @@ int main(int argc, char* argv[]) {
     parser.add_argument("--verbose")
         .flag();
 
-    parser.parse_args({"test_program", "--name", "stdlibx", "--count", "3", "--verbose"});
+    parser.parse_args("test_program", "--name", "stdlibx", "--count", "3", "--verbose");
 
     System::out.println("[argparse] name    = {}", parser.get("--name"));
     System::out.println("[argparse] count   = {}", parser.get<i32>("--count"));
@@ -58,6 +67,8 @@ int main(int argc, char* argv[]) {
     });
     System::out.println("[thread] Main thread is {}", System::Thread::id());
     t.join();
+
+    System::out.println("Operating system: {}", Environment::operating_system());
 
     String s = "This is a test string";
     System::out.println("{}", s);
@@ -141,7 +152,7 @@ int main(int argc, char* argv[]) {
     System::out.println(
         "The current time is {}, or {}",
         System::current_time_millis(),
-        System::current_time_as_string()
+        System::current_time_formatted()
     );
 
     System::out.println(StackTrace::current());

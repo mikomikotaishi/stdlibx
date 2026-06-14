@@ -263,7 +263,7 @@ export namespace stdx::io {
                 b{static_cast<u8>(hex & 0xFF)} {}
 
             constexpr RGB(Color color) noexcept:
-                RGB(stdx::util::to_underlying(color)) {}
+                RGB(Ops::to_underlying(color)) {}
         };
 
     private:
@@ -289,7 +289,7 @@ export namespace stdx::io {
                 } {}
 
             constexpr explicit ColorEntry(TerminalColor c) noexcept:
-                type{ColorType::TERMINAL_COLOR}, value{stdx::util::to_underlying(c)} {}
+                type{ColorType::TERMINAL_COLOR}, value{Ops::to_underlying(c)} {}
 
             [[nodiscard]]
             constexpr bool has_color() const noexcept {
@@ -359,7 +359,7 @@ export namespace stdx::io {
         [[nodiscard]]
         constexpr TextStyle with(Emphasis e) const noexcept {
             TextStyle s = *this;
-            s.emph |= static_cast<u8>(stdx::util::to_underlying(e));
+            s.emph |= static_cast<u8>(Ops::to_underlying(e));
             return s;
         }
 
@@ -433,7 +433,7 @@ export namespace stdx::io {
 
         [[nodiscard]]
         constexpr bool has_emphasis(Emphasis e) const noexcept {
-            return (emph & static_cast<u8>(stdx::util::to_underlying(e))) != 0;
+            return (emph & static_cast<u8>(Ops::to_underlying(e))) != 0;
         }
 
         // Returns the opening ANSI SGR escape sequence, or empty if no style is set.
@@ -593,7 +593,7 @@ export namespace stdx::io {
 
     template <typename T>
     void print(T&& x) {
-        print("{}", stdx::util::forward<T>(x));
+        print("{}", Ops::forward<T>(x));
     }
 
     void printf(StringView fmt) {
@@ -604,22 +604,22 @@ export namespace stdx::io {
     template <typename T>
         requires (!IsConvertibleValue<T, StringView>)
     void printf(T&& x) {
-        print("{}", stdx::util::forward<T>(x));
+        print("{}", Ops::forward<T>(x));
     }
 
     template <typename T>
     void println(T&& x) {
-        println("{}", stdx::util::forward<T>(x));
+        println("{}", Ops::forward<T>(x));
     }
 
     template <typename T>
     void print(File::Handle* stream, T&& x) {
-        print(stream, "{}", stdx::util::forward<T>(x));
+        print(stream, "{}", Ops::forward<T>(x));
     }
 
     template <typename T>
     void print(OutputStream& stream, T&& x) {
-        print(stream, "{}", stdx::util::forward<T>(x));
+        print(stream, "{}", Ops::forward<T>(x));
     }
 
     void printf(File::Handle* stream, StringView fmt) {
@@ -630,7 +630,7 @@ export namespace stdx::io {
     template <typename T>
         requires (!IsConvertibleValue<T, StringView>)
     void printf(File::Handle* stream, T&& x) {
-        print(stream, "{}", stdx::util::forward<T>(x));
+        print(stream, "{}", Ops::forward<T>(x));
     }
 
     void printf(OutputStream& stream, StringView fmt) {
@@ -641,17 +641,17 @@ export namespace stdx::io {
     template <typename T>
         requires (!IsConvertibleValue<T, StringView>)
     void printf(OutputStream& stream, T&& x) {
-        print(stream, "{}", stdx::util::forward<T>(x));
+        print(stream, "{}", Ops::forward<T>(x));
     }
 
     template <typename T>
     void println(File::Handle* stream, T&& x) {
-        println(stream, "{}", stdx::util::forward<T>(x));
+        println(stream, "{}", Ops::forward<T>(x));
     }
 
     template <typename T>
     void println(OutputStream& stream, T&& x) {
-        println(stream, "{}", stdx::util::forward<T>(x));
+        println(stream, "{}", Ops::forward<T>(x));
     }
     #endif // __cpp_lib_print
 }
@@ -672,4 +672,5 @@ namespace stdx::fmt {
     };
 }
 
-SPECIALIZE_FORMATTER(TextStyle);
+template <>
+struct stdx::fmt::formatter<TextStyle> : stdx::fmt::Formatter<TextStyle> {};

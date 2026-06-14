@@ -724,7 +724,7 @@ export namespace stdx::core {
     };
 
     #ifdef __STDCPP_FLOAT16_T__
-    class [[nodiscard]] Half final: public Number<f16, Half>, private FloatingPointBase<f16, Half> {
+    class [[nodiscard]] Half final: public Number<f16, Half>, public FloatingPointBase<f16, Half> {
     public:
         [[nodiscard]]
         constexpr operator f16() const noexcept {
@@ -734,7 +734,7 @@ export namespace stdx::core {
     #endif
 
     #ifdef __STDCPP_BFLOAT16_T__
-    class [[nodiscard]] BrainHalf final: public Number<bf16, BrainHalf>, private FloatingPointBase<bf16, BrainHalf> {
+    class [[nodiscard]] BrainHalf final: public Number<bf16, BrainHalf>, public FloatingPointBase<bf16, BrainHalf> {
     public:
         [[nodiscard]]
         constexpr operator bf16() const noexcept {
@@ -743,7 +743,7 @@ export namespace stdx::core {
     };
     #endif
 
-    class [[nodiscard]] Float final: public Number<f32, Float>, private FloatingPointBase<f32, Float> {
+    class [[nodiscard]] Float final: public Number<f32, Float>, public FloatingPointBase<f32, Float> {
     public:
         [[nodiscard]]
         constexpr operator f32() const noexcept {
@@ -751,7 +751,7 @@ export namespace stdx::core {
         }
     };
 
-    class [[nodiscard]] Double final: public Number<f64, Double>, private FloatingPointBase<f64, Double> {
+    class [[nodiscard]] Double final: public Number<f64, Double>, public FloatingPointBase<f64, Double> {
     public:
         [[nodiscard]]
         constexpr operator f64() const noexcept {
@@ -759,7 +759,7 @@ export namespace stdx::core {
         }
     };
 
-    class [[nodiscard]] Quad final: public Number<f128, Quad>, private FloatingPointBase<f128, Quad> {
+    class [[nodiscard]] Quad final: public Number<f128, Quad>, public FloatingPointBase<f128, Quad> {
     public:
         [[nodiscard]]
         constexpr operator f128() const noexcept {

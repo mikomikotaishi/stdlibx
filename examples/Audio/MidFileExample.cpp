@@ -33,28 +33,13 @@ using namespace stdx::core;
 using namespace stdx::literals;
 #endif
 
-struct TestContext {
-    i32 passed = 0;
-    i32 failed = 0;
-
-    void check(StringView name, bool condition) {
-        if (condition) {
-            System::out.println("[PASS] {}", name);
-            ++passed;
-        } else {
-            System::err.println("[FAIL] {}", name);
-            ++failed;
-        }
-    }
-};
-
 [[nodiscard]]
 Optional<Path> resolve_default_sample() noexcept {
     static constexpr Array<StringView, 4> CANDIDATES = {
-        "tests/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
-        "../tests/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
-        "../../tests/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
-        "../../../tests/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
+        "examples/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
+        "../examples/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
+        "../../examples/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
+        "../../../examples/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
     };
     for (StringView p: CANDIDATES) {
         Path path{p};
@@ -96,7 +81,7 @@ Optional<Child> maybe_spawn_fluidsynth() {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
-    } catch ([[maybe_unused]] const MidiException& e) {
+    } catch (const MidiException& _) {
         return nullopt;
     }
     for (const MidiDeviceInfo& d: devices) {
@@ -194,16 +179,16 @@ void count_events(const Sequence& seq, EventCounts& out) noexcept {
     }
 }
 
-void describe(TestContext& ctx, const Path& path) {
+void describe(const Path& path) {
     UniquePointer<Sequence> seq;
     try {
         seq = MidiSystem::open_sequence(path);
     } catch (const InvalidMidiDataException& e) {
-        ctx.check(stdx::fmt::format("parses {}", path.filename().string()), false);
+        System::out.println("parses {}: failed", path.filename().string());
         System::err.println("       reason: {}", e.what());
         return;
     }
-    ctx.check(stdx::fmt::format("parses {}", path.filename().string()), true);
+    System::out.println("parses {}: ok", path.filename().string());
 
     const TimingType timing = seq->timing_type();
     const i32 division = seq->division();
@@ -220,8 +205,8 @@ void describe(TestContext& ctx, const Path& path) {
         );
     }
 
-    ctx.check("has at least one track", seq->track_count() > 0);
-    ctx.check("non-zero last tick", seq->last_tick() > 0);
+    System::out.println("{}: {}", "has at least one track", seq->track_count() > 0);
+    System::out.println("{}: {}", "non-zero last tick", seq->last_tick() > 0);
 
     EventCounts counts;
     count_events(*seq, counts);
@@ -233,12 +218,10 @@ void describe(TestContext& ctx, const Path& path) {
         counts.sysex, counts.meta, counts.tempo_meta
     );
 
-    ctx.check("has Note On events", counts.note_on > 0);
+    System::out.println("{}: {}", "has Note On events", counts.note_on > 0);
     // SMF spec requires every track to end with End-of-Track meta (type 0x2F),
     // so meta count must be >= track count.
-    ctx.check(
-        "meta count >= track count",
-        counts.meta >= seq->track_count()
+    System::out.println("{}: {}", "meta count >= track count", counts.meta >= seq->track_count()
     );
 }
 
@@ -377,12 +360,7 @@ int main(int argc, char* argv[]) {
         auto_synth = maybe_spawn_fluidsynth();
     }
 
-    TestContext ctx;
-    describe(ctx, path);
-
-    System::out.println(
-        "\nResults: {} passed, {} failed", ctx.passed, ctx.failed
-    );
+    describe(path);
 
     if (wants_play) {
         System::out.println("");
@@ -394,5 +372,5 @@ int main(int argc, char* argv[]) {
         (void)auto_synth->wait();
     }
 
-    return ctx.failed == 0 ? 0 : 1;
+    return 0;
 }

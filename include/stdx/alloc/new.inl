@@ -16,5 +16,5 @@ export namespace stdx::alloc {
     inline constexpr usize HARDWARE_DESTRUCTIVE_INTERFERENCE_SIZE = std::hardware_destructive_interference_size;
 
     using BadAllocationException = std::bad_alloc;
-    using BadArrayNewLengthException = std::bad_array_new_length;
+    using BadArrayLengthException = std::bad_array_new_length;
 }

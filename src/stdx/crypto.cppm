@@ -447,7 +447,7 @@ public:
 			u64 bits;
 			randombytes_buf(&bits, sizeof(bits));
 			// Convert 53 random bits to a value in [0, 1)
-			const f64 unit = static_cast<f64>(bits >> 11) * (1.0 / static_cast<f64>(1ULL << 53));
+			const f64 unit = static_cast<f64>(bits >> 11) * (1.0 / static_cast<f64>(1ull << 53));
 			return static_cast<T>(unit) * (max - min) + min;
 		}
 	}
@@ -489,7 +489,7 @@ public:
 	Flt next_unit() noexcept {
 		u64 bits;
 		randombytes_buf(&bits, sizeof(bits));
-		return static_cast<Flt>(static_cast<f64>(bits >> 11) * (1.0 / static_cast<f64>(1ULL << 53)));
+		return static_cast<Flt>(static_cast<f64>(bits >> 11) * (1.0 / static_cast<f64>(1ull << 53)));
 	}
 
 	/**

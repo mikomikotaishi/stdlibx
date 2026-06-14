@@ -79,7 +79,7 @@ export namespace stdx::audio::midi {
          * @param e Event to insert. The track takes ownership of the message.
          */
         void add(MidiEvent e) {
-            auto pos = stdx::ranges::upper_bound(events, e.tick, Less<>{}, &MidiEvent::tick);
+            auto pos = stdx::ranges::upper_bound(events, e.tick, Less<>(), &MidiEvent::tick);
             events.insert(pos, Ops::move(e));
         }
 

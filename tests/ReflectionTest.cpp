@@ -4,11 +4,9 @@ import stdx;
 
 #ifdef __cpp_impl_reflection
 using stdx::collections::EnumSet;
-using stdx::collections::HashMap;
 using stdx::collections::Vector;
 using stdx::linq::Query;
 using stdx::meta::reflect::AccessContext;
-using stdx::meta::reflect::AccessFlag;
 using stdx::meta::reflect::Class;
 using stdx::meta::reflect::CvQualifier;
 using stdx::meta::reflect::Enum;
@@ -18,7 +16,6 @@ using stdx::meta::reflect::FunctionSpecifier;
 using stdx::meta::reflect::Info;
 using stdx::meta::reflect::Method;
 using stdx::meta::reflect::ReflectableClass;
-using stdx::meta::reflect::ReflectionOf;
 using stdx::meta::reflect::Type;
 using stdx::util::ArgumentParser;
 using stdx::util::CommandLineParserException;
@@ -27,13 +24,15 @@ using stdx::util::Env;
 using stdx::util::ShortName;
 
 namespace reflect = stdx::meta::reflect;
+
+using namespace stdx::test;
 #endif
 
 #ifdef __GNUC__
 using namespace stdx::core;
 #endif
 
-#ifdef __cpp_lib_reflection
+#ifdef __cpp_impl_reflection
 [[nodiscard]]
 consteval usize length(StringView s) {
     return s.length();
@@ -68,12 +67,10 @@ enum class Suit: u8 {
 
 /**
  * @struct BasicOptions
- * @brief Basic options for the reflection test.
- * 
- * Argument structs exercised by ArgumentParser::parse / help below.
- * They are plain aggregates: field names map to long flags (snake_case and
- * camelCase both kebab-cased), annotations add short flags, help text,
- * and env fallbacks.
+ * @brief Argument struct exercised by ArgumentParser::parse / help.
+ *
+ * A plain aggregate: field names map to long flags (snake_case and camelCase
+ * both kebab-cased), annotations add short flags, help text, and env fallbacks.
  */
 struct BasicOptions {
     [[=ShortName<'i'>()]]
@@ -120,75 +117,53 @@ T parse_tokens(InitializerList<const char*> tokens) {
     return ArgumentParser::parse<T>(static_cast<i32>(argv.size()), argv.data());
 }
 
-[[nodiscard]]
-i32 run_parse_tests() {
-    i32 failures = 0;
-    const auto check = [&failures](StringView name, bool condition) -> void {
-        if (condition) {
-            System::out.println("[PASS] {}", name);
-        } else {
-            System::err.println("[FAIL] {}", name);
-            ++failures;
-        }
-    };
-
+/**
+ * @brief Exercises the reflection-driven ArgumentParser: every kind of field, short
+ * and long spellings, error paths, help text, and environment fallbacks.
+ */
+void test_argument_parser() {
     // Long flags, every kind of field populated.
     {
         const BasicOptions o = parse_tokens<BasicOptions>({
             "reftest", "--input", "data.txt", "--count", "3", "--verbose",
             "--limit", "5", "--log-level", "debug", "--max-retries", "8"
         });
-        check("long flag: string value", o.input == "data.txt");
-        check("long flag: integer value", o.count == 3);
-        check("long flag: bool present is true", o.verbose);
-        check("long flag: optional populated", o.limit.has_value() && *o.limit == 5);
-        check("snake_case maps to --kebab-case", o.log_level == "debug");
-        check("camelCase maps to --kebab-case", o.maxRetries == 8);
+        expect(o.input == "data.txt", "long flag: string value");
+        expect(o.count == 3, "long flag: integer value");
+        expect(o.verbose, "long flag: bool present is true");
+        expect(o.limit.has_value() && *o.limit == 5, "long flag: optional populated");
+        expect(o.log_level == "debug", "snake_case maps to --kebab-case");
+        expect(o.maxRetries == 8, "camelCase maps to --kebab-case");
     }
 
     // Short flags, with optionals/defaults left untouched.
     {
         const BasicOptions o = parse_tokens<BasicOptions>({"reftest", "-i", "f.txt", "-n", "7"});
-        check("short flag: string value", o.input == "f.txt");
-        check("short flag: integer value", o.count == 7);
-        check("bool absent is false", !o.verbose);
-        check("optional absent is empty", !o.limit.has_value());
-        check("defaulted field keeps default", o.log_level == "info");
-        check("defaulted camelCase keeps default", o.maxRetries == 3);
+        expect(o.input == "f.txt", "short flag: string value");
+        expect(o.count == 7, "short flag: integer value");
+        expect(!o.verbose, "bool absent is false");
+        expect(!o.limit.has_value(), "optional absent is empty");
+        expect(o.log_level == "info", "defaulted field keeps default");
+        expect(o.maxRetries == 3, "defaulted camelCase keeps default");
     }
 
     // A required field with no value supplied is an error.
-    {
-        bool threw = false;
-        try {
-            (void)parse_tokens<BasicOptions>({"reftest"});
-        } catch ([[maybe_unused]] const CommandLineParserException& _) {
-            threw = true;
-        }
-        check("missing required argument throws", threw);
-    }
+    expect_throws<CommandLineParserException>(
+        [] -> void { (void)parse_tokens<BasicOptions>({"reftest"}); },
+        "missing required argument throws"
+    );
 
     // The same option in both spellings is ambiguous.
-    {
-        bool threw = false;
-        try {
-            (void)parse_tokens<BasicOptions>({"reftest", "-i", "a", "--input", "b"});
-        } catch ([[maybe_unused]] const CommandLineParserException& _) {
-            threw = true;
-        }
-        check("one field via both spellings throws", threw);
-    }
+    expect_throws<CommandLineParserException>(
+        [] -> void { (void)parse_tokens<BasicOptions>({"reftest", "-i", "a", "--input", "b"}); },
+        "one field via both spellings throws"
+    );
 
     // A value-taking flag given without its value is an error.
-    {
-        bool threw = false;
-        try {
-            (void)parse_tokens<BasicOptions>({"reftest", "-i", "x", "--count"});
-        } catch ([[maybe_unused]] const CommandLineParserException& _) {
-            threw = true;
-        }
-        check("value flag missing its value throws", threw);
-    }
+    expect_throws<CommandLineParserException>(
+        [] -> void { (void)parse_tokens<BasicOptions>({"reftest", "-i", "x", "--count"}); },
+        "value flag missing its value throws"
+    );
 
     // help() lists every field with its flags, type, and markers.
     {
@@ -196,171 +171,158 @@ i32 run_parse_tests() {
         const String usage = ArgumentParser::help<BasicOptions>(
             static_cast<i32>(argv.size()), argv.data()
         );
-        check("help lists long flag", usage.find("--input") != String::npos);
-        check("help pairs short and long", usage.find("-i, --input") != String::npos);
-        check("help shows description", usage.find("input file") != String::npos);
-        check("help shows string type", usage.find("[type: string]") != String::npos);
-        check("help shows number type", usage.find("[type: number]") != String::npos);
-        check("help marks optional field", usage.find("[optional]") != String::npos);
-        check("help shows default", usage.find("[default:") != String::npos);
-        System::out.println("--- help<BasicOptions> ---\n{}", usage);
+        expect(usage.find("--input") != String::npos, "help lists long flag");
+        expect(usage.find("-i, --input") != String::npos, "help pairs short and long");
+        expect(usage.find("input file") != String::npos, "help shows description");
+        expect(usage.find("[type: string]") != String::npos, "help shows string type");
+        expect(usage.find("[type: number]") != String::npos, "help shows number type");
+        expect(usage.find("[optional]") != String::npos, "help marks optional field");
+        expect(usage.find("[default:") != String::npos, "help shows default");
     }
 
     // Env fallback: default kept when neither CLI nor environment provides it.
     {
         Environment::unset("REFTEST_TOKEN");
         const EnvOptions o = parse_tokens<EnvOptions>({"reftest"});
-        check("env unset keeps default", o.token == "default-token");
+        expect(o.token == "default-token", "env unset keeps default");
     }
     // Env fallback: the environment supplies the value when the flag is absent.
     {
         Environment::set("REFTEST_TOKEN", "from-env");
         const EnvOptions o = parse_tokens<EnvOptions>({"reftest"});
-        check("environment supplies value", o.token == "from-env");
+        expect(o.token == "from-env", "environment supplies value");
         Environment::unset("REFTEST_TOKEN");
     }
     // Env fallback: the command line still wins over the environment.
     {
         Environment::set("REFTEST_TOKEN", "from-env");
         const EnvOptions o = parse_tokens<EnvOptions>({"reftest", "--token", "from-cli"});
-        check("command line overrides environment", o.token == "from-cli");
+        expect(o.token == "from-cli", "command line overrides environment");
         Environment::unset("REFTEST_TOKEN");
     }
     // A required env-backed field with the variable unset is an error.
     {
         Environment::unset("REFTEST_MISSING");
-        bool threw = false;
-        try {
-            (void)parse_tokens<EnvRequired>({"reftest"});
-        } catch ([[maybe_unused]] const CommandLineParserException& _) {
-            threw = true;
-        }
-        check("required env-backed field unset throws", threw);
+        expect_throws<CommandLineParserException>(
+            [] -> void { (void)parse_tokens<EnvRequired>({"reftest"}); },
+            "required env-backed field unset throws"
+        );
     }
+}
 
-    return failures;
+/**
+ * @brief Asserts on the reflection class wrappers (Class, Field, Method, Enum,
+ * Enumerator, EnumSet, Type). Each reflected property is evaluated into a
+ * constexpr value first, then checked at runtime - the accessors are
+ * compile-time only.
+ */
+void test_reflection_classes() {
+    constexpr AccessContext ctx = AccessContext::unchecked();
+
+    // Reflect an expression with ^^ and splice it back with [: :].
+    constexpr StringView s = "Hello, world!";
+    constexpr Info m1 = ^^s;
+    constexpr usize spliced_length = length([:m1:]);
+    expect(spliced_length == s.length(), "splicing a reflected StringView recovers its length");
+
+    // Class<Vec2>: structural facts cross-checked against the language itself.
+    constexpr Class<Vec2> VEC2_CLASS = Ops::class_of<Vec2>();
+    constexpr StringView vec2_name = VEC2_CLASS.name().value();
+    constexpr usize vec2_size = VEC2_CLASS.size();
+    constexpr usize vec2_align = VEC2_CLASS.alignment();
+    constexpr bool vec2_trivially_copyable = VEC2_CLASS.is_trivially_copyable();
+    constexpr bool vec2_aggregate = VEC2_CLASS.is_aggregate();
+    expect_eq(vec2_name, "Vec2", "Class<Vec2> reports its name");
+    expect(vec2_size == sizeof(Vec2), "Class<Vec2> size matches sizeof(Vec2)");
+    expect(vec2_align == alignof(Vec2), "Class<Vec2> alignment matches alignof(Vec2)");
+    expect(vec2_trivially_copyable, "Vec2 is trivially copyable");
+    expect(!vec2_aggregate, "Vec2 is not an aggregate (it has user-declared constructors)");
+
+    static constexpr Span<const Field> VEC2_FIELDS = Ops::define_static_array(VEC2_CLASS.fields(ctx));
+    constexpr usize field_count = VEC2_FIELDS.size();
+    constexpr StringView field0_name = VEC2_FIELDS[0].name().value_or("");
+    constexpr StringView field1_name = VEC2_FIELDS[1].name().value_or("");
+    constexpr usize field0_offset = VEC2_FIELDS[0].offset().bytes;
+    constexpr usize field1_offset = VEC2_FIELDS[1].offset().bytes;
+    expect_eq(field_count, 2uz, "Vec2 has two fields");
+    expect_eq(field0_name, "x", "first field is x");
+    expect_eq(field1_name, "y", "second field is y");
+    expect(field0_offset == 0, "field x is at offset 0");
+    expect(field1_offset == sizeof(f64), "field y is at offset sizeof(f64)");
+
+    // Keep named methods and operators (an operator reports no identifier, so a
+    // bare name().has_value() filter would drop operator+).
+    static constexpr Span<const Method> VEC2_METHODS = Query(Ops::define_static_array(VEC2_CLASS.methods(ctx)))
+        .where([](Method m) -> bool { return m.name().has_value() || m.is_operator(); })
+        .to_array();
+    bool found_norm_squared = false;
+    bool found_operator_plus = false;
+    template for (constexpr Method m: VEC2_METHODS) {
+        constexpr StringView name = m.name().value_or("");
+        if constexpr (m.is_operator()) {
+            constexpr StringView symbol = m.operator_symbol();
+            if (symbol == "+") {
+                found_operator_plus = true;
+            }
+        } else if constexpr (name == "norm_squared") {
+            found_norm_squared = true;
+            constexpr bool is_const = m.cv_qualifiers().contains(CvQualifier::CONST);
+            constexpr bool is_noexcept = m.specifiers().contains(FunctionSpecifier::NOEXCEPT);
+            expect(is_const, "norm_squared is const-qualified");
+            expect(is_noexcept, "norm_squared is noexcept");
+        }
+    }
+    expect(found_norm_squared, "Vec2 exposes a norm_squared method");
+    expect(found_operator_plus, "Vec2 exposes operator+");
+
+    // Enum<Suit> and its enumerators.
+    constexpr Enum<Suit> SUIT_ENUM = Ops::enum_of<Suit>();
+    constexpr StringView suit_name = SUIT_ENUM.name().value_or("");
+    constexpr bool suit_scoped = SUIT_ENUM.is_scoped();
+    expect_eq(suit_name, "Suit", "Enum<Suit> reports its name");
+    expect(suit_scoped, "Suit is a scoped enum");
+
+    static constexpr Span<const Enumerator> SUITS = Ops::define_static_array(SUIT_ENUM.enumerators());
+    constexpr usize suit_count = SUITS.size();
+    constexpr StringView first_suit = SUITS[0].name().value_or("");
+    constexpr u8 first_suit_value = Ops::to_underlying(SUITS[0].as<Suit>());
+    constexpr StringView last_suit = SUITS[3].name().value_or("");
+    constexpr u8 last_suit_value = Ops::to_underlying(SUITS[3].as<Suit>());
+    expect_eq(suit_count, 4uz, "Suit has four enumerators");
+    expect_eq(first_suit, "CLUBS", "first enumerator is CLUBS");
+    expect(first_suit_value == 0, "CLUBS == 0");
+    expect_eq(last_suit, "SPADES", "last enumerator is SPADES");
+    expect(last_suit_value == 3, "SPADES == 3");
+
+    // EnumSet<Suit> algebra.
+    constexpr EnumSet<Suit> REDS = EnumSet<Suit>::of(Suit::DIAMONDS, Suit::HEARTS);
+    constexpr EnumSet<Suit> BLACKS = ~REDS;
+    expect_eq(REDS.size(), 2uz, "two red suits");
+    expect(REDS.contains(Suit::HEARTS), "reds contains HEARTS");
+    expect(!REDS.contains(Suit::CLUBS), "reds does not contain CLUBS");
+    expect_eq(BLACKS.size(), 2uz, "two black suits");
+    expect(BLACKS.contains(Suit::CLUBS) && BLACKS.contains(Suit::SPADES), "blacks are clubs and spades");
+    expect((REDS | BLACKS).is_full(), "reds | blacks covers every suit");
+
+    // Type queries.
+    constexpr Type INT_TYPE = Ops::type_of<i32>();
+    constexpr bool int_integral = INT_TYPE.is_integral();
+    constexpr bool int_signed = INT_TYPE.is_signed();
+    constexpr usize int_size = INT_TYPE.size();
+    expect(int_integral, "i32 is integral");
+    expect(int_signed, "i32 is signed");
+    expect(int_size == sizeof(i32), "i32 size matches sizeof(i32)");
 }
 #endif
 
 int main(int argc, char* argv[]) {
     #ifdef __cpp_impl_reflection
-    u32 failures = 0;
-
-    constexpr AccessContext ctx = AccessContext::unchecked();
-    constexpr StringView s = "Hello, world!";
-    constexpr Info m1 = ^^s;
-    constexpr Info m2 = Ops::reflect_type<String>(); // Necessary, as reflecting a using-declaration is illegal
-    constexpr Info m3 = ctx.designating_class();
-    usize len = length([:m1:]);
-    HashMap<typename [:m2:], u64> names = {
-        {"Alice", 30},
-        {"Bob", 25},
-        {"Charlie", 35}
-    };
-    System::out.println("Length of '{}': {}", s, len);
-    System::out.println(names);
-
-    constexpr Info MATH_CLASS = Ops::reflect_type<Math>();
-    constexpr Info SYSTEM_CLASS = Ops::reflect_type<System>();
-    static constexpr Span<const Info> MATH_CONSTANTS = Query(Ops::define_static_array(reflect::members_of(MATH_CLASS, ctx)))
-        .where([](Info m) -> bool { return reflect::is_public(m); })
-        .where([](Info m) -> bool { return reflect::is_variable(m); })
-        .where([](Info m) -> bool { return reflect::is_const(m); })
-        .where([](Info m) -> bool { return reflect::has_static_storage_duration(m); })
-        .to_array();
-    static constexpr Span<const Info> SYSTEM_MEMBERS = Query(Ops::define_static_array(reflect::members_of(SYSTEM_CLASS, ctx)))
-        .where([](Info m) -> bool { return reflect::has_identifier(m); })
-        .to_array();
-
-    static constinit Array<Pair<StringView, f64>, MATH_CONSTANTS.size()> math_constants;
-    static constinit usize index = 0;
-    template for (constexpr Info mem: MATH_CONSTANTS) {
-        math_constants[index++] = Ops::pair(reflect::identifier_of(mem), [:mem:]);
-    }
-
-    static constinit Vector<StringView> system_members;
-    template for (constexpr Info mem: SYSTEM_MEMBERS) {
-        system_members.push_back(reflect::identifier_of(mem));
-    }
-
-    System::out.println("Constants of Math class: {}", math_constants);
-    System::out.println("Members of System class: {}", system_members);
-
-    System::out.println();
-    System::out.println("Class<Vec2>:");
-    constexpr Class<Vec2> VEC2_CLASS = Ops::class_of<Vec2>();
-    constexpr EnumSet<ReflectionOf> VEC2_KINDS = VEC2_CLASS.kinds();
-    System::out.println("name: {}", VEC2_CLASS.name().value());
-    System::out.println("size/align: {} / {} bytes", VEC2_CLASS.size(), VEC2_CLASS.alignment());
-    System::out.println("aggregate: {}", VEC2_CLASS.is_aggregate());
-    System::out.println("trivially copyable: {}", VEC2_CLASS.is_trivially_copyable());
-    System::out.println("kinds: {}", VEC2_KINDS);
-
-    static constexpr Span<const Field> VEC2_FIELDS = Ops::define_static_array(VEC2_CLASS.fields(ctx));
-    System::out.println("Fields:");
-    template for (constexpr Field f: VEC2_FIELDS) {
-        constexpr StringView name = f.name().value_or("unnamed field");
-        constexpr StringView type_name = f.type().display_name();
-        constexpr usize offset = f.offset().bytes;
-        constexpr usize access = Ops::to_underlying(f.access());
-        System::out.println("  {} : {} at +{} (access={})", name, type_name, offset, access);
-    }
-
-    static constexpr Span<const Method> VEC2_METHODS = Query(Ops::define_static_array(VEC2_CLASS.methods(ctx)))
-        .where([](Method m) -> bool { return m.name().has_value(); })
-        .to_array();
-    System::out.println("Methods:");
-    template for (constexpr Method m: VEC2_METHODS) {
-        constexpr StringView name = m.name().value_or("unnamed method");
-        if constexpr (m.is_operator()) {
-            constexpr StringView sym = m.operator_symbol();
-            System::out.println("  {} -> operator '{}'", name, sym);
-        } else {
-            constexpr bool const_qualified = m.cv_qualifiers().contains(CvQualifier::CONST);
-            constexpr bool noexcept_marked = m.specifiers().contains(FunctionSpecifier::NOEXCEPT);
-            System::out.println("  {} (const: {}, noexcept: {})", name, const_qualified, noexcept_marked);
-        }
-    }
-
-    System::out.println();
-    System::out.println("Enum<Suit>:");
-    constexpr Enum<Suit> SUIT_ENUM = Ops::enum_of<Suit>();
-    System::out.println("name: {}", SUIT_ENUM.name().value_or("unnamed enum"));
-    System::out.println("scoped: {}", SUIT_ENUM.is_scoped());
-
-    static constexpr Span<const Enumerator> SUITS = Ops::define_static_array(SUIT_ENUM.enumerators());
-    System::out.println("Enumerators:");
-    template for (constexpr Enumerator e: SUITS) {
-        constexpr StringView name = e.name().value_or("unnamed enumerator");
-        constexpr usize value = Ops::to_underlying(e.as<Suit>());
-        System::out.println("  {} = {}", name, value);
-    }
-
-    System::out.println();
-    System::out.println("EnumSet<Suit>:");
-    constexpr EnumSet<Suit> REDS = EnumSet<Suit>::of(Suit::DIAMONDS, Suit::HEARTS);
-    constexpr EnumSet<Suit> BLACKS = ~REDS;
-    System::out.println("|reds| = {}, contains HEARTS: {}", REDS.size(), REDS.contains(Suit::HEARTS));
-    System::out.println("|blacks| = {}, contains SPADES: {}", BLACKS.size(), BLACKS.contains(Suit::SPADES));
-    System::out.println("reds | blacks fully covers Suit? {}", (REDS | BLACKS).is_full());
-
-    System::out.println();
-    constexpr Type INT_TYPE = Ops::type_of<i32>();
-    System::out.println(
-        "{} (integral: {}, signed: {}, size: {} bytes)",
-        INT_TYPE.display_name(),
-        INT_TYPE.is_integral(),
-        INT_TYPE.is_signed(),
-        INT_TYPE.size()
-    );
-
-    System::out.println();
-    System::out.println("ArgumentParser::parse / help:");
-    failures += run_parse_tests();
-    System::out.println("\nparse/help: {} failure(s)", failures);
-
-    return failures;
+    return run(argc, argv, {
+        {"meta.reflection_classes", test_reflection_classes},
+        {"meta.argument_parser", test_argument_parser},
+    });
     #else
     System::out.println("[test] Test disabled (compiler does not support reflection).");
+    return 0;
     #endif
 }

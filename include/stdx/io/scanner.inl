@@ -5,6 +5,10 @@ using stdx::mem::Pointers;
 using stdx::mem::UniquePointer;
 using stdx::text::CharTraits;
 
+#ifdef __cpp_lib_generator
+using stdx::ranges::Generator;
+#endif
+
 /**
  * @namespace stdx::io
  * @brief Standard library input/output operations.
@@ -207,6 +211,49 @@ export namespace stdx::io {
             }
             return nullopt;
         }
+
+    #ifdef __cpp_lib_generator
+        /**
+         * @brief Lazily yields each remaining token as a single-pass range.
+         *
+         * The generator form of the has_next()/next() loop: it drives next()
+         * to exhaustion, yielding one delimited token at a time. The scanner is
+         * consumed as the range is advanced, so traverse it once and do not
+         * interleave with manual next()/has_next() calls.
+         *
+         * @return A Generator yielding each remaining token in turn.
+         *
+         * @note Synchronous: each step reads from the underlying stream as
+         *       needed. This is lazy iteration, not asynchronous I/O.
+         */
+        [[nodiscard]]
+        Generator<String> tokens() {
+            while (Optional<String> token = next()) {
+                co_yield *token;
+            }
+        }
+
+        /**
+         * @brief Lazily yields each remaining line as a single-pass range.
+         *
+         * The generator form of the has_next_line()/next_line() loop: it drives
+         * next_line() to exhaustion, yielding one line at a time without ever
+         * buffering the whole input. The scanner is consumed as the range is
+         * advanced, so traverse it once and do not interleave with manual
+         * next_line()/has_next_line() calls.
+         *
+         * @return A Generator yielding each remaining line in turn.
+         *
+         * @note Synchronous: each step reads from the underlying stream as
+         *       needed. This is lazy iteration, not asynchronous I/O.
+         */
+        [[nodiscard]]
+        Generator<String> lines() {
+            while (Optional<String> line = next_line()) {
+                co_yield *line;
+            }
+        }
+    #endif
 
         /**
          * @brief Returns true if the next token can be parsed as an i32.

@@ -9,8 +9,8 @@ using stdx::time::chrono::DateTextLength;
  * @namespace stdx::time
  * @brief Pattern-based date/time formatting and parsing.
  *
- * Provides DateTimeFormatter, a java.time-style pattern engine that
- * works against any chronology satisfying stdx::time::chrono::ChronologyLike.
+ * Provides DateTimeFormatter, pattern engine that works against any 
+ * chronology satisfying stdx::time::chrono::ChronologyLike.
  * Patterns containing textual fields (G, MMM+, EEE+) additionally
  * require ChronologyTextLike.
  *
@@ -54,7 +54,7 @@ export namespace stdx::time {
      * @class DateTimeFormatter
      * @brief Pattern-based formatter for dates in any chronology.
      *
-     * Pattern letters (subset of java.time.format.DateTimeFormatter):
+     * Pattern letters:
      *   - `y`     proleptic year. Count is minimum digit width; `yy`
      *             takes the low two digits of the absolute year.
      *   - `M`     month. `M`/`MM` are numeric (padded to `count`);
@@ -275,8 +275,7 @@ export namespace stdx::time {
          */
         template <ChronologyLike Chrono>
         [[nodiscard]]
-        ChronoLocalDate<Chrono> parse(StringView text) const throws (DateTimeException) {
-            (void)text;
+        ChronoLocalDate<Chrono> parse([[maybe_unused]] StringView text) const throws (DateTimeException) {
             throw DateTimeException("DateTimeFormatter::parse is not yet implemented");
         }
 

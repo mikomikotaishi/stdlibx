@@ -1,13 +1,5 @@
 #pragma once
 
-using stdx::iter::IndirectBinaryPredicate;
-using stdx::iter::IndirectUnaryPredicate;
-using stdx::iter::InputOrOutputIterator;
-using stdx::iter::SentinelFor;
-using stdx::iter::SizedSentinelFor;
-using stdx::iter::UnreachableSentinel;
-using stdx::iter::WeaklyIncrementable;
-
 /**
  * @namespace stdx::ranges
  * @brief Standard library ranges operations.
@@ -46,9 +38,6 @@ export namespace stdx::ranges {
     }
 
     template <typename T>
-    concept Range = std::ranges::range<T>;
-
-    template <typename T>
     concept BorrowedRange = std::ranges::borrowed_range<T>;
 
     template <typename T>
@@ -59,9 +48,6 @@ export namespace stdx::ranges {
 
     template <typename T>
     constexpr bool DisableSizedRange = std::ranges::disable_sized_range<T>;
-
-    template <typename T>
-    concept View = std::ranges::view<T>;
 
     template <typename T>
     constexpr bool EnableView = std::ranges::enable_view<T>;
@@ -112,9 +98,6 @@ export namespace stdx::ranges {
 
     template <Range R>
     using RangeConstSentinel = std::ranges::const_sentinel_t<R>;
-
-    template <Range R>
-    using RangeDifference = std::ranges::range_difference_t<R>;
 
     template <SizedRange R>
     using RangeSize = std::ranges::range_size_t<R>;

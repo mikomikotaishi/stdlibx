@@ -1,47 +1,50 @@
 import stdx;
 
+using namespace stdx::test;
+
 #ifdef __GNUC__
 using namespace stdx::core;
 #endif
 
 void test_monotonic() {
-    // Never decreases across many back-to-back samples.
+    // nano_time() never decreases across many back-to-back samples.
     u64 prev = System::nano_time();
     bool monotonic = true;
-    for (int i = 0; i < 1'000'000; ++i) {
-        u64 cur = System::nano_time();
+    for (i32 i = 0; i < 1'000'000; ++i) {
+        const u64 cur = System::nano_time();
         if (cur < prev) {
             monotonic = false;
             break;
         }
         prev = cur;
     }
-    System::out.println("Monotonic over 1,000,000 samples: {}", monotonic);
+    expect(monotonic, "nano_time() is monotonic over 1,000,000 samples");
 }
 
 void test_advances() {
     // Elapsed time over a busy loop is strictly positive.
-    u64 start = System::nano_time();
+    const u64 start = System::nano_time();
     volatile u64 acc = 0;
-    for (u64 i = 0; i < 50'000'000ULL; ++i) {
+    for (u64 i = 0; i < 50'000'000ull; ++i) {
         acc += i;
     }
-    u64 elapsed = System::nano_time() - start;
-    System::out.println("Elapsed ns over busy loop is > 0: {} (ns={})", elapsed > 0, elapsed);
+    const u64 elapsed = System::nano_time() - start;
+    expect(elapsed > 0, "nano_time() advances across a busy loop");
 }
 
 void test_decoupled_from_epoch() {
-    // A steady-clock origin (boot time) yields values vastly smaller than wall-clock
-    // nanos since 1970. If nano_time() were still on SystemClock these would be ~equal.
-    u64 nano = System::nano_time();
-    u64 wall_nanos_since_epoch = System::current_time_millis() * 1'000'000ULL;
-    System::out.println("nano_time() = {}", nano);
-    System::out.println("wall nanos since 1970 = {}", wall_nanos_since_epoch);
-    System::out.println("nano_time() << wall epoch = {}", nano < wall_nanos_since_epoch);
+    // A steady-clock origin (boot time) yields values vastly smaller than
+    // wall-clock nanos since 1970. If nano_time() were still on SystemClock
+    // these would be ~equal.
+    const u64 nano = System::nano_time();
+    const u64 wall_nanos_since_epoch = System::current_time_millis() * 1'000'000ull;
+    expect(nano < wall_nanos_since_epoch, "nano_time() origin is boot, not the 1970 epoch");
 }
 
-int main() {
-    test_monotonic();
-    test_advances();
-    test_decoupled_from_epoch();
+int main(int argc, char* argv[]) {
+    return run(argc, argv, {
+        {"NanoTime.monotonic", test_monotonic},
+        {"NanoTime.advances", test_advances},
+        {"NanoTime.decoupled_from_epoch", test_decoupled_from_epoch},
+    });
 }

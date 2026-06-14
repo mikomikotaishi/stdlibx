@@ -430,21 +430,21 @@ export namespace stdx::os::unix {
 
     inline constexpr u32 ADDRB = 04000000000; ///< Address of device (non-POSIX)
 
-    inline constexpr u32 ISIG = 0000001;   ///< Enable signals
-    inline constexpr u32 ICANON = 0000002;  ///< Canonical input (erase and kill processing)
-    inline constexpr u32 XCASE = 0000004;   ///< Enable case mapping (non-POSIX)
-    inline constexpr u32 ECHO = 0000010;    ///< Enable echo
-    inline constexpr u32 ECHOE = 0000020;   ///< Echo erase character as error-correcting backspace
-    inline constexpr u32 ECHOK = 0000040;   ///< Echo KILL
-    inline constexpr u32 ECHONL = 0000100;  ///< Echo NL
-    inline constexpr u32 NOFLSH = 0000200;  ///< Disable flush after i32errupt or quit
-    inline constexpr u32 TOSTOP = 0000400;  ///< Send SIGTTOU for background output
+    inline constexpr u32 ISIG = 0000001; ///< Enable signals
+    inline constexpr u32 ICANON = 0000002; ///< Canonical input (erase and kill processing)
+    inline constexpr u32 XCASE = 0000004; ///< Enable case mapping (non-POSIX)
+    inline constexpr u32 ECHO = 0000010; ///< Enable echo
+    inline constexpr u32 ECHOE = 0000020; ///< Echo erase character as error-correcting backspace
+    inline constexpr u32 ECHOK = 0000040; ///< Echo KILL
+    inline constexpr u32 ECHONL = 0000100; ///< Echo NL
+    inline constexpr u32 NOFLSH = 0000200; ///< Disable flush after i32errupt or quit
+    inline constexpr u32 TOSTOP = 0000400; ///< Send SIGTTOU for background output
     inline constexpr u32 ECHOCTL = 0001000; ///< If ECHO is also set, terminal special characters echoed as ^X
     inline constexpr u32 ECHOPRT = 0002000; ///< If ICANON and ECHO are set, characters pri32ed as they are erased
-    inline constexpr u32 ECHOKE = 0004000;  ///< If ICANON is set, KILL echoed by erasing each character on the line
-    inline constexpr u32 FLUSHO = 0010000;  ///< Output is being flushed (toggle by DISCARD character)
-    inline constexpr u32 PENDIN = 0040000;  ///< All characters in the input queue are repri32ed when next character is read
-    inline constexpr u32 IEXTEN = 0100000;  ///< Enable implementation-defined input processing
+    inline constexpr u32 ECHOKE = 0004000; ///< If ICANON is set, KILL echoed by erasing each character on the line
+    inline constexpr u32 FLUSHO = 0010000; ///< Output is being flushed (toggle by DISCARD character)
+    inline constexpr u32 PENDIN = 0040000; ///< All characters in the input queue are repri32ed when next character is read
+    inline constexpr u32 IEXTEN = 0100000; ///< Enable implementation-defined input processing
     inline constexpr u32 EXTPROC = 0200000; ///< Enable external processing (non-POSIX)
 
     inline constexpr u32 TCSANOW = 0;

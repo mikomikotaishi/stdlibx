@@ -1,12 +1,14 @@
 #pragma once
 
+using stdx::ranges::Range;
+using stdx::ranges::RangeDifference;
 using stdx::text::CharTraits;
 
 /**
- * @namespace stdx::iter
- * @brief Standard library iterator operations.
+ * @namespace stdx::core
+ * @brief The core objects of the standard library.
  */
-export namespace stdx::iter {
+export namespace stdx::core {
     template <typename In>
     concept IndirectlyReadable = std::indirectly_readable<In>;
 
@@ -194,49 +196,76 @@ export namespace stdx::iter {
     inline constexpr DefaultSentinel DEFAULT_SENTINEL = std::default_sentinel;
     inline constexpr UnreachableSentinel UNREACHABLE_SENTINEL = std::unreachable_sentinel;
 
-    using std::make_reverse_iterator;
-    using std::make_move_iterator;
-    #ifdef __cpp_lib_ranges_as_const
-    using std::make_const_iterator;
-    using std::make_const_sentinel;
-    #endif
-    using std::front_inserter;
-    using std::back_inserter;
-    using std::inserter;
 
-    using std::operator==;
-    using std::operator<;
-    using std::operator<=;
-    using std::operator>;
-    using std::operator>=;
-    using std::operator<=>;
-    using std::operator+;
-    using std::operator-;
-    
-    using std::advance;
-    using std::distance;
-    using std::next;
-    using std::prev;
-    
-    using std::begin;
-    using std::cbegin;
-    using std::end;
-    using std::cend;
-    using std::rbegin;
-    using std::crbegin;
-    using std::rend;
-    using std::crend;
-    using std::size;
-    using std::ssize;
-    using std::data;
+    class Iterators final {
+    public:
+        Iterators() = delete;
 
-    namespace ranges {
-        using std::ranges::advance;
-        using std::ranges::distance;
-        using std::ranges::next;
-        using std::ranges::prev;
+        template <typename Iter>
+        [[nodiscard]]
+        static ReverseIterator<Iter> reverse_iterator(Iter it) {
+            return std::make_reverse_iterator(it);
+        }
 
-        using std::ranges::iter_move;
-        using std::ranges::iter_swap;
-    }
+        template <typename Iter>
+        [[nodiscard]]
+        static MoveIterator<Iter> move_iterator(Iter it) {
+            return std::make_move_iterator(it);
+        }
+
+        #ifdef __cpp_lib_ranges_as_const
+        template <InputIterator Iter>
+        [[nodiscard]]
+        static ConstIterator<Iter> const_iterator(Iter it) {
+            return std::make_const_iterator(it);
+        }
+
+        template <Semiregular Sent>
+        [[nodiscard]]
+        static ConstSentinel<Sent> const_sentinel(Sent s) {
+            return std::make_const_sentinel(s);
+        }
+        #endif
+
+        template <typename Contr>
+        [[nodiscard]]
+        static FrontInsertIterator<Contr> front_inserter(Contr& c) {
+            return std::front_inserter(c);
+        }
+
+        template <typename Contr>
+        [[nodiscard]]
+        static BackInsertIterator<Contr> back_inserter(Contr& c) {
+            return std::back_inserter(c);
+        }
+
+        template <typename Contr>
+        [[nodiscard]]
+        static InsertIterator<Contr> inserter(Contr& c, Iterator<Contr> it) {
+            return std::inserter(c, it);
+        }
+
+        template <typename InputIt, typename Dist>
+        static void advance(InputIt& it, Dist n) {
+            std::advance(it, n);
+        }
+
+        template <typename InputIt>
+        [[nodiscard]]
+        static auto distance(InputIt first, InputIt last) {
+            return std::distance(first, last);
+        }
+
+        template <typename InputIt>
+        [[nodiscard]]
+        static constexpr InputIt next(InputIt it, typename IteratorTraits<InputIt>::difference_type n = 1) {
+            return std::next(it, n);
+        }
+
+        template <typename BidirIt>
+        [[nodiscard]]
+        static constexpr BidirIt prev(BidirIt it, typename IteratorTraits<BidirIt>::difference_type n = 1) {
+            return std::prev(it, n);
+        }
+    };
 }

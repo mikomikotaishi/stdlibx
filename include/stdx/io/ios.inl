@@ -200,7 +200,7 @@ export namespace stdx::io {
             buffer{data}, lim{data.size()} {}
 
         explicit ByteBuffer(Vector<u8>&& data):
-            buffer{std::move(data)}, lim{buffer.size()} {}
+            buffer{Ops::move(data)}, lim{buffer.size()} {}
 
         explicit ByteBuffer(Span<const u8> data):
             buffer(data.begin(), data.end()), lim{data.size()} {}
@@ -332,7 +332,6 @@ export namespace stdx::io {
             }
             buffer[pos++] = byte;
         }
-
 
         [[nodiscard]]
         Span<const u8> span() const noexcept {

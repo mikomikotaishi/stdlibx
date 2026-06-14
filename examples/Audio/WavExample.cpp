@@ -21,31 +21,16 @@ using namespace stdx::core;
 using namespace stdx::literals;
 #endif
 
-struct TestContext {
-    i32 passed = 0;
-    i32 failed = 0;
-
-    void check(StringView name, bool condition) {
-        if (condition) {
-            System::out.println("[PASS] {}", name);
-            ++passed;
-        } else {
-            System::err.println("[FAIL] {}", name);
-            ++failed;
-        }
-    }
-};
-
 // The samples directory ships next to the source. Tests may be run from
 // either the project root, build/, or build/tests/, so probe a few common
 // prefixes before giving up. The first match wins.
 [[nodiscard]]
 Optional<Path> resolve_default_sample() noexcept {
     static constexpr Array<StringView, 4> CANDIDATES = {
-        "tests/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
-        "../tests/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
-        "../../tests/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
-        "../../../tests/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
+        "examples/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
+        "../examples/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
+        "../../examples/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
+        "../../../examples/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
     };
     for (const StringView p: CANDIDATES) {
         Path path{p};
@@ -56,20 +41,20 @@ Optional<Path> resolve_default_sample() noexcept {
     return nullopt;
 }
 
-void describe(TestContext& ctx, const Path& path) {
+void describe(const Path& path) {
     UniquePointer<AudioInputStream> stream;
     try {
         stream = AudioSystem::open_audio_file(path);
     } catch (const UnsupportedAudioFileException& e) {
-        ctx.check(stdx::fmt::format("decodes {}", path), false);
+        System::out.println("decodes {}: failed", path);
         System::err.println("       reason: {}", e.what());
         return;
     } catch (const AudioException& e) {
-        ctx.check(stdx::fmt::format("opens {}", path), false);
+        System::out.println("opens {}: failed", path);
         System::err.println("       reason: {}", e.what());
         return;
     }
-    ctx.check(stdx::fmt::format("opens {}", path), true);
+    System::out.println("opens {}: ok", path);
 
     const AudioFormat fmt = stream->format();
     const u64 total = stream->total_frames();
@@ -80,10 +65,10 @@ void describe(TestContext& ctx, const Path& path) {
     );
 
     // The decoder normalizes everything to SampleFormat::FLOAT - confirm.
-    ctx.check("decoded format is f32", fmt.format == SampleFormat::FLOAT);
-    ctx.check("non-zero sample rate", fmt.sample_rate > 0);
-    ctx.check("non-zero channel count", fmt.channels > 0);
-    ctx.check("non-zero total frames", total > 0);
+    System::out.println("{}: {}", "decoded format is f32", fmt.format == SampleFormat::FLOAT);
+    System::out.println("{}: {}", "non-zero sample rate", fmt.sample_rate > 0);
+    System::out.println("{}: {}", "non-zero channel count", fmt.channels > 0);
+    System::out.println("{}: {}", "non-zero total frames", total > 0);
 
     // Pull the whole stream through read() in chunks; verify it reports a
     // consistent total and position-after-EOF matches frame_count.
@@ -97,15 +82,13 @@ void describe(TestContext& ctx, const Path& path) {
         }
         read_total += got;
     }
-    ctx.check("read sum equals total_frames", read_total == total);
-    ctx.check(
-        "position after EOF equals total_frames",
-        stream->position_frames() == total
+    System::out.println("{}: {}", "read sum equals total_frames", read_total == total);
+    System::out.println("{}: {}", "position after EOF equals total_frames", stream->position_frames() == total
     );
 
     // After EOF, further reads return 0 forever.
     const usize after_eof = stream->read(Span<f32>{buf.data(), buf.size()});
-    ctx.check("read past EOF returns 0", after_eof == 0);
+    System::out.println("{}: {}", "read past EOF returns 0", after_eof == 0);
 }
 
 // @p max_seconds caps playback at the first N seconds; 0 plays in full.
@@ -183,17 +166,12 @@ int main(int argc, char* argv[]) {
         path = *resolved;
     }
 
-    TestContext ctx;
-    describe(ctx, path);
-
-    System::out.println(
-        "\nResults: {} passed, {} failed", ctx.passed, ctx.failed
-    );
+    describe(path);
 
     if (parser.get<bool>("--play")) {
         System::out.println("");
         play(path, parser.get<i64>("--abridge"));
     }
 
-    return ctx.failed == 0 ? 0 : 1;
+    return 0;
 }

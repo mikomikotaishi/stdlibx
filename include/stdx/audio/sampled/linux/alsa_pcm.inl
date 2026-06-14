@@ -41,7 +41,7 @@ namespace stdx::audio::sampled {
     inline u64 monotonic_ns() noexcept {
         TimeSpecification ts{};
         unix::clock_gettime(unix::CLOCK_MONOTONIC, &ts);
-        return static_cast<u64>(ts.tv_sec) * 1'000'000'000ULL
+        return static_cast<u64>(ts.tv_sec) * 1'000'000'000ull
             + static_cast<u64>(ts.tv_nsec);
     }
 

@@ -270,7 +270,7 @@ export namespace stdx {
     }
 
     /**
-     * @namespace stdx::io
+     * @namespace io
      * @brief Standard library IO operations.
      */
     namespace io {
@@ -369,9 +369,24 @@ export namespace stdx {
     }
 
     /**
-    * @namespace text
-    * @brief Standard library text operations.
-    */
+     * @namespace ranges
+     * @brief Standard library ranges operations.
+     */
+    namespace ranges {
+        template <typename T>
+        concept Range = std::ranges::range<T>;
+
+        template <typename T>
+        concept View = std::ranges::view<T>;
+
+        template <Range R>
+        using RangeDifference = std::ranges::range_difference_t<R>;
+    }
+
+    /**
+     * @namespace text
+     * @brief Standard library text operations.
+     */
     namespace text {
         template <typename Char>
         using CharTraits = std::char_traits<Char>;

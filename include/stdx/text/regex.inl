@@ -1,6 +1,5 @@
 #pragma once
 
-using stdx::iter::IteratorTraits;
 using stdx::meta::UnderlyingTypeType;
 
 /**

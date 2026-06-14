@@ -34,7 +34,7 @@ struct SineRenderer {
     u16 channels;
 
     void operator()(Span<f32> out, AudioTime) noexcept {
-        constexpr f32 TWO_PI = static_cast<f32>(Math::PI * 2.0);
+        static constexpr f32 TWO_PI = static_cast<f32>(Math::PI * 2.0);
         const usize frames = out.size() / channels;
         for (usize i = 0; i < frames; ++i) {
             const f32 s = 0.2f * Math::sin(phase);

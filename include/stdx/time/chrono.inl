@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::time::chrono
- * @brief Calendar system support inspired by java.time.chrono and HowardHinnant/date.h.
+ * @brief Calendar system support.
  *
  * Provides multiple chronologies (ISO, Julian, Hijrah, Hebrew, Japanese, Minguo,
  * Thai Buddhist, Chinese) with constexpr calendar arithmetic and
@@ -382,8 +382,8 @@ export namespace stdx::time::chrono {
          * @returns A new date with the month advanced by @p months.
          *
          * If the resulting day exceeds the length of the target month, the
-         * day is clamped to the last valid day of that month (mirrors
-         * java.time semantics). Negative values move backwards.
+         * day is clamped to the last valid day of that month
+         * Negative values move backwards.
          */
         [[nodiscard]]
         constexpr ChronoLocalDate plus_months(Months months) const {

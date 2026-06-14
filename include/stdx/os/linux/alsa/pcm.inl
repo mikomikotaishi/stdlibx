@@ -353,7 +353,7 @@ export namespace stdx::os::linux::alsa {
         static constexpr Self HOOKS = ::snd_pcm_type_t::SND_PCM_TYPE_HOOKS;
         static constexpr Self MULTI = ::snd_pcm_type_t::SND_PCM_TYPE_MULTI;
         static constexpr Self FILE = ::snd_pcm_type_t::SND_PCM_TYPE_FILE;
-        static constexpr Self NULL_ = ::snd_pcm_type_t::SND_PCM_TYPE_NULL;
+        static constexpr Self NULL_TYPE = ::snd_pcm_type_t::SND_PCM_TYPE_NULL;
         static constexpr Self SHM = ::snd_pcm_type_t::SND_PCM_TYPE_SHM;
         static constexpr Self INET = ::snd_pcm_type_t::SND_PCM_TYPE_INET;
         static constexpr Self COPY = ::snd_pcm_type_t::SND_PCM_TYPE_COPY;

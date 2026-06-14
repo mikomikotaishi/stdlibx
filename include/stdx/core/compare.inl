@@ -71,6 +71,35 @@ export namespace stdx::core {
         constexpr operator Self() const noexcept {
             return value;
         }
+
+        /**
+         * @brief Compares against the literal 0, as the standard comparison-category
+         * types do, so this wrapper may be returned from a user-defined operator<=>.
+         */
+        [[nodiscard]]
+        friend constexpr bool operator==(PartialOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value == 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator<(PartialOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value < 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator>(PartialOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value > 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator<=(PartialOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value <= 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator>=(PartialOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value >= 0;
+        }
     };
 
     class [[nodiscard]] WeakOrdering final {
@@ -98,6 +127,35 @@ export namespace stdx::core {
 
         constexpr operator PartialOrdering::Self() const noexcept {
             return static_cast<PartialOrdering::Self>(value);
+        }
+
+        /**
+         * @brief Compares against the literal 0, as the standard comparison-category
+         * types do, so this wrapper may be returned from a user-defined operator<=>.
+         */
+        [[nodiscard]]
+        friend constexpr bool operator==(WeakOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value == 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator<(WeakOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value < 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator>(WeakOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value > 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator<=(WeakOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value <= 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator>=(WeakOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value >= 0;
         }
     };
 
@@ -135,6 +193,35 @@ export namespace stdx::core {
 
         constexpr operator PartialOrdering::Self() const noexcept {
             return static_cast<PartialOrdering::Self>(value);
+        }
+
+        /**
+         * @brief Compares against the literal 0, as the standard comparison-category
+         * types do, so this wrapper may be returned from a user-defined operator<=>.
+         */
+        [[nodiscard]]
+        friend constexpr bool operator==(StrongOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value == 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator<(StrongOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value < 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator>(StrongOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value > 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator<=(StrongOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value <= 0;
+        }
+
+        [[nodiscard]]
+        friend constexpr bool operator>=(StrongOrdering lhs, decltype(nullptr)) noexcept {
+            return lhs.value >= 0;
         }
     };
 

@@ -1,6 +1,8 @@
 #pragma once
 
 using stdx::collections::HashMap;
+using stdx::fmt::FormatContext;
+using stdx::fmt::Formatter;
 
 /**
  * @namespace stdx::core
@@ -13,6 +15,15 @@ export namespace stdx::core {
      */
     class Environment final {
     public:
+        enum class OperatingSystem: u8 {
+            UNKNOWN = 0, ///< An unknown or undetectable OS.
+            UNIX, ///< Any Unix-like OS (Linux, BSDs, macOS, etc.).
+            WINDOWS, ///< Microsoft Windows.
+            LINUX, ///< Linux specifically, as opposed to other Unix-like OSes.
+            FREEBSD, ///< FreeBSD specifically.
+            DARWIN, ///< Apple OSes (macOS, iOS, ...).
+        };
+
         Environment() = delete;
 
         /**
@@ -54,6 +65,23 @@ export namespace stdx::core {
             return std::system(command.data());
         }
 
+        [[nodiscard]]
+        static OperatingSystem operating_system() noexcept {
+            #ifdef __linux__
+            return OperatingSystem::LINUX;
+            #elifdef __FreeBSD__
+            return OperatingSystem::FREEBSD;
+            #elifdef __APPLE__
+            return OperatingSystem::DARWIN;
+            #elifdef _WIN32
+            return OperatingSystem::WINDOWS;
+            #elifdef __unix__
+            return OperatingSystem::UNIX;
+            #else
+            return OperatingSystem::UNKNOWN;
+            #endif
+        }
+
         /**
          * @brief All environment variables as a name -> value map.
          *
@@ -70,7 +98,7 @@ export namespace stdx::core {
             for (char** env = env_list; *env != nullptr; ++env) {
                 StringView entry(*env);
                 if (auto pos = entry.find('='); pos != StringView::npos) {
-                    map.emplace(String(entry.substr(0, pos)), entry.substr(pos + 1));
+                    map.emplace(entry.substr(0, pos), entry.substr(pos + 1));
                 }
             }
             return map;
@@ -116,10 +144,10 @@ export namespace stdx::core {
             #ifdef __unix__
             return stdx::os::unix::setenv(name_str.c_str(), value_str.c_str(), overwrite ? 1 : 0) == 0;
             #elifdef _WIN32
-            // _putenv_s keeps the CRT environment (what get/std::getenv reads) in
+            // _putenv_s keeps the CRT environment (what get() reads) in
             // sync, unlike SetEnvironmentVariable. It always overwrites, so
             // emulate overwrite=false by checking for an existing value first.
-            if (!overwrite && std::getenv(name_str.c_str()) != nullptr) {
+            if (!overwrite && get(name_str.c_str()).has_value()) {
                 return true;
             }
             return ::_putenv_s(name_str.c_str(), value_str.c_str()) == 0;
@@ -149,3 +177,42 @@ export namespace stdx::core {
         }
     };
 }
+
+namespace stdx::fmt {
+    template <>
+    struct Formatter<Environment::OperatingSystem> {
+        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+            return ctx.begin();
+        }
+
+        static FormatContext::iterator format(Environment::OperatingSystem os, FormatContext& ctx) {
+            StringView os_name;
+            switch (os) {
+                case Environment::OperatingSystem::UNKNOWN:
+                    os_name = "unknown";
+                    break;
+                case Environment::OperatingSystem::UNIX:
+                    os_name = "Unix-like";
+                    break;
+                case Environment::OperatingSystem::WINDOWS:
+                    os_name = "Windows";
+                    break;
+                case Environment::OperatingSystem::LINUX:
+                    os_name = "Linux";
+                    break;
+                case Environment::OperatingSystem::FREEBSD:
+                    os_name = "FreeBSD";
+                    break;
+                case Environment::OperatingSystem::DARWIN:
+                    os_name = "Darwin";
+                    break;
+                default:
+                    std::unreachable();
+            }
+            return format_to(ctx.out(), "{}", os_name);
+        }
+    };
+}
+
+template <>
+struct stdx::fmt::formatter<Environment::OperatingSystem> : public Formatter<Environment::OperatingSystem> {};

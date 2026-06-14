@@ -1,6 +1,7 @@
 #pragma once
 
 using stdx::math::Complex;
+using stdx::meta::CommonTypeType;
 using stdx::random::MersenneTwister;
 using stdx::random::RandomDevice;
 using stdx::random::UniformRealDistribution;
@@ -34,6 +35,20 @@ export namespace stdx::core {
         static constexpr Numeric auto abs(Numeric auto x) noexcept {
             using std::abs;
             return abs(x);
+        }
+
+        /**
+         * @brief Returns the absolute value of a non-arithmetic type that provides a
+         * member abs() (e.g. BigInteger, BigDecimal), keeping Math::abs uniform.
+         * @tparam T The non-arithmetic type providing a member abs().
+         * @param x The value to take the absolute value of.
+         * @return The absolute value of x.
+         */
+        template <typename T>
+            requires (!Numeric<T>) && requires (const T& v) { v.abs(); }
+        [[nodiscard]]
+        static constexpr auto abs(const T& x) noexcept(noexcept(x.abs())) {
+            return x.abs();
         }
 
         [[nodiscard]]
@@ -87,6 +102,58 @@ export namespace stdx::core {
             } else {
                 return 0;
             }
+            std::unreachable();
+        }
+
+        #ifdef __cpp_lib_saturation_arithmetic
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T saturating_add(T a, T b) noexcept {
+            using std::saturating_add;
+            return saturating_add(a, b);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T saturating_sub(T a, T b) noexcept {
+            using std::saturating_sub;
+            return saturating_sub(a, b);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T saturating_mul(T a, T b) noexcept {
+            using std::saturating_mul;
+            return saturating_mul(a, b);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T saturating_div(T a, T b) noexcept {
+            using std::saturating_div;
+            return saturating_div(a, b);
+        }
+
+        template <typename T, typename U>
+        [[nodiscard]]
+        static constexpr T saturating_cast(U value) noexcept {
+            using std::saturating_cast;
+            return saturating_cast<T>(value);
+        }
+        #endif
+
+        /**
+         * @brief Returns the signum of a non-arithmetic type that provides a member
+         * signum() (e.g. BigInteger, BigDecimal), keeping Math::signum uniform.
+         * @tparam T The non-arithmetic type providing a member signum().
+         * @param x The value to inspect.
+         * @return The signum of x: -1, 0 or 1.
+         */
+        template <typename T>
+            requires (!Numeric<T>) && requires (const T& v) { v.signum(); }
+        [[nodiscard]]
+        static constexpr i32 signum(const T& x) noexcept(noexcept(x.signum())) {
+            return x.signum();
         }
 
         // Linear interpolation
@@ -95,6 +162,59 @@ export namespace stdx::core {
         static constexpr Numeric auto lerp(Numeric auto a, Numeric auto b, Numeric auto t) noexcept {
             using std::lerp;
             return lerp(a, b, t);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T midpoint(T a, T b) noexcept {
+            using std::midpoint;
+            return midpoint(a, b);
+        }
+
+        // Integer functions
+
+        template <typename M, typename N>
+        [[nodiscard]]
+        static constexpr CommonTypeType<M, N> gcd(M m, N n) {
+            using std::gcd;
+            return gcd(m, n);
+        }
+
+        /**
+         * @brief Returns the greatest common divisor of a non-arithmetic type that
+         * provides a member gcd() (e.g. BigInteger), keeping Math::gcd uniform.
+         * @tparam T The non-arithmetic type providing a member gcd().
+         * @param a The first operand.
+         * @param b The second operand.
+         * @return The greatest common divisor of a and b.
+         */
+        template <typename T>
+            requires (!Numeric<T>) && requires (const T& v) { v.gcd(v); }
+        [[nodiscard]]
+        static constexpr auto gcd(const T& a, const T& b) noexcept(noexcept(a.gcd(b))) {
+            return a.gcd(b);
+        }
+
+        template <typename M, typename N>
+        [[nodiscard]]
+        static constexpr CommonTypeType<M, N> lcm(M m, N n) {
+            using std::lcm;
+            return lcm(m, n);
+        }
+
+        /**
+         * @brief Returns the least common multiple of a non-arithmetic type that
+         * provides a member lcm() (e.g. BigInteger), keeping Math::lcm uniform.
+         * @tparam T The non-arithmetic type providing a member lcm().
+         * @param a The first operand.
+         * @param b The second operand.
+         * @return The least common multiple of a and b.
+         */
+        template <typename T>
+            requires (!Numeric<T>) && requires (const T& v) { v.lcm(v); }
+        [[nodiscard]]
+        static constexpr auto lcm(const T& a, const T& b) noexcept(noexcept(a.lcm(b))) {
+            return a.lcm(b);
         }
 
         // Minimum and maximum functions
@@ -323,10 +443,39 @@ export namespace stdx::core {
             return pow(x, y);
         }
 
+        /**
+         * @brief Raises a non-arithmetic type that provides a member pow(i32) (e.g.
+         * BigInteger, BigDecimal) to the given exponent, keeping Math::pow uniform.
+         * @tparam T The non-arithmetic type providing a member pow(i32).
+         * @param x The base.
+         * @param exponent The exponent.
+         * @return The value of x raised to the given power.
+         */
+        template <typename T>
+            requires (!Numeric<T>) && requires (const T& v, i32 e) { v.pow(e); }
+        [[nodiscard]]
+        static constexpr auto pow(const T& x, i32 exponent) noexcept(noexcept(x.pow(exponent))) {
+            return x.pow(exponent);
+        }
+
         [[nodiscard]]
         static constexpr Numeric auto sqrt(Numeric auto x) noexcept {
             using std::sqrt;
             return sqrt(x);
+        }
+
+        /**
+         * @brief Returns the square root of a non-arithmetic type that provides a
+         * member sqrt() (e.g. BigInteger), keeping Math::sqrt uniform.
+         * @tparam T The non-arithmetic type providing a member sqrt().
+         * @param x The value to take the square root of.
+         * @return The square root of x.
+         */
+        template <typename T>
+            requires (!Numeric<T>) && requires (const T& v) { v.sqrt(); }
+        [[nodiscard]]
+        static constexpr auto sqrt(const T& x) noexcept(noexcept(x.sqrt())) {
+            return x.sqrt();
         }
 
         [[nodiscard]]

@@ -428,17 +428,6 @@ export namespace stdx::time {
     using std::chrono::operator>=;
     using std::chrono::operator<=>;
     using std::chrono::operator<<;
-
-    /**
-     * @brief Get the current time as a string.
-     * @return The current time formatted as a string.
-     */
-    [[nodiscard]]
-    String current_time_as_string() {
-        Instant<SystemClock> now = SystemClock::now();
-        LocalTime<Seconds> currentTime = stdx::time::current_zone()->to_local(stdx::time::floor<Seconds>(now));
-        return stdx::fmt::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
-    }
 }
 
 using stdx::time::Month;

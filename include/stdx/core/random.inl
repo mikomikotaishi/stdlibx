@@ -1,9 +1,6 @@
 #pragma once
 
 using stdx::io::ByteBuffer;
-using stdx::iter::Permutable;
-using stdx::iter::RandomAccessIterator;
-using stdx::iter::SentinelFor;
 using stdx::meta::InvokeResultType;
 using stdx::random::MersenneTwister;
 using stdx::random::NormalDistribution;
@@ -94,7 +91,7 @@ export namespace stdx::core {
             if constexpr (SameAs<Flt, f32>) {
                 return (engine() >> 8) * (1.0f / (1u << 24));
             } else if constexpr (SameAs<Flt, f64>) {
-                return (((engine() >> 5) << 26) + (engine() >> 6)) * (1.0 / (1ULL << 53));
+                return (((engine() >> 5) << 26) + (engine() >> 6)) * (1.0 / (1ull << 53));
             } else {
                 UniformRealDistribution<Flt> dist(0.0, 1.0);
                 return dist(engine);

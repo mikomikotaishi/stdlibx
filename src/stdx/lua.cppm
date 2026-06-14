@@ -303,7 +303,7 @@ export namespace stdx::lua {
         return String(lua_pushvfstring(
             l,
             fmt.data(),
-            stdx::util::forward<decltype(args)>(args)...
+            Ops::forward<decltype(args)>(args)...
         ));
     }
 
@@ -312,7 +312,7 @@ export namespace stdx::lua {
         return String(lua_pushvfstring(
             l,
             fmt.data(),
-            stdx::util::forward<decltype(args)>(args)...
+            Ops::forward<decltype(args)>(args)...
         ));
     }
 
@@ -486,7 +486,7 @@ export namespace stdx::lua {
         return lua_gc(
             l,
             what,
-            stdx::util::forward<decltype(args)>(args)...
+            Ops::forward<decltype(args)>(args)...
         );
     }
 
@@ -738,7 +738,7 @@ export namespace stdx::lua {
             return luaL_error(
                 l,
                 fmt.data(),
-                stdx::util::forward<decltype(args)>(args)...
+                Ops::forward<decltype(args)>(args)...
             );
         }
 

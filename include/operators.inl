@@ -39,6 +39,7 @@ export namespace std {
     using std::data;
 
     using std::hash;
+    using std::initializer_list;
     using std::formatter;
     using std::type_info;
     using std::swap;

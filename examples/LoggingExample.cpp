@@ -19,7 +19,7 @@ int main() {
         .init("./userdata/test_log.txt", true);
 
     SharedPointer<Logger> logger = LoggerFactory::instance().of("TestLogger");
-    
+
     logger->trace("This is a TRACE message with value: {}", 42);
     logger->debug("This is a DEBUG message with string: {}", "test");
     logger->info("This is an INFO message");

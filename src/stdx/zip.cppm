@@ -176,10 +176,10 @@ private:
     u64 crc_value; ///< Running CRC-32 state.
 public:
     CRC32() noexcept:
-        crc_value{::crc32(0L, nullptr, 0)} {}
+        crc_value{::crc32(0, nullptr, 0)} {}
 
     void reset() noexcept override {
-        crc_value = ::crc32(0L, nullptr, 0);
+        crc_value = ::crc32(0, nullptr, 0);
     }
 
     void update(Span<const u8> data) noexcept override {
@@ -205,10 +205,10 @@ private:
     u64 adler_value; ///< Running Adler-32 state.
 public:
     Adler32() noexcept:
-        adler_value{::adler32(0L, nullptr, 0)} {}
+        adler_value{::adler32(0, nullptr, 0)} {}
 
     void reset() noexcept override {
-        adler_value = ::adler32(0L, nullptr, 0);
+        adler_value = ::adler32(0, nullptr, 0);
     }
 
     void update(Span<const u8> data) noexcept override {

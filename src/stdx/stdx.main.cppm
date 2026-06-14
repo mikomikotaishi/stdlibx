@@ -78,6 +78,7 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/core/expected.inl"
 #include "stdx/core/functional.inl"
 #include "stdx/core/initializer_list.inl"
+#include "stdx/core/iterator.inl"
 #include "stdx/core/limits.inl"
 #include "stdx/core/mdspan.inl"
 #include "stdx/core/optional.inl"
@@ -120,8 +121,6 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 
 #include "stdx/future/coroutine.inl"
 #include "stdx/future/future.inl"
-
-#include "stdx/iter/iterator.inl"
 
 #include "stdx/ranges/algorithm.inl"
 #include "stdx/ranges/functional.inl"
@@ -210,6 +209,11 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 
 #include "stdx/core/math.inl"
 
+// biginteger.inl/bigdecimal.inl use stdx::core::Math, so they must follow core/math.inl;
+// biginteger.inl must precede bigdecimal.inl (BigDecimal stores a BigInteger).
+#include "stdx/math/biginteger.inl"
+#include "stdx/math/bigdecimal.inl"
+
 #include "stdx/io/cstdio.inl"
 #include "stdx/io/print.inl"
 
@@ -268,6 +272,9 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/util/argparse.inl"
 #include "stdx/util/argparse.annotations.inl"
 #include "stdx/util/logging.inl"
+
+#include "stdx/test/assertions.inl"
+#include "stdx/test/runner.inl"
 
 #include "stdx/audio/exceptions.inl"
 

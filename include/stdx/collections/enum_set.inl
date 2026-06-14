@@ -1,7 +1,6 @@
 #pragma once
 
 #ifdef __cpp_lib_reflection
-using stdx::iter::ForwardIteratorTag;
 using stdx::meta::IsEnumValue;
 using stdx::meta::IsSameValue;
 using stdx::meta::UnderlyingTypeType;

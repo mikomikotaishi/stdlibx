@@ -7,6 +7,10 @@ using stdx::ranges::views::Filter;
 using stdx::text::regex::Regex;
 using stdx::text::regex::SyntaxOption;
 
+#ifdef __cpp_lib_generator
+using stdx::ranges::Generator;
+#endif
+
 /**
  * @namespace stdx::fs
  * @brief Standard library file system operations.
@@ -80,7 +84,7 @@ namespace stdx::fs {
                         }
                         String rep;
                         stdx::text::regex::regex_replace(
-                            stdx::iter::back_inserter(rep),
+                            Iterators::back_inserter(rep),
                             contents.begin(),
                             contents.end(),
                             Regex(R"([&~|])"),
@@ -196,7 +200,7 @@ namespace stdx::fs {
                         result.emplace_back(dir.is_absolute() ? entry.path() : relative(entry.path()));
                     }
                 }
-            } catch ([[maybe_unused]] const Exception& e) {
+            } catch (const Exception& _) {
                 // do nothing
             }
         }
@@ -220,7 +224,6 @@ namespace stdx::fs {
 
     [[nodiscard]]
     Vector<Path> glob_relative_pathnames(const Path& dir, [[maybe_unused]] const String& pattern, bool dironly) noexcept {
-        (void)pattern;
         Vector<Path> result;
         if (exists(dir)) {
             result.emplace_back(".");
@@ -361,4 +364,35 @@ export namespace stdx::fs {
     Vector<Path> glob_recursive(const InitializerList<String>& paths) noexcept {
         return glob_recursive(Vector<String>(paths));
     }
+
+    #ifdef __cpp_lib_generator
+    /**
+     * @brief Lazily walks a directory tree, yielding each entry in turn.
+     *
+     * The recursive, lazy twin of listdir_recursive: where the eager listing
+     * materialises the entire subtree up front, this yields one entry at a
+     * time and descends only as the caller consumes, so a partial walk (or an
+     * early break) never enumerates the rest of the tree. Hidden entries are
+     * skipped, mirroring the glob helpers.
+     *
+     * @param dir The root directory to walk.
+     * @param dironly When true, yield only directories.
+     * @return A Generator yielding each descendant Path in pre-order.
+     *
+     * @note Synchronous: each step performs blocking filesystem reads. This is
+     *       lazy iteration, not asynchronous I/O. Only the current directory
+     *       level is held in memory at a time, never the whole subtree.
+     */
+    [[nodiscard]]
+    Generator<Path> walk(const Path& dir, bool dironly = false) {
+        for (const Path& entry: iterate_over_directory(dir, dironly)) {
+            if (!is_hidden(entry.string())) {
+                co_yield entry;
+                for (const Path& child: walk(entry, dironly)) {
+                    co_yield child;
+                }
+            }
+        }
+    }
+    #endif
 }

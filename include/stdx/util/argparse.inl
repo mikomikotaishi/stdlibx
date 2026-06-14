@@ -9,7 +9,6 @@ using stdx::io::FormatFlags;
 using stdx::io::OutputStream;
 using stdx::io::StreamSize;
 using stdx::io::StringStream;
-using stdx::iter::InputIterator;
 using stdx::fmt::FormatContext;
 using stdx::fmt::FormatParseContext;
 using stdx::fs::Path;
@@ -68,7 +67,7 @@ String represent(const T& val) {
             out << represent(*val.begin());
             usize count = 1;
             const usize limit = Math::min<usize>(size, REPRESENTATION_MAX_CONTAINER_SIZE);
-            for (auto it = stdx::iter::next(val.begin()); count < limit - 1; ++it, ++count) {
+            for (auto it = Iterators::next(val.begin()); count < limit - 1; ++it, ++count) {
                 out << stdx::fmt::format(" {}", represent(*it));
             }
             if (size <= REPRESENTATION_MAX_CONTAINER_SIZE) {
@@ -78,7 +77,7 @@ String represent(const T& val) {
             }
         }
         if (size > 0) {
-            out << represent(*stdx::iter::prev(val.end()));
+            out << represent(*Iterators::prev(val.end()));
         }
         out << "}";
         return out.str();
@@ -93,7 +92,6 @@ String represent(const T& val) {
 
 template <typename F, typename Tpl, typename Ext, usize... I>
 constexpr decltype(auto) apply_plus_one_impl(F&& f, Tpl&& t, Ext&& x, [[maybe_unused]] IndexSequence<I...> ind_seq) noexcept {
-    (void)ind_seq;
     return invoke(Ops::forward<F>(f), get<I>(Ops::forward<Tpl>(t))..., Ops::forward<Ext>(x));
 }
 
@@ -883,7 +881,7 @@ public:
             var = any_cast<bool>(default_val);
         }
         action(
-            [&var]([[maybe_unused]] const String& s) -> bool {
+            [&var](const String& _) -> bool {
                 var = true;
                 return var;
             }
@@ -1116,9 +1114,9 @@ public:
             return start;
         }
 
-        if ((dist = static_cast<usize>(stdx::iter::distance(start, end))) >= num_args_min) {
+        if ((dist = static_cast<usize>(Iterators::distance(start, end))) >= num_args_min) {
             if (num_args_max < dist) {
-                end = stdx::iter::next(start, static_cast<typename Iter::difference_type>(num_args_max));
+                end = Iterators::next(start, static_cast<typename Iter::difference_type>(num_args_max));
             }
             if (!accepts_optional_like_value) {
                 end = stdx::util::find_if(
@@ -1128,7 +1126,7 @@ public:
                         return check_optional(arg, prefix_chars);
                     }
                 );
-                dist = static_cast<usize>(stdx::iter::distance(start, end));
+                dist = static_cast<usize>(Iterators::distance(start, end));
                 if (dist < num_args_min) {
                     throw CommandLineParserException(stdx::fmt::format("Too few arguments for '{}'.", used_name));
                 }
@@ -1145,7 +1143,7 @@ public:
                         f(*it);
                     }
                     if (!self.default_val.has_value() && !self.accepts_optional_like_value) {
-                        self.values.resize(static_cast<usize>(stdx::iter::distance(first, last)));
+                        self.values.resize(static_cast<usize>(Iterators::distance(first, last)));
                     }
                 }
 
@@ -1545,7 +1543,7 @@ protected:
     }
 
     [[nodiscard]]
-    Vector<String> preprocess_arguments(const Vector<String>& raw) const {
+    Vector<String> preprocess_arguments(Span<const String> raw) const {
         Vector<String> args;
         for (const String& arg: raw) {
             auto apc = [this](const String& a) -> bool {
@@ -1574,7 +1572,7 @@ protected:
         return args;
     }
 
-    void parse_args_internal(const Vector<String>& raw_arguments) {
+    void parse_args_internal(Span<const String> raw_arguments) {
         Vector<String> arguments = preprocess_arguments(raw_arguments);
         if (prog_name.empty() && !arguments.empty()) {
             prog_name = arguments.front();
@@ -1582,7 +1580,7 @@ protected:
         auto end = arguments.end();
         auto pos_it = positional_arguments.begin();
 
-        for (auto it = stdx::iter::next(arguments.begin()); it != end;) {
+        for (auto it = Iterators::next(arguments.begin()); it != end;) {
             const String& cur = *it;
             if (Argument::check_positional(cur, prefix_chars)) {
                 if (pos_it == positional_arguments.end()) {
@@ -1608,11 +1606,11 @@ protected:
                 if (argument->num_args_range.min() == 1 &&
                     argument->num_args_range.max() == UnsignedSize::MAX_VALUE &&
                     pos_it != positional_arguments.end() &&
-                    stdx::iter::next(pos_it) == positional_arguments.end() &&
+                    Iterators::next(pos_it) == positional_arguments.end() &&
                     pos_it->num_args_range.min() == 1 && pos_it->num_args_range.max() == 1) {
-                    if (stdx::iter::next(it) != end) {
-                        pos_it->consume(stdx::iter::prev(end), end);
-                        end = stdx::iter::prev(end);
+                    if (Iterators::next(it) != end) {
+                        pos_it->consume(Iterators::prev(end), end);
+                        end = Iterators::prev(end);
                     } else {
                         throw CommandLineParserException(stdx::fmt::format("Missing {}", pos_it->names.front()));
                     }
@@ -1622,7 +1620,7 @@ protected:
             }
 
             if (auto ami = argument_map.find(cur); ami != argument_map.end()) {
-                it = ami->second->consume(stdx::iter::next(it), end, ami->first);
+                it = ami->second->consume(Iterators::next(it), end, ami->first);
             } else if (cur.size() > 1 && is_valid_prefix_char(cur[0]) && !is_valid_prefix_char(cur[1])) {
                 ++it;
                 for (usize j = 1; j < cur.size(); j++) {
@@ -1640,7 +1638,7 @@ protected:
         is_parsed = true;
     }
 
-    Vector<String> parse_known_args_internal(const Vector<String>& raw_arguments) {
+    Vector<String> parse_known_args_internal(Span<const String> raw_arguments) {
         Vector<String> arguments = preprocess_arguments(raw_arguments);
         Vector<String> unknown;
         if (prog_name.empty() && !arguments.empty()) {
@@ -1649,7 +1647,7 @@ protected:
         auto end = arguments.end();
         auto pos_it = positional_arguments.begin();
 
-        for (auto it = stdx::iter::next(arguments.begin()); it != end;) {
+        for (auto it = Iterators::next(arguments.begin()); it != end;) {
             const String& cur = *it;
             if (Argument::check_positional(cur, prefix_chars)) {
                 if (pos_it == positional_arguments.end()) {
@@ -1669,7 +1667,7 @@ protected:
                 continue;
             }
             if (auto ami = argument_map.find(cur); ami != argument_map.end()) {
-                it = ami->second->consume(stdx::iter::next(it), end, ami->first);
+                it = ami->second->consume(Iterators::next(it), end, ami->first);
             } else if (cur.size() > 1 && is_valid_prefix_char(cur[0]) && !is_valid_prefix_char(cur[1])) {
                 ++it;
                 for (usize j = 1; j < cur.size(); j++) {
@@ -1723,7 +1721,7 @@ public:
         if ((add_args & DefaultArguments::HELP) == DefaultArguments::HELP) {
             add_argument("-h", "--help")
                 .action(
-                    [&]([[maybe_unused]] const auto& _) -> void {
+                    [&](const auto& _) -> void {
                         os << help().str();
                         if (exit_on_default_arguments) {
                             Environment::exit(0);
@@ -1734,7 +1732,7 @@ public:
         }
         if ((add_args & DefaultArguments::VERSION) == DefaultArguments::VERSION) {
             add_argument("-v", "--version")
-                .action([&]([[maybe_unused]] const auto& _) -> void {
+                .action([&](const auto& _) -> void {
                     os << stdx::fmt::format("{}\n", ver);
                     if (exit_on_default_arguments) {
                         Environment::exit(0);
@@ -1839,7 +1837,7 @@ public:
         return *this;
     }
 
-    void parse_args(const Vector<String>& arguments) throws (CommandLineParserException) {
+    void parse_args(Span<const String> arguments) throws (CommandLineParserException) {
         parse_args_internal(arguments);
         for (const auto& [_, argument]: argument_map) {
             argument->validate();
@@ -1874,8 +1872,21 @@ public:
         }
     }
 
+    void parse_args(Span<const StringView> arguments) throws (CommandLineParserException) {
+        parse_args(Vector<String>(arguments.begin(), arguments.end()));
+    }
+
+    void parse_args(InitializerList<StringView> arguments) throws (CommandLineParserException) {
+        parse_args(Vector<String>(arguments.begin(), arguments.end()));
+    }
+
+    void parse_args(ConvertibleTo<StringView> auto&&... arguments) throws (CommandLineParserException)
+        requires (sizeof...(arguments) >= 1) {
+        parse_args(Vector<String>{String(StringView(arguments))...});
+    }
+
     [[nodiscard]]
-    Vector<String> parse_known_args(const Vector<String>& arguments) throws (CommandLineParserException) {
+    Vector<String> parse_known_args(Span<const String> arguments) throws (CommandLineParserException) {
         Vector<String> unknown = parse_known_args_internal(arguments);
         for (const auto& [_, argument]: argument_map) {
             argument->validate();
@@ -1883,12 +1894,28 @@ public:
         return unknown;
     }
 
+    [[nodiscard]]
+    Vector<String> parse_known_args(Span<const StringView> arguments) throws (CommandLineParserException) {
+        return parse_known_args(Vector<String>(arguments.begin(), arguments.end()));
+    }
+
+    [[nodiscard]]
+    Vector<String> parse_known_args(InitializerList<StringView> arguments) throws (CommandLineParserException) {
+        return parse_known_args(Vector<String>(arguments.begin(), arguments.end()));
+    }
+
+    [[nodiscard]]
+    Vector<String> parse_known_args(ConvertibleTo<StringView> auto&&... arguments) throws (CommandLineParserException)
+        requires (sizeof...(arguments) >= 1) {
+        return parse_known_args(Vector<String>{String(StringView(arguments))...});
+    }
+
     void parse_args(i32 argc, const char* argv[]) throws (CommandLineParserException) {
-        parse_args({argv, argv + argc});
+        parse_args(Vector<String>(argv, argv + argc));
     }
 
     void parse_args(i32 argc, char* argv[]) throws (CommandLineParserException) {
-        parse_args({argv, argv + argc});
+        parse_args(Vector<String>(argv, argv + argc));
     }
 
     #ifdef __cpp_lib_reflection
@@ -1923,12 +1950,12 @@ public:
 
     [[nodiscard]]
     Vector<String> parse_known_args(i32 argc, const char* argv[]) throws (CommandLineParserException) {
-        return parse_known_args({argv, argv + argc});
+        return parse_known_args(Vector<String>(argv, argv + argc));
     }
 
     [[nodiscard]]
     Vector<String> parse_known_args(i32 argc, char* argv[]) throws (CommandLineParserException) {
-        return parse_known_args({argv, argv + argc});
+        return parse_known_args(Vector<String>(argv, argv + argc));
     }
 
     template <typename T = String>

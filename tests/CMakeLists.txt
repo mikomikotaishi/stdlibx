@@ -48,8 +48,10 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
         endif()
     endforeach()
 
-    # Add to CTest
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+    # Add to CTest. Run from the project root so tests that reference bundled
+    # fixtures by relative path (e.g. ProcessTest's tests/scripts/*.py) resolve
+    # them the same way they would when launched by hand from the repo root.
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
     
     message(STATUS "Added test executable: ${TEST_NAME}")
 endforeach()

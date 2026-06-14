@@ -1,8 +1,5 @@
 #pragma once
 
-using stdx::iter::InputStreamBufferIterator;
-using stdx::iter::OutputStreamBufferIterator;
-
 /**
  * @namespace stdx::core
  * @brief The core objects of the standard library.

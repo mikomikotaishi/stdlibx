@@ -2,8 +2,6 @@
 
 using stdx::random::MersenneTwister64;
 using stdx::random::RandomDevice;
-using stdx::time::SystemClock;
-using stdx::time::Milliseconds;
 
 /**
  * @namespace stdx::core
@@ -102,11 +100,7 @@ export namespace stdx::core {
         static Uuid timestamp_uuid() {
             static thread_local MersenneTwister64 engine{RandomDevice{}()};
 
-            const u64 timestamp = static_cast<u64>(
-                stdx::time::duration_cast<Milliseconds>(
-                    SystemClock::now().time_since_epoch()
-                ).count()
-            );
+            const u64 timestamp = System::current_time_millis();
 
             Array<ByteUnit, 16> bytes{};
 
@@ -294,11 +288,12 @@ namespace stdx::core {
         usize operator()(const Uuid& uuid) const noexcept {
             usize h = 0;
             for (ByteUnit byte : uuid.bytes()) {
-                h ^= Hash<u8>{}(Byte::to_integer<u8>(byte)) + 0x9E3779B9 + (h << 6) + (h >> 2);
+                h ^= Hash<u8>()(Byte::to_integer<u8>(byte)) + 0x9E3779B9 + (h << 6) + (h >> 2);
             }
             return h;
         }
     };
 }
 
-SPECIALIZE_HASH(Uuid);
+template <>
+struct stdx::core::hash<Uuid> : public Hash<Uuid> {};
