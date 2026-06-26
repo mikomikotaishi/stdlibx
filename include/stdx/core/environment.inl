@@ -17,14 +17,24 @@ export namespace stdx::core {
     public:
         enum class OperatingSystem: u8 {
             UNKNOWN = 0, ///< An unknown or undetectable OS.
-            UNIX, ///< Any Unix-like OS (Linux, BSDs, macOS, etc.).
+            UNIX, ///< Any Unix-like operating system (Linux, BSDs, macOS, etc.).
             WINDOWS, ///< Microsoft Windows.
-            LINUX, ///< Linux specifically, as opposed to other Unix-like OSes.
+            LINUX, ///< Linux specifically, as opposed to other Unix-like operating systems.
             FREEBSD, ///< FreeBSD specifically.
-            DARWIN, ///< Apple OSes (macOS, iOS, ...).
+            DARWIN, ///< Apple operating systems (macOS, iOS, ...).
         };
 
-        Environment() = delete;
+        Environment() = delete("Environment is a static utility class and cannot be instantiated.");
+
+        #if defined(__GNUC__) && !defined(__clang__)
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Winterference-size"
+        #endif
+        static constexpr usize HARDWARE_CONSTRUCTIVE_INTERFERENCE_SIZE = std::hardware_constructive_interference_size;
+        static constexpr usize HARDWARE_DESTRUCTIVE_INTERFERENCE_SIZE = std::hardware_destructive_interference_size;
+        #if defined(__GNUC__) && !defined(__clang__)
+        #pragma GCC diagnostic pop
+        #endif
 
         /**
          * @brief The OS process ID of the current process.
@@ -131,7 +141,7 @@ export namespace stdx::core {
          *
          * @warning Mutating the environment is NOT thread-safe, and no lock can
          * make it so. The C library's environment store is shared and
-         * unsynchronised, and a concurrent get() in another thread,
+         * unsynchronized, and a concurrent get() in another thread,
          * including calls the C library or third-party code make
          * internally (locale, time zone, ...), races with this write
          * and can read freed memory and crash. Only set or unset
@@ -206,8 +216,6 @@ namespace stdx::fmt {
                 case Environment::OperatingSystem::DARWIN:
                     os_name = "Darwin";
                     break;
-                default:
-                    std::unreachable();
             }
             return format_to(ctx.out(), "{}", os_name);
         }

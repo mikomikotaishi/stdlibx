@@ -90,10 +90,11 @@ export namespace stdx::io {
          * @param path The path to the file to read.
          * @throws IOException if the file cannot be opened.
          */
-        explicit Scanner(const Path& path) throws (IOException):
+        THROWS(IOException)
+        explicit Scanner(const Path& path):
             owned_file_stream{Pointers::unique<InputFileStream>(path)} {
             if (!owned_file_stream->is_open()) {
-                throw IOException(stdx::fmt::format("Failed to open file: {}", path.string()));
+                throw IOException(stdx::fmt::format("Failed to open file: {}", path));
             }
             source = owned_file_stream.get();
         }
@@ -105,7 +106,8 @@ export namespace stdx::io {
          * @param file The File to read from.
          * @throws IOException if the file has no associated path or cannot be opened.
          */
-        explicit Scanner(const File& file) throws (IOException) {
+        THROWS(IOException)
+        explicit Scanner(const File& file) {
             const Optional<Path>& path = file.path();
             if (!path.has_value()) {
                 throw IOException("File has no associated path.");
@@ -131,8 +133,8 @@ export namespace stdx::io {
         }
 
         ~Scanner() = default;
-        Scanner(const Scanner&) = delete;
-        Scanner& operator=(const Scanner&) = delete;
+        Scanner(const Scanner&) = delete("Scanner is not copyable.");
+        Scanner& operator=(const Scanner&) = delete("Scanner is not copyable.");
         Scanner(Scanner&&) = default;
         Scanner& operator=(Scanner&&) = default;
 

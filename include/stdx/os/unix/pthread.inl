@@ -57,7 +57,7 @@ export namespace stdx::os::unix {
     using ::pthread_getaffinity_np;
     using ::pthread_once;
 
-    // Functions for handling initialisation
+    // Functions for handling initialization
     using ::pthread_setcancelstate;
 
     // Functions for handling cancellation

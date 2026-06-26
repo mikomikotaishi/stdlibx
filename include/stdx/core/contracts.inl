@@ -16,8 +16,6 @@ export namespace stdx::core {
     private:
         const Self value;
     public:
-        constexpr AssertionKind() noexcept = delete;
-
         constexpr AssertionKind(Self value) noexcept:
             value{value} {}
 

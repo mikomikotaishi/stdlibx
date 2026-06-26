@@ -21,6 +21,7 @@ using stdx::fs::Path;
 using stdx::mem::UniquePointer;
 using stdx::process::Child;
 using stdx::process::Command;
+using stdx::process::ExitStatus;
 using stdx::process::Stdio;
 using stdx::time::Duration;
 using stdx::time::Instant;
@@ -99,7 +100,7 @@ Optional<Child> maybe_spawn_fluidsynth() {
         return nullopt;
     }
 
-    System::out.println("Auto-launching fluidsynth with {}", sf2->string());
+    System::out.println("Auto-launching fluidsynth with {}", sf2.value());
 
     Expected<Child, ErrorCode> child = Command::from("fluidsynth")
         .arg("-s")
@@ -109,7 +110,7 @@ Optional<Child> maybe_spawn_fluidsynth() {
         .arg("alsa")
         .arg("-m")
         .arg("alsa_seq")
-        .arg(sf2->string())
+        .arg(sf2.value().string())
         .stdin(Stdio::NULL_DEV)
         .stdout(Stdio::NULL_DEV)
         .stderr(Stdio::NULL_DEV)
@@ -184,11 +185,11 @@ void describe(const Path& path) {
     try {
         seq = MidiSystem::open_sequence(path);
     } catch (const InvalidMidiDataException& e) {
-        System::out.println("parses {}: failed", path.filename().string());
+        System::out.println("parses {}: failed", path.filename());
         System::err.println("       reason: {}", e.what());
         return;
     }
-    System::out.println("parses {}: ok", path.filename().string());
+    System::out.println("parses {}: ok", path.filename());
 
     const TimingType timing = seq->timing_type();
     const i32 division = seq->division();
@@ -221,8 +222,7 @@ void describe(const Path& path) {
     System::out.println("{}: {}", "has Note On events", counts.note_on > 0);
     // SMF spec requires every track to end with End-of-Track meta (type 0x2F),
     // so meta count must be >= track count.
-    System::out.println("{}: {}", "meta count >= track count", counts.meta >= seq->track_count()
-    );
+    System::out.println("{}: {}", "meta count >= track count", counts.meta >= seq->track_count());
 }
 
 // @p max_seconds caps playback at the first N seconds; 0 plays in full.
@@ -231,7 +231,7 @@ void play(const Path& path, i64 max_seconds) {
     try {
         seq = MidiSystem::open_sequence(path);
     } catch (const InvalidMidiDataException& e) {
-        System::err.println("Cannot parse {}: {}", path.string(), e.what());
+        System::err.println("Cannot parse {}: {}", path, e.what());
         return;
     }
 
@@ -260,12 +260,14 @@ void play(const Path& path, i64 max_seconds) {
     if (max_seconds > 0) {
         System::out.println(
             "Playing {} -> {} (first {}s)",
-            path.filename().string(), target->name, max_seconds
+            path.filename(),
+            target->name, max_seconds
         );
     } else {
         System::out.println(
             "Playing {} -> {}",
-            path.filename().string(), target->name
+            path.filename(),
+            target->name
         );
     }
 
@@ -338,7 +340,7 @@ int main(int argc, char* argv[]) {
         path = Path{file_arg};
         if (!stdx::fs::exists(path)) {
             System::err.println("File not found: {}", file_arg);
-            return 1;
+            return System::EXIT_FAILURE;
         }
     } else {
         Optional<Path> resolved = resolve_default_sample();
@@ -347,7 +349,7 @@ int main(int argc, char* argv[]) {
                 "Could not locate the bundled sample. Pass --file <path> or "
                 "run the test from the project root."
             );
-            return 1;
+            return System::EXIT_FAILURE;
         }
         path = *resolved;
     }
@@ -368,9 +370,16 @@ int main(int argc, char* argv[]) {
     }
 
     if (auto_synth.has_value()) {
-        (void)auto_synth->kill();
-        (void)auto_synth->wait();
+        if (Expected<void, ErrorCode> kill_result = auto_synth->kill(); kill_result.error()) {
+            System::err.println("Failed to kill fluidsynth: {}", kill_result.error().message());
+        }
+
+        if (Expected<ExitStatus, ErrorCode> wait_result = auto_synth->wait(); wait_result) {
+            System::out.println("fluidsynth exited successfully.");
+        } else {
+            System::err.println("Failed to wait for fluidsynth: {}", wait_result.error().message());
+        }
     }
 
-    return 0;
+    return System::EXIT_SUCCESS;
 }

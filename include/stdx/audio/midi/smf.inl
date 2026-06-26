@@ -73,12 +73,14 @@ export namespace stdx::audio::midi {
     /**
      * @brief Parse one MTrk chunk into @p track. Caller has already consumed
      * the "MTrk" + chunk-size header; @p chunk_size is the body length.
+     * @param f Input stream positioned at the start of the MTrk body.
+     * @param chunk_size Size of the MTrk body in bytes.
+     * @param track Track to populate with events.
+     * @throws InvalidMidiDataException on truncated events or invalid running
+     * status.
      */
-    inline void parse_track(
-        InputFileStream& f,
-        u32 chunk_size,
-        Track& track
-    ) throws (InvalidMidiDataException) {
+    THROWS(InvalidMidiDataException)
+    inline void parse_track(InputFileStream& f, u32 chunk_size, Track& track) {
         const StreamPosition start = f.tellg();
         const StreamPosition end = start + static_cast<StreamOffset>(chunk_size);
 
@@ -204,9 +206,8 @@ export namespace stdx::audio::midi {
      * truncated tracks, or invalid running status.
      */
     [[nodiscard]]
-    inline UniquePointer<Sequence> parse_smf(
-        const Path& path
-    ) throws (InvalidMidiDataException) {
+    THROWS(InvalidMidiDataException)
+    inline UniquePointer<Sequence> parse_smf(const Path& path) {
         InputFileStream f{path, OpenMode::BINARY};
         if (!f) {
             throw InvalidMidiDataException("SMF: cannot open file");

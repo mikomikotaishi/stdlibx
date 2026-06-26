@@ -108,4 +108,9 @@ export namespace stdx::os::win32 {
     constexpr u64 SYMOPT_DEBUG = 0x80000000;
 
     constexpr i32 MAXIMUM_SUPPORTED_EXTENSION = 512;
+
+    constexpr u64 WAIT_ABANDONED = 0x00000080l;
+    constexpr u64 WAIT_OBJECT_0 = 0x00000000l;
+    constexpr u64 WAIT_TIMEOUT = 0x00000102l;
+    constexpr u64 WAIT_FAILED = 0xFFFFFFFFl;
 }

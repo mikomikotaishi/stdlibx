@@ -101,8 +101,8 @@ namespace stdx::test {
         }
 
         /**
-         * @brief Returns whether the test run should colourise its output.
-         * @return True if colour is enabled, false otherwise.
+         * @brief Returns whether the test run should colorise its output.
+         * @return True if color is enabled, false otherwise.
          */
         [[nodiscard]]
         bool color_enabled() const noexcept {
@@ -110,8 +110,8 @@ namespace stdx::test {
         }
 
         /**
-         * @brief Enables or disables colourised output for the test run.
-         * @param enable True to enable colour, false to disable.
+         * @brief Enables or disables colorised output for the test run.
+         * @param enable True to enable color, false to disable.
          */
         void color(bool enable) noexcept {
             use_color = enable;
@@ -418,14 +418,14 @@ export namespace stdx::test {
     ) {
         try {
             fn();
-        } catch (const E&) {
+        } catch (const E& _) {
             pass();
             return;
         } catch (const Exception& e) {
             fail(loc, annotate(stdx::fmt::format("threw a different exception: {}", e.what()), message));
             return;
         } catch (...) {
-            fail(loc, annotate("threw an unrecognised exception", message));
+            fail(loc, annotate("threw an unrecognized exception", message));
             return;
         }
         fail(loc, annotate("no exception was thrown", message));
@@ -450,7 +450,7 @@ export namespace stdx::test {
         } catch (const Exception& e) {
             fail(loc, annotate(stdx::fmt::format("threw: {}", e.what()), message));
         } catch (...) {
-            fail(loc, annotate("threw an unrecognised exception", message));
+            fail(loc, annotate("threw an unrecognized exception", message));
         }
     }
 

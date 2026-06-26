@@ -357,7 +357,7 @@ void test_complex_chain() {
 }
 
 void test_split() {
-    // split<Into>(delim) materialises each piece as Into; the bare split(delim)
+    // split<Into>(delim) materializes each piece as Into; the bare split(delim)
     // mirrors std::views::split and yields the lazy subranges.
 
     // StringView -> Vector<String>
@@ -385,7 +385,7 @@ void test_split() {
         .to<Vector>();
     expect_eq(segments, Vector<String>{"a", "b", "c", "d"}, "split const char*");
 
-    // Materialise into non-owning StringViews over the original buffer instead.
+    // Materialize into non-owning StringViews over the original buffer instead.
     Vector<StringView> views = Query(csv)
         .split<StringView>(',')
         .to<Vector>();
@@ -406,7 +406,7 @@ void test_split() {
     expect_eq(empties, Vector<String>{"x", "", "y"}, "split keeps empty fields");
 
     // Generality: any collection, not just strings. Split a Vector<i32> on an
-    // element value, materialising each piece into an owning Vector<i32>.
+    // element value, materializing each piece into an owning Vector<i32>.
     Vector<i32> numbers = {1, 2, 0, 3, 4, 0, 0, 5};
     Vector<Vector<i32>> groups = Query(numbers)
         .split<Vector<i32>>(0)
@@ -418,7 +418,7 @@ void test_split() {
     );
 
     // The bare default yields the lazy subranges - consume them without
-    // materialising by summing each piece in place.
+    // materializing by summing each piece in place.
     Vector<i32> sums = Query(numbers)
         .split(0)
         .select([](auto&& piece) -> i32 {

@@ -34,16 +34,13 @@ export namespace stdx::core {
         typename LayoutPolicy = LayoutRight,
         typename AccessorPolicy = DefaultAccessor<E>
     >
-    using MultiDimensionalSpan = std::mdspan<E, Exts, LayoutPolicy, AccessorPolicy>;
+    using MultiSpan = std::mdspan<E, Exts, LayoutPolicy, AccessorPolicy>;
 
     // template <typename OffsetT, typename LengthT, typename StrideT>
     // using StridedSlice = std::strided_slice<OffsetT, LengthT, StrideT>;
 
     template <typename LayoutMapping>
-    using SubMultiDimensionalSpanMappingResult = std::submdspan_mapping_result<LayoutMapping>;
-
-    using FullExtentTag = std::full_extent_t;
-    inline constexpr FullExtentTag FullExtent = std::full_extent;
+    using SubMultiSpanMappingResult = std::submdspan_mapping_result<LayoutMapping>;
     #endif
 
     #ifdef __cpp_lib_submdspan

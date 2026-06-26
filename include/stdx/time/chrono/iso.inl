@@ -13,7 +13,7 @@ export namespace stdx::time::chrono {
      */
     class [[nodiscard]] IsoChronology final {
     public:
-        IsoChronology() = delete;
+        IsoChronology() = delete("IsoChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era
@@ -230,9 +230,8 @@ export namespace stdx::time::chrono {
                     return era == Era::CE ? "CE" : "BCE";
                 case DateTextLength::NARROW:
                     return era == Era::CE ? "C" : "B";
-                default:
-                    Ops::unreachable();
             }
+            Ops::unreachable();
         }
 
         /**
@@ -244,11 +243,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if @p month is not in [1, 12].
          */
         [[nodiscard]]
-        static constexpr StringView month_name(
-            [[maybe_unused]] i32 year,
-            u32 month,
-            DateTextLength style
-        ) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr StringView month_name([[maybe_unused]] i32 year, u32 month, DateTextLength style) {
             static constexpr Array<StringView, 12> LONG_NAMES = {
                 "January", "February", "March", "April",
                 "May", "June", "July", "August",
@@ -275,9 +271,8 @@ export namespace stdx::time::chrono {
                     return SHORT_NAMES[idx];
                 case DateTextLength::NARROW:
                     return NARROW_NAMES[idx];
-                default:
-                    Ops::unreachable();
             }
+            Ops::unreachable();
         }
 
         /**

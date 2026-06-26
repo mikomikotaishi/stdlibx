@@ -16,13 +16,15 @@ export namespace stdx::audio::midi {
      */
     class MidiSystem final {
     public:
-        MidiSystem() = delete;
+        MidiSystem() = delete("MidiSystem is a static utility class and cannot be instantiated.");
 
         [[nodiscard]]
-        static Vector<MidiDeviceInfo> devices() throws (MidiException);
+        THROWS(MidiException)
+        static Vector<MidiDeviceInfo> devices();
 
         [[nodiscard]]
-        static UniquePointer<MidiDevice> open_device(const MidiDeviceInfo& info) throws (MidiException);
+        THROWS(MidiException)
+        static UniquePointer<MidiDevice> open_device(const MidiDeviceInfo& info);
 
         /**
          * @brief Returns the built-in software synthesizer, bound (lazily on
@@ -34,7 +36,8 @@ export namespace stdx::audio::midi {
          * @throws MidiException if the synthesizer fails to initialize.
          */
         [[nodiscard]]
-        static Synthesizer& default_synthesizer() throws (AudioException, MidiException);
+        THROWS(AudioException, MidiException)
+        static Synthesizer& default_synthesizer();
 
         /**
          * @brief Returns the built-in software sequencer. Its transmitter
@@ -44,7 +47,8 @@ export namespace stdx::audio::midi {
          * @throws MidiException if the sequencer fails to initialize.
          */
         [[nodiscard]]
-        static Sequencer& default_sequencer() throws (MidiException);
+        THROWS(MidiException)
+        static Sequencer& default_sequencer();
 
         /**
          * @brief Parse a Standard MIDI File (.mid) into a Sequence.
@@ -52,9 +56,8 @@ export namespace stdx::audio::midi {
          * @throws InvalidMidiDataException on malformed header or tracks.
          */
         [[nodiscard]]
-        static UniquePointer<Sequence> open_sequence(
-            const Path& path
-        ) throws (InvalidMidiDataException);
+        THROWS(InvalidMidiDataException)
+        static UniquePointer<Sequence> open_sequence(const Path& path);
     };
 }
 
@@ -64,46 +67,44 @@ export namespace stdx::audio::midi {
 // WinMM backend - not yet implemented; falls back to throwing stubs so the
 // public API still links. See stdx/audio/midi/win32/winmm.inl when added.
 export namespace stdx::audio::midi {
-    Vector<MidiDeviceInfo> MidiSystem::devices() throws (MidiException) {
+    Vector<MidiDeviceInfo> MidiSystem::devices() {
         return {};
     }
-    UniquePointer<MidiDevice> MidiSystem::open_device(
-        const MidiDeviceInfo&
-    ) throws (MidiException) {
+
+    UniquePointer<MidiDevice> MidiSystem::open_device([[maybe_unused]] const MidiDeviceInfo& info) {
         throw MidiException("WinMM MIDI backend not yet wired");
     }
-    Synthesizer& MidiSystem::default_synthesizer() throws (AudioException, MidiException) {
+
+    Synthesizer& MidiSystem::default_synthesizer() {
         throw MidiException("SoftSynthesizer not yet wired");
     }
 }
 #elif defined(__APPLE__)
 // CoreMIDI backend - not yet implemented; same stub fallback.
 export namespace stdx::audio::midi {
-    Vector<MidiDeviceInfo> MidiSystem::devices() throws (MidiException) {
+    Vector<MidiDeviceInfo> MidiSystem::devices() {
         return {};
     }
-    UniquePointer<MidiDevice> MidiSystem::open_device(
-        const MidiDeviceInfo&
-    ) throws (MidiException) {
+
+    UniquePointer<MidiDevice> MidiSystem::open_device([[maybe_unused]] const MidiDeviceInfo& info) {
         throw MidiException("CoreMIDI backend not yet wired");
     }
-    Synthesizer& MidiSystem::default_synthesizer() throws (AudioException, MidiException) {
+
+    Synthesizer& MidiSystem::default_synthesizer() {
         throw MidiException("SoftSynthesizer not yet wired");
     }
 }
 #else
 export namespace stdx::audio::midi {
-    Vector<MidiDeviceInfo> MidiSystem::devices() throws (MidiException) {
+    Vector<MidiDeviceInfo> MidiSystem::devices() {
         return {};
     }
 
-    UniquePointer<MidiDevice> MidiSystem::open_device(
-        const MidiDeviceInfo&
-    ) throws (MidiException) {
+    UniquePointer<MidiDevice> MidiSystem::open_device([[maybe_unused]] const MidiDeviceInfo& info) {
         throw MidiException("no MIDI backend wired in this build");
     }
 
-    Synthesizer& MidiSystem::default_synthesizer() throws (AudioException, MidiException) {
+    Synthesizer& MidiSystem::default_synthesizer() {
         throw MidiException("default synthesizer not wired; ship the SoftSynthesizer backend");
     }
 }

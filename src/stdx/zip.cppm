@@ -19,6 +19,7 @@ import :main;
 
 using stdx::io::ByteBuffer;
 using stdx::io::IOException;
+using stdx::linq::Query;
 
 #ifdef __GNUC__
 using namespace stdx::core;
@@ -56,7 +57,7 @@ public:
 
 /**
  * @class DataFormatException
- * @brief Thrown when compressed data is corrupt or in an unrecognised format.
+ * @brief Thrown when compressed data is corrupt or in an unrecognized format.
  * @extends ZipException
  */
 class DataFormatException: public ZipException {
@@ -75,7 +76,7 @@ enum class FlushMode: u8 {
     PARTIAL_FLUSH = Z_PARTIAL_FLUSH, ///< Flush as much output as possible.
     SYNC_FLUSH = Z_SYNC_FLUSH, ///< Flush to a byte boundary.
     FULL_FLUSH = Z_FULL_FLUSH, ///< Flush and reset the compression state.
-    FINISH = Z_FINISH, ///< Flush all remaining output and finalise the stream.
+    FINISH = Z_FINISH, ///< Flush all remaining output and finalize the stream.
     BLOCK = Z_BLOCK, ///< Stop on next block boundary.
     TREES = Z_TREES, ///< Like BLOCK but also output tree headers.
 };
@@ -96,7 +97,7 @@ enum class CompressionLevel: i8 {
  * @brief Hint to the compressor about the nature of the input data.
  */
 enum class CompressionStrategy: u8 {
-    FILTERED = Z_FILTERED, ///< Optimised for data produced by a filter.
+    FILTERED = Z_FILTERED, ///< Optimized for data produced by a filter.
     HUFFMAN_ONLY = Z_HUFFMAN_ONLY, ///< Force Huffman encoding only (no string matching).
     RLE = Z_RLE, ///< Limit match distances to one (RLE-style).
     FIXED = Z_FIXED, ///< Use fixed Huffman codes.
@@ -225,14 +226,13 @@ public:
 };
 
 /**
- * @class ZipEntry
+ * @struct ZipEntry
  * @brief Metadata for a single entry within a ZIP archive.
  *
  * An entry represents either a file or a directory. Directory entries
  * conventionally have names ending in {@code '/'}.
  */
-class ZipEntry {
-public:
+struct ZipEntry {
     String name; ///< Entry path within the archive (e.g. {@code "dir/file.txt"}).
     String comment; ///< Optional per-entry comment.
     CompressionMethod method = CompressionMethod::DEFLATED; ///< Compression method.
@@ -274,51 +274,60 @@ public:
 class Deflater {
 public:
     static inline constexpr usize CHUNK_SIZE = 16 * 1024; ///< Internal output chunk size.
-
 private:
-    z_stream stream = z_stream{ .zalloc = nullptr, .zfree = nullptr, .opaque = nullptr };
+    z_stream stream = z_stream { .zalloc = nullptr, .zfree = nullptr, .opaque = nullptr };
     ByteBuffer input; ///< Buffered input set by set_input().
     usize input_offset; ///< Bytes of input already consumed.
     bool opened; ///< Whether the zlib stream is live.
     bool finished_stream; ///< Whether Z_STREAM_END has been seen.
 
-    void init(CompressionLevel level, i32 window_bits) throws (ZipException) {
+    THROWS(ZipException)
+    void init(CompressionLevel level, i32 window_bits) {
         const i32 rc = deflateInit2(&stream, static_cast<i32>(level), Z_DEFLATED, window_bits, 8, Z_DEFAULT_STRATEGY);
         if (rc != Z_OK) {
             throw ZipException(build_error_message("Failed to initialize deflater", stream, rc));
         }
         opened = true;
     }
-
 public:
     /**
+     * @brief Creates a new Deflater for compressing a DEFLATE stream.
      * @param level The compression level.
      * @param nowrap If {@code true}, omit the zlib header/trailer (raw deflate).
-     * @throws ZipException if zlib initialisation fails.
+     * @throws ZipException if zlib initialization fails.
      */
-    explicit Deflater(CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION, bool nowrap = false) throws (ZipException):
+    THROWS(ZipException)
+    explicit Deflater(CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION, bool nowrap = false):
         input_offset{0}, opened{false}, finished_stream{false} {
         init(level, nowrap ? -MAX_WBITS : MAX_WBITS);
     }
 
     /**
+     * @brief Creates a new Deflater for compressing a DEFLATE stream.
      * @param level The compression level.
      * @param format Which framing to wrap the deflate stream in.
-     * @throws ZipException if zlib initialisation fails.
+     * @throws ZipException if zlib initialization fails.
      */
-    Deflater(CompressionLevel level, WrapperFormat format) throws (ZipException):
+    THROWS(ZipException)
+    Deflater(CompressionLevel level, WrapperFormat format):
         input_offset{0}, opened{false}, finished_stream{false} {
         i32 window_bits = MAX_WBITS;
         switch (format) {
-            case WrapperFormat::ZLIB: window_bits = MAX_WBITS; break;
-            case WrapperFormat::RAW: window_bits = -MAX_WBITS; break;
-            case WrapperFormat::GZIP: window_bits = 16 + MAX_WBITS; break;
+            case WrapperFormat::ZLIB:
+                window_bits = MAX_WBITS;
+                break;
+            case WrapperFormat::RAW:
+                window_bits = -MAX_WBITS;
+                break;
+            case WrapperFormat::GZIP:
+                window_bits = 16 + MAX_WBITS;
+                break;
         }
         init(level, window_bits);
     }
 
-    Deflater(const Deflater&) = delete;
-    Deflater& operator=(const Deflater&) = delete;
+    Deflater(const Deflater&) = delete("Deflater is not copyable.");
+    Deflater& operator=(const Deflater&) = delete("Deflater is not copyable.");
 
     ~Deflater() {
         if (opened) {
@@ -334,7 +343,8 @@ public:
      *
      * @throws ZipException if the stream was already ended.
      */
-    void end() throws (ZipException) {
+    THROWS(ZipException)
+    void end() {
         if (!opened) {
             throw ZipException("Deflater already ended");
         }
@@ -361,7 +371,7 @@ public:
     }
 
     /**
-     * @brief Returns {@code true} if the stream has been fully flushed and finalised.
+     * @brief Returns {@code true} if the stream has been fully flushed and finalized.
      * @return {@code true} after a {@code FlushMode::FINISH} deflate completes.
      */
     [[nodiscard]]
@@ -373,7 +383,8 @@ public:
      * @brief Resets the compressor so it can be reused for a new stream.
      * @throws ZipException if the underlying reset fails.
      */
-    void reset() throws (ZipException) {
+    THROWS(ZipException)
+    void reset() {
         const i32 rc = ::deflateReset(&stream);
         if (rc != Z_OK) {
             throw ZipException(build_error_message("Failed to reset deflater", stream, rc));
@@ -394,7 +405,8 @@ public:
      * @throws ZipException if the compressor is not open or zlib reports an error.
      */
     [[nodiscard]]
-    ByteBuffer deflate(FlushMode flush = FlushMode::NO_FLUSH) throws (ZipException) {
+    THROWS(ZipException)
+    ByteBuffer deflate(FlushMode flush = FlushMode::NO_FLUSH) {
         if (!opened) {
             throw ZipException("Deflater is not initialized");
         }
@@ -430,9 +442,9 @@ public:
             if (produced > 0) {
                 const usize out_old_size = out.size();
                 out.resize(out_old_size + produced);
-                std::copy(
+                stdx::util::copy(
                     out_chunk.begin(),
-                    out_chunk.begin() + static_cast<ptrdiff>(produced),
+                    out_chunk.begin() + produced,
                     out.data() + static_cast<ptrdiff>(out_old_size)
                 );
             }
@@ -456,7 +468,7 @@ public:
     }
 
     /**
-     * @brief Flushes all remaining input and finalises the stream.
+     * @brief Flushes all remaining input and finalizes the stream.
      *
      * Equivalent to {@code deflate(FlushMode::FINISH)}.
      *
@@ -464,7 +476,8 @@ public:
      * @throws ZipException if compression fails.
      */
     [[nodiscard]]
-    ByteBuffer finish() throws (ZipException) {
+    THROWS(ZipException)
+    ByteBuffer finish() {
         return deflate(FlushMode::FINISH);
     }
 
@@ -503,7 +516,6 @@ public:
 class Inflater {
 public:
     static inline constexpr usize CHUNK_SIZE = 16 * 1024; ///< Internal output chunk size.
-
 private:
     z_stream stream = { .zalloc = nullptr, .zfree = nullptr, .opaque = nullptr };
     ByteBuffer input; ///< Buffered input set by set_input().
@@ -511,41 +523,51 @@ private:
     bool opened; ///< Whether the zlib stream is live.
     bool finished_stream; ///< Whether Z_STREAM_END has been seen.
 
-    void init(i32 window_bits) throws (ZipException) {
+    THROWS(ZipException)
+    void init(i32 window_bits) {
         const i32 rc = inflateInit2(&stream, window_bits);
         if (rc != Z_OK) {
             throw ZipException(build_error_message("Failed to initialize inflater", stream, rc));
         }
         opened = true;
     }
-
 public:
     /**
+     * @brief Creates a new Inflater for decompressing a DEFLATE stream.
      * @param nowrap If {@code true}, expect raw deflate data (no zlib header/trailer).
-     * @throws ZipException if zlib initialisation fails.
+     * @throws ZipException if zlib initialization fails.
      */
-    explicit Inflater(bool nowrap = false) throws (ZipException):
+    THROWS(ZipException)
+    explicit Inflater(bool nowrap = false):
         opened{false}, finished_stream{false}, input{}, input_offset{0} {
         init(nowrap ? -MAX_WBITS : MAX_WBITS);
     }
 
     /**
+     * @brief Creates a new Inflater for decompressing a DEFLATE stream.
      * @param format Which framing to expect around the deflate stream.
-     * @throws ZipException if zlib initialisation fails.
+     * @throws ZipException if zlib initialization fails.
      */
-    explicit Inflater(WrapperFormat format) throws (ZipException):
+    THROWS(ZipException)
+    explicit Inflater(WrapperFormat format):
         opened{false}, finished_stream{false}, input{}, input_offset{0} {
         i32 window_bits = MAX_WBITS;
         switch (format) {
-            case WrapperFormat::ZLIB: window_bits = MAX_WBITS; break;
-            case WrapperFormat::RAW: window_bits = -MAX_WBITS; break;
-            case WrapperFormat::GZIP: window_bits = 16 + MAX_WBITS; break;
+            case WrapperFormat::ZLIB:
+                window_bits = MAX_WBITS;
+                break;
+            case WrapperFormat::RAW:
+                window_bits = -MAX_WBITS;
+                break;
+            case WrapperFormat::GZIP:
+                window_bits = 16 + MAX_WBITS;
+                break;
         }
         init(window_bits);
     }
 
-    Inflater(const Inflater&) = delete;
-    Inflater& operator=(const Inflater&) = delete;
+    Inflater(const Inflater&) = delete("Inflater is not copyable.");
+    Inflater& operator=(const Inflater&) = delete("Inflater is not copyable.");
 
     ~Inflater() {
         if (opened) {
@@ -561,7 +583,8 @@ public:
      *
      * @throws ZipException if the stream was already ended.
      */
-    void end() throws (ZipException) {
+    THROWS(ZipException)
+    void end() {
         if (!opened) {
             throw ZipException("Inflater already ended");
         }
@@ -600,7 +623,8 @@ public:
      * @brief Resets the decompressor so it can be reused for a new stream.
      * @throws ZipException if the underlying reset fails.
      */
-    void reset() throws (ZipException) {
+    THROWS(ZipException)
+    void reset() {
         const i32 rc = ::inflateReset(&stream);
         if (rc != Z_OK) {
             throw ZipException(build_error_message("Failed to reset inflater", stream, rc));
@@ -620,7 +644,8 @@ public:
      * @throws ZipException if the decompressor is not open or zlib reports a stream error.
      */
     [[nodiscard]]
-    ByteBuffer inflate() throws (DataFormatException, ZipException) {
+    THROWS(DataFormatException, ZipException)
+    ByteBuffer inflate() {
         if (!opened) {
             throw ZipException("Inflater is not initialized");
         }
@@ -699,14 +724,15 @@ public:
      * @throws ZipException if a stream error occurs.
      */
     [[nodiscard]]
-    ByteBuffer inflate_all() throws (DataFormatException, ZipException) {
+    THROWS(DataFormatException, ZipException)
+    ByteBuffer inflate_all() {
         ByteBuffer out;
         while (true) {
             ByteBuffer chunk = inflate();
             if (!chunk.empty()) {
                 const usize out_old_size = out.size();
                 out.resize(out_old_size + chunk.size());
-                std::copy(chunk.begin(), chunk.end(), out.data() + static_cast<ptrdiff>(out_old_size));
+                stdx::ranges::copy(chunk, out.data() + static_cast<ptrdiff>(out_old_size));
             }
             if (finished_stream || (needs_input() && chunk.empty())) {
                 break;
@@ -751,10 +777,12 @@ public:
 class GZIPDeflater: public Deflater {
 public:
     /**
+     * @brief Initializes a GZIP deflater.
      * @param level The compression level.
-     * @throws ZipException if zlib initialisation fails.
+     * @throws ZipException if zlib initialization fails.
      */
-    explicit GZIPDeflater(CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION) throws (ZipException):
+    THROWS(ZipException)
+    explicit GZIPDeflater(CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION):
         Deflater(level, WrapperFormat::GZIP) {}
 };
 
@@ -775,9 +803,11 @@ public:
 class GZIPInflater: public Inflater {
 public:
     /**
-     * @throws ZipException if zlib initialisation fails.
+     * @brief Initializes a GZIP inflater.
+     * @throws ZipException if zlib initialization fails.
      */
-    explicit GZIPInflater() throws (ZipException):
+    THROWS(ZipException)
+    explicit GZIPInflater():
         Inflater(WrapperFormat::GZIP) {}
 };
 
@@ -791,7 +821,8 @@ public:
  * @throws ZipException if compression fails.
  */
 [[nodiscard]]
-ByteBuffer compress(Span<const u8> data, CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION, bool nowrap = false) throws (ZipException) {
+THROWS(ZipException)
+ByteBuffer compress(Span<const u8> data, CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION, bool nowrap = false) {
     Deflater deflater(level, nowrap);
     deflater.set_input(data);
     return deflater.finish();
@@ -807,7 +838,8 @@ ByteBuffer compress(Span<const u8> data, CompressionLevel level = CompressionLev
  * @throws ZipException if compression fails.
  */
 [[nodiscard]]
-ByteBuffer compress(const ByteBuffer& data, CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION, bool nowrap = false) throws (ZipException) {
+THROWS(ZipException)
+ByteBuffer compress(const ByteBuffer& data, CompressionLevel level = CompressionLevel::DEFAULT_COMPRESSION, bool nowrap = false) {
     return compress(Span<const u8>(data.data(), data.size()), level, nowrap);
 }
 
@@ -821,7 +853,8 @@ ByteBuffer compress(const ByteBuffer& data, CompressionLevel level = Compression
  * @throws ZipException if decompression fails.
  */
 [[nodiscard]]
-ByteBuffer decompress(Span<const u8> data, bool nowrap = false) throws (DataFormatException, ZipException) {
+THROWS(DataFormatException, ZipException)
+ByteBuffer decompress(Span<const u8> data, bool nowrap = false) {
     Inflater inflater(nowrap);
     inflater.set_input(data);
     return inflater.inflate_all();
@@ -837,7 +870,8 @@ ByteBuffer decompress(Span<const u8> data, bool nowrap = false) throws (DataForm
  * @throws ZipException if decompression fails.
  */
 [[nodiscard]]
-ByteBuffer decompress(const ByteBuffer& data, bool nowrap = false) throws (DataFormatException, ZipException) {
+THROWS(DataFormatException, ZipException)
+ByteBuffer decompress(const ByteBuffer& data, bool nowrap = false) {
     return decompress(Span<const u8>(data.data(), data.size()), nowrap);
 }
 

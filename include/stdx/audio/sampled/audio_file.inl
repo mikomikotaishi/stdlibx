@@ -51,9 +51,7 @@ namespace stdx::audio::sampled {
 }
 
 export namespace stdx::audio::sampled {
-    UniquePointer<AudioInputStream> AudioSystem::open_audio_file(
-        const Path& path
-    ) throws (UnsupportedAudioFileException) {
+    UniquePointer<AudioInputStream> AudioSystem::open_audio_file(const Path& path) {
         const AudioFileType t = sniff_audio_file_type(path);
         switch (t) {
             case AudioFileType::WAV:
@@ -73,7 +71,6 @@ export namespace stdx::audio::sampled {
                     "MP3 decoder requires the libmpg123 extension"
                 );
             case AudioFileType::UNKNOWN:
-            default:
                 throw UnsupportedAudioFileException(
                     "unrecognized audio file container"
                 );

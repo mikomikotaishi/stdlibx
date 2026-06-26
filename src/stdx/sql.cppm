@@ -368,7 +368,8 @@ private:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    SQLLEN numeric_attr(i32 column_index, SQLUSMALLINT attribute) const throws (SQLException) {
+    THROWS(SQLException)
+    SQLLEN numeric_attr(i32 column_index, SQLUSMALLINT attribute) const {
         SQLLEN value;
         SQLRETURN ret = SQLColAttribute(
             stmt, static_cast<SQLUSMALLINT>(column_index),
@@ -389,7 +390,8 @@ private:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String string_attr(i32 column_index, SQLUSMALLINT attribute) const throws (SQLException) {
+    THROWS(SQLException)
+    String string_attr(i32 column_index, SQLUSMALLINT attribute) const {
         SQLCHAR buffer[256]{};
         SQLSMALLINT length;
         SQLRETURN ret = SQLColAttribute(
@@ -425,7 +427,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String column_name(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    String column_name(i32 column_index) const {
         return string_attr(column_index, SQL_DESC_NAME);
     }
 
@@ -437,7 +440,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    SQLType column_type(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    SQLType column_type(i32 column_index) const {
         return static_cast<SQLType>(numeric_attr(column_index, SQL_DESC_CONCISE_TYPE));
     }
 
@@ -449,7 +453,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String column_type_name(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    String column_type_name(i32 column_index) const {
         return string_attr(column_index, SQL_DESC_TYPE_NAME);
     }
 
@@ -461,7 +466,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    i32 column_display_size(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    i32 column_display_size(i32 column_index) const {
         return static_cast<i32>(numeric_attr(column_index, SQL_DESC_DISPLAY_SIZE));
     }
 
@@ -476,7 +482,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    i32 precision(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    i32 precision(i32 column_index) const {
         return static_cast<i32>(numeric_attr(column_index, SQL_DESC_PRECISION));
     }
 
@@ -488,7 +495,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    i32 scale(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    i32 scale(i32 column_index) const {
         return static_cast<i32>(numeric_attr(column_index, SQL_DESC_SCALE));
     }
 
@@ -500,7 +508,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    ColumnNullability is_nullable(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    ColumnNullability is_nullable(i32 column_index) const {
         return static_cast<ColumnNullability>(numeric_attr(column_index, SQL_DESC_NULLABLE));
     }
 
@@ -512,7 +521,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String table_name(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    String table_name(i32 column_index) const {
         return string_attr(column_index, SQL_DESC_TABLE_NAME);
     }
 
@@ -524,7 +534,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String catalog_name(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    String catalog_name(i32 column_index) const {
         return string_attr(column_index, SQL_DESC_CATALOG_NAME);
     }
 
@@ -536,7 +547,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String schema_name(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    String schema_name(i32 column_index) const {
         return string_attr(column_index, SQL_DESC_SCHEMA_NAME);
     }
 
@@ -548,7 +560,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String column_label(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    String column_label(i32 column_index) const {
         return string_attr(column_index, SQL_DESC_LABEL);
     }
 
@@ -560,7 +573,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    bool is_auto_increment(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    bool is_auto_increment(i32 column_index) const {
         return numeric_attr(column_index, SQL_DESC_AUTO_UNIQUE_VALUE) == SQL_TRUE;
     }
 
@@ -572,7 +586,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    bool is_case_sensitive(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    bool is_case_sensitive(i32 column_index) const {
         return numeric_attr(column_index, SQL_DESC_CASE_SENSITIVE) == SQL_TRUE;
     }
 
@@ -584,7 +599,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    bool is_searchable(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    bool is_searchable(i32 column_index) const {
         return numeric_attr(column_index, SQL_DESC_SEARCHABLE) != SQL_PRED_NONE;
     }
 
@@ -596,7 +612,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    i32 octet_length(i32 column_index) const throws (SQLException) {
+    THROWS(SQLException)
+    i32 octet_length(i32 column_index) const {
         return static_cast<i32>(numeric_attr(column_index, SQL_DESC_OCTET_LENGTH));
     }
 };
@@ -624,7 +641,8 @@ private:
      *
      * @throws SQLException if the result set is closed.
      */
-    void check_closed() const throws (SQLException) {
+    THROWS(SQLException)
+    void check_closed() const {
         if (closed) {
             throw SQLException("ResultSet is closed");
         }
@@ -637,7 +655,8 @@ private:
      * @return The 1-based column index.
      * @throws SQLException if the column name is not found.
      */
-    i32 find_column(StringView column_name) const throws (SQLException) {
+    THROWS(SQLException)
+    i32 find_column(StringView column_name) const {
         check_closed();
 
         for (i32 i = 1; i <= static_cast<i32>(column_count); ++i) {
@@ -668,7 +687,8 @@ private:
      *
      * This constructor is private and used by Statement and PreparedStatement.
      */
-    explicit ResultSet(SQLHSTMT stmt, bool scrollable = false) throws (SQLException):
+    THROWS(SQLException)
+    explicit ResultSet(SQLHSTMT stmt, bool scrollable = false):
         stmt{stmt}, last_indicator{0}, column_count{0}, scrollable{scrollable}, closed{false} {
         SQLSMALLINT col_count;
         SQLRETURN ret = SQLNumResultCols(this->stmt, &col_count);
@@ -728,8 +748,8 @@ public:
         return *this;
     }
 
-    ResultSet(const ResultSet&) = delete;
-    ResultSet& operator=(const ResultSet&) = delete;
+    ResultSet(const ResultSet&) = delete("ResultSet is not copyable.");
+    ResultSet& operator=(const ResultSet&) = delete("ResultSet is not copyable.");
 
     /**
      * @brief Destructor.
@@ -745,7 +765,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    bool next() throws (SQLException) {
+    THROWS(SQLException)
+    bool next() {
         check_closed();
         SQLRETURN ret = SQLFetch(stmt);
         if (ret == SQL_NO_DATA) {
@@ -766,7 +787,8 @@ public:
      * @throws SQLException if not scrollable or on error.
      */
     [[nodiscard]]
-    bool previous() throws (SQLException) {
+    THROWS(SQLException)
+    bool previous() {
         check_closed();
         if (!scrollable) {
             throw SQLException("ResultSet is not scrollable");
@@ -788,7 +810,8 @@ public:
      * @throws SQLException if not scrollable or on error.
      */
     [[nodiscard]]
-    bool first() throws (SQLException) {
+    THROWS(SQLException)
+    bool first() {
         check_closed();
         if (!scrollable) {
             throw SQLException("ResultSet is not scrollable");
@@ -810,7 +833,8 @@ public:
      * @throws SQLException if not scrollable or on error.
      */
     [[nodiscard]]
-    bool last() throws (SQLException) {
+    THROWS(SQLException)
+    bool last() {
         check_closed();
         if (!scrollable) {
             throw SQLException("ResultSet is not scrollable");
@@ -836,7 +860,8 @@ public:
      * @throws SQLException if not scrollable or on error.
      */
     [[nodiscard]]
-    bool absolute(i64 row) throws (SQLException) {
+    THROWS(SQLException)
+    bool absolute(i64 row) {
         check_closed();
         if (!scrollable) {
             throw SQLException("ResultSet is not scrollable");
@@ -861,7 +886,8 @@ public:
      * @throws SQLException if not scrollable or on error.
      */
     [[nodiscard]]
-    bool relative(i64 rows) throws (SQLException) {
+    THROWS(SQLException)
+    bool relative(i64 rows) {
         check_closed();
         if (!scrollable) {
             throw SQLException("ResultSet is not scrollable");
@@ -897,7 +923,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Optional<String> get_string(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<String> get_string(i32 column_index) {
         check_closed();
 
         String result;
@@ -941,7 +968,8 @@ public:
      * @copydoc get_string(i32)
      */
     [[nodiscard]]
-    Optional<String> get_string(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<String> get_string(StringView column_name) {
         return get_string(find_column(column_name));
     }
 
@@ -953,7 +981,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Optional<i16> get_short(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<i16> get_short(i32 column_index) {
         check_closed();
 
         SQLSMALLINT value;
@@ -981,7 +1010,8 @@ public:
      * @copydoc get_short(i32)
      */
     [[nodiscard]]
-    Optional<i16> get_short(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<i16> get_short(StringView column_name) {
         return get_short(find_column(column_name));
     }
 
@@ -993,7 +1023,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Optional<i32> get_int(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<i32> get_int(i32 column_index) {
         check_closed();
 
         SQLINTEGER value;
@@ -1021,7 +1052,8 @@ public:
      * @copydoc get_int(i32)
      */
     [[nodiscard]]
-    Optional<i32> get_int(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<i32> get_int(StringView column_name) {
         return get_int(find_column(column_name));
     }
 
@@ -1033,7 +1065,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Optional<i64> get_long(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<i64> get_long(i32 column_index) {
         check_closed();
 
         SQLBIGINT value;
@@ -1061,7 +1094,8 @@ public:
      * @copydoc get_long(i32)
      */
     [[nodiscard]]
-    Optional<i64> get_long(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<i64> get_long(StringView column_name) {
         return get_long(find_column(column_name));
     }
 
@@ -1073,7 +1107,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Optional<f32> get_float(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<f32> get_float(i32 column_index) {
         check_closed();
 
         SQLREAL value;
@@ -1101,7 +1136,8 @@ public:
      * @copydoc get_float(i32)
      */
     [[nodiscard]]
-    Optional<f32> get_float(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<f32> get_float(StringView column_name) {
         return get_float(find_column(column_name));
     }
 
@@ -1113,7 +1149,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Optional<f64> get_double(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<f64> get_double(i32 column_index) {
         check_closed();
 
         SQLDOUBLE value;
@@ -1141,7 +1178,8 @@ public:
      * @copydoc get_double(i32)
      */
     [[nodiscard]]
-    Optional<f64> get_double(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<f64> get_double(StringView column_name) {
         return get_double(find_column(column_name));
     }
 
@@ -1153,7 +1191,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Optional<bool> get_boolean(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<bool> get_boolean(i32 column_index) {
         check_closed();
 
         SQLCHAR value;
@@ -1179,7 +1218,8 @@ public:
 
     /** @copydoc get_boolean(i32) */
     [[nodiscard]]
-    Optional<bool> get_boolean(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<bool> get_boolean(StringView column_name) {
         return get_boolean(find_column(column_name));
     }
 
@@ -1191,7 +1231,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Optional<u8> get_byte(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<u8> get_byte(i32 column_index) {
         check_closed();
 
         SQLCHAR value;
@@ -1217,7 +1258,8 @@ public:
 
     /** @copydoc get_byte(i32) */
     [[nodiscard]]
-    Optional<u8> get_byte(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<u8> get_byte(StringView column_name) {
         return get_byte(find_column(column_name));
     }
 
@@ -1232,7 +1274,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Optional<Vector<u8>> get_binary(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<Vector<u8>> get_binary(i32 column_index) {
         check_closed();
 
         Vector<u8> result;
@@ -1282,7 +1325,8 @@ public:
      * @copydoc get_binary(i32)
      */
     [[nodiscard]]
-    Optional<Vector<u8>> get_binary(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<Vector<u8>> get_binary(StringView column_name) {
         return get_binary(find_column(column_name));
     }
 
@@ -1293,7 +1337,8 @@ public:
      * @throws SQLException if the result set is closed.
      */
     [[nodiscard]]
-    bool was_null() const throws (SQLException) {
+    THROWS(SQLException)
+    bool was_null() const {
         check_closed();
         return last_indicator == SQL_NULL_DATA;
     }
@@ -1316,7 +1361,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String get_column_name(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    String get_column_name(i32 column_index) {
         check_closed();
 
         SQLCHAR column_name[256];
@@ -1342,7 +1388,8 @@ public:
      * @throws SQLException if the result set is closed.
      */
     [[nodiscard]]
-    ResultSetMetaData get_meta_data() const throws (SQLException) {
+    THROWS(SQLException)
+    ResultSetMetaData get_meta_data() const {
         check_closed();
         return ResultSetMetaData(stmt, static_cast<i32>(column_count));
     }
@@ -1384,7 +1431,8 @@ public:
      */
     template <typename T>
     [[nodiscard]]
-    Optional<T> get(i32 column_index) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<T> get(i32 column_index) {
         if constexpr (IsSameValue<T, i16>) {
             return get_short(column_index);
         } else if constexpr (IsSameValue<T, i32>) {
@@ -1418,7 +1466,8 @@ public:
      */
     template <typename T>
     [[nodiscard]]
-    Optional<T> get(StringView column_name) throws (SQLException) {
+    THROWS(SQLException)
+    Optional<T> get(StringView column_name) {
         return get<T>(find_column(column_name));
     }
 
@@ -1441,7 +1490,8 @@ public:
          */
         template <typename T>
         [[nodiscard]]
-        Optional<T> get(i32 column_index) const throws (SQLException) {
+        THROWS(SQLException)
+        Optional<T> get(i32 column_index) const {
             return rs->get<T>(column_index);
         }
 
@@ -1450,7 +1500,8 @@ public:
          */
         template <typename T>
         [[nodiscard]]
-        Optional<T> get(StringView column_name) const throws (SQLException) {
+        THROWS(SQLException)
+        Optional<T> get(StringView column_name) const {
             return rs->get<T>(column_name);
         }
 
@@ -1458,7 +1509,8 @@ public:
          * @brief Whether the most recently read column was SQL NULL.
          */
         [[nodiscard]]
-        bool was_null() const throws (SQLException) {
+        THROWS(SQLException)
+        bool was_null() const {
             return rs->was_null();
         }
 
@@ -1497,14 +1549,16 @@ public:
             return Row{rs};
         }
 
-        Iterator& operator++() throws (SQLException) {
+        THROWS(SQLException)
+        Iterator& operator++() {
             if (!rs->next()) {
                 rs = nullptr;
             }
             return *this;
         }
 
-        void operator++(int) throws (SQLException) {
+        THROWS(SQLException)
+        void operator++(int) {
             ++*this;
         }
 
@@ -1525,7 +1579,8 @@ public:
      *       do not mix range iteration with manual next() calls.
      */
     [[nodiscard]]
-    Iterator begin() throws (SQLException) {
+    THROWS(SQLException)
+    Iterator begin() {
         if (!next()) {
             return Iterator{nullptr};
         }
@@ -1557,7 +1612,8 @@ public:
      *       once, and do not interleave with manual next() or begin()/end().
      */
     [[nodiscard]]
-    Generator<Row> rows() throws (SQLException) {
+    THROWS(SQLException)
+    Generator<Row> rows() {
         while (next()) {
             co_yield Row(this);
         }
@@ -1603,7 +1659,8 @@ private:
      *
      * @throws SQLException if the statement is closed.
      */
-    void check_closed() const throws (SQLException) {
+    THROWS(SQLException)
+    void check_closed() const {
         if (closed) {
             throw SQLException("PreparedStatement is closed");
         }
@@ -1615,7 +1672,8 @@ private:
      * @param parameter_index The parameter index (1-based).
      * @throws SQLException if the index is out of range.
      */
-    void check_index(i32 parameter_index) const throws (SQLException) {
+    THROWS(SQLException)
+    void check_index(i32 parameter_index) const {
         if (parameter_index < 1 || parameter_index > static_cast<i32>(params.size())) {
             throw SQLException("Invalid parameter index");
         }
@@ -1635,7 +1693,8 @@ private:
      * @throws SQLException on error.
      */
     template <typename T>
-    void bind_one(i32 parameter_index, T&& value) throws (SQLException) {
+    THROWS(SQLException)
+    void bind_one(i32 parameter_index, T&& value) {
         using V = DecayType<T>;
         if constexpr (IsSameValue<V, bool>) {
             set_boolean(parameter_index, value);
@@ -1665,7 +1724,8 @@ private:
      *         parameter markers in the prepared statement.
      */
     template <Bindable... Args>
-    void bind_all(Args&&... args) throws (SQLException) {
+    THROWS(SQLException)
+    void bind_all(Args&&... args) {
         if (sizeof...(Args) != params.size()) {
             throw SQLException("Argument count does not match parameter count");
         }
@@ -1683,7 +1743,8 @@ private:
      *
      * This constructor is private and used by Connection.
      */
-    PreparedStatement(SQLHDBC dbc, StringView sql) throws (SQLException):
+    THROWS(SQLException)
+    PreparedStatement(SQLHDBC dbc, StringView sql):
         sql{sql}, dbc{dbc}, stmt{nullptr}, closed{false} {
         SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
         if (!SQL_SUCCEEDED(ret)) {
@@ -1752,8 +1813,8 @@ public:
         return *this;
     }
 
-    PreparedStatement(const PreparedStatement&) = delete;
-    PreparedStatement& operator=(const PreparedStatement&) = delete;
+    PreparedStatement(const PreparedStatement&) = delete("PreparedStatement is not copyable.");
+    PreparedStatement& operator=(const PreparedStatement&) = delete("PreparedStatement is not copyable.");
 
     /**
      * @brief Destructor.
@@ -1769,7 +1830,8 @@ public:
      * @param value The integer value to bind.
      * @throws SQLException on error.
      */
-    void set_int(i32 parameter_index, i32 value) throws (SQLException) {
+    THROWS(SQLException)
+    void set_int(i32 parameter_index, i32 value) {
         check_closed();
         check_index(parameter_index);
 
@@ -1795,7 +1857,8 @@ public:
      * @param value The long integer value to bind.
      * @throws SQLException on error.
      */
-    void set_long(i32 parameter_index, i64 value) throws (SQLException) {
+    THROWS(SQLException)
+    void set_long(i32 parameter_index, i64 value) {
         check_closed();
         check_index(parameter_index);
 
@@ -1821,7 +1884,8 @@ public:
      * @param value The double value to bind.
      * @throws SQLException on error.
      */
-    void set_double(i32 parameter_index, f64 value) throws (SQLException) {
+    THROWS(SQLException)
+    void set_double(i32 parameter_index, f64 value) {
         check_closed();
         check_index(parameter_index);
 
@@ -1847,7 +1911,8 @@ public:
      * @param value The string value to bind.
      * @throws SQLException on error.
      */
-    void set_string(i32 parameter_index, StringView value) throws (SQLException) {
+    THROWS(SQLException)
+    void set_string(i32 parameter_index, StringView value) {
         check_closed();
         check_index(parameter_index);
 
@@ -1874,7 +1939,8 @@ public:
      * @param value The boolean value to bind.
      * @throws SQLException on error.
      */
-    void set_boolean(i32 parameter_index, bool value) throws (SQLException) {
+    THROWS(SQLException)
+    void set_boolean(i32 parameter_index, bool value) {
         check_closed();
         check_index(parameter_index);
 
@@ -1898,7 +1964,8 @@ public:
      * @param parameter_index The parameter index (1-based).
      * @throws SQLException on error.
      */
-    void set_null(i32 parameter_index) throws (SQLException) {
+    THROWS(SQLException)
+    void set_null(i32 parameter_index) {
         check_closed();
         check_index(parameter_index);
 
@@ -1923,7 +1990,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    ResultSet execute_query() throws (SQLException) {
+    THROWS(SQLException)
+    ResultSet execute_query() {
         check_closed();
 
         SQLRETURN ret = SQLExecute(stmt);
@@ -1941,7 +2009,8 @@ public:
      * @return The number of rows affected.
      * @throws SQLException on error.
      */
-    i32 execute_update() throws (SQLException) {
+    THROWS(SQLException)
+    i32 execute_update() {
         check_closed();
 
         SQLRETURN ret = SQLExecute(stmt);
@@ -1976,7 +2045,8 @@ public:
     template <Bindable... Args>
         requires (sizeof...(Args) >= 1)
     [[nodiscard]]
-    ResultSet execute_query(Args&&... args) throws (SQLException) {
+    THROWS(SQLException)
+    ResultSet execute_query(Args&&... args) {
         bind_all(Ops::forward<Args>(args)...);
         return execute_query();
     }
@@ -1992,7 +2062,8 @@ public:
      */
     template <Bindable... Args>
         requires (sizeof...(Args) >= 1)
-    i32 execute_update(Args&&... args) throws (SQLException) {
+    THROWS(SQLException)
+    i32 execute_update(Args&&... args) {
         bind_all(Ops::forward<Args>(args)...);
         return execute_update();
     }
@@ -2006,7 +2077,8 @@ public:
      *
      * @throws SQLException if the statement is closed.
      */
-    void add_batch() throws (SQLException) {
+    THROWS(SQLException)
+    void add_batch() {
         check_closed();
         batch.push_back(params);
     }
@@ -2021,7 +2093,8 @@ public:
      * @return A vector of row counts, one per batch entry.
      * @throws SQLException on error (execution stops at the first failure).
      */
-    Vector<i32> execute_batch() throws (SQLException) {
+    THROWS(SQLException)
+    Vector<i32> execute_batch() {
         check_closed();
 
         Vector<i32> results;
@@ -2105,7 +2178,8 @@ public:
      *
      * @throws SQLException if the statement is closed.
      */
-    void clear_parameters() throws (SQLException) {
+    THROWS(SQLException)
+    void clear_parameters() {
         check_closed();
         SQLFreeStmt(stmt, SQL_RESET_PARAMS);
     }
@@ -2148,13 +2222,15 @@ private:
     String sql;
     bool closed;
 
-    void check_closed() const throws (SQLException) {
+    THROWS(SQLException)
+    void check_closed() const {
         if (closed) {
             throw SQLException("CallableStatement is closed");
         }
     }
 
-    void check_index(i32 parameter_index) const throws (SQLException) {
+    THROWS(SQLException)
+    void check_index(i32 parameter_index) const {
         if (parameter_index < 1 || parameter_index > static_cast<i32>(params.size())) {
             throw SQLException("Invalid parameter index");
         }
@@ -2170,7 +2246,8 @@ private:
      *
      * This constructor is private and used by Connection.
      */
-    CallableStatement(SQLHDBC dbc, StringView procedure_call) throws (SQLException):
+    THROWS(SQLException)
+    CallableStatement(SQLHDBC dbc, StringView procedure_call):
         dbc{dbc}, stmt{nullptr}, params{}, param_directions{},
         sql{procedure_call}, closed{false} {
         SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -2230,8 +2307,8 @@ public:
         return *this;
     }
 
-    CallableStatement(const CallableStatement&) = delete;
-    CallableStatement& operator=(const CallableStatement&) = delete;
+    CallableStatement(const CallableStatement&) = delete("CallableStatement is not copyable.");
+    CallableStatement& operator=(const CallableStatement&) = delete("CallableStatement is not copyable.");
 
     ~CallableStatement() {
         close();
@@ -2247,7 +2324,8 @@ public:
      * @param type The SQL type of the OUT parameter.
      * @throws SQLException on error.
      */
-    void register_out_parameter(i32 parameter_index, SQLType type) throws (SQLException) {
+    THROWS(SQLException)
+    void register_out_parameter(i32 parameter_index, SQLType type) {
         check_closed();
         check_index(parameter_index);
 
@@ -2321,7 +2399,8 @@ public:
      * @param value The integer value to bind.
      * @throws SQLException on error.
      */
-    void set_int(i32 parameter_index, i32 value) throws (SQLException) {
+    THROWS(SQLException)
+    void set_int(i32 parameter_index, i32 value) {
         check_closed();
         check_index(parameter_index);
 
@@ -2347,7 +2426,8 @@ public:
      * @param value The string value to bind.
      * @throws SQLException on error.
      */
-    void set_string(i32 parameter_index, StringView value) throws (SQLException) {
+    THROWS(SQLException)
+    void set_string(i32 parameter_index, StringView value) {
         check_closed();
         check_index(parameter_index);
 
@@ -2375,7 +2455,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    bool execute() throws (SQLException) {
+    THROWS(SQLException)
+    bool execute() {
         check_closed();
 
         SQLRETURN ret = SQLExecute(stmt);
@@ -2395,7 +2476,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    ResultSet get_result_set() throws (SQLException) {
+    THROWS(SQLException)
+    ResultSet get_result_set() {
         check_closed();
         return ResultSet(stmt);
     }
@@ -2408,7 +2490,8 @@ public:
      * @throws SQLException if the parameter is not an integer OUT parameter.
      */
     [[nodiscard]]
-    i32 get_int(i32 parameter_index) const throws (SQLException) {
+    THROWS(SQLException)
+    i32 get_int(i32 parameter_index) const {
         check_closed();
         check_index(parameter_index);
 
@@ -2427,7 +2510,8 @@ public:
      * @throws SQLException if the parameter is not a long OUT parameter.
      */
     [[nodiscard]]
-    i64 get_long(i32 parameter_index) const throws (SQLException) {
+    THROWS(SQLException)
+    i64 get_long(i32 parameter_index) const {
         check_closed();
         check_index(parameter_index);
 
@@ -2446,7 +2530,8 @@ public:
      * @throws SQLException if the parameter is not a double OUT parameter.
      */
     [[nodiscard]]
-    f64 get_double(i32 parameter_index) const throws (SQLException) {
+    THROWS(SQLException)
+    f64 get_double(i32 parameter_index) const {
         check_closed();
         check_index(parameter_index);
 
@@ -2465,7 +2550,8 @@ public:
      * @throws SQLException if the parameter is not a string OUT parameter.
      */
     [[nodiscard]]
-    String get_string(i32 parameter_index) const throws (SQLException) {
+    THROWS(SQLException)
+    String get_string(i32 parameter_index) const {
         check_closed();
         check_index(parameter_index);
 
@@ -2484,7 +2570,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    bool was_null(i32 parameter_index) const throws (SQLException) {
+    THROWS(SQLException)
+    bool was_null(i32 parameter_index) const {
         check_closed();
         check_index(parameter_index);
         return params[parameter_index - 1].indicator == SQL_NULL_DATA;
@@ -2530,7 +2617,8 @@ private:
      *
      * @throws SQLException if the statement is closed.
      */
-    void check_closed() const throws (SQLException) {
+    THROWS(SQLException)
+    void check_closed() const {
         if (closed) {
             throw SQLException("Statement is closed");
         }
@@ -2545,7 +2633,8 @@ private:
      *
      * This constructor is private and used by Connection.
      */
-    explicit Statement(SQLHDBC dbc) throws (SQLException):
+    THROWS(SQLException)
+    explicit Statement(SQLHDBC dbc):
         dbc{dbc}, stmt{nullptr}, rs_type{ResultSetType::FORWARD_ONLY}, closed{false} {
         SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, this->dbc, &this->stmt);
         if (!SQL_SUCCEEDED(ret)) {
@@ -2593,9 +2682,8 @@ public:
         return *this;
     }
 
-    // Disable copy operations
-    Statement(const Statement&) = delete;
-    Statement& operator=(const Statement&) = delete;
+    Statement(const Statement&) = delete("Statement is not copyable.");
+    Statement& operator=(const Statement&) = delete("Statement is not copyable.");
 
     /**
      * @brief Destructor.
@@ -2612,7 +2700,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    ResultSet execute_query(StringView sql) throws (SQLException) {
+    THROWS(SQLException)
+    ResultSet execute_query(StringView sql) {
         check_closed();
 
         String sql_str(sql);
@@ -2637,7 +2726,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    i32 execute_update(StringView sql) throws (SQLException) {
+    THROWS(SQLException)
+    i32 execute_update(StringView sql) {
         check_closed();
 
         String sql_str(sql);
@@ -2669,7 +2759,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    bool execute(StringView sql) throws (SQLException) {
+    THROWS(SQLException)
+    bool execute(StringView sql) {
         check_closed();
 
         String sql_str(sql);
@@ -2696,7 +2787,8 @@ public:
      * @throws SQLException if no result set is available.
      */
     [[nodiscard]]
-    ResultSet get_result_set() throws (SQLException) {
+    THROWS(SQLException)
+    ResultSet get_result_set() {
         check_closed();
         return ResultSet(stmt, rs_type != ResultSetType::FORWARD_ONLY);
     }
@@ -2708,7 +2800,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    i32 update_count() throws (SQLException) {
+    THROWS(SQLException)
+    i32 update_count() {
         check_closed();
 
         SQLLEN row_count;
@@ -2730,7 +2823,8 @@ public:
      * @param type The desired result set type.
      * @throws SQLException on error.
      */
-    void set_result_set_type(ResultSetType type) throws (SQLException) {
+    THROWS(SQLException)
+    void set_result_set_type(ResultSetType type) {
         check_closed();
 
         SQLRETURN ret = SQLSetStmtAttr(
@@ -2754,7 +2848,8 @@ public:
      * @param seconds The timeout in seconds.
      * @throws SQLException on error.
      */
-    void set_query_timeout(i32 seconds) throws (SQLException) {
+    THROWS(SQLException)
+    void set_query_timeout(i32 seconds) {
         check_closed();
 
         SQLRETURN ret = SQLSetStmtAttr(
@@ -2775,7 +2870,8 @@ public:
      * @param max The maximum number of rows.
      * @throws SQLException on error.
      */
-    void set_max_rows(i32 max) throws (SQLException) {
+    THROWS(SQLException)
+    void set_max_rows(i32 max) {
         check_closed();
 
         SQLRETURN ret = SQLSetStmtAttr(
@@ -2797,7 +2893,8 @@ public:
      * @param size The fetch size.
      * @throws SQLException on error.
      */
-    void set_fetch_size(i32 size) throws (SQLException) {
+    THROWS(SQLException)
+    void set_fetch_size(i32 size) {
         check_closed();
 
         SQLRETURN ret = SQLSetStmtAttr(
@@ -2851,7 +2948,8 @@ private:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String string_info(SQLUSMALLINT info_type) const throws (SQLException) {
+    THROWS(SQLException)
+    String string_info(SQLUSMALLINT info_type) const {
         SQLCHAR buffer[256]{};
         SQLSMALLINT length;
         SQLRETURN ret = SQLGetInfo(dbc, info_type, buffer, sizeof(buffer), &length);
@@ -2869,7 +2967,8 @@ private:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    u16 u16_info(SQLUSMALLINT info_type) const throws (SQLException) {
+    THROWS(SQLException)
+    u16 u16_info(SQLUSMALLINT info_type) const {
         SQLUSMALLINT value;
         SQLRETURN ret = SQLGetInfo(dbc, info_type, &value, sizeof(value), nullptr);
         if (!SQL_SUCCEEDED(ret)) {
@@ -2886,7 +2985,8 @@ private:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    u32 u32_info(SQLUSMALLINT info_type) const throws (SQLException) {
+    THROWS(SQLException)
+    u32 u32_info(SQLUSMALLINT info_type) const {
         SQLUINTEGER value;
         SQLRETURN ret = SQLGetInfo(dbc, info_type, &value, sizeof(value), nullptr);
         if (!SQL_SUCCEEDED(ret)) {
@@ -2907,7 +3007,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String database_product_name() const throws (SQLException) {
+    THROWS(SQLException)
+    String database_product_name() const {
         return string_info(SQL_DBMS_NAME);
     }
 
@@ -2918,7 +3019,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String database_product_version() const throws (SQLException) {
+    THROWS(SQLException)
+    String database_product_version() const {
         return string_info(SQL_DBMS_VER);
     }
 
@@ -2929,7 +3031,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String driver_name() const throws (SQLException) {
+    THROWS(SQLException)
+    String driver_name() const {
         return string_info(SQL_DRIVER_NAME);
     }
 
@@ -2940,7 +3043,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String driver_version() const throws (SQLException) {
+    THROWS(SQLException)
+    String driver_version() const {
         return string_info(SQL_DRIVER_VER);
     }
 
@@ -2951,7 +3055,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String database_name() const throws (SQLException) {
+    THROWS(SQLException)
+    String database_name() const {
         return string_info(SQL_DATABASE_NAME);
     }
 
@@ -2962,7 +3067,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String user_name() const throws (SQLException) {
+    THROWS(SQLException)
+    String user_name() const {
         return string_info(SQL_USER_NAME);
     }
 
@@ -2973,7 +3079,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String identifier_quote_string() const throws (SQLException) {
+    THROWS(SQLException)
+    String identifier_quote_string() const {
         return string_info(SQL_IDENTIFIER_QUOTE_CHAR);
     }
 
@@ -2984,7 +3091,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String catalog_term() const throws (SQLException) {
+    THROWS(SQLException)
+    String catalog_term() const {
         return string_info(SQL_CATALOG_TERM);
     }
 
@@ -2995,7 +3103,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    String schema_term() const throws (SQLException) {
+    THROWS(SQLException)
+    String schema_term() const {
         return string_info(SQL_SCHEMA_TERM);
     }
 
@@ -3006,7 +3115,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    i32 max_columns_in_table() const throws (SQLException) {
+    THROWS(SQLException)
+    i32 max_columns_in_table() const {
         return static_cast<i32>(u16_info(SQL_MAX_COLUMNS_IN_TABLE));
     }
 
@@ -3017,7 +3127,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    i32 max_statement_length() const throws (SQLException) {
+    THROWS(SQLException)
+    i32 max_statement_length() const {
         return static_cast<i32>(u32_info(SQL_MAX_STATEMENT_LEN));
     }
 
@@ -3028,7 +3139,8 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    bool supports_transactions() const throws (SQLException) {
+    THROWS(SQLException)
+    bool supports_transactions() const {
         return u16_info(SQL_TXN_CAPABLE) != SQL_TC_NONE;
     }
 
@@ -3046,10 +3158,11 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
+    THROWS(SQLException)
     ResultSet tables(
         StringView catalog, StringView schema,
         StringView table, StringView types
-    ) const throws (SQLException) {
+    ) const {
         SQLHSTMT stmt;
         SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
         if (!SQL_SUCCEEDED(ret)) {
@@ -3097,10 +3210,11 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
+    THROWS(SQLException)
     ResultSet columns(
         StringView catalog, StringView schema,
         StringView table, StringView column
-    ) const throws (SQLException) {
+    ) const {
         SQLHSTMT stmt;
         SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
         if (!SQL_SUCCEEDED(ret)) {
@@ -3162,7 +3276,8 @@ private:
      *
      * @throws SQLException if the connection is closed.
      */
-    void check_closed() const throws (SQLException) {
+    THROWS(SQLException)
+    void check_closed() const {
         if (closed) {
             throw SQLException("Connection is closed");
         }
@@ -3177,7 +3292,8 @@ private:
      *
      * This constructor is private and used by DriverManager.
      */
-    explicit Connection(StringView conn_str) throws (SQLException):
+    THROWS(SQLException)
+    explicit Connection(StringView conn_str):
         env{nullptr}, dbc{nullptr}, closed{false}, auto_commit{true} {
         SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env);
         if (!SQL_SUCCEEDED(ret)) {
@@ -3231,7 +3347,8 @@ private:
      *
      * This constructor is private and used by DriverManager.
      */
-    Connection(StringView dsn, StringView username, StringView password) throws (SQLException):
+    THROWS(SQLException)
+    Connection(StringView dsn, StringView username, StringView password):
         env{nullptr}, dbc{nullptr}, closed{false}, auto_commit{true} {
         SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env);
         if (!SQL_SUCCEEDED(ret)) {
@@ -3303,8 +3420,8 @@ public:
         return *this;
     }
 
-    Connection(const Connection&) = delete;
-    Connection& operator=(const Connection&) = delete;
+    Connection(const Connection&) = delete("Connection is not copyable.");
+    Connection& operator=(const Connection&) = delete("Connection is not copyable.");
 
     /**
      * @brief Destructor.
@@ -3320,7 +3437,8 @@ public:
      * @throws SQLException if statement creation fails.
      */
     [[nodiscard]]
-    Statement create_statement() throws (SQLException) {
+    THROWS(SQLException)
+    Statement create_statement() {
         check_closed();
         return Statement(dbc);
     }
@@ -3333,7 +3451,8 @@ public:
      * @throws SQLException if statement preparation fails.
      */
     [[nodiscard]]
-    PreparedStatement prepare_statement(StringView sql) throws (SQLException) {
+    THROWS(SQLException)
+    PreparedStatement prepare_statement(StringView sql) {
         check_closed();
         return PreparedStatement(dbc, sql);
     }
@@ -3354,7 +3473,8 @@ public:
      */
     template <Bindable... Args>
     [[nodiscard]]
-    ResultSet query(StringView sql, Args&&... args) throws (SQLException) {
+    THROWS(SQLException)
+    ResultSet query(StringView sql, Args&&... args) {
         check_closed();
         if constexpr (sizeof...(Args) == 0) {
             Statement statement = create_statement();
@@ -3392,7 +3512,8 @@ public:
      */
     template <ReflectableClass T, Bindable... Args>
     [[nodiscard]]
-    Vector<T> query(StringView sql, Args&&... args) throws (SQLException) {
+    [[=Throws<SQLException>()]]
+    Vector<T> query(StringView sql, Args&&... args) {
         static_assert(
             Ops::class_of<T>().is_default_constructible(),
             "Connection::query<T> requires T to be default-constructible"
@@ -3432,7 +3553,8 @@ public:
      * @throws SQLException on error.
      */
     template <Bindable... Args>
-    i32 execute(StringView sql, Args&&... args) throws (SQLException) {
+    THROWS(SQLException)
+    i32 execute(StringView sql, Args&&... args) {
         check_closed();
         if constexpr (sizeof...(Args) == 0) {
             Statement statement = create_statement();
@@ -3456,7 +3578,8 @@ public:
      * @throws SQLException if statement preparation fails.
      */
     [[nodiscard]]
-    CallableStatement prepare_call(StringView call) throws (SQLException) {
+    THROWS(SQLException)
+    CallableStatement prepare_call(StringView call) {
         check_closed();
         return CallableStatement(dbc, call);
     }
@@ -3468,7 +3591,8 @@ public:
      * @throws SQLException if the connection is closed.
      */
     [[nodiscard]]
-    DatabaseMetaData metadata() throws (SQLException) {
+    THROWS(SQLException)
+    DatabaseMetaData metadata() {
         check_closed();
         return DatabaseMetaData(dbc);
     }
@@ -3484,14 +3608,16 @@ public:
      * @throws SQLException on error.
      */
     [[nodiscard]]
-    Transaction begin_transaction() throws (SQLException);
+    THROWS(SQLException)
+    Transaction begin_transaction();
 
     /**
      * @brief Commits the current transaction.
      *
      * @throws SQLException on error.
      */
-    void commit() throws (SQLException) {
+    THROWS(SQLException)
+    void commit() {
         check_closed();
 
         SQLRETURN ret = SQLEndTran(SQL_HANDLE_DBC, dbc, SQL_COMMIT);
@@ -3505,7 +3631,8 @@ public:
      *
      * @throws SQLException on error.
      */
-    void rollback() throws (SQLException) {
+    THROWS(SQLException)
+    void rollback() {
         check_closed();
 
         SQLRETURN ret = SQLEndTran(SQL_HANDLE_DBC, dbc, SQL_ROLLBACK);
@@ -3520,7 +3647,8 @@ public:
      * @param auto_commit_mode true to enable auto-commit, false to disable.
      * @throws SQLException on error.
      */
-    void set_auto_commit(bool auto_commit_mode) throws (SQLException) {
+    THROWS(SQLException)
+    void set_auto_commit(bool auto_commit_mode) {
         check_closed();
 
         SQLRETURN ret = SQLSetConnectAttr(
@@ -3589,16 +3717,17 @@ private:
     bool committed;
     bool prev_auto_commit;
 
-    explicit Transaction(Connection& conn) throws (SQLException):
+    THROWS(SQLException)
+    explicit Transaction(Connection& conn):
         conn{conn}, committed{false}, prev_auto_commit{conn.auto_commit_enabled()} {
         conn.set_auto_commit(false);
     }
 
     friend class Connection;
 public:
-    Transaction(const Transaction&) = delete;
-    Transaction& operator=(const Transaction&) = delete;
-    Transaction& operator=(Transaction&&) = delete;
+    Transaction(const Transaction&) = delete("Transaction is not copyable.");
+    Transaction& operator=(const Transaction&) = delete("Transaction is not copyable.");
+    Transaction& operator=(Transaction&&) = delete("Transaction is not movable.");
 
     /**
      * @brief Move constructor.
@@ -3632,7 +3761,8 @@ public:
      *
      * @throws SQLException on error.
      */
-    void commit() throws (SQLException) {
+    THROWS(SQLException)
+    void commit() {
         conn.commit();
         committed = true;
     }
@@ -3642,13 +3772,15 @@ public:
      *
      * @throws SQLException on error.
      */
-    void rollback() throws (SQLException) {
+    THROWS(SQLException)
+    void rollback() {
         conn.rollback();
         committed = true;
     }
 };
 
-Transaction Connection::begin_transaction() throws (SQLException) {
+THROWS(SQLException)
+Transaction Connection::begin_transaction() {
     check_closed();
     return Transaction(*this);
 }
@@ -3661,7 +3793,7 @@ Transaction Connection::begin_transaction() throws (SQLException) {
  */
 class DriverManager {
 public:
-    DriverManager() = delete;
+    DriverManager() = delete("DriverManager is a static class and cannot be instantiated.");
 
     /**
      * @brief Establishes a connection to the database.
@@ -3676,7 +3808,8 @@ public:
      * - "Driver={PostgreSQL Unicode};Server=localhost;Port=5432;Database=mydb;Uid=user;Pwd=pass;"
      */
     [[nodiscard]]
-    static Connection connection(StringView conn_str) throws (SQLException) {
+    THROWS(SQLException)
+    static Connection connection(StringView conn_str) {
         return Connection(conn_str);
     }
 
@@ -3692,7 +3825,8 @@ public:
      * @throws SQLException if the connection fails.
      */
     [[nodiscard]]
-    static Connection connection(StringView dsn, StringView username, StringView password) throws (SQLException) {
+    THROWS(SQLException)
+    static Connection connection(StringView dsn, StringView username, StringView password) {
         return Connection(dsn, username, password);
     }
 
@@ -3714,6 +3848,7 @@ public:
      * @throws SQLException if the connection fails.
      */
     [[nodiscard]]
+    THROWS(SQLException)
     static Connection connection(
         StringView driver,
         StringView server,
@@ -3721,7 +3856,7 @@ public:
         StringView username,
         StringView password,
         i32 port = 0
-    ) throws (SQLException) {
+    ) {
         String conn_str;
         if (port > 0) {
             conn_str = stdx::fmt::format(
@@ -3767,8 +3902,8 @@ public:
     explicit DataSource(StringView conn_str, i32 max_size = 10):
         connection_string{conn_str}, max_size{max_size}, active{0} {}
 
-    DataSource(const DataSource&) = delete;
-    DataSource& operator=(const DataSource&) = delete;
+    DataSource(const DataSource&) = delete("DataSource is not copyable.");
+    DataSource& operator=(const DataSource&) = delete("DataSource is not copyable.");
 
     /**
      * @brief Gets a connection from the pool.
@@ -3781,7 +3916,8 @@ public:
      * @throws SQLException if connection creation fails.
      */
     [[nodiscard]]
-    Connection connection() throws (SQLException) {
+    THROWS(SQLException)
+    Connection connection() {
         UniqueLock<Mutex> lock(mtx);
 
         while (pool.empty() && active >= max_size) {

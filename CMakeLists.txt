@@ -10,8 +10,10 @@ if(CMAKE_VERSION VERSION_LESS_EQUAL "3.31.7")
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "0e5b6991-d74f-4b3d-a41c-cf096e0b2508")
 elseif(CMAKE_VERSION VERSION_LESS_EQUAL "4.2.3")
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
-else()
+elseif(CMAKE_VERSION VERSION_LESS_EQUAL "4.3.4")
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
+else()
+    set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "f35a9ac6-8463-4d38-8eec-5d6008153e7d")
 endif()
 
 option(BUILD_STATIC_LIBS "Build static libraries instead of shared" OFF)
@@ -22,10 +24,6 @@ set_property(CACHE STDLIB PROPERTY STRINGS "default" "libstdc++" "libc++")
 set(STDLIB_NAME_CLANG OFF)
 set(STDLIB_NAME_GCC OFF)
 
-# CXX compile flags must be set BEFORE project() so that CMake's import-std
-# detection finds the correct standard library module source (e.g. libc++'s
-# std.cppm instead of libstdc++'s std.cc). Linker flags are applied after
-# project() to avoid breaking the C compiler test.
 if(STDLIB STREQUAL "libc++")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     set(STDLIB_NAME_CLANG ON)
@@ -109,16 +107,6 @@ if(COMPILER_GCC
     AND STDLIBX_CXX_STANDARD GREATER_EQUAL 26
     AND STDLIBX_ENABLE_CONTRACTS)
     message(STATUS "Contracts enabled")
-    # Must live in CMAKE_CXX_FLAGS, not add_compile_options(). -fcontracts puts
-    # GCC into the C++26/contracts language dialect, which it bakes into every
-    # module BMI. CMake's synthesised `import std` module target does NOT
-    # inherit directory- or target-scope compile options, so under the older
-    # import-std implementations it gets built as plain C++26; importing that
-    # std BMI from our contracts TUs then fails with
-    # "language dialect differs 'C++26', expected 'C++26/contracts'".
-    # CMAKE_CXX_FLAGS is threaded into the std-module compile (it's how the
-    # libc++/libstdc++ -stdlib= selection above reaches it), so it keeps the
-    # std BMI in the matching dialect regardless of CMake version.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcontracts")
 endif()
 
@@ -127,8 +115,6 @@ if(COMPILER_GCC
     AND STDLIBX_CXX_STANDARD GREATER_EQUAL 26
     AND STDLIBX_ENABLE_REFLECTION)
     message(STATUS "Reflection enabled")
-    # Same reasoning as -fcontracts above: keep it in CMAKE_CXX_FLAGS so the
-    # std-module target is compiled in the matching dialect.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -freflection")
 endif()
 
@@ -144,16 +130,16 @@ function(configure_cpp_module_target target)
     )
 endfunction()
 
-option(STDLIBX_ENABLE_SANITIZERS "Enable sanitisers in debug builds" OFF)
-option(STDLIBX_USE_SANITIZER_ADDRESS "Enable address sanitiser" OFF)
-option(STDLIBX_USE_SANITIZER_KERNEL "Enable kernel address sanitiser" OFF)
-option(STDLIBX_USE_SANITIZER_HW "Enable hardware address sanitiser" OFF)
-option(STDLIBX_USE_SANITIZER_UNDEFINED "Enable undefined behaviour sanitiser" OFF)
-option(STDLIBX_USE_SANITIZER_THREAD "Enable thread sanitiser" OFF)
-option(STDLIBX_USE_SANITIZER_MEMORY "Enable memory sanitiser" OFF)
-option(STDLIBX_USE_SANITIZER_LEAK "Enable leak sanitiser" OFF)
+option(STDLIBX_ENABLE_SANITIZERS "Enable sanitizers in debug builds" OFF)
+option(STDLIBX_USE_SANITIZER_ADDRESS "Enable address sanitizer" OFF)
+option(STDLIBX_USE_SANITIZER_KERNEL "Enable kernel address sanitizer" OFF)
+option(STDLIBX_USE_SANITIZER_HW "Enable hardware address sanitizer" OFF)
+option(STDLIBX_USE_SANITIZER_UNDEFINED "Enable undefined behavior sanitizer" OFF)
+option(STDLIBX_USE_SANITIZER_THREAD "Enable thread sanitizer" OFF)
+option(STDLIBX_USE_SANITIZER_MEMORY "Enable memory sanitizer" OFF)
+option(STDLIBX_USE_SANITIZER_LEAK "Enable leak sanitizer" OFF)
 
-function(add_sanitisers target)
+function(add_sanitizers target)
     if(NOT STDLIBX_ENABLE_SANITIZERS)
         return()
     endif()
@@ -268,6 +254,10 @@ option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules i
 option(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY "Enable ZIP (zlib) wrapper modules in stdx::zip::*" ON)
 option(STDLIBX_BUILD_EXAMPLES "Build the examples for stdlibx" ON)
 option(STDLIBX_BUILD_TESTS "Build the tests for stdlibx" ON)
+option(STDLIBX_USE_HARDENED_LIBRARY "Use the hardened standard library" ON)
+
+set(STDLIBX_HARDENED_LIBRARY_MODE "extensive" CACHE STRING "Standard library hardening level (fast, extensive, debug)")
+set_property(CACHE STDLIBX_HARDENED_LIBRARY_MODE PROPERTY STRINGS "fast" "extensive" "debug")
 
 if(STDLIBX_NO_STD AND STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
     set(STDLIBX_USE_RESERVED_STD_IDENTIFIERS OFF CACHE BOOL "Disabled because STDLIBX_NO_STD is ON" FORCE)
@@ -281,16 +271,61 @@ if(COMPILER_GCC AND STDLIBX_ENABLE_REFLECTION)
     # SQL, Zip, and Microsoft GSL build and pass under GCC 16 + reflection
     # (verified: SqlTest 34/34 incl. the reflection Connection::query<T>,
     # ZipTest 15/15), so they are intentionally NOT forced off and stay ON.
-    #
-    # Lua, GMP, and Crypto (libsodium) still fail, but NOT due to the old
-    # (now-fixed) StandardInteger main-module bug: their C headers pull libc
-    # types (__mbstate_t, pthread_mutex_t, std::streampos, ...) into the global
-    # module fragment that clash with `import std` ("conflicting imported
-    # declaration"); GMP additionally trips __gmp_expr vs std::error_condition.
-    # These are C++-modules / C-header interop issues - re-enable once sorted.
     set(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
     set(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
     set(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
+endif()
+
+#   libc++     -> _LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_{FAST,EXTENSIVE,DEBUG}
+#   libstdc++  -> _GLIBCXX_ASSERTIONS  (+ _GLIBCXX_DEBUG for the debug tier)
+#   MSVC STL   -> _MSVC_STL_HARDENING=1  (+ _MSVC_STL_DESTRUCTOR_TOMBSTONES for debug)
+set(STDLIBX_HARDENING_DEFS "")
+
+if(STDLIBX_USE_HARDENED_LIBRARY)
+    if(NOT STDLIBX_HARDENED_LIBRARY_MODE MATCHES "^(fast|extensive|debug)$")
+        message(WARNING "Unknown STDLIBX_HARDENED_LIBRARY_MODE '${STDLIBX_HARDENED_LIBRARY_MODE}'; falling back to 'extensive'")
+        set(STDLIBX_HARDENED_LIBRARY_MODE "extensive")
+    endif()
+
+    if(STDLIB_NAME_CLANG)
+        # libc++: fast/extensive/debug all share one ABI, so the mode is free
+        # to choose without rebuilding the library.
+        if(STDLIBX_HARDENED_LIBRARY_MODE STREQUAL "fast")
+            list(APPEND STDLIBX_HARDENING_DEFS "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST")
+        elseif(STDLIBX_HARDENED_LIBRARY_MODE STREQUAL "debug")
+            list(APPEND STDLIBX_HARDENING_DEFS "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG")
+        else()
+            list(APPEND STDLIBX_HARDENING_DEFS "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE")
+        endif()
+    elseif(STDLIB_NAME_GCC)
+        # libstdc++ exposes a single non-ABI-breaking tier (_GLIBCXX_ASSERTIONS)
+        # that covers both fast and extensive. Its full debug-container mode
+        # (_GLIBCXX_DEBUG) DOES change ABI and must not be mixed with unhardened
+        # translation units or the distro-prebuilt libstdc++.
+        list(APPEND STDLIBX_HARDENING_DEFS "_GLIBCXX_ASSERTIONS")
+        if(STDLIBX_HARDENED_LIBRARY_MODE STREQUAL "debug")
+            list(APPEND STDLIBX_HARDENING_DEFS "_GLIBCXX_DEBUG")
+            message(WARNING "STDLIBX_HARDENED_LIBRARY_MODE=debug enables _GLIBCXX_DEBUG, which is ABI-incompatible with unhardened libstdc++ code; every linked translation unit must be built the same way.")
+        endif()
+    elseif(COMPILER_MSVC)
+        # MSVC STL has a single hardening switch; until contracts land it
+        # reports violations via __fastfail().
+        list(APPEND STDLIBX_HARDENING_DEFS "_MSVC_STL_HARDENING=1")
+        if(STDLIBX_HARDENED_LIBRARY_MODE STREQUAL "debug")
+            list(APPEND STDLIBX_HARDENING_DEFS "_MSVC_STL_DESTRUCTOR_TOMBSTONES=1")
+        endif()
+    else()
+        message(STATUS "Standard library hardening requested, but no known hardening switch for this standard library; skipping")
+    endif()
+
+    if(STDLIBX_HARDENING_DEFS)
+        message(STATUS "Standard library hardening: ON (mode '${STDLIBX_HARDENED_LIBRARY_MODE}')")
+        foreach(def IN LISTS STDLIBX_HARDENING_DEFS)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${def}")
+        endforeach()
+    endif()
+else()
+    message(STATUS "Standard library hardening: OFF")
 endif()
 
 add_library(stdlibx INTERFACE)
@@ -367,6 +402,10 @@ if(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
 endif()
 
+if(STDLIBX_HARDENING_DEFS)
+    target_compile_definitions(stdlibx INTERFACE ${STDLIBX_HARDENING_DEFS})
+endif()
+
 if(COMPILER_GCC
     AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16
     AND STDLIBX_CXX_STANDARD GREATER_EQUAL 26
@@ -402,4 +441,3 @@ if(STDLIBX_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
-

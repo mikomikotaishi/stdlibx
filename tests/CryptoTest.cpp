@@ -166,10 +166,10 @@ void test_signature() {
     expect(!verifier.verify(bytes_of(signature)), "a tampered message fails verification");
 
     // Signing without init_sign() is an error.
-    Signature uninitialised = Signature::instance(Signature::Algorithm::ED25519);
-    uninitialised.update(span_of(MESSAGE));
+    Signature uninitialized = Signature::instance(Signature::Algorithm::ED25519);
+    uninitialized.update(span_of(MESSAGE));
     expect_throws<InvalidKeyException>(
-        [&] -> void { (void)uninitialised.sign(); }, "sign() without init_sign() throws"
+        [&] -> void { (void)uninitialized.sign(); }, "sign() without init_sign() throws"
     );
 }
 
@@ -208,9 +208,9 @@ void test_cipher() {
     );
 
     // do_final() before init() is an error.
-    Cipher uninitialised = Cipher::instance("SecretBox");
+    Cipher uninitialized = Cipher::instance("SecretBox");
     expect_throws<IllegalStateException>(
-        [&] -> void { (void)uninitialised.do_final(span_of(PLAINTEXT)); }, "do_final() before init() throws"
+        [&] -> void { (void)uninitialized.do_final(span_of(PLAINTEXT)); }, "do_final() before init() throws"
     );
 
     // A ciphertext shorter than nonce + MAC is rejected.
@@ -283,6 +283,6 @@ int main(int argc, char* argv[]) {
     });
     #else
     System::out.println("[test] Crypto disabled (libsodium not compiled in).");
-    return 0;
+    return System::EXIT_SUCCESS;
     #endif
 }

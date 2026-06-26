@@ -87,11 +87,13 @@ export namespace stdx::audio::midi {
          * @param data1 First data byte (note number, controller index, ...).
          * @param data2 Second data byte (velocity, controller value, ...). 0 for two-byte messages.
          */
-        ShortMessage(Status status, u8 channel, u8 data1, u8 data2 = 0) throws (InvalidMidiDataException) {
+        THROWS(InvalidMidiDataException)
+        ShortMessage(Status status, u8 channel, u8 data1, u8 data2 = 0) {
             set_message(status, channel, data1, data2);
         }
 
-        void set_message(Status status, u8 channel, u8 data1, u8 data2 = 0) throws (InvalidMidiDataException) {
+        THROWS(InvalidMidiDataException)
+        void set_message(Status status, u8 channel, u8 data1, u8 data2 = 0) {
             if (channel > 15) {
                 throw InvalidMidiDataException("channel out of range");
             }
@@ -158,7 +160,8 @@ export namespace stdx::audio::midi {
 
         MetaMessage() = default;
 
-        MetaMessage(u8 type, Span<const u8> payload) throws (InvalidMidiDataException) {
+        THROWS(InvalidMidiDataException)
+        MetaMessage(u8 type, Span<const u8> payload) {
             if (type > 0x7F) {
                 throw InvalidMidiDataException("meta type out of range");
             }

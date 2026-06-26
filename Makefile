@@ -24,12 +24,12 @@ ifneq ($(STDLIB),default)
 	CMAKE_BUILD_FLAGS += -DSTDLIB=$(STDLIB)
 endif
 
-# Sanitiser configuration (can be overridden with make SANITIZERS="address undefined")
+# Sanitizer configuration (can be overridden with make SANITIZERS="address undefined")
 SANITIZERS ?=
 ENABLE_SANITIZERS := OFF
 CMAKE_SANITIZER_FLAGS :=
 
-# Process sanitiser flags
+# Process sanitizer flags
 ifneq ($(SANITIZERS),)
 	ENABLE_SANITIZERS := ON
 	CMAKE_BUILD_TYPE := Debug
@@ -96,8 +96,8 @@ help:
 	@printf "  $(YELLOW)STDLIB$(RESET)        - Choose C++ standard library (default/libstdc++/libc++)\n"
 	@printf "    Example: make build STDLIB=libc++\n"
 	@printf "\n"
-	@printf "$(BOLD)Sanitiser Options:$(RESET)\n"
-	@printf "  $(YELLOW)SANITIZERS$(RESET)    - Enable sanitisers (builds in Debug mode)\n"
+	@printf "$(BOLD)Sanitizer Options:$(RESET)\n"
+	@printf "  $(YELLOW)SANITIZERS$(RESET)    - Enable sanitizers (builds in Debug mode)\n"
 	@printf "    Values: address, undefined, thread, memory, all\n"
 	@printf "    Example: make build SANITIZERS=\"address undefined\"\n"
 	@printf "    Example: make test SANITIZERS=all\n"
@@ -117,8 +117,8 @@ configure:
 		printf "$(BOLD)$(CYAN)Standard library:$(RESET) $(STDLIB)\n"; \
 	fi; \
 	if [ "$(ENABLE_SANITIZERS)" = "ON" ]; then \
-		printf "$(BOLD)$(MAGENTA)Sanitisers enabled:$(RESET) $(SANITIZERS)\n"; \
-		printf "$(YELLOW)Building in Debug mode for sanitiser support$(RESET)\n"; \
+		printf "$(BOLD)$(MAGENTA)Sanitizers enabled:$(RESET) $(SANITIZERS)\n"; \
+		printf "$(YELLOW)Building in Debug mode for sanitizer support$(RESET)\n"; \
 	fi; \
 	if [ "$(BUILD_TESTS)" = "ON" ]; then \
 		printf "$(BOLD)$(CYAN)Tests enabled$(RESET)\n"; \
@@ -247,7 +247,7 @@ info:
 	@printf "$(BOLD)Build Type:$(RESET)   $(CMAKE_BUILD_TYPE)\n"
 	@printf "$(BOLD)Stdlib:$(RESET)       $(STDLIB)\n"
 	@printf "$(BOLD)Tests:$(RESET)        $(BUILD_TESTS)\n"
-	@printf "$(BOLD)Sanitisers:$(RESET)   $(if $(SANITIZERS),$(SANITIZERS),None)\n"
+	@printf "$(BOLD)Sanitizers:$(RESET)   $(if $(SANITIZERS),$(SANITIZERS),None)\n"
 	@printf "\n"
 	@printf "$(BOLD)Status:$(RESET)\n"
 	@if [ -d "$(BUILD_DIR)" ]; then \

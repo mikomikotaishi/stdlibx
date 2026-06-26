@@ -32,8 +32,8 @@ export namespace stdx::audio::sampled {
             close();
         }
 
-        Clip(const Clip&) = delete;
-        Clip& operator=(const Clip&) = delete;
+        Clip(const Clip&) = delete("Clip is not copyable.");
+        Clip& operator=(const Clip&) = delete("Clip is not copyable.");
 
         /**
          * @brief Open the default output at the file's native format and start
@@ -43,7 +43,8 @@ export namespace stdx::audio::sampled {
          * @throws LineUnavailableException if the line can't be opened
          * (e.g. no free device, or the device doesn't support the file's format).
          */
-        void play() throws (UnsupportedAudioFormatException, LineUnavailableException) {
+        THROWS(UnsupportedAudioFormatException, LineUnavailableException)
+        void play() {
             if (playing.load() || !stream) {
                 return;
             }

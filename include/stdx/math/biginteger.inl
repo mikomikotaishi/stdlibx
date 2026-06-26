@@ -12,7 +12,7 @@ export namespace stdx::math {
      * @brief Immutable arbitrary-precision integer.
      *
      * The value is stored in sign-magnitude form: a signum of -1, 0 or 1 and a
-     * normalised little-endian vector of 32-bit limbs (no trailing zero limbs,
+     * normalized little-endian vector of 32-bit limbs (no trailing zero limbs,
      * an empty vector if and only if the value is zero).
      */
     class [[nodiscard]] BigInteger final {
@@ -23,7 +23,7 @@ export namespace stdx::math {
         static constexpr usize KARATSUBA_THRESHOLD = 64uz;
 
         /**
-         * @brief Constructs from a signum and an already normalised magnitude.
+         * @brief Constructs from a signum and an already normalized magnitude.
          * @param signum_value The signum: -1, 0 or 1.
          * @param magnitude The magnitude, little-endian with no trailing zero limbs.
          */
@@ -644,7 +644,8 @@ export namespace stdx::math {
          * The string consists of an optional '+' or '-' followed by one or more
          * decimal digits.
          */
-        explicit BigInteger(StringView value) throws (NumberFormatException):
+        THROWS(NumberFormatException)
+        explicit BigInteger(StringView value):
             BigInteger(value, 10) {}
 
         /**
@@ -653,7 +654,8 @@ export namespace stdx::math {
          * @param radix The radix, in the range [2, 36].
          * @throws NumberFormatException If the string is not a valid representation of a BigInteger in the given radix.
          */
-        BigInteger(StringView value, u32 radix) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        BigInteger(StringView value, u32 radix) {
             if (radix < 2 || radix > 36) {
                 throw NumberFormatException("Radix out of range.");
             }
@@ -699,7 +701,8 @@ export namespace stdx::math {
          * @param bytes The big-endian two's complement bytes.
          * @throws NumberFormatException If the byte array is empty.
          */
-        explicit BigInteger(const Vector<u8>& bytes) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        explicit BigInteger(const Vector<u8>& bytes) {
             if (bytes.empty()) {
                 throw NumberFormatException("Zero-length BigInteger.");
             }
@@ -720,7 +723,8 @@ export namespace stdx::math {
          * @param magnitude The big-endian magnitude (leading zero bytes allowed).
          * @throws NumberFormatException If signum_value is out of range or mismatches the magnitude.
          */
-        BigInteger(i32 signum_value, const Vector<u8>& magnitude) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        BigInteger(i32 signum_value, const Vector<u8>& magnitude) {
             if (signum_value < -1 || signum_value > 1) {
                 throw NumberFormatException("Invalid signum value.");
             }
@@ -756,7 +760,8 @@ export namespace stdx::math {
          * @throws NumberFormatException If the string is not a valid representation of a BigInteger in the given radix.
          */
         [[nodiscard]]
-        static BigInteger parse(StringView value, u32 radix = 10) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        static BigInteger parse(StringView value, u32 radix = 10) {
             return BigInteger(value, radix);
         }
 
@@ -782,7 +787,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If other is zero.
          */
         [[nodiscard]]
-        Pair<BigInteger, BigInteger> divide_and_remainder(const BigInteger& other) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        Pair<BigInteger, BigInteger> divide_and_remainder(const BigInteger& other) const {
             if (other.sign == 0) {
                 throw ArithmeticException("Division by zero.");
             }
@@ -805,7 +811,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If modulus is not positive.
          */
         [[nodiscard]]
-        BigInteger mod(const BigInteger& modulus) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger mod(const BigInteger& modulus) const {
             if (modulus.sign <= 0) {
                 throw ArithmeticException("Modulus not positive.");
             }
@@ -820,7 +827,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If exponent is negative.
          */
         [[nodiscard]]
-        BigInteger pow(i32 exponent) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger pow(i32 exponent) const {
             if (exponent < 0) {
                 throw ArithmeticException("Negative exponent.");
             }
@@ -851,7 +859,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If this BigInteger is negative.
          */
         [[nodiscard]]
-        BigInteger sqrt() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger sqrt() const {
             if (sign < 0) {
                 throw ArithmeticException("Negative BigInteger.");
             }
@@ -874,7 +883,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If this BigInteger is negative.
          */
         [[nodiscard]]
-        Pair<BigInteger, BigInteger> sqrt_and_remainder() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        Pair<BigInteger, BigInteger> sqrt_and_remainder() const {
             const BigInteger root = sqrt();
             return {root, *this - root * root};
         }
@@ -940,10 +950,8 @@ export namespace stdx::math {
          * not invertible modulo modulus, or if this is zero and exponent is negative.
          */
         [[nodiscard]]
-        BigInteger mod_pow(
-            const BigInteger& exponent,
-            const BigInteger& modulus
-        ) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger mod_pow(const BigInteger& exponent, const BigInteger& modulus) const {
             if (modulus.sign <= 0) {
                 throw ArithmeticException("Modulus not positive.");
             }
@@ -974,7 +982,8 @@ export namespace stdx::math {
          * @throws ArithmeticException if modulus is not positive or if this is not invertible modulo modulus.
          */
         [[nodiscard]]
-        BigInteger mod_inverse(const BigInteger& modulus) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger mod_inverse(const BigInteger& modulus) const {
             if (modulus.sign <= 0) {
                 throw ArithmeticException("Modulus not positive.");
             }
@@ -1025,7 +1034,8 @@ export namespace stdx::math {
          * @throws ArithmeticException if index is negative.
          */
         [[nodiscard]]
-        bool test_bit(i32 index) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        bool test_bit(i32 index) const {
             if (index < 0) {
                 throw ArithmeticException("Negative bit address.");
             }
@@ -1041,7 +1051,8 @@ export namespace stdx::math {
          * @throws ArithmeticException if index is negative.
          */
         [[nodiscard]]
-        BigInteger set_bit(i32 index) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger set_bit(i32 index) const {
             if (index < 0) {
                 throw ArithmeticException("Negative bit address.");
             }
@@ -1055,7 +1066,8 @@ export namespace stdx::math {
          * @throws ArithmeticException if index is negative.
          */
         [[nodiscard]]
-        BigInteger clear_bit(i32 index) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger clear_bit(i32 index) const {
             if (index < 0) {
                 throw ArithmeticException("Negative bit address.");
             }
@@ -1069,7 +1081,8 @@ export namespace stdx::math {
          * @throws ArithmeticException if index is negative.
          */
         [[nodiscard]]
-        BigInteger flip_bit(i32 index) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger flip_bit(i32 index) const {
             if (index < 0) {
                 throw ArithmeticException("Negative bit address.");
             }
@@ -1198,7 +1211,8 @@ export namespace stdx::math {
          * @throws ArithmeticException if this BigInteger is negative.
          */
         [[nodiscard]]
-        BigInteger next_probable_prime() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger next_probable_prime() const {
             if (sign < 0) {
                 throw ArithmeticException("Negative BigInteger.");
             }
@@ -1277,7 +1291,8 @@ export namespace stdx::math {
          * @throws ArithmeticException if this BigInteger does not fit in an i8.
          */
         [[nodiscard]]
-        i8 byte_value_exact() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        i8 byte_value_exact() const {
             if (bit_length() > 7) {
                 throw ArithmeticException("BigInteger out of byte range.");
             }
@@ -1290,7 +1305,8 @@ export namespace stdx::math {
          * @throws ArithmeticException if this BigInteger does not fit in an i16.
          */
         [[nodiscard]]
-        i16 short_value_exact() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        i16 short_value_exact() const {
             if (bit_length() > 15) {
                 throw ArithmeticException("BigInteger out of short range.");
             }
@@ -1303,7 +1319,8 @@ export namespace stdx::math {
          * @throws ArithmeticException if this BigInteger does not fit in an i32.
          */
         [[nodiscard]]
-        i32 int_value_exact() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        i32 int_value_exact() const {
             if (bit_length() > 31) {
                 throw ArithmeticException("BigInteger out of int range.");
             }
@@ -1316,7 +1333,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If this BigInteger does not fit in an i64.
          */
         [[nodiscard]]
-        i64 long_value_exact() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        i64 long_value_exact() const {
             if (bit_length() > 63) {
                 throw ArithmeticException("BigInteger out of long range.");
             }
@@ -1519,7 +1537,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If rhs is zero.
          */
         [[nodiscard]]
-        friend BigInteger operator/(const BigInteger& lhs, const BigInteger& rhs) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        friend BigInteger operator/(const BigInteger& lhs, const BigInteger& rhs) {
             return lhs.divide_and_remainder(rhs).first;
         }
 
@@ -1531,7 +1550,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If rhs is zero.
          */
         [[nodiscard]]
-        friend BigInteger operator%(const BigInteger& lhs, const BigInteger& rhs) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        friend BigInteger operator%(const BigInteger& lhs, const BigInteger& rhs) {
             return lhs.divide_and_remainder(rhs).second;
         }
 
@@ -1657,12 +1677,14 @@ export namespace stdx::math {
             return *this;
         }
 
-        BigInteger& operator/=(const BigInteger& other) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger& operator/=(const BigInteger& other) {
             *this = *this / other;
             return *this;
         }
 
-        BigInteger& operator%=(const BigInteger& other) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger& operator%=(const BigInteger& other) {
             *this = *this % other;
             return *this;
         }
@@ -1804,7 +1826,8 @@ export namespace stdx::math {
      * @throws ArithmeticException If exponent is negative.
      */
     [[nodiscard]]
-    inline BigInteger pow(const BigInteger& base, i32 exponent) throws (ArithmeticException) {
+    THROWS(ArithmeticException)
+    inline BigInteger pow(const BigInteger& base, i32 exponent) {
         return base.pow(exponent);
     }
 
@@ -1815,7 +1838,8 @@ export namespace stdx::math {
      * @throws ArithmeticException If value is negative.
      */
     [[nodiscard]]
-    inline BigInteger sqrt(const BigInteger& value) throws (ArithmeticException) {
+    THROWS(ArithmeticException)
+    inline BigInteger sqrt(const BigInteger& value) {
         return value.sqrt();
     }
 }

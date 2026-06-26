@@ -21,7 +21,7 @@ export namespace stdx::time::chrono {
         static constexpr i64 HEISEI_START = gregorian_to_epoch_day(1989, 1, 8); ///< The epoch day of the Heisei era (corresponding to 1989-01-08 in the Gregorian calendar).
         static constexpr i64 REIWA_START = gregorian_to_epoch_day(2019, 5, 1); ///< The epoch day of the Reiwa era (corresponding to 2019-05-01 in the Gregorian calendar).
     public:
-        JapaneseChronology() = delete;
+        JapaneseChronology() = delete("JapaneseChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era
@@ -60,7 +60,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1868.
          */
         [[nodiscard]]
-        static constexpr bool is_leap_year(i32 y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr bool is_leap_year(i32 y) {
             if (y < 1868) {
                 throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
             }
@@ -75,7 +76,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1868.
          */
         [[nodiscard]]
-        static constexpr u32 days_in_month(i32 y, u32 m) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr u32 days_in_month(i32 y, u32 m) {
             if (y < 1868) {
                 throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
             }
@@ -89,7 +91,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1868.
          */
         [[nodiscard]]
-        static constexpr i32 days_in_year(i32 y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 days_in_year(i32 y) {
             if (y < 1868) {
                 throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
             }
@@ -103,7 +106,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1868.
          */
         [[nodiscard]]
-        static constexpr u32 months_in_year(i32 y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr u32 months_in_year(i32 y) {
             if (y < 1868) {
                 throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
             }
@@ -119,7 +123,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if the date is before Meiji (1868-01-25).
          */
         [[nodiscard]]
-        static constexpr i64 to_epoch_day(i32 y, u32 m, u32 d) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i64 to_epoch_day(i32 y, u32 m, u32 d) {
             i64 e = gregorian_to_epoch_day(y, m, d);
             if (e < MEIJI_START) {
                 throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
@@ -134,7 +139,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if e < MEIJI_START.
          */
         [[nodiscard]]
-        static constexpr DateComponents from_epoch_day(i64 e) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr DateComponents from_epoch_day(i64 e) {
             if (e < MEIJI_START) {
                 throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
             }
@@ -148,7 +154,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if epoch_day < MEIJI_START.
          */
         [[nodiscard]]
-        static constexpr Era era_of(i64 epoch_day) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr Era era_of(i64 epoch_day) {
             if (epoch_day < MEIJI_START) {
                 throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
             } else if (epoch_day < TAISHO_START) {
@@ -181,9 +188,8 @@ export namespace stdx::time::chrono {
                     return 1989;
                 case Era::REIWA:
                     return 2019;
-                default:
-                    Ops::unreachable();
             }
+            Ops::unreachable();
         }
 
         /**
@@ -194,7 +200,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if epoch_day < MEIJI_START.
          */
         [[nodiscard]]
-        static constexpr i32 year_of_era(i32 proleptic_year, i64 epoch_day) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 year_of_era(i32 proleptic_year, i64 epoch_day) {
             return proleptic_year - era_start_year(era_of(epoch_day)) + 1;
         }
 
@@ -206,7 +213,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if year_of_era < 1.
          */
         [[nodiscard]]
-        static constexpr i32 proleptic_year(Era era, i32 year_of_era) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 proleptic_year(Era era, i32 year_of_era) {
             if (year_of_era < 1) {
                 throw DateTimeException("JapaneseChronology does not support year-of-era less than 1");
             }
@@ -214,12 +222,14 @@ export namespace stdx::time::chrono {
         }
 
         [[nodiscard]]
-        static constexpr bool is_leap_year(Year y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr bool is_leap_year(Year y) {
             return is_leap_year(static_cast<i32>(y));
         }
 
         [[nodiscard]]
-        static constexpr u32 days_in_month(Year y, Month m) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr u32 days_in_month(Year y, Month m) {
             return days_in_month(
                 static_cast<i32>(y),
                 static_cast<u32>(m)
@@ -227,17 +237,20 @@ export namespace stdx::time::chrono {
         }
 
         [[nodiscard]]
-        static constexpr i32 days_in_year(Year y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 days_in_year(Year y) {
             return days_in_year(static_cast<i32>(y));
         }
 
         [[nodiscard]]
-        static constexpr u32 months_in_year(Year y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr u32 months_in_year(Year y) {
             return months_in_year(static_cast<i32>(y));
         }
 
         [[nodiscard]]
-        static constexpr i64 to_epoch_day(Year y, Month m, Day d) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i64 to_epoch_day(Year y, Month m, Day d) {
             return to_epoch_day(
                 static_cast<i32>(y),
                 static_cast<u32>(m),
@@ -246,12 +259,14 @@ export namespace stdx::time::chrono {
         }
 
         [[nodiscard]]
-        static constexpr i32 year_of_era(Year y, i64 epoch_day) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 year_of_era(Year y, i64 epoch_day) {
             return year_of_era(static_cast<i32>(y), epoch_day);
         }
 
         [[nodiscard]]
-        static constexpr i32 proleptic_year(Era era, Year year_of_era) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 proleptic_year(Era era, Year year_of_era) {
             return proleptic_year(era, static_cast<i32>(year_of_era));
         }
 
@@ -276,9 +291,8 @@ export namespace stdx::time::chrono {
                             return "M";
                         case DateTextLength::NARROW:
                             return "明治";
-                        default:
-                            Ops::unreachable();
                     }
+                    Ops::unreachable();
                 case Era::TAISHO:
                     switch (style) {
                         case DateTextLength::FULL:
@@ -287,9 +301,8 @@ export namespace stdx::time::chrono {
                             return "T";
                         case DateTextLength::NARROW:
                             return "大正";
-                        default:
-                            Ops::unreachable();
                     }
+                    Ops::unreachable();
                 case Era::SHOWA:
                     switch (style) {
                         case DateTextLength::FULL:
@@ -298,9 +311,8 @@ export namespace stdx::time::chrono {
                             return "S";
                         case DateTextLength::NARROW:
                             return "昭和";
-                        default:
-                            Ops::unreachable();
                     }
+                    Ops::unreachable();
                 case Era::HEISEI:
                     switch (style) {
                         case DateTextLength::FULL:
@@ -309,9 +321,8 @@ export namespace stdx::time::chrono {
                             return "H";
                         case DateTextLength::NARROW:
                             return "平成";
-                        default:
-                            Ops::unreachable();
                     }
+                    Ops::unreachable();
                 case Era::REIWA:
                     switch (style) {
                         case DateTextLength::FULL:
@@ -320,11 +331,7 @@ export namespace stdx::time::chrono {
                             return "R";
                         case DateTextLength::NARROW:
                             return "令和";
-                        default:
-                            Ops::unreachable();
                     }
-                    break;
-                default:
                     Ops::unreachable();
             }
             Ops::unreachable();
@@ -342,7 +349,8 @@ export namespace stdx::time::chrono {
          * 二月, ...).
          */
         [[nodiscard]]
-        static constexpr StringView month_name(i32 year, u32 month, DateTextLength style) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr StringView month_name(i32 year, u32 month, DateTextLength style) {
             return IsoChronology::month_name(year, month, style);
         }
 
@@ -353,6 +361,7 @@ export namespace stdx::time::chrono {
          * @returns The matched era, or empty Optional on no match.
          */
         [[nodiscard]]
+        THROWS(DateTimeException)
         static constexpr Optional<Era> parse_era(StringView text, DateTextLength style) noexcept {
             static constexpr Array<Era, 5> ERAS = {
                 Era::MEIJI, Era::TAISHO, Era::SHOWA, Era::HEISEI, Era::REIWA,
@@ -373,11 +382,8 @@ export namespace stdx::time::chrono {
          * @returns The 1-based month, or empty Optional on no match.
          */
         [[nodiscard]]
-        static constexpr Optional<u32> parse_month(
-            StringView text,
-            i32 year,
-            DateTextLength style
-        ) noexcept {
+        THROWS(DateTimeException)
+        static constexpr Optional<u32> parse_month(StringView text, i32 year, DateTextLength style) noexcept {
             return IsoChronology::parse_month(text, year, style);
         }
 
@@ -390,7 +396,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if the date is before Meiji (1868-01-25).
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<JapaneseChronology> of(i32 y, u32 m, u32 d) throws (DateTimeException);
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<JapaneseChronology> of(i32 y, u32 m, u32 d);
 
         /**
          * @brief Create a date from typed year, month, and day.
@@ -401,7 +408,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if the date is before Meiji (1868-01-25).
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<JapaneseChronology> of(Year y, Month m, Day d) throws (DateTimeException);
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<JapaneseChronology> of(Year y, Month m, Day d);
 
         /**
          * @brief Create a date from an epoch day count.
@@ -410,7 +418,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if e < MEIJI_START.
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<JapaneseChronology> date_epoch_day(i64 e) throws (DateTimeException);
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<JapaneseChronology> date_epoch_day(i64 e);
 
         /**
          * @brief Create a date from an era, year-of-era, month, and day.
@@ -424,27 +433,29 @@ export namespace stdx::time::chrono {
          *   era (e.g. Showa 64-01-08, which is the first day of Heisei).
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<JapaneseChronology> of(Era era, i32 year_of_era, u32 m, u32 d) throws (DateTimeException);
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<JapaneseChronology> of(Era era, i32 year_of_era, u32 m, u32 d);
 
         /**
          * @brief Create a date for today according to the system clock.
          * @returns Today's date in this chronology.
          */
         [[nodiscard]]
-        static ChronoLocalDate<JapaneseChronology> date_now() throws (DateTimeException);
+        THROWS(DateTimeException)
+        static ChronoLocalDate<JapaneseChronology> date_now();
     };
 
     using JapaneseDate = ChronoLocalDate<JapaneseChronology>;
     using JapaneseEra = JapaneseChronology::Era;
 
-    constexpr JapaneseDate JapaneseChronology::of(i32 y, u32 m, u32 d) throws (DateTimeException) {
+    constexpr JapaneseDate JapaneseChronology::of(i32 y, u32 m, u32 d) {
         if (gregorian_to_epoch_day(y, m, d) < MEIJI_START) {
             throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
         }
         return JapaneseDate(y, m, d);
     }
 
-    constexpr JapaneseDate JapaneseChronology::of(Year y, Month m, Day d) throws (DateTimeException) {
+    constexpr JapaneseDate JapaneseChronology::of(Year y, Month m, Day d) {
         return of(
             static_cast<i32>(y),
             static_cast<u32>(m),
@@ -452,14 +463,14 @@ export namespace stdx::time::chrono {
         );
     }
 
-    constexpr JapaneseDate JapaneseChronology::date_epoch_day(i64 e) throws (DateTimeException) {
+    constexpr JapaneseDate JapaneseChronology::date_epoch_day(i64 e) {
         if (e < MEIJI_START) {
             throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
         }
         return JapaneseDate::of_epoch_day(e);
     }
 
-    constexpr JapaneseDate JapaneseChronology::of(Era era, i32 year_of_era, u32 m, u32 d) throws (DateTimeException) {
+    constexpr JapaneseDate JapaneseChronology::of(Era era, i32 year_of_era, u32 m, u32 d) {
         i32 py = proleptic_year(era, year_of_era);
         i64 e = gregorian_to_epoch_day(py, m, d);
         if (e < MEIJI_START) {
@@ -471,7 +482,7 @@ export namespace stdx::time::chrono {
         return JapaneseDate(py, m, d);
     }
 
-    inline JapaneseDate JapaneseChronology::date_now() throws (DateTimeException) {
+    inline JapaneseDate JapaneseChronology::date_now() {
         return JapaneseDate::now();
     }
 }

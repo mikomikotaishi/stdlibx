@@ -16,8 +16,6 @@ export namespace stdx::text {
     private:
         const Self value;
     public:
-        constexpr CharsFormat() noexcept = delete;
-
         constexpr CharsFormat(Self value) noexcept:
             value{value} {}
 

@@ -26,8 +26,6 @@ export namespace stdx::io {
     private:
         const Self value;
     public:
-        constexpr OpenMode() noexcept = delete;
-
         constexpr OpenMode(Self value) noexcept:
             value{value} {}
 
@@ -61,8 +59,6 @@ export namespace stdx::io {
     private:
         const Self value;
     public:
-        constexpr FormatFlags() noexcept = delete;
-
         constexpr FormatFlags(Self value) noexcept:
             value{value} {}
 
@@ -86,8 +82,6 @@ export namespace stdx::io {
     private:
         const Self value;
     public:
-        constexpr IOState() noexcept = delete;
-
         constexpr IOState(Self value) noexcept:
             value{value} {}
 
@@ -106,8 +100,6 @@ export namespace stdx::io {
     private:
         const Self value;
     public:
-        constexpr SeekingDirection() noexcept = delete;
-
         constexpr SeekingDirection(Self value) noexcept:
             value{value} {}
 
@@ -126,8 +118,6 @@ export namespace stdx::io {
     private:
         const Self value;
     public:
-        constexpr IOEvent() noexcept = delete;
-
         constexpr IOEvent(Self value) noexcept:
             value{value} {}
 
@@ -270,7 +260,8 @@ export namespace stdx::io {
             return buffer.data();
         }
 
-        void advance(usize count) throws (OutOfRangeException) {
+        THROWS(OutOfRangeException)
+        void advance(usize count) {
             if (count > remaining()) {
                 throw OutOfRangeException("ByteBuffer overflow");
             }
@@ -319,14 +310,16 @@ export namespace stdx::io {
         }
 
         [[nodiscard]]
-        u8 get() throws (OutOfRangeException) {
+        THROWS(OutOfRangeException)
+        u8 get() {
             if (pos >= lim) {
                 throw OutOfRangeException("ByteBuffer underflow");
             }
             return buffer[pos++];
         }
 
-        void put(u8 byte) throws (OutOfRangeException) {
+        THROWS(OutOfRangeException)
+        void put(u8 byte) {
             if (pos >= lim) {
                 throw OutOfRangeException("ByteBuffer overflow");
             }

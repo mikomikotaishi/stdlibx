@@ -8,9 +8,6 @@ using stdx::meta::DecayType;
  */
 export namespace stdx::core {
     #ifdef __cpp_lib_expected
-    using UnexpectTag = std::unexpect_t;
-    inline constexpr UnexpectTag Unexpect = std::unexpect;
-    
     template <typename E>
     using BadExpectedAccessException = std::bad_expected_access<E>;
 
@@ -38,8 +35,6 @@ export namespace stdx::core {
             return msg;
         }
     };
-
-    using std::swap;
 
     /**
      * @brief Explicitly constructs a successful Expected value.

@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
 
     System::out.printf(
         "Files in current directory (%s)%n:%s%n", 
-        dir.string(),
+        dir,
         Query(files)
             .select([](const DirectoryEntry& e) -> String { return e.path(); })
             .to<Vector>()
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
         cpp_sources.size()
     );
     for (const Path& src: cpp_sources) {
-        System::out.println("  {}", src.string());
+        System::out.println("  {}", src);
     }
 
     System::out.println(

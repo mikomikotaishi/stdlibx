@@ -39,8 +39,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmClass() noexcept = delete;
-
         constexpr SoundPcmClass(Self value) noexcept:
             value{value} {}
 
@@ -58,8 +56,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmSubclass() noexcept = delete;
-
         constexpr SoundPcmSubclass(Self value) noexcept:
             value{value} {}
 
@@ -77,8 +73,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmStream() noexcept = delete;
-
         constexpr SoundPcmStream(Self value) noexcept:
             value{value} {}
 
@@ -99,8 +93,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmAccess() noexcept = delete;
-
         constexpr SoundPcmAccess(Self value) noexcept:
             value{value} {}
 
@@ -181,8 +173,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmFormat() noexcept = delete;
-
         constexpr SoundPcmFormat(Self value) noexcept:
             value{value} {}
 
@@ -203,8 +193,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmSubformat() noexcept = delete;
-
         constexpr SoundPcmSubformat(Self value) noexcept:
             value{value} {}
 
@@ -230,8 +218,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmState() noexcept = delete;
-
         constexpr SoundPcmState(Self value) noexcept:
             value{value} {}
 
@@ -253,8 +239,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmStart() noexcept = delete;
-
         constexpr SoundPcmStart(Self value) noexcept:
             value{value} {}
 
@@ -272,8 +256,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmXrun() noexcept = delete;
-
         constexpr SoundPcmXrun(Self value) noexcept:
             value{value} {}
 
@@ -292,8 +274,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmTimestamp() noexcept = delete;
-
         constexpr SoundPcmTimestamp(Self value) noexcept:
             value{value} {}
 
@@ -312,8 +292,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmTimestampType() noexcept = delete;
-
         constexpr SoundPcmTimestampType(Self value) noexcept:
             value{value} {}
 
@@ -335,8 +313,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmAudioTimestampType() noexcept = delete;
-
         constexpr SoundPcmAudioTimestampType(Self value) noexcept:
             value{value} {}
 
@@ -382,8 +358,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmType() noexcept = delete;
-
         constexpr SoundPcmType(Self value) noexcept:
             value{value} {}
 
@@ -402,8 +376,6 @@ export namespace stdx::os::linux::alsa {
     private:
         const Self value;
     public:
-        constexpr SoundPcmHookType() noexcept = delete;
-
         constexpr SoundPcmHookType(Self value) noexcept:
             value{value} {}
 

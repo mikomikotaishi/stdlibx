@@ -10,9 +10,4 @@ export namespace stdx::thread {
 
     template <typename Fn>
     using StopCallback = std::stop_callback<Fn>;
-
-    using NoStopStateTag = std::nostopstate_t;
-    inline constexpr NoStopStateTag NoStopState = std::nostopstate;
-
-    using std::swap;
 }

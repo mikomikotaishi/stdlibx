@@ -7,7 +7,19 @@
 
 #pragma once
 
-#define throws(...) noexcept(__VA_OPT__(!) true)
+#ifdef __cpp_lib_reflection
+#define THROWS(...) [[=Throws<__VA_ARGS__>()]]
+#else
+#define THROWS(...)
+#endif
+
+/**
+ * @brief A disabled THROWS annotation: always expands to nothing.
+ *
+ * Rename a THROWS to THROWS_DISABLED to suppress emission of the annotation
+ * at that site while keeping the exception types visible for documentation.
+ */
+#define THROWS_DISABLED(...)
 
 /**
  * @brief Utility macro to import the stdx::core namespace within the module.

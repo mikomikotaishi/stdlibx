@@ -28,8 +28,6 @@ export namespace stdx::audio::sampled {
                 return 3;
             case SampleFormat::SHORT:
                 return 2;
-            default:
-                Ops::unreachable();
         }
         Ops::unreachable();
     }

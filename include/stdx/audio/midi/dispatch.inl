@@ -11,13 +11,11 @@ using stdx::mem::UniquePointer;
  * the parts that genuinely differ.
  */
 export namespace stdx::audio::midi {
-    UniquePointer<Sequence> MidiSystem::open_sequence(
-        const Path& path
-    ) throws (InvalidMidiDataException) {
+    UniquePointer<Sequence> MidiSystem::open_sequence(const Path& path) {
         return parse_smf(path);
     }
 
-    Sequencer& MidiSystem::default_sequencer() throws (MidiException) {
+    Sequencer& MidiSystem::default_sequencer() {
         static SoftSequencer instance;
         return instance;
     }

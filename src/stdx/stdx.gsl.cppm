@@ -118,7 +118,7 @@ export namespace gsl {
     using ::gsl::operator+;
 }
 
-#ifndef COMPILER_GCC
+#ifndef __GNUC__
 export namespace std {
     using std::hash;
 }

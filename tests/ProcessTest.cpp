@@ -94,7 +94,7 @@ void test_null_dev() {
 void test_current_dir() {
     Expected<Output, ErrorCode> result = Command::from("pwd")
         .stdout(Stdio::PIPED)
-        .current_dir(Path("/tmp"))
+        .current_dir("/tmp"_path)
         .output();
 
     expect(result.has_value(), "current_dir: spawned successfully");

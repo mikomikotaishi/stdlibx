@@ -22,5 +22,4 @@ export namespace stdx::core {
     using std::holds_alternative;
     using std::get;
     using std::get_if;
-    using std::swap;
 }

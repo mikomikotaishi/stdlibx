@@ -17,6 +17,7 @@ using stdx::fs::Path;
 using stdx::mem::UniquePointer;
 using stdx::process::Child;
 using stdx::process::Command;
+using stdx::process::ExitStatus;
 using stdx::process::Stdio;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
@@ -41,8 +42,6 @@ StringView backend_name(MidiBackend b) noexcept {
             return "coremidi";
         case MidiBackend::SOFT:
             return "soft";
-        default:
-            Ops::unreachable();
     }
     Ops::unreachable();
 }
@@ -111,7 +110,7 @@ Optional<Child> maybe_spawn_fluidsynth() {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
-    } catch (const MidiException&) {
+    } catch (const MidiException& _) {
         return nullopt;
     }
     if (has_real_output(devices)) {
@@ -380,7 +379,14 @@ int main(int argc, char* argv[]) {
     // Dropping a Child without wait() per the API contract leaves the process
     // unreaped, so this is required even if kill() reports an error.
     if (auto_synth.has_value()) {
-        (void)auto_synth->kill();
-        (void)auto_synth->wait();
+        if (Expected<void, ErrorCode> kill_result = auto_synth->kill(); kill_result.error()) {
+            System::err.println("Failed to kill fluidsynth: {}", kill_result.error().message());
+        }
+
+        if (Expected<ExitStatus, ErrorCode> wait_result = auto_synth->wait(); wait_result) {
+            System::out.println("fluidsynth exited successfully.");
+        } else {
+            System::err.println("Failed to wait for fluidsynth: {}", wait_result.error().message());
+        }
     }
 }

@@ -26,7 +26,7 @@ export namespace stdx::exec {
 
     class Policy final {
     public:
-        Policy() = delete;
+        Policy() = delete("Policy is a static utility class and cannot be instantiated.");
 
         static constexpr SequencedPolicy Sequenced = SEQUENCED;
         static constexpr ParallelPolicy Parallel = PARALLEL;
@@ -51,8 +51,6 @@ export namespace stdx::exec {
     private:
         const Self value;
     public:
-        constexpr ForwardProgressGuarantee() noexcept = delete;
-
         constexpr ForwardProgressGuarantee(Self value) noexcept:
             value{value} {}
 

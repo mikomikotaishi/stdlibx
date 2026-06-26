@@ -41,7 +41,8 @@ export namespace stdx::core {
         template <Numeric T>
             requires (!SameAs<T, bool>)
         [[nodiscard]]
-        T next(T min, T max) throws (InvalidArgumentException) {
+        THROWS(InvalidArgumentException)
+        T next(T min, T max) {
             if (min >= max) {
                 throw InvalidArgumentException("min must be less than max");
             }
@@ -63,7 +64,8 @@ export namespace stdx::core {
         template <Integral Int>
             requires (!SameAs<Int, bool>)
         [[nodiscard]]
-        Int next(Int max = NumericLimits<Int>::max()) throws (InvalidArgumentException) {
+        THROWS(InvalidArgumentException)
+        Int next(Int max = NumericLimits<Int>::max()) {
             return next<Int>(Int{0}, max);
         }
 
@@ -74,7 +76,8 @@ export namespace stdx::core {
          */
         template <FloatingPoint Flt>
         [[nodiscard]]
-        Flt next(Flt max = NumericLimits<Flt>::max()) throws (InvalidArgumentException) {
+        THROWS(InvalidArgumentException)
+        Flt next(Flt max = NumericLimits<Flt>::max()) {
             return next<Flt>(Flt{0}, max);
         }
 

@@ -83,8 +83,6 @@ export namespace stdx::mem {
     using std::reinterpret_pointer_cast;
     using std::get_deleter;
 
-    using std::swap;
-
     #ifdef __cpp_lib_out_ptr
     using std::out_ptr;
     using std::inout_ptr;
@@ -113,7 +111,7 @@ export namespace stdx::mem {
 
     class Pointers final {
     public:
-        Pointers() = delete;
+        Pointers() = delete("Pointers is a static utility class and cannot be instantiated.");
 
         template <typename T>
         [[nodiscard]]
@@ -135,7 +133,7 @@ export namespace stdx::mem {
 
         template <typename T>
         [[nodiscard]]
-        static const T* addressof(T&&) = delete;
+        static const T* addressof(T&&) = delete("addressof is not callable with an rvalue reference.");
 
         [[nodiscard]]
         void* align(usize alignment, usize size, void*& ptr, usize& space) noexcept {

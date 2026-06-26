@@ -26,15 +26,10 @@ export namespace stdx::util {
     using std::cmp_greater_equal;
     using std::in_range;
 
-    using PiecewiseConstructTag = std::piecewise_construct_t;
-    using InPlaceTag = std::in_place_t;
     template <typename T>
     using InPlaceTypeTag = std::in_place_type_t<T>;
     template <usize I>
     using InPlaceIndexTag = std::in_place_index_t<I>;
-
-    inline constexpr PiecewiseConstructTag PiecewiseConstruct = std::piecewise_construct;
-    inline constexpr InPlaceTag InPlace = std::in_place;
 
     template <typename T>
     inline constexpr InPlaceTypeTag InPlaceType = std::in_place_type<T>;

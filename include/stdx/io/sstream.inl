@@ -30,6 +30,4 @@ export namespace stdx::io {
     using WideInputStringStream = std::wistringstream;
     using OutputStringStream = std::ostringstream;
     using WideOutputStringStream = std::wostringstream;
-
-    using std::swap;
 }

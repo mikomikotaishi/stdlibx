@@ -50,7 +50,7 @@ public:
 
 /**
  * @class CryptoInitializationException
- * @brief Thrown when the underlying cryptography library fails to initialise.
+ * @brief Thrown when the underlying cryptography library fails to initialize.
  * @extends CryptoException
  */
 class CryptoInitializationException: public CryptoException {
@@ -151,14 +151,15 @@ namespace stdx::crypto {
 
 	#ifdef STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY
 	/**
-	 * @brief Ensures libsodium is initialised exactly once across all threads.
+	 * @brief Ensures libsodium is initialized exactly once across all threads.
 	 * @throws CryptoInitializationException if {@code sodium_init()} returns a negative value.
 	 */
-	void ensure_sodium_initialized() throws (CryptoInitializationException) {
+	THROWS(CryptoInitializationException)
+	void ensure_sodium_initialized() {
 		static OnceFlag sodium_init_flag;
 		stdx::sync::call_once(sodium_init_flag, [] -> void {
 			if (sodium_init() < 0) {
-				throw CryptoInitializationException("Failed to initialise libsodium");
+				throw CryptoInitializationException("Failed to initialize libsodium");
 			}
 		});
 	}
@@ -411,7 +412,8 @@ public:
 	template <Numeric T>
 		requires (!SameAs<T, bool>)
 	[[nodiscard]]
-	T next(T min, T max) throws (InvalidArgumentException) {
+	THROWS(InvalidArgumentException)
+	T next(T min, T max) {
 		ensure_sodium_initialized();
 		if (min >= max) {
 			throw InvalidArgumentException("min must be less than max");
@@ -460,7 +462,8 @@ public:
 	template <Integral Int>
 		requires (!SameAs<Int, bool>)
 	[[nodiscard]]
-	Int next(Int max = NumericLimits<Int>::max()) throws (InvalidArgumentException) {
+	THROWS(InvalidArgumentException)
+	Int next(Int max = NumericLimits<Int>::max()) {
 		return next<Int>(Int{0}, max);
 	}
 
@@ -471,7 +474,8 @@ public:
 	 */
 	template <FloatingPoint Flt>
 	[[nodiscard]]
-	Flt next(Flt max = NumericLimits<Flt>::max()) throws (InvalidArgumentException) {
+	THROWS(InvalidArgumentException)
+	Flt next(Flt max = NumericLimits<Flt>::max()) {
 		return next<Flt>(Flt{0}, max);
 	}
 
@@ -482,7 +486,7 @@ public:
 	 * matching the bit-width used by {@code Random::next_unit<f64>()}.
 	 *
 	 * Note: {@code sodium_init()} is not called here because {@code randombytes_buf}
-	 * initialises the OS entropy source itself, and this method is {@code noexcept}.
+	 * initializes the OS entropy source itself, and this method is {@code noexcept}.
 	 */
 	template <FloatingPoint Flt = f64>
 	[[nodiscard]]
@@ -552,7 +556,8 @@ private:
 	 * @throws HashFailedException if the underlying hash function reports an error.
 	 */
 	[[nodiscard]]
-	ByteBuffer compute(Span<const u8> data) const throws (HashFailedException) {
+	THROWS(HashFailedException)
+	ByteBuffer compute(Span<const u8> data) const {
 		ensure_sodium_initialized();
 
 		switch (algorithm) {
@@ -587,15 +592,12 @@ private:
 				}
 				return out;
 			}
-			default:
-				throw NoSuchAlgorithmException("Unsupported message digest algorithm");
 		}
+		Ops::unreachable();
 	}
-
 protected:
 	explicit MessageDigest(MessageDigestAlgorithm algorithm = MessageDigestAlgorithm::SHA_256):
 		algorithm{algorithm} {}
-
 public:
 	/**
 	 * @brief Returns a {@code MessageDigest} for the named algorithm.
@@ -605,10 +607,11 @@ public:
 	 *
 	 * @param algorithm The algorithm name.
 	 * @return A new {@code MessageDigest} instance.
-	 * @throws NoSuchAlgorithmException if the algorithm is not recognised.
+	 * @throws NoSuchAlgorithmException if the algorithm is not recognized.
 	 */
 	[[nodiscard]]
-	static MessageDigest instance(StringView algorithm) throws (NoSuchAlgorithmException) {
+	THROWS(NoSuchAlgorithmException)
+	static MessageDigest instance(StringView algorithm) {
 		if (is_algorithm(algorithm, Array<StringView, 2>{"SHA-256", "SHA256"})) {
 			return MessageDigest(MessageDigestAlgorithm::SHA_256);
 		}
@@ -635,7 +638,7 @@ public:
 	}
 
 	/**
-	 * @brief Feeds {@code data} into the running digest without finalising.
+	 * @brief Feeds {@code data} into the running digest without finalizing.
 	 * @param data The bytes to add.
 	 */
 	void update(Span<const u8> data) {
@@ -643,25 +646,27 @@ public:
 	}
 
 	/**
-	 * @brief Finalises the digest of all updated data and resets internal state.
+	 * @brief Finlalizes the digest of all updated data and resets internal state.
 	 * @return The raw hash bytes.
 	 * @throws HashFailedException if the hash computation fails.
 	 */
 	[[nodiscard]]
-	ByteBuffer digest() throws (HashFailedException) {
+	THROWS(HashFailedException)
+	ByteBuffer digest() {
 		ByteBuffer result = compute(Span<const u8>(buffer.data(), buffer.size()));
 		buffer.clear();
 		return result;
 	}
 
 	/**
-	 * @brief Feeds {@code data} then finalises, equivalent to {@code update(data); digest()}.
+	 * @brief Feeds {@code data} then finalizes, equivalent to {@code update(data); digest()}.
 	 * @param data The bytes to hash.
 	 * @return The raw hash bytes.
 	 * @throws HashFailedException if the hash computation fails.
 	 */
 	[[nodiscard]]
-	ByteBuffer digest(Span<const u8> data) throws (HashFailedException) {
+	THROWS(HashFailedException)
+	ByteBuffer digest(Span<const u8> data) {
 		update(data);
 		return digest();
 	}
@@ -674,7 +679,8 @@ public:
 	 * @throws HashFailedException if the hash computation fails.
 	 */
 	[[nodiscard]]
-	static ByteBuffer digest(MessageDigestAlgorithm algorithm, Span<const u8> data) throws (HashFailedException) {
+	THROWS(HashFailedException)
+	static ByteBuffer digest(MessageDigestAlgorithm algorithm, Span<const u8> data) {
 		return MessageDigest(algorithm).digest(data);
 	}
 };
@@ -702,14 +708,11 @@ public:
 	enum class Algorithm: u8 {
 		ED25519, ///< Edwards-curve Digital Signature Algorithm on Curve25519.
 	};
-
 private:
 	Algorithm algorithm; ///< The selected asymmetric algorithm.
-
 protected:
 	explicit KeyPairGenerator(Algorithm algorithm):
 		algorithm{algorithm} {}
-
 public:
 	/**
 	 * @brief Returns a {@code KeyPairGenerator} for the named algorithm.
@@ -718,10 +721,11 @@ public:
 	 *
 	 * @param algorithm The algorithm name.
 	 * @return A new {@code KeyPairGenerator} instance.
-	 * @throws NoSuchAlgorithmException if the algorithm is not recognised.
+	 * @throws NoSuchAlgorithmException if the algorithm is not recognized.
 	 */
 	[[nodiscard]]
-	static KeyPairGenerator instance(StringView algorithm) throws (NoSuchAlgorithmException) {
+	THROWS(NoSuchAlgorithmException)
+	static KeyPairGenerator instance(StringView algorithm) {
 		if (!is_algorithm(algorithm, Array<StringView, 2>{"Ed25519", "ED25519"})) {
 			throw NoSuchAlgorithmException("Unsupported KeyPairGenerator algorithm");
 		}
@@ -744,7 +748,8 @@ public:
 	 * @throws KeyGenerationException if the underlying key generation fails.
 	 */
 	[[nodiscard]]
-	KeyPair generate_key_pair() const throws (KeyGenerationException) {
+	THROWS(KeyGenerationException)
+	KeyPair generate_key_pair() const {
 		ensure_sodium_initialized();
 
 		if (algorithm != Algorithm::ED25519) {
@@ -770,7 +775,7 @@ public:
  * @class Signature
  * @brief Stateful signing and verification engine.
  *
- * Data is fed incrementally via {@code update()}, then finalised by {@code sign()}
+ * Data is fed incrementally via {@code update()}, then finalized by {@code sign()}
  * or {@code verify()}, both of which reset internal state afterwards.
  *
  * @code{.cpp}
@@ -794,17 +799,14 @@ public:
 	enum class Algorithm: u8 {
 		ED25519, ///< Edwards-curve Digital Signature Algorithm on Curve25519.
 	};
-
 private:
 	Algorithm algorithm; ///< The selected signature algorithm.
 	PrivateKey signing_key; ///< Populated by init_sign(); empty otherwise.
 	PublicKey verification_key; ///< Populated by init_verify(); empty otherwise.
 	Vector<u8> message_buffer; ///< Accumulates message data fed via update().
-
 protected:
 	explicit Signature(Algorithm algorithm):
 		algorithm{algorithm} {}
-
 public:
 	/**
 	 * @brief Returns a {@code Signature} for the named algorithm.
@@ -813,10 +815,11 @@ public:
 	 *
 	 * @param algorithm The algorithm name.
 	 * @return A new {@code Signature} instance.
-	 * @throws NoSuchAlgorithmException if the algorithm is not recognised.
+	 * @throws NoSuchAlgorithmException if the algorithm is not recognized.
 	 */
 	[[nodiscard]]
-	static Signature instance(StringView algorithm) throws (NoSuchAlgorithmException) {
+	THROWS(NoSuchAlgorithmException)
+	static Signature instance(StringView algorithm) {
 		if (!is_algorithm(algorithm, Array<StringView, 2>{"Ed25519", "ED25519"})) {
 			throw NoSuchAlgorithmException("Unsupported Signature algorithm");
 		}
@@ -834,14 +837,15 @@ public:
 	}
 
 	/**
-	 * @brief Initialises this engine for signing with the given private key.
+	 * @brief Initializes this engine for signing with the given private key.
 	 *
 	 * Clears any previously accumulated message data.
 	 *
 	 * @param key The private key to sign with.
 	 * @throws InvalidKeyException if the key length does not match the algorithm.
 	 */
-	void init_sign(const PrivateKey& key) throws (InvalidKeyException) {
+	THROWS(InvalidKeyException)
+	void init_sign(const PrivateKey& key) {
 		if (key.encoded().size() != ED25519_PRIVATE_KEY_BYTES) {
 			throw InvalidKeyException("Invalid Ed25519 private key length");
 		}
@@ -851,14 +855,15 @@ public:
 	}
 
 	/**
-	 * @brief Initialises this engine for verification with the given public key.
+	 * @brief Initializes this engine for verification with the given public key.
 	 *
 	 * Clears any previously accumulated message data.
 	 *
 	 * @param key The public key to verify against.
 	 * @throws InvalidKeyException if the key length does not match the algorithm.
 	 */
-	void init_verify(const PublicKey& key) throws (InvalidKeyException) {
+	THROWS(InvalidKeyException)
+	void init_verify(const PublicKey& key) {
 		if (key.encoded().size() != ED25519_PUBLIC_KEY_BYTES) {
 			throw InvalidKeyException("Invalid Ed25519 public key length");
 		}
@@ -868,7 +873,7 @@ public:
 	}
 
 	/**
-	 * @brief Feeds message bytes into the engine without finalising.
+	 * @brief Feeds message bytes into the engine without finalizing.
 	 *
 	 * May be called multiple times before {@code sign()} or {@code verify()}.
 	 *
@@ -887,14 +892,15 @@ public:
 	 * @throws SignatureException if the underlying signing operation fails.
 	 */
 	[[nodiscard]]
-	ByteBuffer sign() throws (NoSuchAlgorithmException, InvalidKeyException, SignatureException) {
+	THROWS(NoSuchAlgorithmException, InvalidKeyException, SignatureException)
+	ByteBuffer sign() {
 		ensure_sodium_initialized();
 
 		if (algorithm != Algorithm::ED25519) {
 			throw NoSuchAlgorithmException("Unsupported signature algorithm");
 		}
 		if (signing_key.empty()) {
-			throw InvalidKeyException("Signature object is not initialised for signing");
+			throw InvalidKeyException("Signature object is not initialized for signing");
 		}
 
 		ByteBuffer signature(crypto_sign_BYTES, 0);
@@ -923,14 +929,15 @@ public:
 	 * @throws InvalidKeyException if {@code init_verify()} was not called, or the signature length is wrong.
 	 */
 	[[nodiscard]]
-	bool verify(Span<const u8> signature) throws (NoSuchAlgorithmException, InvalidKeyException) {
+	THROWS(NoSuchAlgorithmException, InvalidKeyException)
+	bool verify(Span<const u8> signature) {
 		ensure_sodium_initialized();
 
 		if (algorithm != Algorithm::ED25519) {
 			throw NoSuchAlgorithmException("Unsupported signature algorithm");
 		}
 		if (verification_key.empty()) {
-			throw InvalidKeyException("Signature object is not initialised for verification");
+			throw InvalidKeyException("Signature object is not initialized for verification");
 		}
 		if (signature.size() != ED25519_SIGNATURE_BYTES) {
 			throw InvalidKeyException("Invalid Ed25519 signature length");
@@ -979,15 +986,12 @@ public:
 	enum class Algorithm: u8 {
 		SECRETBOX, ///< XSalsa20-Poly1305 (libsodium {@code crypto_secretbox}).
 	};
-
 private:
 	Algorithm algorithm; ///< The selected symmetric algorithm.
 	mutable SecureRandom rng; ///< Entropy source for key material.
-
 protected:
 	explicit KeyGenerator(Algorithm algorithm):
 		algorithm{algorithm} {}
-
 public:
 	/**
 	 * @brief Returns a {@code KeyGenerator} for the named algorithm.
@@ -997,10 +1001,11 @@ public:
 	 *
 	 * @param algorithm The algorithm name.
 	 * @return A new {@code KeyGenerator} instance.
-	 * @throws NoSuchAlgorithmException if the algorithm is not recognised.
+	 * @throws NoSuchAlgorithmException if the algorithm is not recognized.
 	 */
 	[[nodiscard]]
-	static KeyGenerator instance(StringView algorithm) throws (NoSuchAlgorithmException) {
+	THROWS(NoSuchAlgorithmException)
+	static KeyGenerator instance(StringView algorithm) {
 		if (!is_algorithm(
 				algorithm,
 				Array<StringView, 4>{"SecretBox", "SECRETBOX", "XSalsa20-Poly1305", "secretbox"}
@@ -1026,7 +1031,8 @@ public:
 	 * @throws NoSuchAlgorithmException if the algorithm is not supported.
 	 */
 	[[nodiscard]]
-	SecretKey generate_key() const throws (NoSuchAlgorithmException) {
+	THROWS(NoSuchAlgorithmException)
+	SecretKey generate_key() const {
 		if (algorithm != Algorithm::SECRETBOX) {
 			throw NoSuchAlgorithmException("Unsupported key generation algorithm");
 		}
@@ -1063,11 +1069,9 @@ private:
 	SecretKey key; ///< The key to encrypt/decrypt with (set by init()).
 	bool initialized; ///< Whether init() has been called successfully.
 	mutable SecureRandom rng; ///< Entropy source for nonce generation.
-
 protected:
 	explicit Cipher(StringView transformation):
 		transformation{transformation}, mode{CipherMode::ENCRYPT_MODE}, key{}, initialized{false} {}
-
 public:
 	/**
 	 * @brief Returns a {@code Cipher} for the named transformation.
@@ -1076,11 +1080,12 @@ public:
 	 * {@code "SecretBox/None/NoPadding"}, {@code "secretbox"}.
 	 *
 	 * @param transformation The transformation name.
-	 * @return A new, uninitialised {@code Cipher} instance.
-	 * @throws NoSuchAlgorithmException if the transformation is not recognised.
+	 * @return A new, uninitialized {@code Cipher} instance.
+	 * @throws NoSuchAlgorithmException if the transformation is not recognized.
 	 */
 	[[nodiscard]]
-	static Cipher instance(StringView transformation) throws (NoSuchAlgorithmException) {
+	THROWS(NoSuchAlgorithmException)
+	static Cipher instance(StringView transformation) {
 		if (!is_algorithm(
 				transformation,
 				Array<StringView, 4>{"SecretBox", "XSalsa20-Poly1305", "SecretBox/None/NoPadding", "secretbox"}
@@ -1091,12 +1096,13 @@ public:
 	}
 
 	/**
-	 * @brief Initialises the cipher for encryption or decryption with the given key.
+	 * @brief Initializes the cipher for encryption or decryption with the given key.
 	 * @param mode The operating mode.
 	 * @param key The secret key to use; must be non-empty and the correct size.
 	 * @throws InvalidKeyException if the key is empty or the wrong size.
 	 */
-	void init(CipherMode mode, const SecretKey& key) throws (InvalidKeyException) {
+	THROWS(InvalidKeyException)
+	void init(CipherMode mode, const SecretKey& key) {
 		if (key.empty()) {
 			throw InvalidKeyException("Cipher key cannot be empty");
 		}
@@ -1122,11 +1128,12 @@ public:
 	 * @throws IllegalStateException if {@code init()} has not been called.
 	 */
 	[[nodiscard]]
-	ByteBuffer do_final(Span<const u8> input) const throws (AEADBadTagException, InvalidArgumentException, IllegalStateException) {
+	THROWS(AEADBadTagException, InvalidArgumentException, IllegalStateException)
+	ByteBuffer do_final(Span<const u8> input) const {
 		ensure_sodium_initialized();
 
 		if (!initialized) {
-			throw IllegalStateException("Cipher is not initialised");
+			throw IllegalStateException("Cipher is not initialized");
 		}
 
 		const Span<const u8> key_material = key.encoded();

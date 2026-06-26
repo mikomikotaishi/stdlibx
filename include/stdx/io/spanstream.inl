@@ -30,7 +30,5 @@ export namespace stdx::io {
     using SpanStream = std::spanstream;
 
     using WideSpanStream = std::wspanstream;
-
-    using std::swap;
     #endif
 }

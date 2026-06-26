@@ -48,8 +48,8 @@ export namespace stdx::audio::midi {
     class Receiver {
     public:
         Receiver() = default;
-        Receiver(const Receiver&) = delete;
-        Receiver& operator=(const Receiver&) = delete;
+        Receiver(const Receiver&) = delete("Receiver is not copyable.");
+        Receiver& operator=(const Receiver&) = delete("Receiver is not copyable.");
         virtual ~Receiver() = default;
 
         /**
@@ -70,8 +70,8 @@ export namespace stdx::audio::midi {
     class Transmitter {
     public:
         Transmitter() = default;
-        Transmitter(const Transmitter&) = delete;
-        Transmitter& operator=(const Transmitter&) = delete;
+        Transmitter(const Transmitter&) = delete("Transmitter is not copyable.");
+        Transmitter& operator=(const Transmitter&) = delete("Transmitter is not copyable.");
         virtual ~Transmitter() = default;
 
         /**
@@ -93,14 +93,14 @@ export namespace stdx::audio::midi {
     class MidiDevice {
     public:
         MidiDevice() = default;
-        MidiDevice(const MidiDevice&) = delete;
-        MidiDevice& operator=(const MidiDevice&) = delete;
+        MidiDevice(const MidiDevice&) = delete("MidiDevice is not copyable.");
+        MidiDevice& operator=(const MidiDevice&) = delete("MidiDevice is not copyable.");
         virtual ~MidiDevice() = default;
 
         [[nodiscard]]
         virtual const MidiDeviceInfo& info() const noexcept = 0;
 
-        virtual void open() throws (MidiException) = 0;
+        virtual void open() = 0;
 
         virtual void close() noexcept = 0;
 

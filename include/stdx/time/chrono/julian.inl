@@ -64,7 +64,7 @@ export namespace stdx::time::chrono {
             return {static_cast<i32>(y + (m <= 2)), m, d};
         }
     public:
-        JulianChronology() = delete;
+        JulianChronology() = delete("JulianChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era

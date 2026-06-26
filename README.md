@@ -1,9 +1,5 @@
 # `stdlibx`
 
-> **WARNING:** As this library is still under development, it is not stable and does not have a stable release. Furthermore, many features do not yet work, or require inelegant workarounds. These issues will only be resolved as development continues.
-
-> **WARNING:** This library is primarily tested with Clang and GCC, and MSVC support is not yet confirmed.
-
 ## Overview
 
 This is a framework that wraps the C++ Standard Library, in an API more consistent with standard libraries of other languages, while also extending it with additional features. The main purpose is to create a standard library experience that is more enjoyable and familiar to use, while remaining compatible (to some degree) with the original standard library.
@@ -18,37 +14,46 @@ The main features of this repackaging of the standard library are:
 - Splitting the standard library into sub-namespaces (in constrast to the ISO C++ `std::` namespace which is largely flat).
   - The divisions try to follow the Rust standard library modules, but also take inspiration from the Java standard library.
 
-Pros:
+> **WARNING:** As this library is still under development, it is not stable and does not have a stable release. Furthermore, many features do not yet work, or require inelegant workarounds. These issues will only be resolved as development continues. We accept all issues/reports or pull requests for fixes.
 
-- A clean API that is more in line with what C++ style should be (in my opinion), as well as that of other languages.
-- More features that ought to be part of the standard library, in a clean, C++-style interface.
-- Consistently updated (but is currently in-development and may be subject to unstable, API-breaking changes).
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Cons:
+### Requirements
 
-- Non-standard, obviously. Features are obviously dependent on what is supported by vendors, and different compilers may have different challenges building this library.
-- This library is developed independently. While we accept feature requests, pull requests, and improvements from everyone, do note that support is limited due to the limited resources.
-- Because of its limited development resources, bugs are bound to arise in independently-developed parts.
-- Often relies on cutting or bleeding-edge features, which may not be suitable for stability-priority projects. Development is currently unstable, and no stable release exists (yet).
-- Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 20-30 seconds to build on my (modest) hardware on both Clang and GCC.
-- No support for headers. The library likely will not ever support headers, as it makes extensive use of `using` statements (and is designed to encourage their usage), and any attempt to simultaneously support headers and modules would likely clutter the code with preprocessor directives and ugly macros.
+> **WARNING:** This library is primarily tested with Clang and GCC, and MSVC support is not yet confirmed.
 
-Requires a minimum of C++23. This library is tested with libstdc++ (GCC) as the default standard library. and has not yet been tested with or MSVC STL. This library expects a minimum of C++23 features, but provides feature-test macro guarding as appropriate.
+Requires a minimum of C++26. This library is tested with libstdc++ (GCC) as the default standard library. and has not yet been tested with or MSVC STL. This library expects a minimum of C++26 features, but provides feature-test macro guarding as appropriate.
 
 > **WARNING:** Clang libc++ support lags behind GCC libstdc++ tremendously, and some feature-test macros are incorrectly activated on libc++ despite incomplete support. As such, it is recommended to use libstdc++.
 
 Note that currently, Clang module support is far superior to that of GCC, and thus more features are supported on Clang due to certain bugs (such as compiler crashes and conflicting definition loads) on GCC. Many of these are beyond my ability to solve unfortunately.
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+### Comparison
+
+#### Pros
+
+- A clean API that is more in line with what C++ style should be (in my opinion), as well as that of other languages.
+- More features that ought to be part of the standard library, in a clean, C++-style interface.
+- Consistently updated (but is currently in-development and may be subject to unstable, API-breaking changes).
+
+#### Cons
+
+- Non-standard, obviously. Features are obviously dependent on what is supported by vendors, and different compilers may have different challenges building this library.
+- This library is developed independently. While we accept feature requests, pull requests, and improvements from everyone, do note that support is limited due to the limited resources.
+- Because of its limited development resources, bugs are bound to arise in independently-developed parts.
+- Often relies on cutting or bleeding-edge features, which may not be suitable for stability-priority projects. Development is currently unstable, and no stable release exists (yet).
+- Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 30 seconds on Clang and a minute on GCC to build on my (modest) hardware.
+- No support for headers. The library likely will not ever support headers, as it makes extensive use of `using` statements (and is designed to encourage their usage), and any attempt to simultaneously support headers and modules would likely clutter the code with preprocessor directives and ugly macros.
 
 ### Features
 
 - Everything included in the C++ standard library
 - Additional ease-of-use classes and Java-style utility classes (`stdx::core::System`, `stdx::core::Integer`, `stdx::core::Character`, `stdx::core::Math`)
-- A higher-level API for C++ `std::meta` reflection
-- An improved chronology library based on `java.time.chrono`
+- A higher-level API for C++ `std::meta` reflection (in `stdx::meta::reflect`)
+- An improved chronology library based on `java.time.chrono` (in `stdx::time::chrono`)
 - Minimal wrappers over the GNU C library, Win32 API, and Linux headers, where possible (in `stdx::os`)
 - A JDBC-style ODBC wrapper (with `stdx::sql`)
+- A dependency injection framework (in `stdx::inject`)
 - LINQ-style queries (`stdx::linq`), wrapping over `std::views::*`
 - Logging (`stdx::util::logging`)
 - Minimal wrappers over Lua headers (`stdx::lua`)
@@ -93,9 +98,9 @@ int main(int argc, char* argv[]) {
 
     if (result) {
         const auto& [path, size] = *result;
-        System::out.println("Largest .txt file: {} ({} bytes)", path.string(), size);
+        System::out.println("Largest .txt file: {} ({} bytes)", path, size);
     } else {
-        System::out.println("No .txt files found in directory: {}", dir.string());
+        System::out.println("No .txt files found in directory: {}", dir);
     }
 
     return System::EXIT_SUCCESS;

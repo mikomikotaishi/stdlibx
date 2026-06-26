@@ -1,7 +1,7 @@
 #pragma once
 
+#ifndef STDLIBX_EXPORT_IMPORT_STD
 export namespace std {
-    #ifndef STDLIBX_EXPORT_IMPORT_STD
     using std::operator<<;
     using std::operator>>;
     using std::operator+;
@@ -104,5 +104,5 @@ export namespace std {
         using std::ranges::data;
         using std::ranges::cdata;
     }
-    #endif
 }
+#endif

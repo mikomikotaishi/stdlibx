@@ -382,7 +382,7 @@ export namespace stdx {
 
         class Placeholders final {
         public:
-            Placeholders() = delete;
+            Placeholders() = delete("Placeholders is a static class and cannot be instantiated.");
 
             static constexpr auto _1 = std::placeholders::_1;
             static constexpr auto _2 = std::placeholders::_2;

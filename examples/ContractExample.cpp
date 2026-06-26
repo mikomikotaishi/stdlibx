@@ -19,12 +19,12 @@ i32 add(i32 a, i32 b)
 }
 #endif
 
-int main() {
+int main(int argc, char* argv[]) {
     #ifdef __cpp_contracts
     i32 result = add(2, 3);
     System::out.println("Result: {}", result);
     #else
-    System::out.println("[test] Test disabled (compiler does not support contracts).");
+    System::out.println("Example disabled (compiler does not support contracts).");
     #endif
 }
 

@@ -301,8 +301,6 @@ export namespace stdx::time {
     private:
         const Self value;
     public:
-        constexpr Choose() noexcept = delete;
-
         constexpr Choose(Self value) noexcept:
             value{value} {}
 

@@ -3,6 +3,7 @@
 import stdx;
 
 #ifdef __cpp_impl_reflection
+using stdx::collections::EnumMap;
 using stdx::collections::EnumSet;
 using stdx::collections::Vector;
 using stdx::linq::Query;
@@ -16,6 +17,7 @@ using stdx::meta::reflect::FunctionSpecifier;
 using stdx::meta::reflect::Info;
 using stdx::meta::reflect::Method;
 using stdx::meta::reflect::ReflectableClass;
+using stdx::meta::reflect::ThrownExceptions;
 using stdx::meta::reflect::Type;
 using stdx::util::ArgumentParser;
 using stdx::util::CommandLineParserException;
@@ -99,6 +101,24 @@ struct EnvOptions {
 struct EnvRequired {
     [[=Env<"REFTEST_MISSING">()]]
     String value;
+};
+
+// Fixtures for the Throws annotation: a free function carrying two exception
+// types, an unannotated function, and a callable type annotating its operator().
+// Real exception classes (not the std:: alias typedefs) are used so reflection
+// identity is unambiguous.
+[[=Throws<ArithmeticException, InvalidOperationException>()]]
+i32 annotated_thrower(i32 x) {
+    return x;
+}
+
+i32 unannotated_function(i32 x) {
+    return x;
+}
+
+struct AnnotatedCallable {
+    [[=Throws<ArithmeticException>()]]
+    void operator()() const {}
 };
 
 [[nodiscard]]
@@ -313,6 +333,168 @@ void test_reflection_classes() {
     expect(int_signed, "i32 is signed");
     expect(int_size == sizeof(i32), "i32 size matches sizeof(i32)");
 }
+
+/**
+ * @brief Exercises the Throws annotation: gathering declared exception types from a
+ * function and from a callable type, and the empty case.
+ */
+void test_throws_annotation() {
+    // thrown_exceptions returns Tuple<Class<E>...>: each element keeps its concrete
+    // exception type. Identity is checked via Class<E>::VALUE (== ^^E), parenthesised
+    // so the ^^ operator does not greedily read a following && as a reference type-id.
+
+    // A function's Throws annotation yields its exception types, in order.
+    constexpr ThrownExceptions<^^annotated_thrower> declared = Ops::thrown_exceptions<^^annotated_thrower>();
+    using Declared = decltype(declared);
+    constexpr bool declared_order =
+        (TupleElementType<0, Declared>::VALUE == ^^ArithmeticException) &&
+        (TupleElementType<1, Declared>::VALUE == ^^InvalidOperationException);
+    expect_eq(TupleSize<Declared>::value, 2uz, "annotated_thrower declares two exceptions");
+    expect(declared_order, "annotated_thrower declares Class<ArithmeticException> then Class<InvalidOperationException>");
+
+    // No Throws annotation means an empty tuple.
+    using None = decltype(Ops::thrown_exceptions<^^unannotated_function>());
+    expect_eq(TupleSize<None>::value, 0uz, "unannotated_function declares no exceptions");
+
+    // A callable type is queried through its operator().
+    constexpr ThrownExceptions<^^AnnotatedCallable> from_callable = Ops::thrown_exceptions<^^AnnotatedCallable>();
+    using FromCallable = decltype(from_callable);
+    constexpr bool callable_ok = (TupleElementType<0, FromCallable>::VALUE == ^^ArithmeticException);
+    expect_eq(TupleSize<FromCallable>::value, 1uz, "callable type declares one exception");
+    expect(callable_ok, "callable type declares Class<ArithmeticException> via operator()");
+
+    // The annotation is only applicable to functions and callables.
+    constexpr bool function_ok = FunctionOrCallable<^^annotated_thrower>;
+    constexpr bool callable_type_ok = FunctionOrCallable<^^AnnotatedCallable>;
+    constexpr bool non_callable_rejected = !FunctionOrCallable<^^i32>;
+    expect(function_ok, "a function is function-or-callable");
+    expect(callable_type_ok, "a callable type is function-or-callable");
+    expect(non_callable_rejected, "a non-callable type is not function-or-callable");
+}
+
+// EnumMap is usable in a constant expression: build, index, mutate, query.
+static_assert(
+    [] -> bool {
+        EnumMap<Suit, i32> m;
+        m[Suit::CLUBS] = 1;
+        m[Suit::HEARTS] = 3;
+        m.erase(Suit::CLUBS);
+        return m.size() == 1
+            && m.contains(Suit::HEARTS)
+            && !m.contains(Suit::CLUBS);
+    }(),
+    "EnumMap is usable in constant expressions"
+);
+
+/**
+ * @brief Exercises EnumMap<Suit, V>: the STL-style API (insert_or_assign/get/erase,
+ * keyed by enumerator), iteration in declaration order, and the formatter.
+ */
+void test_enum_map() {
+    expect_eq(EnumMap<Suit, i32>::capacity(), 4uz, "capacity is the enumerator count");
+
+    // An empty map.
+    EnumMap<Suit, i32> empty;
+    expect(empty.empty(), "a fresh map is empty");
+    expect_eq(empty.size(), 0uz, "a fresh map has size zero");
+    expect(!empty.contains(Suit::CLUBS), "a fresh map contains no keys");
+    expect(empty.find(Suit::CLUBS) == nullptr, "find on an absent key is nullptr");
+    expect_throws<OutOfRangeException>(
+        [&] -> void { (void)empty.at(Suit::CLUBS); },
+        "at on an absent key throws OutOfRangeException"
+    );
+
+    // insert_or_assign returns the previous mapping (empty when newly inserted).
+    EnumMap<Suit, i32> m;
+    expect(!m.insert_or_assign(Suit::CLUBS, 1).has_value(), "inserting a new key has no previous value");
+    Optional<i32> previous = m.insert_or_assign(Suit::CLUBS, 2);
+    require(previous.has_value(), "overwriting returns the previous value");
+    expect_eq(*previous, 1, "the previous value is the old mapping");
+    expect_eq(m.size(), 1uz, "overwriting does not grow the map");
+
+    // at / find / contains_value.
+    m.insert_or_assign(Suit::HEARTS, 7);
+    expect(m.contains(Suit::HEARTS), "contains finds a present key");
+    expect_eq(m.at(Suit::HEARTS), 7, "at returns the mapped value");
+    expect_throws<OutOfRangeException>(
+        [&] -> void { (void)m.at(Suit::SPADES); },
+        "at on an absent key throws OutOfRangeException"
+    );
+    require(m.find(Suit::HEARTS) != nullptr, "find returns a pointer to a present value");
+    expect_eq(*m.find(Suit::HEARTS), 7, "the found pointer dereferences to the value");
+    expect(m.contains_value(7), "contains_value finds a stored value");
+    expect(!m.contains_value(8), "contains_value rejects an absent value");
+
+    // operator[] inserts a default value for an absent key.
+    EnumMap<Suit, i32> idx;
+    idx[Suit::CLUBS] = 5;
+    expect_eq(idx[Suit::CLUBS], 5, "operator[] reads back what was assigned");
+    i32& slot = idx[Suit::DIAMONDS];
+    expect_eq(slot, 0, "operator[] default-inserts for an absent key");
+    expect_eq(idx.size(), 2uz, "operator[] grows the map on insertion");
+
+    // erase returns the previous mapping and shrinks the map.
+    EnumMap<Suit, i32> r;
+    r.insert_or_assign(Suit::CLUBS, 1);
+    Optional<i32> removed = r.erase(Suit::CLUBS);
+    require(removed.has_value(), "erase returns the previous value");
+    expect_eq(*removed, 1, "the erased value is the old mapping");
+    expect(r.empty(), "the map is empty after erasing its only entry");
+    expect(!r.erase(Suit::CLUBS).has_value(), "erasing an absent key returns empty");
+
+    // Iteration visits present entries in enumerator declaration order.
+    EnumMap<Suit, i32> ordered;
+    ordered.insert_or_assign(Suit::SPADES, 4);
+    ordered.insert_or_assign(Suit::CLUBS, 1);
+    ordered.insert_or_assign(Suit::HEARTS, 3);
+    Vector<Suit> keys;
+    Vector<i32> vals;
+    for (auto [key, value]: ordered) {
+        keys.push_back(key);
+        vals.push_back(value);
+    }
+    expect_eq(keys.size(), 3uz, "iteration visits every present entry");
+    expect(
+        keys[0] == Suit::CLUBS && keys[1] == Suit::HEARTS && keys[2] == Suit::SPADES,
+        "iteration is in enumerator declaration order"
+    );
+    expect(vals[0] == 1 && vals[1] == 3 && vals[2] == 4, "values follow their keys in order");
+
+    // key_set yields an EnumSet of the present keys; values yields them in order.
+    EnumSet<Suit> present = ordered.key_set();
+    expect_eq(present.size(), 3uz, "key_set has one entry per mapping");
+    expect(present.contains(Suit::CLUBS) && !present.contains(Suit::DIAMONDS), "key_set reflects the mappings");
+    Vector<i32> only_values = ordered.values();
+    expect(only_values.size() == 3 && only_values[0] == 1 && only_values[2] == 4, "values are in declaration order");
+
+    // put_all merges, overwriting on conflict.
+    EnumMap<Suit, i32> a;
+    a.insert_or_assign(Suit::CLUBS, 1);
+    EnumMap<Suit, i32> b;
+    b.insert_or_assign(Suit::HEARTS, 3);
+    b.insert_or_assign(Suit::CLUBS, 99);
+    a.put_all(b);
+    expect_eq(a.size(), 2uz, "put_all unions the key sets");
+    expect_eq(*a.find(Suit::CLUBS), 99, "put_all overwrites on conflict");
+
+    // Equality
+    EnumMap<Suit, i32> x = {{Suit::CLUBS, 1}, {Suit::SPADES, 4}};
+    expect_eq(x.size(), 2uz, "the initializer-list constructor inserts each entry");
+    EnumMap<Suit, i32> y = x;
+    expect(x == y, "copy constructor yields an equal map");
+    y.insert_or_assign(Suit::HEARTS, 3);
+    expect(x != y, "maps compare unequal after a divergent insert");
+
+    // clear.
+    x.clear();
+    expect(x.empty(), "clear empties the map");
+
+    // Formatter: {KEY=value, ...} in declaration order.
+    EnumMap<Suit, i32> f;
+    f.insert_or_assign(Suit::CLUBS, 1);
+    f.insert_or_assign(Suit::HEARTS, 3);
+    expect_eq(stdx::fmt::format("{}", f), "{CLUBS=1, HEARTS=3}", "formatter lists entries in declaration order");
+}
 #endif
 
 int main(int argc, char* argv[]) {
@@ -320,9 +502,11 @@ int main(int argc, char* argv[]) {
     return run(argc, argv, {
         {"meta.reflection_classes", test_reflection_classes},
         {"meta.argument_parser", test_argument_parser},
+        {"meta.throws_annotation", test_throws_annotation},
+        {"collections.enum_map", test_enum_map},
     });
     #else
     System::out.println("[test] Test disabled (compiler does not support reflection).");
-    return 0;
+    return System::EXIT_SUCCESS;
     #endif
 }

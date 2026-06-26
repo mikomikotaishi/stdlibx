@@ -23,7 +23,8 @@ export namespace stdx::audio::midi {
          * @param bank The new soundbank to load.
          * @throws MidiException if the soundbank fails to load.
          */
-        virtual void load_soundbank(const SoundBank& bank) throws (MidiException) = 0;
+        THROWS(MidiException)
+        virtual void load_soundbank(const SoundBank& bank) = 0;
 
         /**
          * @brief Returns the highest concurrent voice count the synth was configured for.

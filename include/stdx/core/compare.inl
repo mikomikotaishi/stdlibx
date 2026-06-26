@@ -13,7 +13,7 @@ export namespace stdx::core {
 
     class Compare final {
     public:
-        Compare() = delete;
+        Compare() = delete("Compare is a static utility class and cannot be instantiated.");
 
         template <typename T, typename U>
         [[nodiscard]]
@@ -63,8 +63,6 @@ export namespace stdx::core {
     private:
         const Self value;
     public:
-        constexpr PartialOrdering() noexcept = delete;
-
         constexpr PartialOrdering(Self value) noexcept:
             value{value} {}
 
@@ -112,8 +110,6 @@ export namespace stdx::core {
     private:
         const Self value;
     public:
-        constexpr WeakOrdering() noexcept = delete;
-
         constexpr WeakOrdering(Self value) noexcept:
             value{value} {}
 
@@ -170,8 +166,6 @@ export namespace stdx::core {
     private:
         const Self value;
     public:
-        constexpr StrongOrdering() noexcept = delete;
-
         constexpr StrongOrdering(Self value) noexcept:
             value{value} {}
 

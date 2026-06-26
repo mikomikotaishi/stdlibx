@@ -19,9 +19,4 @@ export namespace stdx::core {
 
     template <usize N>
     using IndexSequenceOf = std::make_index_sequence<N>;
-
-    using std::begin;
-    using std::end;
-
-    using std::swap;
 }

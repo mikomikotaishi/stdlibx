@@ -69,7 +69,7 @@ concept NormalizableDelimiter = CharacterLike<RangeValue<Ran>>
 /**
  * @concept Splittable
  * @brief Concept that checks if Split can be applied to the range with a given
- *        delimiter - either directly, or after normalising a raw C-string
+ *        delimiter - either directly, or after normalizing a raw C-string
  *        delimiter (see NormalizableDelimiter) to a null-free BasicStringView.
  *
  * @tparam Ran The range type.
@@ -274,7 +274,7 @@ public:
      * @return Iterator to the beginning.
      */
     [[nodiscard]]
-    constexpr auto begin() noexcept -> decltype(Begin(range)) {
+    constexpr auto begin() noexcept {
         return Begin(range);
     }
 
@@ -284,7 +284,7 @@ public:
      * @return Iterator to the end.
      */
     [[nodiscard]]
-    constexpr auto end() noexcept -> decltype(End(range)) {
+    constexpr auto end() noexcept {
         return End(range);
     }
 
@@ -298,7 +298,7 @@ public:
     template <typename Pred>
         requires Filterable<Ran, Pred>
     [[nodiscard]]
-    constexpr auto where(Pred&& pred) noexcept -> Query<decltype(Filter(range, Ops::forward<Pred>(pred)))> {
+    constexpr auto where(Pred&& pred) noexcept {
         return Query<decltype(Filter(range, Ops::forward<Pred>(pred)))>(
             Filter(range, Ops::forward<Pred>(pred))
         );
@@ -314,7 +314,7 @@ public:
     template <typename Func>
         requires Transformable<Ran, Func>
     [[nodiscard]]
-    constexpr auto select(Func&& func) noexcept -> Query<decltype(Transform(range, Ops::forward<Func>(func)))> {
+    constexpr auto select(Func&& func) noexcept {
         return Query<decltype(Transform(range, Ops::forward<Func>(func)))>(
             Transform(range, Ops::forward<Func>(func))
         );
@@ -331,10 +331,9 @@ public:
      */
     template <typename Func>
         requires Transformable<Ran, Func> &&
-            requires (Ran& r, Func&& f) { Join(Transform(r, Ops::forward<Func>(f))); }
+        requires (Ran& r, Func&& f) { Join(Transform(r, Ops::forward<Func>(f))); }
     [[nodiscard]]
-    constexpr auto select_many(Func&& func) noexcept
-        -> Query<decltype(Join(Transform(range, Ops::forward<Func>(func))))> {
+    constexpr auto select_many(Func&& func) noexcept {
         return Query<decltype(Join(Transform(range, Ops::forward<Func>(func))))>(
             Join(Transform(range, Ops::forward<Func>(func)))
         );
@@ -349,7 +348,7 @@ public:
      * otherwise stop it ever matching). A raw `const char*` *source* is not a
      * range, so it must be wrapped first: `Query(StringView{ptr})`.
      *
-     * @tparam Into The type each piece is materialised into, or void to yield the
+     * @tparam Into The type each piece is materialized into, or void to yield the
      * raw subranges (defaults to void).
      * @tparam Delim The delimiter type (a single element or a pattern range).
      * @param delim The delimiter to split on.
@@ -359,8 +358,8 @@ public:
         requires Splittable<Ran, Delim>
     [[nodiscard]]
     constexpr auto split(Delim&& delim) noexcept {
-        auto build = [this]<typename Pattern>(Pattern&& pattern) {
-            auto parts = Split(range, Ops::forward<Pattern>(pattern));
+        auto build = [this]<typename Ptrn>(Ptrn&& pattern) {
+            auto parts = Split(range, Ops::forward<Ptrn>(pattern));
             if constexpr (SameAs<Into, void>) {
                 return Query<decltype(parts)>(Ops::move(parts));
             } else {
@@ -385,7 +384,7 @@ public:
      * @return A Query representing the range after skipping.
      */
     [[nodiscard]]
-    constexpr auto skip(RangeDifference<Ran> n) noexcept -> Query<decltype(Drop(range, n))> {
+    constexpr auto skip(RangeDifference<Ran> n) noexcept {
         return Query<decltype(Drop(range, n))>(Drop(range, n));
     }
 
@@ -398,7 +397,7 @@ public:
      */
     template <typename Pred>
     [[nodiscard]]
-    constexpr auto skip_while(Pred&& pred) noexcept -> Query<decltype(DropWhile(range, Ops::forward<Pred>(pred)))> {
+    constexpr auto skip_while(Pred&& pred) noexcept {
         return Query<decltype(DropWhile(range, Ops::forward<Pred>(pred)))>(
             DropWhile(range, Ops::forward<Pred>(pred))
         );
@@ -411,7 +410,7 @@ public:
      * @return A Query representing the range after taking.
      */
     [[nodiscard]]
-    constexpr auto take(RangeDifference<Ran> n) noexcept -> Query<decltype(Take(range, n))> {
+    constexpr auto take(RangeDifference<Ran> n) noexcept {
         return Query<decltype(Take(range, n))>(Take(range, n));
     }
 
@@ -424,7 +423,7 @@ public:
      */
     template <typename Pred>
     [[nodiscard]]
-    constexpr auto take_while(Pred&& pred) noexcept -> Query<decltype(TakeWhile(range, Ops::forward<Pred>(pred)))> {
+    constexpr auto take_while(Pred&& pred) noexcept {
         return Query<decltype(TakeWhile(range, Ops::forward<Pred>(pred)))>(
             TakeWhile(range, Ops::forward<Pred>(pred))
         );
@@ -449,7 +448,7 @@ public:
      * @return A Query of (index, element) pairs.
      */
     [[nodiscard]]
-    constexpr auto enumerate() noexcept -> Query<decltype(Enumerate(range))> {
+    constexpr auto enumerate() noexcept {
         return Query<decltype(Enumerate(range))>(Enumerate(range));
     }
     #endif
@@ -463,8 +462,7 @@ public:
      */
     template <typename... Others>
     [[nodiscard]]
-    constexpr auto zip(Others&&... others) noexcept
-        -> Query<decltype(Zip(range, Ops::forward<Others>(others)...))> {
+    constexpr auto zip(Others&&... others) noexcept {
         return Query<decltype(Zip(range, Ops::forward<Others>(others)...))>(
             Zip(range, Ops::forward<Others>(others)...)
         );
@@ -478,7 +476,7 @@ public:
      * @return A Query representing every nth element.
      */
     [[nodiscard]]
-    constexpr auto stride(RangeDifference<Ran> n) noexcept -> Query<decltype(Stride(range, n))> {
+    constexpr auto stride(RangeDifference<Ran> n) noexcept {
         return Query<decltype(Stride(range, n))>(Stride(range, n));
     }
     #endif
@@ -491,7 +489,7 @@ public:
      * @return A Query of chunks (sub-ranges).
      */
     [[nodiscard]]
-    constexpr auto chunk(RangeDifference<Ran> n) noexcept -> Query<decltype(Chunk(range, n))> {
+    constexpr auto chunk(RangeDifference<Ran> n) noexcept {
         return Query<decltype(Chunk(range, n))>(Chunk(range, n));
     }
     #endif
@@ -576,7 +574,7 @@ public:
     template <typename KeySelector, typename Collection = Vector<RangeValue<Ran>>>
         requires Sortable<Ran, KeySelector, Collection>
     [[nodiscard]]
-    constexpr auto order_by(KeySelector&& keySelector) noexcept -> Query<Collection> {
+    constexpr Query<Collection> order_by(KeySelector&& keySelector) noexcept {
         Collection temp(begin(), end());
         stdx::ranges::sort(temp, Less<>(), Ops::forward<KeySelector>(keySelector));
         return Query<Collection>(Ops::move(temp));
@@ -593,7 +591,7 @@ public:
     template <typename KeySelector, typename Collection = Vector<RangeValue<Ran>>>
         requires Sortable<Ran, KeySelector, Collection>
     [[nodiscard]]
-    constexpr auto order_by_descending(KeySelector&& keySelector) noexcept -> Query<Collection> {
+    constexpr Query<Collection> order_by_descending(KeySelector&& keySelector) noexcept {
         Collection temp(begin(), end());
         stdx::ranges::sort(temp, Greater<>(), Ops::forward<KeySelector>(keySelector));
         return Query<Collection>(Ops::move(temp));
@@ -607,7 +605,7 @@ public:
      */
     template <Distinguishable<Ran> Collection = Vector<RangeValue<Ran>>>
     [[nodiscard]]
-    constexpr auto distinct() noexcept -> Query<Collection> {
+    constexpr Query<Collection> distinct() noexcept {
         Collection temp(begin(), end());
         stdx::ranges::sort(temp);
         auto last = stdx::ranges::unique(temp);
@@ -626,7 +624,7 @@ public:
     template <typename Other, typename Collection = Vector<RangeValue<Ran>>>
         requires PushBackable<Collection, RangeValue<Ran>>
     [[nodiscard]]
-    constexpr auto concat(Other&& other) noexcept -> Query<Collection> {
+    constexpr Query<Collection> concat(Other&& other) noexcept {
         Collection temp(begin(), end());
         for (auto&& elem : other) {
             temp.push_back(Ops::forward<decltype(elem)>(elem));
@@ -638,11 +636,11 @@ public:
      * @brief Returns the first element.
      *
      * @return The first element.
-     *
      * @throws InvalidOperationException if the range is empty.
      */
     [[nodiscard]]
-    constexpr RangeValue<Ran> first() throws (InvalidOperationException) {
+    THROWS(InvalidOperationException)
+    constexpr RangeValue<Ran> first() {
         if (begin() == end()) {
             throw InvalidOperationException("Range is empty.");
         }
@@ -664,11 +662,11 @@ public:
      * @brief Returns the last element.
      *
      * @return The last element.
-     *
      * @throws InvalidOperationException if the range is empty.
      */
     [[nodiscard]]
-    constexpr RangeValue<Ran> last() throws (InvalidOperationException) {
+    THROWS(InvalidOperationException)
+    constexpr RangeValue<Ran> last() {
         auto it = begin();
         auto e = end();
         if (it == e) {
@@ -706,11 +704,11 @@ public:
      *
      * @param index The zero-based index.
      * @return The element at the given index.
-     *
      * @throws InvalidOperationException if the index is out of range.
      */
     [[nodiscard]]
-    constexpr RangeValue<Ran> element_at(RangeDifference<Ran> index) throws (InvalidOperationException) {
+    THROWS(InvalidOperationException)
+    constexpr RangeValue<Ran> element_at(RangeDifference<Ran> index) {
         auto it = begin();
         auto e = end();
         for (RangeDifference<Ran> i = 0; i < index && it != e; ++i) {
@@ -832,11 +830,11 @@ public:
      * @brief Expect exactly one element.
      *
      * @return Returns the sole single element in the range.
-     *
      * @throws InvalidOperationException if the range has zero or more than one element.
      */
     [[nodiscard]]
-    constexpr RangeValue<Ran> single() throws (InvalidOperationException) {
+    THROWS(InvalidOperationException)
+    constexpr RangeValue<Ran> single() {
         auto it = begin();
         if (it == end()) {
             throw InvalidOperationException("Range is empty.");
@@ -854,12 +852,12 @@ public:
      * @tparam Pred The predicate type.
      * @param pred The predicate function.
      * @return Returns the sole single element
-     *
      * @throws InvalidOperationException if the range has zero or more than one element satisfying the predicate.
      */
     template <typename Pred>
     [[nodiscard]]
-    constexpr RangeValue<Ran> single(Pred&& pred) const throws (InvalidOperationException) {
+    THROWS(InvalidOperationException)
+    constexpr RangeValue<Ran> single(Pred&& pred) const {
         Optional<RangeValue<Ran>> found;
         for (auto&& element: range) {
             if (pred(element)) {
@@ -933,11 +931,11 @@ public:
      * @brief Returns the minimum element.
      *
      * @return The minimum element.
-     *
      * @throws InvalidOperationException if the range is empty.
      */
     [[nodiscard]]
-    constexpr RangeValue<Ran> min() throws (InvalidOperationException) {
+    THROWS(InvalidOperationException)
+    constexpr RangeValue<Ran> min() {
         auto it = stdx::ranges::min_element(range);
         if (it == End(range)) {
             throw InvalidOperationException("Range is empty.");
@@ -949,11 +947,11 @@ public:
      * @brief Returns the maximum element.
      *
      * @return The maximum element.
-     *
      * @throws InvalidOperationException if the range is empty.
      */
     [[nodiscard]]
-    constexpr RangeValue<Ran> max() throws (InvalidOperationException) {
+    THROWS(InvalidOperationException)
+    constexpr RangeValue<Ran> max() {
         auto it = stdx::ranges::max_element(range);
         if (it == End(range)) {
             throw InvalidOperationException("Range is empty.");

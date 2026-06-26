@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::sync
- * @brief Standard library synchronisation operations.
+ * @brief Standard library synchronization operations.
  */
 export namespace stdx::sync {
     using Mutex = std::mutex;
@@ -24,12 +24,4 @@ export namespace stdx::sync {
     using std::try_lock;
     using std::lock;
     using std::call_once;
-    using std::swap;
-
-    using DeferLockTag = std::defer_lock_t;
-    using TryToLockTag = std::try_to_lock_t;
-    using AdoptLockTag = std::adopt_lock_t;
-    inline constexpr DeferLockTag DeferLock = std::defer_lock;
-    inline constexpr TryToLockTag TryToLock = std::try_to_lock;
-    inline constexpr AdoptLockTag AdoptLock = std::adopt_lock;
 }

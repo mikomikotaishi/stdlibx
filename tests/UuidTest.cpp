@@ -41,10 +41,10 @@ void test_string_roundtrip() {
     expect_eq(parsed->most_significant_bits(), MSB, "parsed msb");
     expect_eq(parsed->least_significant_bits(), LSB, "parsed lsb");
 
-    // Uppercase hex is accepted and normalised to lowercase on output.
+    // Uppercase hex is accepted and normalized to lowercase on output.
     Optional<Uuid> upper = Uuid::from_string("01234567-89AB-CDEF-FEDC-BA9876543210");
     require(upper.has_value(), "an uppercase string parses");
-    expect_eq(upper->to_string(), CANONICAL, "uppercase normalises to lowercase");
+    expect_eq(upper->to_string(), CANONICAL, "uppercase normalizes to lowercase");
     expect(*upper == *parsed, "uppercase and lowercase parse to the same UUID");
 }
 

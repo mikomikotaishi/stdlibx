@@ -124,8 +124,8 @@ export namespace stdx::io {
             handle{cstdio::fopen(path.c_str(), mode.data())}, file_path{path} {}
 
         ~File() = default;
-        File(const File&) = delete;
-        File& operator=(const File&) = delete;
+        File(const File&) = delete("File is not copyable.");
+        File& operator=(const File&) = delete("File is not copyable.");
         File(File&&) = default;
         File& operator=(File&&) = default;
 
@@ -279,7 +279,8 @@ export namespace stdx::io {
          * @param whence The reference point for the offset (SEEK_SET, SEEK_CUR, SEEK_END).
          * @throws IOException if the seek operation fails.
          */
-        void seek(i64 offset, i32 whence = SEEK_SET) throws (IOException) {
+        THROWS(IOException)
+        void seek(i64 offset, i32 whence = SEEK_SET) {
             if (!handle || cstdio::fseek(handle.get(), offset, whence) != 0) {
                 throw IOException("Failed to seek in file.");
             }
@@ -312,7 +313,8 @@ export namespace stdx::io {
          * @param mode The new mode to open the file with.
          * @throws IOException if the file could not be reopened.
          */
-        void reopen(StringView mode) throws (IOException) {
+        THROWS(IOException)
+        void reopen(StringView mode) {
             if (!file_path || !handle) {
                 throw IOException("File is not open or has no path.");
             }
@@ -349,7 +351,8 @@ export namespace stdx::io {
          * 
          * @throws IOException if the flush operation fails.
          */
-        void flush() throws (IOException) {
+        THROWS(IOException)
+        void flush() {
             if (!handle || cstdio::fflush(handle.get()) != 0) {
                 throw IOException("Failed to flush file.");
             }
@@ -405,7 +408,8 @@ export namespace stdx::io {
          * @throws IOException if the file does not exist or has no path.
          */
         [[nodiscard]]
-        uintmax file_size() const throws (IOException) {
+        THROWS(IOException)
+        uintmax file_size() const {
             if (!exists()) {
                 throw IOException("File has no path.");
             }
@@ -434,10 +438,11 @@ export namespace stdx::io {
          * @throws IOException if the file could not be created.
          */
         [[nodiscard]]
-        static File open(const Path& path, StringView mode) throws (IOException) {
+        THROWS(IOException)
+        static File open(const Path& path, StringView mode) {
             File file(path, mode);
             if (!file) {
-                throw IOException(stdx::fmt::format("Failed to open file: {}", path.string()));
+                throw IOException(stdx::fmt::format("Failed to open file: {}", path));
             }
             return file;
         }
@@ -467,9 +472,10 @@ export namespace stdx::io {
          * @throws IOException if the file already exists or could not be created.
          */
         [[nodiscard]]
-        static File create(const Path& path) throws (IOException) {
+        THROWS(IOException)
+        static File create(const Path& path) {
             if (stdx::fs::exists(path)) {
-                throw IOException(stdx::fmt::format("File already exists: {}", path.string()));
+                throw IOException(stdx::fmt::format("File already exists: {}", path));
             }
             return open(path, "w");
         }
@@ -498,7 +504,8 @@ export namespace stdx::io {
          * @throws IOException if the file could not be created or opened.
          */
         [[nodiscard]]
-        static File append(const Path& path) throws (IOException) {
+        THROWS(IOException)
+        static File append(const Path& path) {
             return open(path, "a");
         }
 

@@ -89,10 +89,11 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/core/tuple.inl"
 #include "stdx/core/variant.inl"
 
+#include "stdx/core/annotations.inl"
+
 #include "stdx/sys/csetjmp.inl"
 #include "stdx/sys/csignal.inl"
 #include "stdx/sys/cstdlib.inl"
-#include "stdx/sys/utility.inl"
 
 #include "stdx/fmt/charconv.inl"
 #include "stdx/fmt/cinttypes.inl"
@@ -132,8 +133,10 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 
 #include "stdx/meta/meta.inl"
 #include "stdx/collections/enum_set.inl"
+#include "stdx/collections/enum_map.inl"
 #include "stdx/meta/reflect.inl"
 
+#include "stdx/core/throws.inl"
 #include "stdx/core/ops.inl"
 
 #include "stdx/os/unix.constants.inl"
@@ -264,14 +267,22 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 
 #include "stdx/fs/glob.inl"
 
-#include "stdx/process/process.inl"
+#include "stdx/process/exit.inl"
+#include "stdx/process/child.inl"
+#include "stdx/process/command.inl"
 
 #include "stdx/time/chrono.inl"
 #include "stdx/time/format.inl"
 
+#include "stdx/inject/annotations.inl"
+#include "stdx/inject/key.inl"
+#include "stdx/inject/injector.inl"
+
 #include "stdx/util/argparse.inl"
 #include "stdx/util/argparse.annotations.inl"
-#include "stdx/util/logging.inl"
+#include "stdx/util/logging/level.inl"
+#include "stdx/util/logging/sinks.inl"
+#include "stdx/util/logging/logger.inl"
 
 #include "stdx/test/assertions.inl"
 #include "stdx/test/runner.inl"

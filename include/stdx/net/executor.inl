@@ -34,8 +34,6 @@ export namespace stdx::net {
     private:
         const Self value;
     public:
-        constexpr ForkEvent() noexcept = delete;
-
         constexpr ForkEvent(Self value) noexcept:
             value{value} {}
 
@@ -68,9 +66,6 @@ export namespace stdx::net {
     template <typename T, typename Executor>
     constexpr bool UsesExecutorValue = std::experimental::net::uses_executor_v<T, Executor>;
 
-    using ExecutorArgumentTag = std::experimental::net::executor_arg_t;
-    inline constexpr ExecutorArgumentTag ExecutorArg = std::experimental::net::executor_arg;
-    
     using std::experimental::net::swap;
     using std::experimental::net::make_work_guard;
     using std::experimental::net::bind_executor;

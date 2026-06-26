@@ -135,13 +135,14 @@ namespace stdx::util {
 
     template <typename T>
         requires (Integral<T> && !IsSameValue<T, bool>)
-    T convert_value(StringView value) throws (InvalidArgumentException, InvalidRangeException) {
+    [[=Throws<InvalidArgumentException, InvalidRangeException>()]]
+    T convert_value(StringView value) {
         return perform_from_chars<T, 10uz>(value);
     }
 
     template <IsOptional T>
-    typename OptionalValueType<T>::Value convert_value(StringView value)
-        throws (InvalidArgumentException, InvalidRangeException) {
+    [[=Throws<InvalidArgumentException, InvalidRangeException>()]]
+    typename OptionalValueType<T>::Value convert_value(StringView value) {
         return convert_value<typename OptionalValueType<T>::Value>(value);
     }
 
@@ -177,7 +178,7 @@ namespace stdx::util {
 export namespace stdx::util {
     /**
      * @struct ShortName
-     * @brief Annotation: give a field a single-character short flag.
+     * @brief An annotation giving a field a single-character short flag.
      * @tparam C The flag letter, e.g. ShortName<'v'> -> -v.
      */
     template <char C>
@@ -187,7 +188,7 @@ export namespace stdx::util {
 
     /**
      * @struct TextAnnotation
-     * @brief Common base carrying a compile-time string for the text annotations.
+     * @brief A base annotation carrying a compile-time string for the text annotations.
      * @tparam S The annotation text as a compile-time string.
      */
     template <FixedString S>
@@ -205,7 +206,8 @@ export namespace stdx::util {
 
     /**
      * @struct Description
-     * @brief Annotation: human-readable help text for a field, shown by help<T>().
+     * @brief An annotation indicating human-readable help text
+     * for a field, shown by help<T>().
      * @tparam S The description text as a compile-time string.
      */
     template <FixedString S>
@@ -213,7 +215,7 @@ export namespace stdx::util {
 
     /**
      * @struct Env
-     * @brief Annotation: name an environment variable to consult when the
+     * @brief An annotation to name an environment variable to consult when the
      * argument is not passed on the command line.
      * @tparam S The environment variable name as a compile-time string.
      */
@@ -251,8 +253,8 @@ export namespace stdx::util {
         && IsSameValue<RemoveConstVolatileReferenceType<T>, Env<T::descriptor()>>;
 
     template <ReflectableClass T>
-    T ArgumentParser::parse(int argc, char* argv[])
-        throws (CommandLineParserException, InvalidArgumentException, InvalidRangeException) {
+    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>()]]
+    T ArgumentParser::parse(int argc, char* argv[]) {
         static_assert(
             Ops::class_of<T>().is_default_constructible(),
             "ArgumentParser::parse<T> requires T to be default-constructible"

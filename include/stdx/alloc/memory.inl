@@ -22,9 +22,6 @@ export namespace stdx::alloc {
     template <typename T>
     using DefaultDelete = std::default_delete<T>;
 
-    using AllocatorArgumentTag = std::allocator_arg_t;
-    inline constexpr AllocatorArgumentTag AllocatorArgument = std::allocator_arg;
-
     using std::uses_allocator_construction_args;
     using std::make_obj_using_allocator;
     using std::uninitialized_construct_using_allocator;

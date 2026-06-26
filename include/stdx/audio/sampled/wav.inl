@@ -126,7 +126,8 @@ namespace stdx::audio::sampled {
             }
         }
     public:
-        explicit WavAudioInputStream(const Path& path) throws (UnsupportedAudioFileException) {
+        THROWS(UnsupportedAudioFileException)
+        explicit WavAudioInputStream(const Path& path) {
             file.open(path, OpenMode::BINARY);
             if (!file) {
                 throw UnsupportedAudioFileException("cannot open WAV file");

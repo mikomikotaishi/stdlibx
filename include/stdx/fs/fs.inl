@@ -189,3 +189,12 @@ export namespace stdx::fs {
     using std::filesystem::is_symlink;
     using std::filesystem::status_known;
 }
+
+using stdx::fs::Path;
+
+export namespace stdx::literals::inline fs_literals {
+    [[nodiscard]]
+    inline Path operator""_path(const char* s, usize len) {
+        return Path(StringView(s, len));
+    }
+}

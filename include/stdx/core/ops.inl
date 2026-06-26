@@ -18,6 +18,7 @@ using stdx::meta::reflect::Info;
 using stdx::meta::reflect::ReflectableClass;
 using stdx::meta::reflect::ReflectableEnum;
 using stdx::meta::reflect::ReflectableUnion;
+using stdx::meta::reflect::ThrownExceptions;
 using stdx::meta::reflect::Type;
 using stdx::meta::reflect::Union;
 #endif
@@ -29,7 +30,7 @@ using stdx::meta::reflect::Union;
 export namespace stdx::core {
     class Ops final {
     public:
-        Ops() = delete;
+        Ops() = delete("Ops is a static utility class and cannot be instantiated.");
 
         /**
         * @brief Extracts the type of the parameter of a function type.
@@ -68,21 +69,25 @@ export namespace stdx::core {
         }
 
         template <typename T, usize N>
+        [[nodiscard]]
         static constexpr auto to_array(T (&a)[N]) {
             return std::to_array(a);
         }
 
         template <typename T, usize N>
+        [[nodiscard]]
         static constexpr auto to_array(T (&&a)[N]) {
             return std::to_array(a);
         }
 
         template <typename T>
+        [[nodiscard]]
         static constexpr auto size(const T& x) {
             return std::size(x);
         }
 
         template <typename T>
+        [[nodiscard]]
         static constexpr auto ssize(const T& x) {
             return std::ssize(x);
         }
@@ -156,7 +161,7 @@ export namespace stdx::core {
         }
 
         template <typename T>
-        static void as_const(const T&&) = delete;
+        static void as_const(const T&&) = delete("as_const is not callable with an rvalue reference.");
 
         template <typename T>
         [[nodiscard]]
@@ -185,7 +190,7 @@ export namespace stdx::core {
         }
 
         template <typename T>
-        static void ref(const T&&) = delete;
+        static void ref(const T&&) = delete("ref is not callable with an rvalue reference.");
 
         template <typename T>
         static decltype(auto) cref(const T& t) noexcept {
@@ -198,7 +203,7 @@ export namespace stdx::core {
         }
 
         template <typename T>
-        static void cref(const T&&) = delete;
+        static void cref(const T&&) = delete("cref is not callable with an rvalue reference.");
 
         template <typename F, typename... Args>
         static constexpr decltype(auto) invoke(F&& f, Args&&... args)
@@ -306,6 +311,48 @@ export namespace stdx::core {
 
         template <typename T>
         [[nodiscard]]
+        static constexpr T any_cast(const Any& operand) {
+            return std::any_cast<T>(operand);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T any_cast(Any& operand) {
+            return std::any_cast<T>(operand);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T any_cast(Any&& operand) {
+            return std::any_cast<T>(move(operand));
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr const T* any_cast(const Any* operand) noexcept {
+            return std::any_cast<T>(operand);
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static constexpr T* any_cast(Any* operand) noexcept {
+            return std::any_cast<T>(operand);
+        }
+
+        template <typename T, typename... Args>
+        [[nodiscard]]
+        static constexpr Any any(Args&&... args) {
+            return std::make_any<T>(forward<Args>(args)...);
+        }
+
+        template <typename T, typename U, typename... Args>
+        [[nodiscard]]
+        static constexpr Any any(InitializerList<U> il, Args&&... args) {
+            return std::make_any<T>(il, forward<Args>(args)...);
+        }
+
+        template <typename T>
+        [[nodiscard]]
         static constexpr decltype(auto) optional(T&& value) noexcept {
             return std::make_optional(forward<T>(value));
         }
@@ -370,36 +417,43 @@ export namespace stdx::core {
 
         #ifdef __cpp_lib_reflection
         template <typename T>
+        [[nodiscard]]
         static consteval Info reflect_type() {
             return ^^T;
         }
 
         template <CharacterLike T>
+        [[nodiscard]]
         static consteval bool reflect_string_literal(const T* p) {
             return std::is_string_literal(p);
         }
 
         template <InputRange R>
+        [[nodiscard]]
         static consteval decltype(auto) define_static_string(R&& r) {
             return std::define_static_string(forward<R>(r));
         }
 
         template <InputRange R>
+        [[nodiscard]]
         static consteval decltype(auto) define_static_array(R&& r) {
             return std::define_static_array(forward<R>(r));
         }
 
         template <typename T>
+        [[nodiscard]]
         static consteval decltype(auto) define_static_object(T&& t) {
             return std::define_static_object(forward<T>(t));
         }
 
         template <InputRange R>
+        [[nodiscard]]
         static consteval decltype(auto) reflect_constant_string(R&& r) {
             return std::meta::reflect_constant_string(forward<R>(r));
         }
 
         template <InputRange R>
+        [[nodiscard]]
         static consteval decltype(auto) reflect_constant_array(R&& r) {
             return std::meta::reflect_constant_array(forward<R>(r));
         }
@@ -426,6 +480,21 @@ export namespace stdx::core {
         [[nodiscard]]
         static consteval Type type_of() noexcept {
             return Type(^^T);
+        }
+
+        /**
+         * @brief All exception types a function (or callable) @p Fn declares via
+         * Throws annotations, each as a Class<E>, deduplicated and in declaration
+         * order. The Throws annotation machinery is supplied by core/throws.inl
+         * (included before this file); the body is defined out-of-line below.
+         * @tparam Fn The reflection of a function or callable type.
+         * @return A Tuple<Class<E>...> of the declared exception types.
+         */
+        template <Info Fn>
+            requires FunctionOrCallable<Fn>
+        [[nodiscard]]
+        static consteval ThrownExceptions<Fn> thrown_exceptions() {
+            return build_thrown_exceptions<Fn>(IndexSequenceOf<thrown_infos<Fn>.size()>{});
         }
         #endif
     };

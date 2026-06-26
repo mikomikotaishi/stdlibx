@@ -30,6 +30,4 @@ export namespace stdx::core {
     using std::get;
     using std::apply;
     using std::make_from_tuple;
-
-    using std::swap;
 }

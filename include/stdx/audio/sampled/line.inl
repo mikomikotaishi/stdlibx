@@ -28,19 +28,21 @@ export namespace stdx::audio::sampled {
     class OutputLine {
     public:
         OutputLine() = default;
-        OutputLine(const OutputLine&) = delete;
-        OutputLine& operator=(const OutputLine&) = delete;
+        OutputLine(const OutputLine&) = delete("OutputLine is not copyable.");
+        OutputLine& operator=(const OutputLine&) = delete("OutputLine is not copyable.");
         virtual ~OutputLine() = default;
 
         /**
          * @brief Begin invoking the render callback. Has no effect if already started.
          */
-        virtual void start() throws (LineUnavailableException) = 0;
+        THROWS(LineUnavailableException)
+        virtual void start() = 0;
 
         /**
          * @brief Stop invoking the render callback. Buffer is drained.
          */
-        virtual void stop() throws (LineUnavailableException) = 0;
+        THROWS(LineUnavailableException)
+        virtual void stop() = 0;
 
         /**
          * @brief Stop and release device resources. Idempotent.
@@ -79,12 +81,15 @@ export namespace stdx::audio::sampled {
     class InputLine {
     public:
         InputLine() = default;
-        InputLine(const InputLine&) = delete;
-        InputLine& operator=(const InputLine&) = delete;
+        InputLine(const InputLine&) = delete("InputLine is not copyable.");
+        InputLine& operator=(const InputLine&) = delete("InputLine is not copyable.");
         virtual ~InputLine() = default;
 
-        virtual void start() throws (LineUnavailableException) = 0;
-        virtual void stop() throws (LineUnavailableException) = 0;
+        THROWS(LineUnavailableException)
+        virtual void start() = 0;
+        THROWS(LineUnavailableException)
+        virtual void stop() = 0;
+
         virtual void close() noexcept = 0;
 
         [[nodiscard]]

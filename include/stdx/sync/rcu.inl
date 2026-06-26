@@ -4,7 +4,7 @@ using stdx::alloc::DefaultDelete;
 
 /**
  * @namespace stdx::sync
- * @brief Standard library synchronisation operations.
+ * @brief Standard library synchronization operations.
  */
 export namespace stdx::sync {
     #ifdef __cpp_lib_rcu

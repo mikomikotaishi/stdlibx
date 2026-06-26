@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::sync
- * @brief Standard library synchronisation operations.
+ * @brief Standard library synchronization operations.
  */
 export namespace stdx::sync {
     // Atomic template class
@@ -27,8 +27,6 @@ export namespace stdx::sync {
     private:
         const Self value;
     public:
-        constexpr MemoryOrder() noexcept = delete;
-
         constexpr MemoryOrder(Self value) noexcept:
             value{value} {}
 

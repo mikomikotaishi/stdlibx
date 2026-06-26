@@ -123,7 +123,7 @@ export namespace stdx::time::chrono {
             // Mean anomaly of the sun (radians)
             f64 M = Math::to_radians(Math::fmod(357.52911 + 35999.05029 * T - 0.0001537 * T2, 360.0));
 
-            // Equation of the centre
+            // Equation of the center
             f64 C = (1.914602 - 0.004817 * T - 0.000014 * T2) * Math::sin(M)
                 + (0.019993 - 0.000101 * T) * Math::sin(2.0 * M)
                 + 0.000289 * Math::sin(3.0 * M);
@@ -537,7 +537,7 @@ export namespace stdx::time::chrono {
             };
         }
     public:
-        ChineseChronology() = delete;
+        ChineseChronology() = delete("ChineseChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era

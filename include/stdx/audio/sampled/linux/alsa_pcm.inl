@@ -31,8 +31,6 @@ namespace stdx::audio::sampled {
                 return SoundPcmFormat::S24_3LE;
             case SampleFormat::INT:
                 return SoundPcmFormat::S32_LE;
-            default:
-                Ops::unreachable();
         }
         Ops::unreachable();
     }
@@ -49,13 +47,18 @@ namespace stdx::audio::sampled {
      * @brief Configures an open snd_pcm_t for the requested format and
      * commits hw/sw params. On success, @p actual_rate and the
      * chosen period/buffer sizes are filled in.
+     * @param pcm The open snd_pcm_t handle.
+     * @param fmt The requested format. On return, the actual sample rate and
+     * channel count are filled in.
+     * @param period_frames The requested period size in frames. On return, the
+     * actual period size is filled in.
+     * @param buffer_frames The requested buffer size in frames. On return, the
+     * actual buffer size is filled in.
+     * @throws UnsupportedAudioFormatException if the requested format is not
+     * supported by the device.
      */
-    inline void configure_pcm(
-        SoundPcm* pcm,
-        AudioFormat& fmt,
-        SoundPcmUFrames& period_frames,
-        SoundPcmUFrames& buffer_frames
-    ) throws (UnsupportedAudioFormatException) {
+    THROWS(UnsupportedAudioFormatException)
+    inline void configure_pcm(SoundPcm* pcm, AudioFormat& fmt, SoundPcmUFrames& period_frames, SoundPcmUFrames& buffer_frames) {
         SoundPcmHwParams* hw = nullptr;
         linux::alsa::snd_pcm_hw_params_malloc(&hw);
 
@@ -190,7 +193,8 @@ namespace stdx::audio::sampled {
             close();
         }
 
-        void start() throws (LineUnavailableException) override {
+        THROWS(LineUnavailableException)
+        void start() override {
             if (running.load()) {
                 return;
             }
@@ -204,7 +208,8 @@ namespace stdx::audio::sampled {
             worker = Thread([this] -> void { render_loop(); });
         }
 
-        void stop() throws (LineUnavailableException) override {
+        THROWS(LineUnavailableException)
+        void stop() override {
             if (!running.exchange(false)) {
                 return;
             }
@@ -299,7 +304,8 @@ namespace stdx::audio::sampled {
             close();
         }
 
-        void start() throws (LineUnavailableException) override {
+        THROWS(LineUnavailableException)
+        void start() override {
             if (running.load()) {
                 return;
             }
@@ -316,7 +322,8 @@ namespace stdx::audio::sampled {
             worker = Thread([this] -> void { capture_loop(); });
         }
 
-        void stop() throws (LineUnavailableException) override {
+        THROWS(LineUnavailableException)
+        void stop() override {
             if (!running.exchange(false)) {
                 return;
             }
@@ -429,7 +436,7 @@ namespace stdx::audio::sampled {
      *      reaches the same backend the user has configured, and the
      *      libasound-side shim (libasound_module_pcm_pulse.so) doesn't
      *      have the per-open leak that libasound_module_pcm_pipewire.so does.
-     *   3. "default" - original ALSA behaviour, used when neither PA nor
+     *   3. "default" - original ALSA behavior, used when neither PA nor
      *      PipeWire-pulse is reachable (pure dmix/hw systems, headless
      *      servers, sandboxed environments).
      */
@@ -459,16 +466,15 @@ namespace stdx::audio::sampled {
 }
 
 export namespace stdx::audio::sampled {
-
-    Vector<DeviceInfo> AudioSystem::output_devices() throws (AudioException) {
+    Vector<DeviceInfo> AudioSystem::output_devices() {
         return enumerate_alsa(StreamDirection::OUTPUT);
     }
 
-    Vector<DeviceInfo> AudioSystem::input_devices() throws (AudioException) {
+    Vector<DeviceInfo> AudioSystem::input_devices() {
         return enumerate_alsa(StreamDirection::INPUT);
     }
 
-    DeviceInfo AudioSystem::default_output() throws (AudioDeviceNotAvailableException) {
+    DeviceInfo AudioSystem::default_output() {
         return DeviceInfo {
             .id = preferred_default_pcm_name(),
             .name = "Default output",
@@ -478,7 +484,7 @@ export namespace stdx::audio::sampled {
         };
     }
 
-    DeviceInfo AudioSystem::default_input() throws (AudioDeviceNotAvailableException) {
+    DeviceInfo AudioSystem::default_input() {
         return DeviceInfo {
             .id = preferred_default_pcm_name(),
             .name = "Default input",
@@ -488,11 +494,7 @@ export namespace stdx::audio::sampled {
         };
     }
 
-    UniquePointer<OutputLine> AudioSystem::open_output(
-        const DeviceInfo& device,
-        AudioFormat fmt,
-        RenderCallback callback
-    ) throws (UnsupportedAudioFormatException, LineUnavailableException) {
+    UniquePointer<OutputLine> AudioSystem::open_output(const DeviceInfo& device, AudioFormat fmt, RenderCallback callback) {
         if (fmt.format != SampleFormat::FLOAT) {
             throw UnsupportedAudioFormatException(
                 "ALSA backend currently supports only SampleFormat::FLOAT"
@@ -522,11 +524,7 @@ export namespace stdx::audio::sampled {
         );
     }
 
-    UniquePointer<InputLine> AudioSystem::open_input(
-        const DeviceInfo& device,
-        AudioFormat fmt,
-        CaptureCallback callback
-    ) throws (UnsupportedAudioFormatException, LineUnavailableException) {
+    UniquePointer<InputLine> AudioSystem::open_input(const DeviceInfo& device, AudioFormat fmt, CaptureCallback callback) {
         if (fmt.format != SampleFormat::FLOAT) {
             throw UnsupportedAudioFormatException(
                 "ALSA backend currently supports only SampleFormat::FLOAT"

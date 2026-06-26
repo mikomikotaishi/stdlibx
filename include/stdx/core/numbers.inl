@@ -293,7 +293,8 @@ export namespace stdx::core {
         }
 
         [[nodiscard]]
-        static T parse(StringView s) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        static T parse(StringView s) {
             T v{};
             auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v);
             if (ec != Errc::SUCCESS) {
@@ -542,7 +543,8 @@ export namespace stdx::core {
             return nullopt;
         }
 
-        static bool parse(StringView s) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        static bool parse(StringView s) {
             if (s == "true" || s == "1") {
                 return true;
             } else if (s == "false" || s == "0") {

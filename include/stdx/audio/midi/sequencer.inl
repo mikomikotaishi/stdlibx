@@ -24,12 +24,14 @@ export namespace stdx::audio::midi {
          * @param seq The new sequence to play. Must not be null.
          * @throws InvalidMidiDataException if the sequence is malformed.
          */
-        virtual void set_sequence(UniquePointer<Sequence> seq) throws (InvalidMidiDataException) = 0;
+        THROWS(InvalidMidiDataException)
+        virtual void set_sequence(UniquePointer<Sequence> seq) = 0;
 
         [[nodiscard]]
         virtual const Sequence* sequence() const noexcept = 0;
 
-        virtual void start() throws (MidiException) = 0;
+        THROWS(InvalidMidiDataException)
+        virtual void start() = 0;
         virtual void stop() noexcept = 0;
         [[nodiscard]]
         virtual bool is_running() const noexcept = 0;

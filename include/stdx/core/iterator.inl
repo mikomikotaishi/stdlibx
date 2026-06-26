@@ -199,7 +199,7 @@ export namespace stdx::core {
 
     class Iterators final {
     public:
-        Iterators() = delete;
+        Iterators() = delete("Iterators is a static utility class and cannot be instantiated.");
 
         template <typename Iter>
         [[nodiscard]]

@@ -18,6 +18,4 @@ export namespace stdx::io {
     using WideSyncBuffer = std::wsyncbuf;
     using OutputSyncStream = std::osyncstream;
     using WideOutputSyncStream = std::wosyncstream;
-
-    using std::swap;
 }

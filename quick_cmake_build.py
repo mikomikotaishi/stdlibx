@@ -127,14 +127,14 @@ def clean_build_directory(preserve_deps: bool = False) -> None:
         shutil.rmtree("src/build", ignore_errors = True)
         print(f"{ANSI.GREEN}Build directory fully cleaned.{ANSI.RESET}")
 
-def configure_sanitisers(cmake_command: list[str], release: bool, sanitisers: list[str]) -> list[str]:
+def configure_sanitizers(cmake_command: list[str], release: bool, sanitizers: list[str]) -> list[str]:
     """
-    @brief Helper function to configure CMake command with sanitiser options.
+    @brief Helper function to configure CMake command with sanitizer options.
     
     @param cmake_command (list[str]): The base CMake command list to modify.
     @param release (bool): If True, build for release. Otherwise, debug build.
-    @param sanitisers (list[str]): List of sanitisers to enable.
-    @return list[str]: The updated CMake command with sanitiser options.
+    @param sanitizers (list[str]): List of sanitizers to enable.
+    @return list[str]: The updated CMake command with sanitizer options.
     """
     address_san: bool = False
     thread_san: bool = False
@@ -145,7 +145,7 @@ def configure_sanitisers(cmake_command: list[str], release: bool, sanitisers: li
     hardware_san: bool = False
 
     if release:
-        print(f"{ANSI.BLUE}Building in{ANSI.RESET} Release mode (optimised)")
+        print(f"{ANSI.BLUE}Building in{ANSI.RESET} Release mode (optimized)")
         cmake_command.append("-DCMAKE_BUILD_TYPE=Release")
 
         print(f"{ANSI.BLUE}Configuring{ANSI.RESET} for static linking (single executable)")
@@ -164,17 +164,17 @@ def configure_sanitisers(cmake_command: list[str], release: bool, sanitisers: li
         cmake_command.append("-DSDL3_NET_SHARED=OFF")
         cmake_command.append("-DSDL3_NET_STATIC=ON")
         
-        if sanitisers:
-            print(f"{ANSI.YELLOW}Note:{ANSI.RESET} Sanitisers disabled in Release mode")
-            sanitisers = []
+        if sanitizers:
+            print(f"{ANSI.YELLOW}Note:{ANSI.RESET} Sanitizers disabled in Release mode")
+            sanitizers = []
 
-    if sanitisers:
+    if sanitizers:
         cmake_command.append("-DENABLE_SANITIZERS=ON")
 
-        for sanitiser in sanitisers:
-            sanitiser = sanitiser.lower()
+        for sanitizer in sanitizers:
+            sanitizer = sanitizer.lower()
 
-            match sanitiser:
+            match sanitizer:
                 case "address":
                     if thread_san or memory_san:
                         print(f"{ANSI.RED}Error:{ANSI.RESET} AddressSanitizer (ASan) cannot be used with ThreadSanitizer (TSan) or MemorySanitizer (MSan).")
@@ -213,27 +213,27 @@ def configure_sanitisers(cmake_command: list[str], release: bool, sanitisers: li
                     leak_san = True
 
                 case "all":
-                    print(f"{ANSI.YELLOW}Enabling{ANSI.RESET} all compatible sanitisers")
+                    print(f"{ANSI.YELLOW}Enabling{ANSI.RESET} all compatible sanitizers")
                     address_san = True
                     undefined_san = True
                     leak_san = True
 
                 case "all-kernel":
-                    print(f"{ANSI.YELLOW}Enabling{ANSI.RESET} all sanitisers (Kernel AddressSanitizer)")
+                    print(f"{ANSI.YELLOW}Enabling{ANSI.RESET} all sanitizers (Kernel AddressSanitizer)")
                     kernel_san = True
                     undefined_san = True
                     memory_san = True
                     leak_san = True
 
                 case "all-hardware":
-                    print(f"{ANSI.YELLOW}Enabling{ANSI.RESET} all sanitisers (Hardware AddressSanitizer)")
+                    print(f"{ANSI.YELLOW}Enabling{ANSI.RESET} all sanitizers (Hardware AddressSanitizer)")
                     hardware_san = True
                     undefined_san = True
                     memory_san = True
                     leak_san = True
 
                 case _:
-                    print(f"{ANSI.YELLOW}Warning:{ANSI.RESET} Invalid sanitiser specified: {sanitiser}")
+                    print(f"{ANSI.YELLOW}Warning:{ANSI.RESET} Invalid sanitizer specified: {sanitizer}")
 
         if address_san:
             cmake_command.append("-DUSE_SANITIZER_ADDRESS=ON")
@@ -253,26 +253,26 @@ def configure_sanitisers(cmake_command: list[str], release: bool, sanitisers: li
 
     return cmake_command
 
-def run_cmake_init(verbose: bool, release: bool, sanitisers: list[str] = None) -> None:
+def run_cmake_init(verbose: bool, release: bool, sanitizers: list[str] = None) -> None:
     """
-    @brief Runs the CMake initialisation process with detailed progress reporting.
+    @brief Runs the CMake initialization process with detailed progress reporting.
 
     @param verbose (bool): If True, prints all output. Otherwise, shows progress indicators.
     @param release (bool): If True, sets CMake to build for release. Otherwise, builds a debug build.
-    @param sanitisers (list[str]): List of sanitisers to enable.
+    @param sanitizers (list[str]): List of sanitizers to enable.
 
     @throws CalledProcessError
     """
-    if sanitisers is None:
-        sanitisers = []
+    if sanitizers is None:
+        sanitizers = []
 
-    cmake_command: list[str] = configure_sanitisers(CMAKE_INIT_COMMAND, release, sanitisers)
+    cmake_command: list[str] = configure_sanitizers(CMAKE_INIT_COMMAND, release, sanitizers)
 
     if verbose:
         run_command(cmake_command, verbose = True)
         return
 
-    print(f"{ANSI.GREEN}Initialising{ANSI.RESET} stdlibx build...")
+    print(f"{ANSI.GREEN}Initializing{ANSI.RESET} stdlibx build...")
 
     process: Popen = Popen(
         cmake_command,
@@ -347,7 +347,7 @@ def run_cmake_init(verbose: bool, release: bool, sanitisers: list[str] = None) -
                 cloning_repo = None
 
             if line.startswith("-- Configuring done"):
-                print(f"{ANSI.BLUE}Finalising{ANSI.RESET} build configuration...")
+                print(f"{ANSI.BLUE}Finlalizing{ANSI.RESET} build configuration...")
 
             if line.startswith("-- Build files have been written"):
                 print(f"{ANSI.GREEN}Build system{ANSI.RESET} configured successfully!")
@@ -366,7 +366,7 @@ def run_cmake_init(verbose: bool, release: bool, sanitisers: list[str] = None) -
     if process.returncode != 0:
         raise CalledProcessError(process.returncode, process.args)
 
-def run_cmake_reconfigure(verbose: bool, release: bool, sanitisers: list[str] = None) -> None:
+def run_cmake_reconfigure(verbose: bool, release: bool, sanitizers: list[str] = None) -> None:
     """
     @brief Reconfigures the CMake build system without cleaning.
 
@@ -376,16 +376,16 @@ def run_cmake_reconfigure(verbose: bool, release: bool, sanitisers: list[str] = 
 
     @param verbose (bool): If True, prints all output. Otherwise, shows progress indicators.
     @param release (bool): If True, sets CMake to build for release. Otherwise, builds a debug build.
-    @param sanitisers (list[str]): List of sanitisers to enable.
+    @param sanitizers (list[str]): List of sanitizers to enable.
 
     @throws CalledProcessError
     """
-    if sanitisers is None:
-        sanitisers = []
+    if sanitizers is None:
+        sanitizers = []
 
     print(f"{ANSI.BLUE}Reconfiguring{ANSI.RESET} build system for new files...")
 
-    cmake_command: list[str] = configure_sanitisers(CMAKE_BUILD_COMMAND, release, sanitisers)
+    cmake_command: list[str] = configure_sanitizers(CMAKE_BUILD_COMMAND, release, sanitizers)
 
     process: Popen = Popen(
         cmake_command,
@@ -625,7 +625,7 @@ def main() -> int:
     
     operation_group: MutuallyExclusiveGroup = parser.add_mutually_exclusive_group()
     parser.add_argument("-r", "--release", action = "store_true",
-                        help = "Build in release mode (optimised, no sanitisers, NDEBUG defined)")
+                        help = "Build in release mode (optimized, no sanitizers, NDEBUG defined)")
     
     operation_group.add_argument("-c", "--clean", action = "store_true",
                                 help = "Clean only project source files (no building)")
@@ -639,8 +639,8 @@ def main() -> int:
                                 help = "Reconfigure CMake build system (for when new files are added)")
 
     parser.add_argument("-g", "--graph", action = "store_true", help = "Generate dependency graph")
-    parser.add_argument("-s", "--sanitiser", "--sanitizer", nargs = "+", default = [],
-                        help = "Enable sanitisers (address, undefined, thread, memory, leak, all)")
+    parser.add_argument("-s", "--sanitizer", "--sanitizer", nargs = "+", default = [],
+                        help = "Enable sanitizers (address, undefined, thread, memory, leak, all)")
     parser.add_argument("-v", "--verbose", action = "store_true",
                         help = "Enable verbose output (lacks progress bar or other graphical features)")
 
@@ -653,7 +653,7 @@ def main() -> int:
     preserve_deps: bool = args.preserve_deps
     reconfigure: bool = args.reconfigure
     verbose: bool = args.verbose
-    sanitisers: list[str] = args.sanitiser
+    sanitizers: list[str] = args.sanitizer
 
     start_time: float = time.time()
 
@@ -666,15 +666,15 @@ def main() -> int:
             return 0
         elif build_new:
             clean_build_directory(False)
-            run_cmake_init(verbose, release, sanitisers)
+            run_cmake_init(verbose, release, sanitizers)
         elif preserve_deps:
             clean_build_directory(True)
-            run_cmake_init(verbose, release, sanitisers)
+            run_cmake_init(verbose, release, sanitizers)
         elif reconfigure:
-            run_cmake_reconfigure(verbose, release, sanitisers)
+            run_cmake_reconfigure(verbose, release, sanitizers)
         else:
-            if sanitisers and not os.path.exists("build/CMakeCache.txt"):
-                run_cmake_init(verbose, release, sanitisers)
+            if sanitizers and not os.path.exists("build/CMakeCache.txt"):
+                run_cmake_init(verbose, release, sanitizers)
 
         if not (clean_all or clean):
             run_cmake_build(verbose)

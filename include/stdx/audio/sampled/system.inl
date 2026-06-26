@@ -18,35 +18,39 @@ export namespace stdx::audio::sampled {
      */
     class AudioSystem final {
     public:
-        AudioSystem() = delete;
+        AudioSystem() = delete("AudioSystem is a static utility class and cannot be instantiated.");
 
         /**
          * @brief Returns every output (playback) device the host advertises.
          * @throws AudioException if the query fails (e.g. backend error).
          */
         [[nodiscard]]
-        static Vector<DeviceInfo> output_devices() throws (AudioException);
+        THROWS(AudioException)
+        static Vector<DeviceInfo> output_devices();
 
         /**
          * @brief Returns every input (capture) device the host advertises.
          * @throws AudioException if the query fails (e.g. backend error).
          */
         [[nodiscard]]
-        static Vector<DeviceInfo> input_devices() throws (AudioException);
+        THROWS(AudioException)
+        static Vector<DeviceInfo> input_devices();
 
         /**
          * @brief The system's preferred default output device.
          * @throws AudioDeviceNotAvailableException if none is configured.
          */
         [[nodiscard]]
-        static DeviceInfo default_output() throws (AudioDeviceNotAvailableException);
+        THROWS(AudioDeviceNotAvailableException)
+        static DeviceInfo default_output();
 
         /**
          * @brief The system's preferred default input device.
          * @throws AudioDeviceNotAvailableException if none is configured.
          */
         [[nodiscard]]
-        static DeviceInfo default_input() throws (AudioDeviceNotAvailableException);
+        THROWS(AudioDeviceNotAvailableException)
+        static DeviceInfo default_input();
 
         /**
          * @brief Open an output line on the supplied device with the requested
@@ -64,11 +68,8 @@ export namespace stdx::audio::sampled {
          * opened.
          */
         [[nodiscard]]
-        static UniquePointer<OutputLine> open_output(
-            const DeviceInfo& device,
-            AudioFormat format,
-            RenderCallback callback
-        ) throws (UnsupportedAudioFormatException, LineUnavailableException);
+        THROWS(UnsupportedAudioFormatException, LineUnavailableException)
+        static UniquePointer<OutputLine> open_output(const DeviceInfo& device, AudioFormat format, RenderCallback callback);
 
         /**
          * @brief Open an input line. See open_output() for failure modes.
@@ -85,11 +86,8 @@ export namespace stdx::audio::sampled {
          * opened.
          */
         [[nodiscard]]
-        static UniquePointer<InputLine> open_input(
-            const DeviceInfo& device,
-            AudioFormat format,
-            CaptureCallback callback
-        ) throws (UnsupportedAudioFormatException, LineUnavailableException);
+        THROWS(UnsupportedAudioFormatException, LineUnavailableException)
+        static UniquePointer<InputLine> open_input(const DeviceInfo& device, AudioFormat format, CaptureCallback callback);
 
         /**
          * @brief Convenience: open the default output line for @p format.
@@ -116,10 +114,8 @@ export namespace stdx::audio::sampled {
          * direct hardware).
          */
         [[nodiscard]]
-        static UniquePointer<OutputLine> open_default_output(
-            AudioFormat format,
-            RenderCallback callback
-        ) throws (UnsupportedAudioFormatException, LineUnavailableException) {
+        THROWS(UnsupportedAudioFormatException, LineUnavailableException)
+        static UniquePointer<OutputLine> open_default_output(AudioFormat format, RenderCallback callback) {
             return open_output(default_output(), format, Ops::move(callback));
         }
 
@@ -136,9 +132,8 @@ export namespace stdx::audio::sampled {
          * isn't a supported format.
          */
         [[nodiscard]]
-        static UniquePointer<AudioInputStream> open_audio_file(
-            const Path& path
-        ) throws (UnsupportedAudioFileException);
+        THROWS(UnsupportedAudioFileException)
+        static UniquePointer<AudioInputStream> open_audio_file(const Path& path);
     };
 }
 
@@ -150,35 +145,35 @@ export namespace stdx::audio::sampled {
 #include "stdx/audio/sampled/linux/alsa_pcm.inl"
 #else
 export namespace stdx::audio::sampled {
-    Vector<DeviceInfo> AudioSystem::output_devices() throws (AudioException) {
+    Vector<DeviceInfo> AudioSystem::output_devices() {
         return {};
     }
 
-    Vector<DeviceInfo> AudioSystem::input_devices() throws (AudioException) {
+    Vector<DeviceInfo> AudioSystem::input_devices() {
         return {};
     }
 
-    DeviceInfo AudioSystem::default_output() throws (AudioDeviceNotAvailableException) {
+    DeviceInfo AudioSystem::default_output() {
         throw AudioDeviceNotAvailableException("no sampled backend wired in this build");
     }
 
-    DeviceInfo AudioSystem::default_input() throws (AudioDeviceNotAvailableException) {
+    DeviceInfo AudioSystem::default_input() {
         throw AudioDeviceNotAvailableException("no sampled backend wired in this build");
     }
 
     UniquePointer<OutputLine> AudioSystem::open_output(
-        const DeviceInfo&,
-        AudioFormat,
-        RenderCallback
-    ) throws (UnsupportedAudioFormatException, LineUnavailableException) {
+        [[maybe_unused]] const DeviceInfo& device,
+        [[maybe_unused]] AudioFormat format,
+        [[maybe_unused]] RenderCallback callback
+    ) {
         throw LineUnavailableException("no sampled backend wired in this build");
     }
 
     UniquePointer<InputLine> AudioSystem::open_input(
-        const DeviceInfo&,
-        AudioFormat,
-        CaptureCallback
-    ) throws (UnsupportedAudioFormatException, LineUnavailableException) {
+        [[maybe_unused]] const DeviceInfo& device,
+        [[maybe_unused]] AudioFormat format,
+        [[maybe_unused]] CaptureCallback callback
+    ) {
         throw LineUnavailableException("no sampled backend wired in this build");
     }
 }

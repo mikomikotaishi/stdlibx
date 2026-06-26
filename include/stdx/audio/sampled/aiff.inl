@@ -100,7 +100,7 @@ namespace stdx::audio::sampled {
         }
         // value = sign * himant * 2^(expon - 16383 - 63)
         f64 v = static_cast<f64>(himant)
-            * math::ldexp(1.0, static_cast<i32>(expon) - 16383 - 63);
+            * Math::ldexp(1.0, static_cast<i32>(expon) - 16383 - 63);
         if (p[0] & 0x80) {
             v = -v;
         }
@@ -186,7 +186,8 @@ namespace stdx::audio::sampled {
             }
         }
     public:
-        explicit AiffAudioInputStream(const Path& path) throws (UnsupportedAudioFileException) {
+        THROWS(UnsupportedAudioFileException)
+        explicit AiffAudioInputStream(const Path& path) {
             file.open(path, OpenMode::BINARY);
             if (!file) {
                 throw UnsupportedAudioFileException("cannot open AIFF file");

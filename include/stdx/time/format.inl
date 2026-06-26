@@ -44,8 +44,6 @@ export namespace stdx::time {
                 return SHORT_NAMES[idx];
             case DateTextLength::NARROW:
                 return NARROW_NAMES[idx];
-            default:
-                Ops::unreachable();
         }
         Ops::unreachable();
     }
@@ -103,7 +101,8 @@ export namespace stdx::time {
             tokens{Ops::move(tokens)}, fmt_pattern{Ops::move(pattern)} {}
 
         [[nodiscard]]
-        static Vector<Token> parse_pattern(StringView p) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static Vector<Token> parse_pattern(StringView p) {
             Vector<Token> tokens;
             String literal_buf;
             auto flush_literal = [&] -> void {
@@ -184,7 +183,8 @@ export namespace stdx::time {
          * quote or unknown pattern letter).
          */
         [[nodiscard]]
-        static DateTimeFormatter of_pattern(StringView pattern) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static DateTimeFormatter of_pattern(StringView pattern) {
             return DateTimeFormatter(parse_pattern(pattern), String(pattern));
         }
 
@@ -203,7 +203,8 @@ export namespace stdx::time {
          */
         template <ChronologyLike Chrono>
         [[nodiscard]]
-        String format(const ChronoLocalDate<Chrono>& date) const throws (DateTimeException) {
+        THROWS(DateTimeException)
+        String format(const ChronoLocalDate<Chrono>& date) const {
             String out;
             for (const Token& tok: tokens) {
                 switch (tok.kind) {
@@ -256,8 +257,6 @@ export namespace stdx::time {
                         }
                         break;
                     }
-                    default:
-                        Ops::unreachable();
                 }
             }
             return out;
@@ -275,7 +274,8 @@ export namespace stdx::time {
          */
         template <ChronologyLike Chrono>
         [[nodiscard]]
-        ChronoLocalDate<Chrono> parse([[maybe_unused]] StringView text) const throws (DateTimeException) {
+        THROWS(DateTimeException)
+        ChronoLocalDate<Chrono> parse([[maybe_unused]] StringView text) const {
             throw DateTimeException("DateTimeFormatter::parse is not yet implemented");
         }
 

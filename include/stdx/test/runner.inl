@@ -13,8 +13,10 @@ export namespace stdx::test {
      * @brief A single named test: a function plus optional tags.
      */
     struct Test {
+        using Callback = void(*)(); ///< The type of the test body function.
+
         StringView name; ///< Test display name.
-        void (*fn)(); ///< The test body.
+        Callback fn; ///< The test body.
         Vector<StringView> tags; ///< Optional tags for --tag filtering.
     };
 
@@ -23,11 +25,13 @@ export namespace stdx::test {
      * @brief A group of tests with optional per-test and per-suite hooks.
      */
     struct Suite {
+        using Callback = void(*)(); ///< The type of a hook function.
+
         StringView name = ""; ///< Optional suite name.
-        void (*before_each)() = nullptr; ///< Run before every selected test.
-        void (*after_each)() = nullptr; ///< Run after every selected test.
-        void (*before_all)() = nullptr; ///< Run once before the first selected test.
-        void (*after_all)() = nullptr; ///< Run once after the last selected test.
+        Callback before_each = nullptr; ///< Run before every selected test.
+        Callback after_each = nullptr; ///< Run after every selected test.
+        Callback before_all = nullptr; ///< Run once before the first selected test.
+        Callback after_all = nullptr; ///< Run once after the last selected test.
         Vector<Test> tests = {}; ///< The tests in this suite.
     };
 }
@@ -43,7 +47,7 @@ namespace stdx::test {
         StringView tag = ""; ///< Required tag; only tagged tests run.
         bool list = false; ///< Print test names and exit.
         bool verbose = false; ///< Print a line for passing tests too.
-        bool color = true; ///< Colourise the output.
+        bool color = true; ///< Colorize the output.
     };
 
     /**
@@ -104,7 +108,7 @@ namespace stdx::test {
     [[nodiscard]]
     inline Options parse_options(int argc, char* argv[]) {
         Options options;
-        for (i32 i = 1; i < argc; ++i) {
+        for (usize i = 1; i < argc; ++i) {
             const StringView arg = argv[i];
             if (arg == "--filter" && i + 1 < argc) {
                 options.filter = argv[++i];
@@ -146,11 +150,11 @@ namespace stdx::test {
 
     /**
      * @internal
-     * @brief Prints one status line, optionally colourised.
+     * @brief Prints one status line, optionally colorised.
      * @param status The status label, e.g. "PASS".
-     * @param color The colour to use when colour is enabled.
+     * @param color The color to use when color is enabled.
      * @param line The remainder of the line.
-     * @param use_color Whether to colourise the line.
+     * @param use_color Whether to colorise the line.
      */
     inline void report(
         StringView status,
@@ -199,7 +203,7 @@ namespace stdx::test {
             System::err.println("    uncaught exception: {}", e.what());
         } catch (...) {
             ctx.record_error();
-            System::err.println("    uncaught unrecognised exception");
+            System::err.println("    uncaught unrecognized exception");
         }
         try {
             if (suite.after_each != nullptr) {
@@ -252,7 +256,7 @@ namespace stdx::test {
                     System::out.println("{}", test.name);
                 }
             }
-            return 0;
+            return System::EXIT_SUCCESS;
         }
         Tally tally;
         const u64 start = System::nano_time();
@@ -296,7 +300,7 @@ namespace stdx::test {
         } else {
             System::err.println("{}", summary);
         }
-        return tally.failed == 0 ? 0 : 1;
+        return tally.failed == 0 ? System::EXIT_SUCCESS : System::EXIT_FAILURE;
     }
 }
 

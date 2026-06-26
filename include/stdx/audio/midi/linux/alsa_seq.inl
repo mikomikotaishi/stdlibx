@@ -60,8 +60,8 @@ namespace stdx::audio::midi {
             }
         }
 
-        AlsaMidiParser(const AlsaMidiParser&) = delete;
-        AlsaMidiParser& operator=(const AlsaMidiParser&) = delete;
+        AlsaMidiParser(const AlsaMidiParser&) = delete("AlsaMidiParser is not copyable.");
+        AlsaMidiParser& operator=(const AlsaMidiParser&) = delete("AlsaMidiParser is not copyable.");
 
         [[nodiscard]]
         SoundMidiEventParser* get() const noexcept {
@@ -127,43 +127,14 @@ namespace stdx::audio::midi {
     };
 
     class AlsaSeqTransmitter final: public Transmitter {
+    private:
         i32 my_port;
         Atomic<Receiver*> rx{nullptr};
         Atomic<bool> running{false};
         Thread worker;
         AlsaMidiParser decoder;
         Mutex decode_mutex;
-    public:
-        explicit AlsaSeqTransmitter(i32 my):
-            my_port{my} {
-            if (decoder.valid()) {
-                running.store(true);
-                worker = Thread{[this] -> void { input_loop(); }};
-            }
-        }
 
-        ~AlsaSeqTransmitter() override {
-            close();
-        }
-
-        void set_receiver(Receiver* r) noexcept override {
-            rx.store(r);
-        }
-
-        [[nodiscard]]
-        Receiver* receiver() const noexcept override {
-            return rx.load();
-        }
-
-        void close() noexcept override {
-            if (!running.exchange(false)) {
-                return;
-            }
-            if (worker.joinable()) {
-                worker.join();
-            }
-        }
-    private:
         void input_loop() noexcept {
             SoundSequencer* client = alsa_seq_client();
             if (!client) {
@@ -228,6 +199,38 @@ namespace stdx::audio::midi {
                 }
             }
         }
+    public:
+        explicit AlsaSeqTransmitter(i32 my):
+            my_port{my} {
+            if (decoder.valid()) {
+                running.store(true);
+                worker = Thread([this] -> void {
+                    input_loop();
+                });
+            }
+        }
+
+        ~AlsaSeqTransmitter() override {
+            close();
+        }
+
+        void set_receiver(Receiver* r) noexcept override {
+            rx.store(r);
+        }
+
+        [[nodiscard]]
+        Receiver* receiver() const noexcept override {
+            return rx.load();
+        }
+
+        void close() noexcept override {
+            if (!running.exchange(false)) {
+                return;
+            }
+            if (worker.joinable()) {
+                worker.join();
+            }
+        }
     };
 
     /**
@@ -259,7 +262,8 @@ namespace stdx::audio::midi {
             return dev_info;
         }
 
-        void open() throws (MidiException) override {
+        THROWS(MidiException)
+        void open() override {
             if (open_flag) {
                 return;
             }
@@ -371,7 +375,7 @@ namespace stdx::audio::midi {
 }
 
 export namespace stdx::audio::midi {
-    Vector<MidiDeviceInfo> MidiSystem::devices() throws (MidiException) {
+    Vector<MidiDeviceInfo> MidiSystem::devices() {
         Vector<MidiDeviceInfo> out;
         SoundSequencer* client = alsa_seq_client();
         if (!client) {
@@ -436,7 +440,7 @@ export namespace stdx::audio::midi {
         return out;
     }
 
-    UniquePointer<MidiDevice> MidiSystem::open_device(const MidiDeviceInfo& info) throws (MidiException) {
+    UniquePointer<MidiDevice> MidiSystem::open_device(const MidiDeviceInfo& info) {
         if (info.backend != MidiBackend::ALSA_SEQ) {
             throw MidiException("not an ALSA-seq device");
         }
@@ -450,7 +454,7 @@ export namespace stdx::audio::midi {
         return dev;
     }
 
-    Synthesizer& MidiSystem::default_synthesizer() throws (AudioException, MidiException) {
+    Synthesizer& MidiSystem::default_synthesizer() {
         throw MidiException("SoftSynthesizer not yet implemented");
     }
 }

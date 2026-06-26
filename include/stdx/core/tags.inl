@@ -11,7 +11,7 @@ export namespace stdx::core {
      */
     class Tags final {
     public:
-        Tags() = delete;
+        Tags() = delete("Tags is a static utility class and cannot be instantiated.");
 
         using IgnoreType = decltype(std::ignore);
         #ifdef __cpp_lib_expected

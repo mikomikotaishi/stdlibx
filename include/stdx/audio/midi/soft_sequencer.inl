@@ -207,7 +207,8 @@ namespace stdx::audio::midi {
             return dev_info;
         }
 
-        void open() throws (MidiException) override {
+        THROWS(MidiException)
+        void open() override {
             opened.store(true);
         }
 
@@ -235,7 +236,8 @@ namespace stdx::audio::midi {
         }
 
         // Sequencer
-        void set_sequence(UniquePointer<Sequence> s) throws (InvalidMidiDataException) override {
+        THROWS(InvalidMidiDataException)
+        void set_sequence(UniquePointer<Sequence> s) override {
             if (!s) {
                 throw InvalidMidiDataException("null sequence");
             }
@@ -254,7 +256,8 @@ namespace stdx::audio::midi {
             return seq.get();
         }
 
-        void start() throws (MidiException) override {
+        THROWS(MidiException)
+        void start() override {
             if (!seq) {
                 throw MidiException("no sequence loaded");
             }
@@ -264,7 +267,9 @@ namespace stdx::audio::midi {
             if (worker.joinable()) {
                 worker.join();
             }
-            worker = Thread{[this] -> void { play_loop(); }};
+            worker = Thread([this] -> void {
+                play_loop();
+            });
         }
 
         void stop() noexcept override {

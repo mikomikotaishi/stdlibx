@@ -22,24 +22,6 @@ export namespace stdx::math::linalg {
     template <typename Layout>
     using LayoutTranspose = std::linalg::layout_transpose<Layout>;
 
-    using ColumnMajorTag = std::linalg::column_major_t;
-    inline constexpr ColumnMajorTag ColumnMajor = std::linalg::column_major;
-
-    using RowMajorTag = std::linalg::row_major_t;
-    inline constexpr RowMajorTag RowMajor = std::linalg::row_major;
-
-    using UpperTriangleTag = std::linalg::upper_triangle_t;
-    inline constexpr UpperTriangleTag UpperTriangle = std::linalg::upper_triangle;
-
-    using LowerTriangleTag = std::linalg::lower_triangle_t;
-    inline constexpr LowerTriangleTag LowerTriangle = std::linalg::lower_triangle
-    
-    using ImplicitUnitDiagonalTag = std::linalg::implicit_unit_diagonal_t;
-    inline constexpr ImplicitUnitDiagonalTag ImplicitUnitDiagonal = std::linalg::implicit_unit_diagonal;
-
-    using ExplicitDiagonalTag = std::linalg::explicit_diagonal_t;
-    inline constexpr ExplicitDiagonalTag ExplicitDiagonal = std::linalg::explicit_diagonal;
-
     using std::linalg::scaled;
     using std::linalg::conjugated;
     using std::linalg::transposed;

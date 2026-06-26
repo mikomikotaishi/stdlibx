@@ -13,7 +13,7 @@ using stdx::random::UniformRealDistribution;
 export namespace stdx::core {
     class Math final {
     public:
-        Math() = delete;
+        Math() = delete("Math is a static utility class and cannot be instantiated.");
 
         static constexpr f64 E = ::stdx::math::numbers::E; ///< e
         static constexpr f64 LOG_2_E = ::stdx::math::numbers::LOG_2_E; ///< log_2 e

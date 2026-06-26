@@ -7,7 +7,7 @@
 export namespace stdx::math {
     /**
      * @enum RoundingMode
-     * @brief Rounding behaviour for operations capable of discarding precision.
+     * @brief Rounding behavior for operations capable of discarding precision.
      */
     enum class RoundingMode: u8 {
         UP, ///< Round away from zero.
@@ -103,7 +103,8 @@ export namespace stdx::math {
         friend struct stdx::core::Hash<BigDecimal>;
 
         [[nodiscard]]
-        static BigInteger pow_ten(i64 exponent) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        static BigInteger pow_ten(i64 exponent) {
             if (exponent < 0 || exponent > Integer::MAX_VALUE) {
                 throw ArithmeticException("Scale overflow.");
             }
@@ -111,7 +112,8 @@ export namespace stdx::math {
         }
 
         [[nodiscard]]
-        static i32 check_scale(i64 value) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        static i32 check_scale(i64 value) {
             if (value > Integer::MAX_VALUE) {
                 throw ArithmeticException("Scale overflow.");
             }
@@ -167,11 +169,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If rounding_mode is UNNECESSARY but rounding is required.
          */
         [[nodiscard]]
-        static BigInteger divide_rounded(
-            const BigInteger& numerator,
-            const BigInteger& denominator,
-            RoundingMode rounding_mode
-        ) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        static BigInteger divide_rounded(const BigInteger& numerator, const BigInteger& denominator, RoundingMode rounding_mode) {
             auto [quotient, rem] = numerator.divide_and_remainder(denominator);
             if (rem.signum() == 0) {
                 return quotient;
@@ -341,7 +340,8 @@ export namespace stdx::math {
          * Accepts an optional sign, a significand with an optional decimal point,
          * and an optional exponent.
          */
-        explicit BigDecimal(StringView value) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        explicit BigDecimal(StringView value) {
             usize position = 0;
             bool negative = false;
             if (position < value.size() && (value[position] == '+' || value[position] == '-')) {
@@ -411,7 +411,8 @@ export namespace stdx::math {
          *
          * Use value_of(f64) for the shortest decimal representation instead.
          */
-        explicit BigDecimal(f64 value) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        explicit BigDecimal(f64 value) {
             if (!Math::is_finite(value)) {
                 throw NumberFormatException("Infinite or NaN.");
             }
@@ -474,7 +475,8 @@ export namespace stdx::math {
          * @throws NumberFormatException If value is infinite or NaN.
          */
         [[nodiscard]]
-        static BigDecimal value_of(f64 value) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        static BigDecimal value_of(f64 value) {
             if (!Math::is_finite(value)) {
                 throw NumberFormatException("Infinite or NaN.");
             }
@@ -488,7 +490,8 @@ export namespace stdx::math {
          * @throws NumberFormatException If the string is not a valid BigDecimal.
          */
         [[nodiscard]]
-        static BigDecimal parse(StringView value) throws (NumberFormatException) {
+        THROWS(NumberFormatException)
+        static BigDecimal parse(StringView value) {
             return BigDecimal(value);
         }
 
@@ -501,7 +504,7 @@ export namespace stdx::math {
         static Optional<BigDecimal> try_parse(StringView value) noexcept {
             try {
                 return BigDecimal(value);
-            } catch (const NumberFormatException&) {
+            } catch (const NumberFormatException& _) {
                 return nullopt;
             }
         }
@@ -515,11 +518,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If divisor is zero or rounding is necessary under UNNECESSARY.
          */
         [[nodiscard]]
-        BigDecimal divide(
-            const BigDecimal& divisor,
-            i32 result_scale,
-            RoundingMode rounding_mode
-        ) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal divide(const BigDecimal& divisor, i32 result_scale, RoundingMode rounding_mode) const {
             if (divisor.signum() == 0) {
                 throw ArithmeticException("Division by zero.");
             }
@@ -543,10 +543,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If divisor is zero or rounding is necessary under UNNECESSARY.
          */
         [[nodiscard]]
-        BigDecimal divide(
-            const BigDecimal& divisor,
-            RoundingMode rounding_mode
-        ) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal divide(const BigDecimal& divisor, RoundingMode rounding_mode) const {
             return divide(divisor, scale_val, rounding_mode);
         }
 
@@ -558,7 +556,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If divisor is zero.
          */
         [[nodiscard]]
-        BigDecimal divide_to_integral_value(const BigDecimal& divisor) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal divide_to_integral_value(const BigDecimal& divisor) const {
             if (divisor.signum() == 0) {
                 throw ArithmeticException("Division by zero.");
             }
@@ -599,7 +598,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If divisor is zero.
          */
         [[nodiscard]]
-        Pair<BigDecimal, BigDecimal> divide_and_remainder(const BigDecimal& divisor) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        Pair<BigDecimal, BigDecimal> divide_and_remainder(const BigDecimal& divisor) const {
             BigDecimal quotient = divide_to_integral_value(divisor);
             BigDecimal rem = *this - quotient * divisor;
             return {Ops::move(quotient), Ops::move(rem)};
@@ -613,7 +613,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If exponent is out of range or the scale overflows.
          */
         [[nodiscard]]
-        BigDecimal pow(i32 exponent) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal pow(i32 exponent) const {
             if (exponent < 0 || exponent > 999999999) {
                 throw ArithmeticException("Invalid exponent.");
             }
@@ -687,7 +688,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If the context's rounding mode is UNNECESSARY but rounding is required.
          */
         [[nodiscard]]
-        BigDecimal round(const MathContext& context) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal round(const MathContext& context) const {
             if (context.precision() == 0) {
                 return *this;
             }
@@ -712,10 +714,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If rounding is necessary under UNNECESSARY.
          */
         [[nodiscard]]
-        BigDecimal set_scale(
-            i32 new_scale,
-            RoundingMode rounding_mode
-        ) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal set_scale(i32 new_scale, RoundingMode rounding_mode) const {
             if (new_scale == scale_val) {
                 return *this;
             }
@@ -737,7 +737,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If changing the scale would require rounding.
          */
         [[nodiscard]]
-        BigDecimal set_scale(i32 new_scale) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal set_scale(i32 new_scale) const {
             return set_scale(new_scale, RoundingMode::UNNECESSARY);
         }
 
@@ -749,7 +750,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If the resulting scale overflows.
          */
         [[nodiscard]]
-        BigDecimal move_point_left(i32 distance) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal move_point_left(i32 distance) const {
             const i64 new_scale = static_cast<i64>(scale_val) + distance;
             return new_scale >= 0
                 ? BigDecimal(int_val, check_scale(new_scale))
@@ -764,7 +766,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If the resulting scale overflows.
          */
         [[nodiscard]]
-        BigDecimal move_point_right(i32 distance) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal move_point_right(i32 distance) const {
             const i64 new_scale = static_cast<i64>(scale_val) - distance;
             return new_scale >= 0
                 ? BigDecimal(int_val, check_scale(new_scale))
@@ -778,7 +781,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If the resulting scale overflows.
          */
         [[nodiscard]]
-        BigDecimal scale_by_power_of_ten(i32 distance) const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal scale_by_power_of_ten(i32 distance) const {
             return BigDecimal(int_val, check_scale(static_cast<i64>(scale_val) - distance));
         }
 
@@ -849,7 +853,7 @@ export namespace stdx::math {
                 return compare(int_val, other.int_val);
             }
             // Compare adjusted exponents first so wildly different magnitudes never
-            // require materialising a huge power of ten for scale alignment.
+            // require materializing a huge power of ten for scale alignment.
             const i64 this_adjusted = static_cast<i64>(precision()) - scale_val;
             const i64 other_adjusted = static_cast<i64>(other.precision()) - other.scale_val;
             if (this_adjusted != other_adjusted) {
@@ -884,7 +888,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If this BigDecimal has a nonzero fractional part.
          */
         [[nodiscard]]
-        BigInteger to_big_integer_exact() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigInteger to_big_integer_exact() const {
             if (scale_val <= 0) {
                 return to_big_integer();
             }
@@ -922,7 +927,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If this has a fractional part or does not fit in an i8.
          */
         [[nodiscard]]
-        i8 byte_value_exact() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        i8 byte_value_exact() const {
             return to_big_integer_exact().byte_value_exact();
         }
 
@@ -933,7 +939,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If this has a fractional part or does not fit in an i16.
          */
         [[nodiscard]]
-        i16 short_value_exact() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        i16 short_value_exact() const {
             return to_big_integer_exact().short_value_exact();
         }
 
@@ -944,7 +951,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If this has a fractional part or does not fit in an i32.
          */
         [[nodiscard]]
-        i32 int_value_exact() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        i32 int_value_exact() const {
             return to_big_integer_exact().int_value_exact();
         }
 
@@ -955,7 +963,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If this has a fractional part or does not fit in an i64.
          */
         [[nodiscard]]
-        i64 long_value_exact() const throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        i64 long_value_exact() const {
             return to_big_integer_exact().long_value_exact();
         }
 
@@ -1084,7 +1093,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If the resulting scale overflows.
          */
         [[nodiscard]]
-        friend BigDecimal operator*(const BigDecimal& lhs, const BigDecimal& rhs) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        friend BigDecimal operator*(const BigDecimal& lhs, const BigDecimal& rhs) {
             return BigDecimal(
                 lhs.int_val * rhs.int_val,
                 check_scale(static_cast<i64>(lhs.scale_val) + rhs.scale_val)
@@ -1104,7 +1114,8 @@ export namespace stdx::math {
          * divide(divisor, scale, rounding_mode) to round instead.
          */
         [[nodiscard]]
-        friend BigDecimal operator/(const BigDecimal& lhs, const BigDecimal& rhs) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        friend BigDecimal operator/(const BigDecimal& lhs, const BigDecimal& rhs) {
             if (rhs.signum() == 0) {
                 throw ArithmeticException("Division by zero.");
             }
@@ -1152,7 +1163,8 @@ export namespace stdx::math {
          * @throws ArithmeticException If rhs is zero.
          */
         [[nodiscard]]
-        friend BigDecimal operator%(const BigDecimal& lhs, const BigDecimal& rhs) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        friend BigDecimal operator%(const BigDecimal& lhs, const BigDecimal& rhs) {
             return lhs - lhs.divide_to_integral_value(rhs) * rhs;
         }
 
@@ -1180,17 +1192,20 @@ export namespace stdx::math {
             return *this;
         }
 
-        BigDecimal& operator*=(const BigDecimal& other) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal& operator*=(const BigDecimal& other) {
             *this = *this * other;
             return *this;
         }
 
-        BigDecimal& operator/=(const BigDecimal& other) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal& operator/=(const BigDecimal& other) {
             *this = *this / other;
             return *this;
         }
 
-        BigDecimal& operator%=(const BigDecimal& other) throws (ArithmeticException) {
+        THROWS(ArithmeticException)
+        BigDecimal& operator%=(const BigDecimal& other) {
             *this = *this % other;
             return *this;
         }
@@ -1262,7 +1277,8 @@ export namespace stdx::math {
      * @throws ArithmeticException If exponent is out of range or the scale overflows.
      */
     [[nodiscard]]
-    inline BigDecimal pow(const BigDecimal& base, i32 exponent) throws (ArithmeticException) {
+    THROWS(ArithmeticException)
+    inline BigDecimal pow(const BigDecimal& base, i32 exponent) {
         return base.pow(exponent);
     }
 }

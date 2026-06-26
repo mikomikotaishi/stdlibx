@@ -93,13 +93,13 @@ void play_sine(const String& requested_id) {
     }
     System::out.println("Target output: {} (id={})", dev.name, dev.id);
 
-    AudioFormat fmt{
+    AudioFormat fmt {
         .sample_rate = 48000,
         .channels = 2,
         .format = SampleFormat::FLOAT,
     };
 
-    SineRenderer renderer{
+    SineRenderer renderer {
         .phase = 0.0f,
         .phase_inc = static_cast<f32>(Math::PI * 440.0) / static_cast<f32>(fmt.sample_rate),
         .channels = fmt.channels,
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
             System::out.println("\n[run {}/{}] Playing file: {}", i + 1, repeat, file_arg);
             play_file(file_arg);
         }
-        return 0;
+        return System::EXIT_SUCCESS;
     }
 
     if (parser.get<bool>("--play")) {
@@ -213,4 +213,5 @@ int main(int argc, char* argv[]) {
             "an audio file.)"
         );
     }
+    return System::EXIT_SUCCESS;
 }

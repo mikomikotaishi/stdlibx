@@ -45,13 +45,16 @@ public:
     explicit GnuInteger(T v = 0):
         value{v} {}
 
-    explicit GnuInteger(const char s[], i32 base = 0) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    explicit GnuInteger(const char s[], i32 base = 0):
         value(s, base) {}
 
-    explicit GnuInteger(const String& s, i32 base = 0) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    explicit GnuInteger(const String& s, i32 base = 0):
         value(s, base) {}
 
-    explicit GnuInteger(StringView s, i32 base = 0) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    explicit GnuInteger(StringView s, i32 base = 0):
         value(s.data(), base) {}
 
     [[nodiscard]]
@@ -221,13 +224,16 @@ public:
         value.canonicalize();
     }
 
-    explicit GnuRational(const char s[], i32 base = 0) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    explicit GnuRational(const char s[], i32 base = 0):
         value(s, base) {}
 
-    explicit GnuRational(const String& s, i32 base = 0) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    explicit GnuRational(const String& s, i32 base = 0):
         value(s, base) {}
 
-    explicit GnuRational(StringView s, i32 base = 0) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    explicit GnuRational(StringView s, i32 base = 0):
         value(s.data(), base) {}
 
     [[nodiscard]]
@@ -326,22 +332,28 @@ public:
     explicit GnuFloat(T v = 0):
         value{v} {}
 
-    explicit GnuFloat(const char s[]) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    explicit GnuFloat(const char s[]):
         value{s} {}
 
-    explicit GnuFloat(const String& s) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    explicit GnuFloat(const String& s):
         value{s} {}
 
-    explicit GnuFloat(StringView s) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    explicit GnuFloat(StringView s):
         value{s.data()} {}
 
-    GnuFloat(const char s[], BitCount prec, i32 base = 0) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    GnuFloat(const char s[], BitCount prec, i32 base = 0):
         value(s, prec, base) {}
 
-    GnuFloat(const String& s, BitCount prec, i32 base = 0) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    GnuFloat(const String& s, BitCount prec, i32 base = 0):
         value(s, prec, base) {}
 
-    GnuFloat(StringView s, BitCount prec, i32 base = 0) throws (InvalidArgumentException):
+    THROWS(InvalidArgumentException)
+    GnuFloat(StringView s, BitCount prec, i32 base = 0):
         value(s.data(), prec, base) {}
 
     [[nodiscard]]
@@ -415,17 +427,20 @@ public:
 };
 
 [[nodiscard]]
-GnuInteger operator""_mpz(const char s[]) throws (InvalidArgumentException) {
+THROWS(InvalidArgumentException)
+GnuInteger operator""_mpz(const char s[]) {
     return GnuInteger(s);
 }
 
 [[nodiscard]]
-GnuRational operator""_mpq(const char s[]) throws (InvalidArgumentException) {
+THROWS(InvalidArgumentException)
+GnuRational operator""_mpq(const char s[]) {
     return GnuRational(s);
 }
 
 [[nodiscard]]
-GnuFloat operator""_mpf(const char s[]) throws (InvalidArgumentException) {
+THROWS(InvalidArgumentException)
+GnuFloat operator""_mpf(const char s[]) {
     return GnuFloat(s);
 }
 

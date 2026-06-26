@@ -2,7 +2,7 @@
 
 /**
  * @namespace stdx::sync
- * @brief Standard library synchronisation operations.
+ * @brief Standard library synchronization operations.
  */
 export namespace stdx::sync {
     using SharedMutex = std::shared_mutex;
@@ -10,6 +10,4 @@ export namespace stdx::sync {
 
     template <typename T>
     using SharedLock = std::shared_lock<T>;
-
-    using std::swap;
 }

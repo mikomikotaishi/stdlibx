@@ -26,8 +26,6 @@ export namespace stdx::future {
     private:
         const Self value;
     public:
-        constexpr LaunchPolicy() noexcept = delete;
-
         constexpr LaunchPolicy(Self value) noexcept:
             value{value} {}
 
@@ -46,8 +44,6 @@ export namespace stdx::future {
     private:
         const Self value;
     public:
-        constexpr FutureStatus() noexcept = delete;
-
         constexpr FutureStatus(Self value) noexcept:
             value{value} {}
 
@@ -66,7 +62,6 @@ export namespace stdx::future {
     using std::make_error_condition;
 
     using std::async;
-    using std::swap;
 }
 
 /**

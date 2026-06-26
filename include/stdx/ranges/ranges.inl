@@ -129,8 +129,6 @@ export namespace stdx::ranges {
 
         const Self value;
 
-        constexpr SubrangeKind() noexcept = delete;
-
         constexpr SubrangeKind(Self value) noexcept:
             value{value} {}
 
@@ -371,7 +369,7 @@ export namespace stdx::ranges {
         template <typename T>
         inline constexpr types::InputStream<T> InputStream = std::ranges::views::istream<T>;
         template <ViewableRange R>
-        using AllTag = std::ranges::views::all_t<R>;
+        using AllType = std::ranges::views::all_t<R>;
         inline constexpr types::All All = std::ranges::views::all;
         inline constexpr types::AsRvalue AsRvalue = std::ranges::views::as_rvalue;
         inline constexpr types::Filter Filter = std::ranges::views::filter;
@@ -435,8 +433,6 @@ export namespace stdx::ranges {
 
     using std::tuple_size;
     using std::tuple_element;
-    using FromRangeTag = std::from_range_t;
-    inline constexpr FromRangeTag FromRange = std::from_range;
 }
 
 export namespace stdx {

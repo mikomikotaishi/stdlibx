@@ -258,7 +258,8 @@ export namespace stdx::fmt {
     
         // Per-argument type check (called for each sequential/positional specifier).
         template <usize I>
-        static consteval void check_type(char conv) throws (FormatException) {
+        THROWS(FormatException)
+        static consteval void check_type(char conv) {
             using T = DecayType<TupleElementType<I, Tuple<Args...>>>;
             switch (conv) {
                 case 'd':
@@ -299,7 +300,8 @@ export namespace stdx::fmt {
             (void)((Idxs == idx ? (check_type<Idxs>(conv), true) : false) || ...);
         }
 
-        static consteval void validate(const char fmt[], usize len) throws (FormatException) {
+        THROWS(FormatException)
+        static consteval void validate(const char fmt[], usize len) {
             const char* p = fmt;
             const char* end = p + len;
             usize seq_count = 0;

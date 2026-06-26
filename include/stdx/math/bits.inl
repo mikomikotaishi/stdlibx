@@ -15,8 +15,6 @@ export namespace stdx::math {
     private:
         const Self value;
     public:
-        constexpr Endian() noexcept = delete;
-
         constexpr Endian(Self value) noexcept:
             value{value} {}
 

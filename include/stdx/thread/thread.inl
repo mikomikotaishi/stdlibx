@@ -8,7 +8,4 @@ export namespace stdx::thread {
     using ManualThread = std::thread;
     using Thread = std::jthread;
     using ThreadId = std::thread::id;
-
-    using std::formatter;
-    using std::swap;
 }

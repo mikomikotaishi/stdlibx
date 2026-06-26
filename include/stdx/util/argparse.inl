@@ -159,7 +159,8 @@ constexpr ConsumeHexadecimalPrefixResult consume_hexadecimal_prefix(StringView s
 }
 
 template <typename T, usize Param>
-T perform_from_chars(StringView s) throws (InvalidArgumentException, InvalidRangeException) {
+THROWS(InvalidArgumentException, InvalidRangeException)
+T perform_from_chars(StringView s) {
     T x{0};
     auto [first, last] = pointer_range(s);
     auto [ptr, ec] = stdx::text::from_chars(first, last, x, Param);
@@ -174,8 +175,9 @@ T perform_from_chars(StringView s) throws (InvalidArgumentException, InvalidRang
         case Errc::RESULT_OUT_OF_RANGE:
             throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
         default:
-            Ops::unreachable();
+            throw InvalidArgumentException(stdx::fmt::format("Unknown error while parsing '{}'", s));
     }
+    Ops::unreachable();
 }
 
 template <typename T, usize Param = 0uz>
@@ -187,7 +189,8 @@ struct ParseNumber {
 
 template <typename T>
 struct ParseNumber<T, 2uz> {
-    T operator()(StringView s) throws (InvalidArgumentException) {
+    THROWS(InvalidArgumentException)
+    T operator()(StringView s) {
         if (auto [ok, rest] = consume_binary_prefix(s); ok) {
             return perform_from_chars<T, 2uz>(rest);
         }
@@ -197,7 +200,8 @@ struct ParseNumber<T, 2uz> {
 
 template <typename T>
 struct ParseNumber<T, 16uz> {
-    T operator()(StringView s) throws (InvalidArgumentException, InvalidRangeException) {
+    THROWS(InvalidArgumentException, InvalidRangeException)
+    T operator()(StringView s) {
         if (auto [ok, rest] = consume_hexadecimal_prefix(s); ok) {
             try {
                 return perform_from_chars<T, 16uz>(rest);
@@ -213,7 +217,8 @@ struct ParseNumber<T, 16uz> {
 
 template <typename T>
 struct ParseNumber<T> {
-    T operator()(StringView s) throws (InvalidArgumentException, InvalidRangeException) {
+    THROWS(InvalidArgumentException, InvalidRangeException)
+    T operator()(StringView s) {
         // Parse for hexadecimal
         auto [ok, rest] = consume_hexadecimal_prefix(s);
         if (ok) {
@@ -261,7 +266,8 @@ struct ParseNumber<T> {
 };
 
 template <FloatingPoint T>
-T perform_floating_from_chars(StringView s, CharsFormat fmt) throws (InvalidArgumentException, InvalidRangeException) {
+THROWS(InvalidArgumentException, InvalidRangeException)
+T perform_floating_from_chars(StringView s, CharsFormat fmt) {
     if (Character::is_whitespace(static_cast<unsigned char>(s[0])) || s[0] == '+') {
         throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
     }
@@ -280,15 +286,15 @@ T perform_floating_from_chars(StringView s, CharsFormat fmt) throws (InvalidArgu
             throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
         case Errc::RESULT_OUT_OF_RANGE:
             throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
-        default:
-            Ops::unreachable();
     }
+    Ops::unreachable();
 }
 
 // Floating-point parsing with general format (auto-detect)
 template <FloatingPoint T>
 struct ParseNumber<T, static_cast<usize>(CharsFormat::GENERAL)> {
-    T operator()(StringView s) throws (InvalidArgumentException, InvalidRangeException) {
+    THROWS(InvalidArgumentException, InvalidRangeException)
+    T operator()(StringView s) {
         if (auto [ok, rest] = consume_hexadecimal_prefix(s); ok) {
             throw InvalidArgumentException("CharsFormat::GENERAL does not parse hexfloat");
         }
@@ -309,7 +315,8 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::GENERAL)> {
 // Floating-point parsing with hexadecimal format
 template <FloatingPoint T>
 struct ParseNumber<T, static_cast<usize>(CharsFormat::HEX)> {
-    T operator()(StringView s) throws (InvalidArgumentException, InvalidRangeException) {
+    THROWS(InvalidArgumentException, InvalidRangeException)
+    T operator()(StringView s) {
         if (auto [ok, rest] = consume_binary_prefix(s); ok) {
             throw InvalidArgumentException("CharsFormat::HEX does not parse binfloat");
         }
@@ -330,7 +337,8 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::HEX)> {
 // Floating-point parsing with binary format
 template <FloatingPoint T>
 struct ParseNumber<T, static_cast<usize>(CharsFormat::BINARY)> {
-    T operator()(StringView s) throws (InvalidArgumentException, InvalidRangeException) {
+    THROWS(InvalidArgumentException, InvalidRangeException)
+    T operator()(StringView s) {
         if (auto [ok, rest] = consume_hexadecimal_prefix(s); ok) {
             throw InvalidArgumentException("CharsFormat::BINARY does not parse hexfloat");
         }
@@ -345,7 +353,8 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::BINARY)> {
 // Floating-point parsing with scientific format
 template <FloatingPoint T>
 struct ParseNumber<T, static_cast<usize>(CharsFormat::SCIENTIFIC)> {
-    T operator()(StringView s) throws (InvalidArgumentException, InvalidRangeException) {
+    THROWS(InvalidArgumentException, InvalidRangeException)
+    T operator()(StringView s) {
         if (auto [ok, rest] = consume_hexadecimal_prefix(s); ok) {
             throw InvalidArgumentException("CharsFormat::SCIENTIFIC does not parse hexfloat");
         }
@@ -369,7 +378,8 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::SCIENTIFIC)> {
 // Floating-point parsing with fixed format
 template <FloatingPoint T>
 struct ParseNumber<T, static_cast<usize>(CharsFormat::FIXED)> {
-    T operator()(StringView s) throws (InvalidArgumentException, InvalidRangeException) {
+    THROWS(InvalidArgumentException, InvalidRangeException)
+    T operator()(StringView s) {
         if (auto [ok, rest] = consume_hexadecimal_prefix(s); ok) {
             throw InvalidArgumentException("CharsFormat::FIXED does not parse hexfloat");
         }
@@ -526,7 +536,8 @@ public:
         usize min_val;
         usize max_val;
     public:
-        NArgsRange(usize min, usize max) throws (InvalidArgumentException):
+        THROWS(InvalidArgumentException)
+        NArgsRange(usize min, usize max):
             min_val{min}, max_val{max} {
             if (min > max) {
                 throw InvalidArgumentException("Range of number of arguments is invalid!");
@@ -711,7 +722,8 @@ private:
     }
 
     [[noreturn]]
-    void throw_nargs_range_validation() const throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    void throw_nargs_range_validation() const {
         StringStream stream;
         stream << (!used_name.empty() ? used_name : StringView(names.front())) << ": ";
         if (num_args_range.is_exact()) {
@@ -726,12 +738,14 @@ private:
     }
 
     [[noreturn]]
-    void throw_required_arg_not_used() const throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    void throw_required_arg_not_used() const {
         throw CommandLineParserException(stdx::fmt::format("{}: required.", names.front()));
     }
 
     [[noreturn]]
-    void throw_required_arg_no_value_provided() const throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    void throw_required_arg_no_value_provided() const {
         throw CommandLineParserException(stdx::fmt::format("{}: no value provided.", used_name));
     }
 
@@ -746,7 +760,8 @@ private:
         return result;
     }
 
-    void find_default_value_in_choices_or_throw() const throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    void find_default_value_in_choices_or_throw() const {
         const Vector<String>& ch = choice_values.value();
         if (default_val.has_value()) {
             if (stdx::util::find(ch.begin(), ch.end(), default_value_string) == ch.end()) {
@@ -763,16 +778,17 @@ private:
         }
     }
 
-    template <typename Iterator>
+    template <typename Iter>
     [[nodiscard]]
-    bool is_value_in_choices(Iterator option_it) const {
+    bool is_value_in_choices(Iter option_it) const {
         const Vector<String>& ch = choice_values.value();
         return stdx::util::find(ch.begin(), ch.end(), *option_it) != ch.end();
     }
 
-    template <typename Iterator>
+    template <typename Iter>
     [[noreturn]]
-    void throw_invalid_arguments(Iterator option_it) const throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    void throw_invalid_arguments(Iter option_it) const {
         const Vector<String>& ch = choice_values.value();
         String csv = stdx::util::accumulate(
             ch.begin(),
@@ -1037,8 +1053,6 @@ public:
             case NArgsPattern::AT_LEAST_ONE:
                 num_args_range = NArgsRange{1, UnsignedSize::MAX_VALUE};
                 break;
-            default:
-                Ops::unreachable();
         }
         return *this;
     }
@@ -1061,22 +1075,25 @@ public:
         }
     }
 
-    Argument& choices() throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    Argument& choices() {
         if (!choice_values.has_value()) {
             throw CommandLineParserException("Zero choices provided");
         }
         return *this;
     }
 
-    template <typename T, typename... U>
-    Argument& choices(T&& first, U&&... rest) throws (CommandLineParserException) {
+    template <typename T, typename... Us>
+    THROWS(CommandLineParserException)
+    Argument& choices(T&& first, Us&&... rest) {
         add_choice(Ops::forward<T>(first));
-        choices(Ops::forward<U>(rest)...);
+        choices(Ops::forward<Us>(rest)...);
         return *this;
     }
 
     template <typename Iter>
-    Iter consume(Iter start, Iter end, StringView name_used = {}, bool dry_run = false) throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    Iter consume(Iter start, Iter end, StringView name_used = {}, bool dry_run = false) {
         if (!is_repeatable && is_used) {
             throw CommandLineParserException(stdx::fmt::format("Duplicate argument {}", name_used));
         }
@@ -1173,7 +1190,8 @@ public:
         throw CommandLineParserException(stdx::fmt::format("Too few arguments for '{}'.", used_name));
     }
 
-    void validate() const throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    void validate() const {
         if (is_optional) {
             if (!is_used && !default_val.has_value() && is_required) {
                 throw_required_arg_not_used();
@@ -1270,7 +1288,8 @@ public:
 
     template <typename T>
     [[nodiscard]]
-    T get() const throws (LogicException) {
+    THROWS(LogicException)
+    T get() const {
         if (!values.empty()) {
             if constexpr (Collection<T>) {
                 return any_cast_container<T>(values);
@@ -1291,7 +1310,8 @@ public:
 
     template <typename T>
     [[nodiscard]]
-    Optional<T> present() const throws (LogicException) {
+    THROWS(LogicException)
+    Optional<T> present() const {
         if (default_val.has_value()) {
             throw LogicException("Argument with default value always presents");
         }
@@ -1479,11 +1499,11 @@ public:
 
         friend class ArgumentParser;
     public:
-        MutuallyExclusiveGroup() = delete;
         explicit MutuallyExclusiveGroup(ArgumentParser& parent, bool required = false):
             parent{parent}, required{required} {}
-        MutuallyExclusiveGroup(const MutuallyExclusiveGroup&) = delete;
-        MutuallyExclusiveGroup& operator=(const MutuallyExclusiveGroup&) = delete;
+
+        MutuallyExclusiveGroup(const MutuallyExclusiveGroup&) = delete("MutuallyExclusiveGroup is not copyable.");
+        MutuallyExclusiveGroup& operator=(const MutuallyExclusiveGroup&) = delete("MutuallyExclusiveGroup is not copyable.");
         MutuallyExclusiveGroup(MutuallyExclusiveGroup&& other) noexcept:
             parent{other.parent}, required{other.required},
             elems{Ops::move(other.elems)} {
@@ -1746,10 +1766,10 @@ public:
     }
 
     ~ArgumentParser() = default;
-    ArgumentParser(const ArgumentParser&) = delete;
-    ArgumentParser& operator=(const ArgumentParser&) = delete;
-    ArgumentParser(ArgumentParser&&) noexcept = delete;
-    ArgumentParser& operator=(ArgumentParser&&) = delete;
+    ArgumentParser(const ArgumentParser&) = delete("ArgumentParser is not copyable.");
+    ArgumentParser& operator=(const ArgumentParser&) = delete("ArgumentParser is not copyable.");
+    ArgumentParser(ArgumentParser&&) noexcept = delete("ArgumentParser is not movable.");
+    ArgumentParser& operator=(ArgumentParser&&) = delete("ArgumentParser is not movable.");
 
     explicit operator bool() const {
         bool arg_used = stdx::util::any_of(
@@ -1803,7 +1823,8 @@ public:
         return *this;
     }
 
-    ArgumentParser& add_hidden_alias_for(Argument& arg, StringView alias) throws (LogicException) {
+    THROWS(LogicException)
+    ArgumentParser& add_hidden_alias_for(Argument& arg, StringView alias) {
         for (auto it = optional_arguments.begin(); it != optional_arguments.end(); ++it) {
             if (&(*it) == &arg) {
                 argument_map.insert_or_assign(String(alias), it);
@@ -1815,7 +1836,8 @@ public:
 
     template <typename T = Argument>
     [[nodiscard]]
-    T& at(StringView name) throws (LogicException) {
+    THROWS(LogicException)
+    T& at(StringView name) {
         if constexpr (IsSameValue<T, Argument>) {
             return (*this)[name];
         } else {
@@ -1825,6 +1847,13 @@ public:
             }
             throw LogicException(stdx::fmt::format("No such subparser: {}", str_name));
         }
+    }
+
+    template <typename T = Argument>
+    [[nodiscard]]
+    THROWS(LogicException)
+    T& operator[](StringView name) {
+        return at<T>(name);
     }
 
     ArgumentParser& set_prefix_chars(String pc) {
@@ -1837,7 +1866,8 @@ public:
         return *this;
     }
 
-    void parse_args(Span<const String> arguments) throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    void parse_args(Span<const String> arguments) {
         parse_args_internal(arguments);
         for (const auto& [_, argument]: argument_map) {
             argument->validate();
@@ -1872,21 +1902,24 @@ public:
         }
     }
 
-    void parse_args(Span<const StringView> arguments) throws (CommandLineParserException) {
+    THROWS_DISABLED(CommandLineParserException)
+    void parse_args(Span<const StringView> arguments) {
         parse_args(Vector<String>(arguments.begin(), arguments.end()));
     }
 
-    void parse_args(InitializerList<StringView> arguments) throws (CommandLineParserException) {
+    THROWS_DISABLED(CommandLineParserException)
+    void parse_args(InitializerList<StringView> arguments) {
         parse_args(Vector<String>(arguments.begin(), arguments.end()));
     }
 
-    void parse_args(ConvertibleTo<StringView> auto&&... arguments) throws (CommandLineParserException)
-        requires (sizeof...(arguments) >= 1) {
+    THROWS_DISABLED(CommandLineParserException)
+    void parse_args(ConvertibleTo<StringView> auto&&... arguments) requires (sizeof...(arguments) >= 1) {
         parse_args(Vector<String>{String(StringView(arguments))...});
     }
 
     [[nodiscard]]
-    Vector<String> parse_known_args(Span<const String> arguments) throws (CommandLineParserException) {
+    THROWS_DISABLED(CommandLineParserException)
+    Vector<String> parse_known_args(Span<const String> arguments) {
         Vector<String> unknown = parse_known_args_internal(arguments);
         for (const auto& [_, argument]: argument_map) {
             argument->validate();
@@ -1895,26 +1928,30 @@ public:
     }
 
     [[nodiscard]]
-    Vector<String> parse_known_args(Span<const StringView> arguments) throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    Vector<String> parse_known_args(Span<const StringView> arguments) {
         return parse_known_args(Vector<String>(arguments.begin(), arguments.end()));
     }
 
     [[nodiscard]]
-    Vector<String> parse_known_args(InitializerList<StringView> arguments) throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    Vector<String> parse_known_args(InitializerList<StringView> arguments) {
         return parse_known_args(Vector<String>(arguments.begin(), arguments.end()));
     }
 
     [[nodiscard]]
-    Vector<String> parse_known_args(ConvertibleTo<StringView> auto&&... arguments) throws (CommandLineParserException)
-        requires (sizeof...(arguments) >= 1) {
+    THROWS(CommandLineParserException)
+    Vector<String> parse_known_args(ConvertibleTo<StringView> auto&&... arguments) requires (sizeof...(arguments) >= 1) {
         return parse_known_args(Vector<String>{String(StringView(arguments))...});
     }
 
-    void parse_args(i32 argc, const char* argv[]) throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    void parse_args(i32 argc, const char* argv[]) {
         parse_args(Vector<String>(argv, argv + argc));
     }
 
-    void parse_args(i32 argc, char* argv[]) throws (CommandLineParserException) {
+    THROWS(CommandLineParserException)
+    void parse_args(i32 argc, char* argv[]) {
         parse_args(Vector<String>(argv, argv + argc));
     }
 
@@ -1935,8 +1972,8 @@ public:
      */
     template <ReflectableClass T>
     [[nodiscard]]
-    static T parse(int argc, char* argv[])
-        throws (CommandLineParserException, InvalidArgumentException, InvalidRangeException);
+    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>()]]
+    static T parse(int argc, char* argv[]);
 
     /**
      * @brief Render usage text for the annotated struct @p T, one block per
@@ -1949,18 +1986,21 @@ public:
     #endif
 
     [[nodiscard]]
-    Vector<String> parse_known_args(i32 argc, const char* argv[]) throws (CommandLineParserException) {
+    THROWS_DISABLED(CommandLineParserException)
+    Vector<String> parse_known_args(i32 argc, const char* argv[]) {
         return parse_known_args(Vector<String>(argv, argv + argc));
     }
 
     [[nodiscard]]
-    Vector<String> parse_known_args(i32 argc, char* argv[]) throws (CommandLineParserException) {
+    THROWS_DISABLED(CommandLineParserException)
+    Vector<String> parse_known_args(i32 argc, char* argv[]) {
         return parse_known_args(Vector<String>(argv, argv + argc));
     }
 
     template <typename T = String>
     [[nodiscard]]
-    T get(StringView arg_name) const throws (LogicException) {
+    THROWS_DISABLED(LogicException)
+    T get(StringView arg_name) const {
         if (!is_parsed) {
             throw LogicException("Nothing parsed, no arguments are available.");
         }

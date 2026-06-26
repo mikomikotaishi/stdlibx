@@ -70,9 +70,6 @@ export namespace stdx::core {
         static constexpr auto FE_TOWARDZERO = ::stdx::core::FE_TOWARDZERO;
 
         static inline const auto FE_DFL_ENV = ::stdx::core::FE_DFL_ENV;
-
-        static constexpr usize HARDWARE_CONSTRUCTIVE_INTERFERENCE_SIZE = ::stdx::alloc::HARDWARE_CONSTRUCTIVE_INTERFERENCE_SIZE;
-        static constexpr usize HARDWARE_DESTRUCTIVE_INTERFERENCE_SIZE = ::stdx::alloc::HARDWARE_DESTRUCTIVE_INTERFERENCE_SIZE;
     private:
         class GlobalInputStream {
         public:
@@ -102,7 +99,7 @@ export namespace stdx::core {
             virtual void flush() const = 0;
         };
     public:
-        System() = delete;
+        System() = delete("System is a static utility class and cannot be instantiated.");
 
         class In final: public GlobalInputStream {
         private:
@@ -110,8 +107,8 @@ export namespace stdx::core {
 
             friend class System;
             In() noexcept = default;
-            In(const In&) = delete;
-            In& operator=(const In&) = delete;
+            In(const In&) = delete("System::In is not copyable.");
+            In& operator=(const In&) = delete("System::In is not copyable.");
         public:
             [[nodiscard]]
             operator const InputStream&() const noexcept override {
@@ -152,8 +149,8 @@ export namespace stdx::core {
 
             friend class System;
             Out() noexcept = default;
-            Out(const Out&) = delete;
-            Out& operator=(const Out&) = delete;
+            Out(const Out&) = delete("System::Out is not copyable.");
+            Out& operator=(const Out&) = delete("System::Out is not copyable.");
         public:
             [[nodiscard]]
             operator const OutputStream&() const noexcept override {
@@ -215,8 +212,8 @@ export namespace stdx::core {
 
             friend class System;
             Err() noexcept = default;
-            Err(const Err&) = delete;
-            Err& operator=(const Err&) = delete;
+            Err(const Err&) = delete("System::Err is not copyable.");
+            Err& operator=(const Err&) = delete("System::Err is not copyable.");
         public:
             [[nodiscard]]
             operator const OutputStream&() const noexcept override {
@@ -278,9 +275,8 @@ export namespace stdx::core {
 
             friend class System;
             Log() noexcept = default;
-            Log(const Log&) = delete;
-            Log& operator=(const Log&) = delete;
-        public:
+            Log(const Log&) = delete("System::Log is not copyable.");
+            Log& operator=(const Log&) = delete("System::Log is not copyable.");        public:
             [[nodiscard]]
             operator const OutputStream&() const noexcept override {
                 return log;
@@ -381,7 +377,7 @@ export namespace stdx::core {
          */
         class Thread final {
         public:
-            Thread() = delete;
+            Thread() = delete("Thread is a static utility class and cannot be instantiated.");
 
             /**
              * @brief The ID of the current thread.

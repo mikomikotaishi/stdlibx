@@ -10,6 +10,4 @@ export namespace stdx::io {
 
     using StreamBuffer = std::streambuf;
     using WideStreamBuffer = std::wstreambuf;
-
-    using std::swap;
 }

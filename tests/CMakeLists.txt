@@ -27,8 +27,8 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     endif()
     
     # Add sanitizers if enabled
-    if(COMMAND add_sanitisers)
-        add_sanitisers(${TEST_NAME})
+    if(COMMAND add_sanitizers)
+        add_sanitizers(${TEST_NAME})
     endif()
 
     # Propagate the optional-extension flags so tests can #ifdef on them and

@@ -112,7 +112,7 @@ export namespace stdx::time::chrono {
             return {y, m, static_cast<u32>(rem + 1)};
         }
     public:
-        HijrahChronology() = delete;
+        HijrahChronology() = delete("HijrahChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era
@@ -147,7 +147,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
-        static constexpr bool is_leap_year(i32 y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr bool is_leap_year(i32 y) {
             if (y < 1) {
                 throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
             }
@@ -162,7 +163,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
-        static constexpr u32 days_in_month(i32 y, u32 m) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr u32 days_in_month(i32 y, u32 m) {
             if (y < 1) {
                 throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
             }
@@ -176,7 +178,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
-        static constexpr i32 days_in_year(i32 y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 days_in_year(i32 y) {
             if (y < 1) {
                 throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
             }
@@ -190,7 +193,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
-        static constexpr u32 months_in_year(i32 y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr u32 months_in_year(i32 y) {
             if (y < 1) {
                 throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
             }
@@ -206,7 +210,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
-        static constexpr i64 to_epoch_day(i32 y, u32 m, u32 d) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i64 to_epoch_day(i32 y, u32 m, u32 d) {
             if (y < 1) {
                 throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
             }
@@ -220,7 +225,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if e < HIJRAH_EPOCH.
          */
         [[nodiscard]]
-        static constexpr DateComponents from_epoch_day(i64 e) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr DateComponents from_epoch_day(i64 e) {
             if (e < HIJRAH_EPOCH) {
                 throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
             }
@@ -234,7 +240,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if proleptic_year < 1.
          */
         [[nodiscard]]
-        static constexpr Era era_of(i32 proleptic_year) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr Era era_of(i32 proleptic_year) {
             if (proleptic_year < 1) {
                 throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
             }
@@ -248,7 +255,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if proleptic_year < 1.
          */
         [[nodiscard]]
-        static constexpr i32 year_of_era(i32 proleptic_year) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 year_of_era(i32 proleptic_year) {
             if (proleptic_year < 1) {
                 throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
             }
@@ -263,7 +271,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if year_of_era < 1.
          */
         [[nodiscard]]
-        static constexpr i32 proleptic_year([[maybe_unused]] Era era, i32 year_of_era) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 proleptic_year([[maybe_unused]] Era era, i32 year_of_era) {
             if (year_of_era < 1) {
                 throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
             }
@@ -271,12 +280,14 @@ export namespace stdx::time::chrono {
         }
 
         [[nodiscard]]
-        static constexpr bool is_leap_year(Year y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr bool is_leap_year(Year y) {
             return is_leap_year(static_cast<i32>(y));
         }
 
         [[nodiscard]]
-        static constexpr u32 days_in_month(Year y, Month m) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr u32 days_in_month(Year y, Month m) {
             return days_in_month(
                 static_cast<i32>(y),
                 static_cast<u32>(m)
@@ -284,17 +295,20 @@ export namespace stdx::time::chrono {
         }
 
         [[nodiscard]]
-        static constexpr i32 days_in_year(Year y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 days_in_year(Year y) {
             return days_in_year(static_cast<i32>(y));
         }
 
         [[nodiscard]]
-        static constexpr u32 months_in_year(Year y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr u32 months_in_year(Year y) {
             return months_in_year(static_cast<i32>(y));
         }
 
         [[nodiscard]]
-        static constexpr i64 to_epoch_day(Year y, Month m, Day d) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i64 to_epoch_day(Year y, Month m, Day d) {
             return to_epoch_day(
                 static_cast<i32>(y),
                 static_cast<u32>(m),
@@ -303,17 +317,20 @@ export namespace stdx::time::chrono {
         }
 
         [[nodiscard]]
-        static constexpr Era era_of(Year y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr Era era_of(Year y) {
             return era_of(static_cast<i32>(y));
         }
 
         [[nodiscard]]
-        static constexpr i32 year_of_era(Year y) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 year_of_era(Year y) {
             return year_of_era(static_cast<i32>(y));
         }
 
         [[nodiscard]]
-        static constexpr i32 proleptic_year([[maybe_unused]] Era era, Year year_of_era) throws (DateTimeException) {
+        THROWS(DateTimeException)
+        static constexpr i32 proleptic_year([[maybe_unused]] Era era, Year year_of_era) {
             return proleptic_year(era, static_cast<i32>(year_of_era));
         }
 
@@ -326,7 +343,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<HijrahChronology> of(i32 y, u32 m, u32 d) throws (DateTimeException);
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<HijrahChronology> of(i32 y, u32 m, u32 d);
 
         /**
          * @brief Create a date from typed year, month, and day.
@@ -337,7 +355,8 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<HijrahChronology> of(Year y, Month m, Day d) throws (DateTimeException);
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<HijrahChronology> of(Year y, Month m, Day d);
 
         /**
          * @brief Create a date from an epoch day count.
@@ -346,41 +365,43 @@ export namespace stdx::time::chrono {
          * @throws DateTimeException if e < HIJRAH_EPOCH.
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<HijrahChronology> date_epoch_day(i64 e) throws (DateTimeException);
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<HijrahChronology> date_epoch_day(i64 e);
 
         /**
          * @brief Create a date for today according to the system clock.
          * @returns Today's date in this chronology.
          */
         [[nodiscard]]
-        static ChronoLocalDate<HijrahChronology> date_now() throws (DateTimeException);
+        THROWS(DateTimeException)
+        static ChronoLocalDate<HijrahChronology> date_now();
     };
 
     using HijrahDate = ChronoLocalDate<HijrahChronology>;
     using HijrahEra = HijrahChronology::Era;
 
-    constexpr HijrahDate HijrahChronology::of(i32 y, u32 m, u32 d) throws (DateTimeException) {
+    constexpr HijrahDate HijrahChronology::of(i32 y, u32 m, u32 d) {
         if (y < 1) {
             throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
         }
         return HijrahDate(y, m, d);
     }
 
-    constexpr HijrahDate HijrahChronology::of(Year y, Month m, Day d) throws (DateTimeException) {
+    constexpr HijrahDate HijrahChronology::of(Year y, Month m, Day d) {
         if (static_cast<i32>(y) < 1) {
             throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
         }
         return HijrahDate(y, m, d);
     }
 
-    constexpr HijrahDate HijrahChronology::date_epoch_day(i64 e) throws (DateTimeException) {
+    constexpr HijrahDate HijrahChronology::date_epoch_day(i64 e) {
         if (e < HIJRAH_EPOCH) {
             throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
         }
         return HijrahDate::of_epoch_day(e);
     }
 
-    inline HijrahDate HijrahChronology::date_now() throws (DateTimeException) {
+    inline HijrahDate HijrahChronology::date_now() {
         return HijrahDate::now();
     }
 }

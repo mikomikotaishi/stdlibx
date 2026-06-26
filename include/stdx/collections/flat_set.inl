@@ -21,10 +21,5 @@ export namespace stdx::collections {
             IsSameValue<Key, typename Container::value_type> &&
             IsNothrowSwappableValue<Container>
     using FlatMultiset = std::flat_multiset<Key, Compare, Container>;
-
-    using SortedUniqueTag = std::sorted_unique_t;
-    inline constexpr SortedUniqueTag SortedUnique = std::sorted_unique;
-    using SortedEquivalentTag = std::sorted_equivalent_t;
-    inline constexpr SortedEquivalentTag SortedEquivalent = std::sorted_equivalent;
     #endif
 }

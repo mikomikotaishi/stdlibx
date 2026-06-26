@@ -147,15 +147,15 @@ namespace stdx::fs {
     }
 
     [[nodiscard]]
-    Optional<Path> expand_tilde(Path p) noexcept {
-        if (p.empty()) {
-            return p;
-        }
+    Optional<Path> expand_tilde(const Path& p) noexcept {
         #ifdef _WIN32
         static constexpr StringView HOME_VARIABLE = "USERNAME";
         #else
         static constexpr StringView HOME_VARIABLE = "USER";
         #endif
+        if (p.empty()) {
+            return p;
+        }
         Optional<StringView> home = Environment::get(HOME_VARIABLE);
         if (!home.has_value()) {
             return nullopt; // `~` could not be expanded due to HOME variable not being set
@@ -169,13 +169,13 @@ namespace stdx::fs {
     }
 
     [[nodiscard]]
-    bool has_magic(const String& p) {
-        return stdx::text::regex::regex_search(p, Regex("([*?[])"));
+    bool has_magic(const Path& p) {
+        return stdx::text::regex::regex_search(p.string(), Regex("([*?[])"));
     }
 
     [[nodiscard]]
-    bool is_hidden(const String& p) {
-        return stdx::text::regex::regex_match(p, Regex("^(.*\\/)*\\.[^\\.\\/]+\\/*$"));
+    bool is_hidden(const Path& p) {
+        return stdx::text::regex::regex_match(p.string(), Regex("^(.*\\/)*\\.[^\\.\\/]+\\/*$"));
     }
 
     [[nodiscard]]
@@ -212,7 +212,7 @@ namespace stdx::fs {
         Vector<Path> result;
         Vector<Path> names = iterate_over_directory(dir, dironly);
         for (Path& p: names) {
-            if (!is_hidden(p.string())) {
+            if (!is_hidden(p)) {
                 result.emplace_back(p);
                 for (Path& q: listdir_recursive(p, dironly)) {
                     result.emplace_back(q);
@@ -239,7 +239,7 @@ namespace stdx::fs {
         Vector<Path> names = iterate_over_directory(dir, dironly);
         Vector<Path> filtered;
         for (Path& name: names) {
-            if (!is_hidden(name.string())) {
+            if (!is_hidden(name)) {
                 filtered.emplace_back(name.filename());
             }
         }
@@ -262,43 +262,43 @@ namespace stdx::fs {
     }
 
     [[nodiscard]]
-    Vector<Path> glob_impl(const String& pathname, bool recursive = false, bool dironly = false) noexcept {
+    Vector<Path> glob_impl(StringView pathname, bool recursive = false, bool dironly = false) noexcept {
         Vector<Path> result;
-        Path path(pathname);
+        Path p(pathname);
         if (pathname[0] == '~') {
-            path = *expand_tilde(path);
+            p = *expand_tilde(p);
         }
-        Path dir = path.parent_path();
-        Path base = path.filename();
-        if (!has_magic(pathname)) {
+        Path dir = p.parent_path();
+        Path base = p.filename();
+        if (!has_magic(p)) {
             if (!base.empty()) {
-                if (exists(path)) {
-                    result.emplace_back(path);
+                if (exists(p)) {
+                    result.emplace_back(p);
                 }
             } else {
                 if (is_directory(dir)) {
-                    result.emplace_back(path);
+                    result.emplace_back(p);
                 }
             }
             return result;
         }
         if (dir.empty()) {
             if (recursive && is_recursive(base.string())) {
-                return glob_relative_pathnames(dir, base.string(), dironly);
+                return glob_relative_pathnames(dir, base, dironly);
             } else {
-                return glob_over_pattern(dir, base.string(), dironly);
+                return glob_over_pattern(dir, base, dironly);
             }
         }
 
         Vector<Path> dirs;
-        if (dir != Path(pathname) && has_magic(dir.string())) {
+        if (dir != Path(p) && has_magic(dir)) {
             dirs = glob_impl(dir.string(), recursive, true);
         } else {
             dirs = {dir};
         }
 
         Function<Vector<Path>(const Path&, const String&, bool)> glob_in_dir;
-        if (has_magic(base.string())) {
+        if (has_magic(base)) {
             if (recursive && is_recursive(base.string())) {
                 glob_in_dir = glob_relative_pathnames;
             } else {
@@ -309,7 +309,7 @@ namespace stdx::fs {
         }
 
         for (Path& d: dirs) {
-            for (Path& name: glob_in_dir(d, base.string(), dironly)) {
+            for (Path& name: glob_in_dir(d, base, dironly)) {
                 Path subresult = name;
                 if (name.parent_path().empty()) {
                     subresult = d / name;
@@ -328,41 +328,41 @@ namespace stdx::fs {
  */
 export namespace stdx::fs {
     [[nodiscard]]
-    Vector<Path> glob(const String& path) noexcept {
-        return glob_impl(path, false);
+    Vector<Path> glob(const Path& path) noexcept {
+        return glob_impl(path.string(), false);
     }
 
     [[nodiscard]]
-    Vector<Path> glob_recursive(const String& path) noexcept {
-        return glob_impl(path, true);
+    Vector<Path> glob_recursive(const Path& path) noexcept {
+        return glob_impl(path.string(), true);
     }
 
     [[nodiscard]]
-    Vector<Path> glob(const Vector<String>& paths) noexcept {
+    Vector<Path> glob(const Vector<Path>& paths) noexcept {
         return Query(paths)
-            .select_many([](const String& path) -> Vector<Path> {
-                return glob_impl(path, false);
+            .select_many([](const Path& path) -> Vector<Path> {
+                return glob_impl(path.string(), false);
             })
             .to<Vector<Path>>();
     }
 
     [[nodiscard]]
-    Vector<Path> glob_recursive(const Vector<String>& paths) noexcept {
+    Vector<Path> glob_recursive(const Vector<Path>& paths) noexcept {
         return Query(paths)
-            .select_many([](const String& path) -> Vector<Path> {
-                return glob_impl(path, true);
+            .select_many([](const Path& path) -> Vector<Path> {
+                return glob_impl(path.string(), true);
             })
             .to<Vector<Path>>();
     }
 
     [[nodiscard]]
-    Vector<Path> glob(const InitializerList<String>& paths) noexcept {
-        return glob(Vector<String>(paths));
+    Vector<Path> glob(const InitializerList<Path>& paths) noexcept {
+        return glob(Vector<Path>(paths));
     }
 
     [[nodiscard]]
-    Vector<Path> glob_recursive(const InitializerList<String>& paths) noexcept {
-        return glob_recursive(Vector<String>(paths));
+    Vector<Path> glob_recursive(const InitializerList<Path>& paths) noexcept {
+        return glob_recursive(Vector<Path>(paths));
     }
 
     #ifdef __cpp_lib_generator
@@ -370,7 +370,7 @@ export namespace stdx::fs {
      * @brief Lazily walks a directory tree, yielding each entry in turn.
      *
      * The recursive, lazy twin of listdir_recursive: where the eager listing
-     * materialises the entire subtree up front, this yields one entry at a
+     * materializes the entire subtree up front, this yields one entry at a
      * time and descends only as the caller consumes, so a partial walk (or an
      * early break) never enumerates the rest of the tree. Hidden entries are
      * skipped, mirroring the glob helpers.
@@ -386,7 +386,7 @@ export namespace stdx::fs {
     [[nodiscard]]
     Generator<Path> walk(const Path& dir, bool dironly = false) {
         for (const Path& entry: iterate_over_directory(dir, dironly)) {
-            if (!is_hidden(entry.string())) {
+            if (!is_hidden(entry)) {
                 co_yield entry;
                 for (const Path& child: walk(entry, dironly)) {
                     co_yield child;

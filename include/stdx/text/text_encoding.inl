@@ -274,8 +274,6 @@ export namespace stdx::text {
     private:
         const Self value;
     public:
-        constexpr TextEncodingId() noexcept = delete;
-
         constexpr TextEncodingId(Self value) noexcept:
             value{value} {}
 

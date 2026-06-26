@@ -46,8 +46,8 @@ export namespace stdx::audio::sampled {
     class AudioInputStream {
     public:
         AudioInputStream() = default;
-        AudioInputStream(const AudioInputStream&) = delete;
-        AudioInputStream& operator=(const AudioInputStream&) = delete;
+        AudioInputStream(const AudioInputStream&) = delete("AudioInputStream is not copyable.");
+        AudioInputStream& operator=(const AudioInputStream&) = delete("AudioInputStream is not copyable.");
         virtual ~AudioInputStream() = default;
 
         /**
