@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
             System::out.println("\n[run {}/{}] Playing file: {}", i + 1, repeat, file_arg);
             play_file(file_arg);
         }
-        return 0;
+        return System::EXIT_SUCCESS;
     }
 
     if (parser.get<bool>("--play")) {
@@ -213,4 +213,5 @@ int main(int argc, char* argv[]) {
             "an audio file.)"
         );
     }
+    return System::EXIT_SUCCESS;
 }

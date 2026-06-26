@@ -369,6 +369,17 @@ export namespace stdx {
     }
 
     /**
+     * @namespace meta::reflect
+     * @brief Standard library reflection operations.
+     */
+    namespace meta::reflect {
+        #ifdef __cpp_lib_reflection
+        using Info = std::meta::info;
+        using ReflectiveOperationException = std::meta::exception;
+        #endif
+    }
+
+    /**
      * @namespace ranges
      * @brief Standard library ranges operations.
      */

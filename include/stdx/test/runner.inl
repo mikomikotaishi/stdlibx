@@ -13,8 +13,10 @@ export namespace stdx::test {
      * @brief A single named test: a function plus optional tags.
      */
     struct Test {
+        using Callback = void(*)(); ///< The type of the test body function.
+
         StringView name; ///< Test display name.
-        void (*fn)(); ///< The test body.
+        Callback fn; ///< The test body.
         Vector<StringView> tags; ///< Optional tags for --tag filtering.
     };
 
@@ -23,11 +25,13 @@ export namespace stdx::test {
      * @brief A group of tests with optional per-test and per-suite hooks.
      */
     struct Suite {
+        using Callback = void(*)(); ///< The type of a hook function.
+
         StringView name = ""; ///< Optional suite name.
-        void (*before_each)() = nullptr; ///< Run before every selected test.
-        void (*after_each)() = nullptr; ///< Run after every selected test.
-        void (*before_all)() = nullptr; ///< Run once before the first selected test.
-        void (*after_all)() = nullptr; ///< Run once after the last selected test.
+        Callback before_each = nullptr; ///< Run before every selected test.
+        Callback after_each = nullptr; ///< Run after every selected test.
+        Callback before_all = nullptr; ///< Run once before the first selected test.
+        Callback after_all = nullptr; ///< Run once after the last selected test.
         Vector<Test> tests = {}; ///< The tests in this suite.
     };
 }
@@ -104,7 +108,7 @@ namespace stdx::test {
     [[nodiscard]]
     inline Options parse_options(int argc, char* argv[]) {
         Options options;
-        for (i32 i = 1; i < argc; ++i) {
+        for (usize i = 1; i < argc; ++i) {
             const StringView arg = argv[i];
             if (arg == "--filter" && i + 1 < argc) {
                 options.filter = argv[++i];
@@ -252,7 +256,7 @@ namespace stdx::test {
                     System::out.println("{}", test.name);
                 }
             }
-            return 0;
+            return System::EXIT_SUCCESS;
         }
         Tally tally;
         const u64 start = System::nano_time();
@@ -296,7 +300,7 @@ namespace stdx::test {
         } else {
             System::err.println("{}", summary);
         }
-        return tally.failed == 0 ? 0 : 1;
+        return tally.failed == 0 ? System::EXIT_SUCCESS : System::EXIT_FAILURE;
     }
 }
 

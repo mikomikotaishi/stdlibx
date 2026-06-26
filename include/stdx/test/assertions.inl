@@ -418,7 +418,7 @@ export namespace stdx::test {
     ) {
         try {
             fn();
-        } catch (const E&) {
+        } catch (const E& _) {
             pass();
             return;
         } catch (const Exception& e) {

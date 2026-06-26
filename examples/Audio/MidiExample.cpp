@@ -111,7 +111,7 @@ Optional<Child> maybe_spawn_fluidsynth() {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
-    } catch (const MidiException&) {
+    } catch (const MidiException& _) {
         return nullopt;
     }
     if (has_real_output(devices)) {

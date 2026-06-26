@@ -14,9 +14,6 @@ export namespace stdx::meta::reflect {
     using std::define_static_array;
     using std::define_static_object;
 
-    using Info = std::meta::info;
-    using ReflectiveOperationException = std::meta::exception;
-
     class [[nodiscard]] Operators final {
     public:
         using Self = std::meta::operators;
@@ -386,5 +383,43 @@ export namespace stdx::meta::reflect {
 
     using std::meta::annotations_of;
     using std::meta::annotations_of_with_type;
+    #endif
+}
+
+namespace stdx::meta::reflect {
+    #ifdef __cpp_lib_reflection
+    template <typename E>
+    [[nodiscard]]
+    consteval usize count() {
+        return stdx::meta::reflect::enumerators_of(^^E).size();
+    }
+
+    template <typename E>
+    [[nodiscard]]
+    consteval Array<E, count<E>()> values_impl() {
+        Array<E, count<E>()> result;
+        usize i = 0;
+        for (Info e : stdx::meta::reflect::enumerators_of(^^E)) {
+            result[i++] = stdx::meta::reflect::extract<E>(e);
+        }
+        return result;
+    }
+
+    template <typename E>
+    inline constexpr Array<E, count<E>()> ValuesPer = values_impl<E>();
+
+    template <typename E>
+    [[nodiscard]]
+    consteval Array<StringView, count<E>()> names_impl() {
+        Array<StringView, count<E>()> result;
+        usize i = 0;
+        for (Info e: enumerators_of(^^E)) {
+            result[i++] = identifier_of(e);
+        }
+        return result;
+    }
+
+    template <typename E>
+    inline constexpr Array<StringView, count<E>()> NamesPer = names_impl<E>();
     #endif
 }

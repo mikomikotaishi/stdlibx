@@ -4,46 +4,9 @@
 using stdx::meta::IsEnumValue;
 using stdx::meta::IsSameValue;
 using stdx::meta::UnderlyingTypeType;
-using stdx::meta::reflect::Info;
+using stdx::meta::reflect::NamesPer;
+using stdx::meta::reflect::ValuesPer;
 #endif
-
-namespace stdx::collections {
-    #ifdef __cpp_lib_reflection
-    template <typename E>
-    [[nodiscard]]
-    consteval usize count() {
-        return stdx::meta::reflect::enumerators_of(^^E).size();
-    }
-
-    template <typename E>
-    [[nodiscard]]
-    consteval Array<E, count<E>()> values_impl() {
-        Array<E, count<E>()> result;
-        usize i = 0;
-        for (Info e : stdx::meta::reflect::enumerators_of(^^E)) {
-            result[i++] = stdx::meta::reflect::extract<E>(e);
-        }
-        return result;
-    }
-
-    template <typename E>
-    inline constexpr Array<E, count<E>()> VALUES_PER = values_impl<E>();
-
-    template <typename E>
-    [[nodiscard]]
-    consteval Array<StringView, count<E>()> names_impl() {
-        Array<StringView, count<E>()> result;
-        usize i = 0;
-        for (Info e : stdx::meta::reflect::enumerators_of(^^E)) {
-            result[i++] = stdx::meta::reflect::identifier_of(e);
-        }
-        return result;
-    }
-
-    template <typename E>
-    inline constexpr Array<StringView, count<E>()> NAMES_PER = names_impl<E>();
-    #endif
-}
 
 /**
  * @namespace stdx::collections
@@ -52,10 +15,8 @@ namespace stdx::collections {
 export namespace stdx::collections {
     #ifdef __cpp_lib_reflection
     /**
+     * @class EnumSet
      * @brief A bitset-backed set of enumerators.
-     *
-     * Requires reflection so the enumerator set of E can be discovered at
-     * compile time.
      * @tparam E An enumeration type.
      */
     template <typename E>
@@ -66,7 +27,7 @@ export namespace stdx::collections {
         using UnderlyingType = UnderlyingTypeType<E>;
         using SizeType = usize;
 
-        static constexpr const Array<E, count<E>()>& VALUES = VALUES_PER<E>; ///< All enumerator values of E, in declaration order.
+        static constexpr const Array<E, stdx::meta::reflect::count<E>()>& VALUES = ValuesPer<E>; ///< All enumerator values of E, in declaration order.
         static constexpr usize CAPACITY = VALUES.size(); ///< Number of enumerators of E.
     private:
         BitSet<CAPACITY> bits; ///< Bitset storing the presence of each enumerator in VALUES.
@@ -87,7 +48,7 @@ export namespace stdx::collections {
         constexpr EnumSet() noexcept = default;
 
         constexpr EnumSet(InitializerList<E> values) noexcept {
-            for (E v : values) {
+            for (E v: values) {
                 if (usize i = index_of(v); i < CAPACITY) {
                     bits.set(i);
                 }
@@ -109,7 +70,7 @@ export namespace stdx::collections {
         [[nodiscard]]
         static constexpr EnumSet of(E v) noexcept {
             EnumSet s;
-            s.add(v);
+            s.insert(v);
             return s;
         }
 
@@ -118,8 +79,8 @@ export namespace stdx::collections {
         [[nodiscard]]
         static constexpr EnumSet of(E first, Es... rest) noexcept {
             EnumSet s;
-            s.add(first);
-            (s.add(rest), ...);
+            s.insert(first);
+            (s.insert(rest), ...);
             return s;
         }
 
@@ -140,11 +101,6 @@ export namespace stdx::collections {
                 s.bits.set(i);
             }
             return s;
-        }
-
-        [[nodiscard]]
-        static constexpr EnumSet copy_of(const EnumSet& other) noexcept {
-            return other;
         }
 
         [[nodiscard]]
@@ -190,7 +146,7 @@ export namespace stdx::collections {
             return CAPACITY;
         }
 
-        constexpr bool add(E v) noexcept {
+        constexpr bool insert(E v) noexcept {
             usize i = index_of(v);
             if (i >= CAPACITY) {
                 return false;
@@ -200,7 +156,7 @@ export namespace stdx::collections {
             return !was_set;
         }
 
-        constexpr bool remove(E v) noexcept {
+        constexpr bool erase(E v) noexcept {
             usize i = index_of(v);
             if (i >= CAPACITY) {
                 return false;
@@ -320,7 +276,7 @@ export namespace stdx::collections {
                 return *this;
             }
 
-            constexpr Iterator operator++([[maybe_unused]] int _) noexcept {
+            constexpr Iterator operator++(int _) noexcept {
                 Iterator tmp = *this;
                 ++*this;
                 return tmp;
@@ -381,7 +337,7 @@ namespace stdx::fmt {
                     if (!first) {
                         out = format_to(out, ", ");
                     }
-                    out = format_to(out, "{}", stdx::collections::NAMES_PER<T>[i]);
+                    out = format_to(out, "{}", NamesPer<T>[i]);
                     first = false;
                 }
             }

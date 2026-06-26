@@ -24,7 +24,7 @@ int main() {
     i32 result = add(2, 3);
     System::out.println("Result: {}", result);
     #else
-    System::out.println("[test] Test disabled (compiler does not support contracts).");
+    System::out.println("Example disabled (compiler does not support contracts).");
     #endif
 }
 

@@ -283,6 +283,6 @@ int main(int argc, char* argv[]) {
     });
     #else
     System::out.println("[test] Crypto disabled (libsodium not compiled in).");
-    return 0;
+    return System::EXIT_SUCCESS;
     #endif
 }

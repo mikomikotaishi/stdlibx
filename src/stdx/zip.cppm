@@ -225,14 +225,13 @@ public:
 };
 
 /**
- * @class ZipEntry
+ * @struct ZipEntry
  * @brief Metadata for a single entry within a ZIP archive.
  *
  * An entry represents either a file or a directory. Directory entries
  * conventionally have names ending in {@code '/'}.
  */
-class ZipEntry {
-public:
+struct ZipEntry {
     String name; ///< Entry path within the archive (e.g. {@code "dir/file.txt"}).
     String comment; ///< Optional per-entry comment.
     CompressionMethod method = CompressionMethod::DEFLATED; ///< Compression method.
@@ -274,7 +273,6 @@ public:
 class Deflater {
 public:
     static inline constexpr usize CHUNK_SIZE = 16 * 1024; ///< Internal output chunk size.
-
 private:
     z_stream stream = z_stream{ .zalloc = nullptr, .zfree = nullptr, .opaque = nullptr };
     ByteBuffer input; ///< Buffered input set by set_input().
@@ -289,7 +287,6 @@ private:
         }
         opened = true;
     }
-
 public:
     /**
      * @param level The compression level.
@@ -503,7 +500,6 @@ public:
 class Inflater {
 public:
     static inline constexpr usize CHUNK_SIZE = 16 * 1024; ///< Internal output chunk size.
-
 private:
     z_stream stream = { .zalloc = nullptr, .zfree = nullptr, .opaque = nullptr };
     ByteBuffer input; ///< Buffered input set by set_input().
@@ -518,7 +514,6 @@ private:
         }
         opened = true;
     }
-
 public:
     /**
      * @param nowrap If {@code true}, expect raw deflate data (no zlib header/trailer).

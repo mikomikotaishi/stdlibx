@@ -133,7 +133,7 @@ Optional<Connection> try_open_live(const Path& dbfile) noexcept {
     };
     for (StringView driver: SQLITE_DRIVERS) {
         connection_strings.push_back(stdx::fmt::format(
-            "Driver={{{}}};Database={};", driver, dbfile.string()
+            "Driver={{{}}};Database={};", driver, dbfile
         ));
     }
 
@@ -254,12 +254,12 @@ void test_sql_injection_safe() {
     );
 
     // The classic "Little Bobby Tables" payload, supplied as a bound parameter.
-    static constexpr StringView payload = "Robert'); DROP TABLE stdx_inj;--";
+    static constexpr StringView PAYLOAD = "Robert'); DROP TABLE stdx_inj;--";
     {
         PreparedStatement insert = c.prepare_statement(
             "INSERT INTO stdx_inj (id, name) VALUES (?, ?);"
         );
-        const i32 affected = insert.execute_update(1, payload);
+        const i32 affected = insert.execute_update(1, PAYLOAD);
         expect(affected == 1, "parameterised insert affects 1 row");
     }
 
@@ -273,7 +273,7 @@ void test_sql_injection_safe() {
             // 2. The payload round-trips verbatim - treated as data, not SQL.
             const Optional<String> name = rs.get_string(1);
             expect(
-                name.has_value() && *name == payload,
+                name.has_value() && *name == PAYLOAD,
                 "injection payload stored verbatim as data"
             );
         }
@@ -506,6 +506,6 @@ int main(int argc, char* argv[]) {
     });
     #else
     System::out.println("[test] Test disabled (enable with STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY).");
-    return 0;
+    return System::EXIT_SUCCESS;
     #endif
 }

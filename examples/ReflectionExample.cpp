@@ -259,6 +259,6 @@ int main(int argc, char* argv[]) {
         INT_TYPE.size()
     );
     #else
-    System::out.println("[test] Test disabled (compiler does not support reflection).");
+    System::out.println("Example disabled (compiler does not support reflection).");
     #endif
 }

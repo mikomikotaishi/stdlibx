@@ -83,8 +83,7 @@ void describe(const Path& path) {
         read_total += got;
     }
     System::out.println("{}: {}", "read sum equals total_frames", read_total == total);
-    System::out.println("{}: {}", "position after EOF equals total_frames", stream->position_frames() == total
-    );
+    System::out.println("{}: {}", "position after EOF equals total_frames", stream->position_frames() == total);
 
     // After EOF, further reads return 0 forever.
     const usize after_eof = stream->read(Span<f32>{buf.data(), buf.size()});
@@ -149,10 +148,10 @@ int main(int argc, char* argv[]) {
     parser.parse_args(argc, argv);
 
     Path path(parser.get("--file"));
-    if (!path.string().empty()) {
+    if (!path.empty()) {
         if (!stdx::fs::exists(path)) {
             System::err.println("File not found: {}", path);
-            return 1;
+            return System::EXIT_FAILURE;
         }
     } else {
         Optional<Path> resolved = resolve_default_sample();
@@ -161,7 +160,7 @@ int main(int argc, char* argv[]) {
                 "Could not locate the bundled sample. Pass --file <path> or "
                 "run the test from the project root."
             );
-            return 1;
+            return System::EXIT_FAILURE;
         }
         path = *resolved;
     }
@@ -173,5 +172,5 @@ int main(int argc, char* argv[]) {
         play(path, parser.get<i64>("--abridge"));
     }
 
-    return 0;
+    return System::EXIT_SUCCESS;
 }

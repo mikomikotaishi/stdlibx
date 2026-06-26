@@ -227,6 +227,6 @@ int main(int argc, char* argv[]) {
     });
     #else
     System::out.println("[test] Test disabled (enable with STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY).");
-    return 0;
+    return System::EXIT_SUCCESS;
     #endif
 }

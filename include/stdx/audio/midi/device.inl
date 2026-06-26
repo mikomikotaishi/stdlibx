@@ -100,7 +100,7 @@ export namespace stdx::audio::midi {
         [[nodiscard]]
         virtual const MidiDeviceInfo& info() const noexcept = 0;
 
-        virtual void open() throws (MidiException) = 0;
+        virtual void open() = 0;
 
         virtual void close() noexcept = 0;
 

@@ -1935,8 +1935,8 @@ public:
      */
     template <ReflectableClass T>
     [[nodiscard]]
-    static T parse(int argc, char* argv[])
-        throws (CommandLineParserException, InvalidArgumentException, InvalidRangeException);
+    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>()]]
+    static T parse(int argc, char* argv[]);
 
     /**
      * @brief Render usage text for the annotated struct @p T, one block per

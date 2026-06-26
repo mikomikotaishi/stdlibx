@@ -33,7 +33,7 @@ Cons:
 - Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 20-30 seconds to build on my (modest) hardware on both Clang and GCC.
 - No support for headers. The library likely will not ever support headers, as it makes extensive use of `using` statements (and is designed to encourage their usage), and any attempt to simultaneously support headers and modules would likely clutter the code with preprocessor directives and ugly macros.
 
-Requires a minimum of C++23. This library is tested with libstdc++ (GCC) as the default standard library. and has not yet been tested with or MSVC STL. This library expects a minimum of C++23 features, but provides feature-test macro guarding as appropriate.
+Requires a minimum of C++26. This library is tested with libstdc++ (GCC) as the default standard library. and has not yet been tested with or MSVC STL. This library expects a minimum of C++26 features, but provides feature-test macro guarding as appropriate.
 
 > **WARNING:** Clang libc++ support lags behind GCC libstdc++ tremendously, and some feature-test macros are incorrectly activated on libc++ despite incomplete support. As such, it is recommended to use libstdc++.
 
@@ -93,9 +93,9 @@ int main(int argc, char* argv[]) {
 
     if (result) {
         const auto& [path, size] = *result;
-        System::out.println("Largest .txt file: {} ({} bytes)", path.string(), size);
+        System::out.println("Largest .txt file: {} ({} bytes)", path, size);
     } else {
-        System::out.println("No .txt files found in directory: {}", dir.string());
+        System::out.println("No .txt files found in directory: {}", dir);
     }
 
     return System::EXIT_SUCCESS;

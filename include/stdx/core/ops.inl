@@ -18,6 +18,7 @@ using stdx::meta::reflect::Info;
 using stdx::meta::reflect::ReflectableClass;
 using stdx::meta::reflect::ReflectableEnum;
 using stdx::meta::reflect::ReflectableUnion;
+using stdx::meta::reflect::ThrownExceptions;
 using stdx::meta::reflect::Type;
 using stdx::meta::reflect::Union;
 #endif
@@ -426,6 +427,21 @@ export namespace stdx::core {
         [[nodiscard]]
         static consteval Type type_of() noexcept {
             return Type(^^T);
+        }
+
+        /**
+         * @brief All exception types a function (or callable) @p Fn declares via
+         * Throws annotations, each as a Class<E>, deduplicated and in declaration
+         * order. The Throws annotation machinery is supplied by core/throws.inl
+         * (included before this file); the body is defined out-of-line below.
+         * @tparam Fn The reflection of a function or callable type.
+         * @return A Tuple<Class<E>...> of the declared exception types.
+         */
+        template <Info Fn>
+            requires FunctionOrCallable<Fn>
+        [[nodiscard]]
+        static consteval ThrownExceptions<Fn> thrown_exceptions() {
+            return build_thrown_exceptions<Fn>(IndexSequenceOf<thrown_infos<Fn>.size()>{});
         }
         #endif
     };

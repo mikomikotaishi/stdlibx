@@ -89,6 +89,8 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/core/tuple.inl"
 #include "stdx/core/variant.inl"
 
+#include "stdx/core/annotations.inl"
+
 #include "stdx/sys/csetjmp.inl"
 #include "stdx/sys/csignal.inl"
 #include "stdx/sys/cstdlib.inl"
@@ -132,8 +134,10 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 
 #include "stdx/meta/meta.inl"
 #include "stdx/collections/enum_set.inl"
+#include "stdx/collections/enum_map.inl"
 #include "stdx/meta/reflect.inl"
 
+#include "stdx/core/throws.inl"
 #include "stdx/core/ops.inl"
 
 #include "stdx/os/unix.constants.inl"

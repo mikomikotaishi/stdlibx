@@ -486,67 +486,67 @@ export namespace stdx::meta::reflect {
             }
             EnumSet<ReflectionOf> result;
             if (reflect::is_value(info)) {
-                result.add(ReflectionOf::SCALAR);
+                result.insert(ReflectionOf::SCALAR);
             }
             if (reflect::is_object(info)) {
-                result.add(ReflectionOf::STATIC_OBJECT);
+                result.insert(ReflectionOf::STATIC_OBJECT);
             }
             if (reflect::is_variable(info)) {
-                result.add(ReflectionOf::VARIABLE);
+                result.insert(ReflectionOf::VARIABLE);
             }
             if (reflect::is_structured_binding(info)) {
-                result.add(ReflectionOf::STRUCTURED_BINDING);
+                result.insert(ReflectionOf::STRUCTURED_BINDING);
             }
             if (reflect::is_function(info)) {
-                result.add(ReflectionOf::FUNCTION);
+                result.insert(ReflectionOf::FUNCTION);
             }
             if (reflect::is_function_parameter(info)) {
-                result.add(ReflectionOf::FUNCTION_PARAMETER);
+                result.insert(ReflectionOf::FUNCTION_PARAMETER);
             }
             if (reflect::is_enumerator(info)) {
-                result.add(ReflectionOf::ENUM);
+                result.insert(ReflectionOf::ENUM);
             }
             if (reflect::is_annotation(info)) {
-                result.add(ReflectionOf::ANNOTATION);
+                result.insert(ReflectionOf::ANNOTATION);
             }
             if (reflect::is_type_alias(info)) {
-                result.add(ReflectionOf::TYPE_ALIAS);
+                result.insert(ReflectionOf::TYPE_ALIAS);
             }
             if (reflect::is_type(info)) {
-                result.add(ReflectionOf::TYPE);
+                result.insert(ReflectionOf::TYPE);
             }
             if (reflect::is_class_member(info)) {
-                result.add(ReflectionOf::MEMBER);
+                result.insert(ReflectionOf::MEMBER);
             }
             if (reflect::is_bit_field(info) && !reflect::has_identifier(info)) {
-                result.add(ReflectionOf::UNNAMED_BIT_FIELD);
+                result.insert(ReflectionOf::UNNAMED_BIT_FIELD);
             }
             if (reflect::is_class_template(info)) {
-                result.add(ReflectionOf::CLASS_TEMPLATE);
+                result.insert(ReflectionOf::CLASS_TEMPLATE);
             }
             if (reflect::is_function_template(info)) {
-                result.add(ReflectionOf::FUNCTION_TEMPLATE);
+                result.insert(ReflectionOf::FUNCTION_TEMPLATE);
             }
             if (reflect::is_variable_template(info)) {
-                result.add(ReflectionOf::VARIABLE_TEMPLATE);
+                result.insert(ReflectionOf::VARIABLE_TEMPLATE);
             }
             if (reflect::is_alias_template(info)) {
-                result.add(ReflectionOf::ALIAS_TEMPLATE);
+                result.insert(ReflectionOf::ALIAS_TEMPLATE);
             }
             if (reflect::is_concept(info)) {
-                result.add(ReflectionOf::CONCEPT);
+                result.insert(ReflectionOf::CONCEPT);
             }
             if (reflect::is_namespace_alias(info)) {
-                result.add(ReflectionOf::NAMESPACE_ALIAS);
+                result.insert(ReflectionOf::NAMESPACE_ALIAS);
             }
             if (reflect::is_namespace(info)) {
-                result.add(ReflectionOf::NAMESPACE);
+                result.insert(ReflectionOf::NAMESPACE);
             }
             if (reflect::is_base(info)) {
-                result.add(ReflectionOf::BASE_CLASS);
+                result.insert(ReflectionOf::BASE_CLASS);
             }
             if (reflect::is_data_member_spec(info)) {
-                result.add(ReflectionOf::DATA_MEMBER_DESCRIPTION);
+                result.insert(ReflectionOf::DATA_MEMBER_DESCRIPTION);
             }
             return result;
         }
@@ -576,7 +576,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Type() noexcept = default;
 
-        consteval explicit Type(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Type(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_type(i)) {
                 throw ReflectiveOperationException("Provided Info is not a type", ^^Type);
@@ -1066,10 +1067,10 @@ export namespace stdx::meta::reflect {
         consteval EnumSet<CvQualifier> cv_qualifiers() const {
             EnumSet<CvQualifier> result;
             if (reflect::is_const_type(info)) {
-                result.add(CvQualifier::CONST);
+                result.insert(CvQualifier::CONST);
             }
             if (reflect::is_volatile_type(info)) {
-                result.add(CvQualifier::VOLATILE);
+                result.insert(CvQualifier::VOLATILE);
             }
             return result;
         }
@@ -1088,7 +1089,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Parameter() noexcept = default;
 
-        consteval explicit Parameter(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Parameter(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_function_parameter(i)) {
                 throw ReflectiveOperationException("Provided Info is not a function parameter", ^^Parameter);
@@ -1128,7 +1130,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Callback() noexcept = default;
 
-        consteval explicit Callback(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Callback(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_function(i)) {
                 throw ReflectiveOperationException("Provided Info is not a function", ^^Callback);
@@ -1220,7 +1223,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Method() noexcept = default;
 
-        consteval explicit Method(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Method(Info i):
             Callback(i)
         {
             if (i != Info{} &&
@@ -1319,10 +1323,10 @@ export namespace stdx::meta::reflect {
         consteval EnumSet<CvQualifier> cv_qualifiers() const {
             EnumSet<CvQualifier> result;
             if (reflect::is_const(info)) {
-                result.add(CvQualifier::CONST);
+                result.insert(CvQualifier::CONST);
             }
             if (reflect::is_volatile(info)) {
-                result.add(CvQualifier::VOLATILE);
+                result.insert(CvQualifier::VOLATILE);
             }
             return result;
         }
@@ -1342,31 +1346,31 @@ export namespace stdx::meta::reflect {
         consteval EnumSet<FunctionSpecifier> specifiers() const {
             EnumSet<FunctionSpecifier> result;
             if (reflect::is_virtual(info)) {
-                result.add(FunctionSpecifier::VIRTUAL);
+                result.insert(FunctionSpecifier::VIRTUAL);
             }
             if (reflect::is_pure_virtual(info)) {
-                result.add(FunctionSpecifier::PURE_VIRTUAL);
+                result.insert(FunctionSpecifier::PURE_VIRTUAL);
             }
             if (reflect::is_override(info)) {
-                result.add(FunctionSpecifier::OVERRIDE);
+                result.insert(FunctionSpecifier::OVERRIDE);
             }
             if (reflect::is_final(info)) {
-                result.add(FunctionSpecifier::FINAL);
+                result.insert(FunctionSpecifier::FINAL);
             }
             if (reflect::is_explicit(info)) {
-                result.add(FunctionSpecifier::EXPLICIT);
+                result.insert(FunctionSpecifier::EXPLICIT);
             }
             if (reflect::is_noexcept(info)) {
-                result.add(FunctionSpecifier::NOEXCEPT);
+                result.insert(FunctionSpecifier::NOEXCEPT);
             }
             if (reflect::is_static_member(info)) {
-                result.add(FunctionSpecifier::STATIC);
+                result.insert(FunctionSpecifier::STATIC);
             }
             if (reflect::is_deleted(info)) {
-                result.add(FunctionSpecifier::DELETED);
+                result.insert(FunctionSpecifier::DELETED);
             }
             if (reflect::is_defaulted(info)) {
-                result.add(FunctionSpecifier::DEFAULTED);
+                result.insert(FunctionSpecifier::DEFAULTED);
             }
             return result;
         }
@@ -1382,7 +1386,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Field() noexcept = default;
 
-        consteval explicit Field(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Field(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_nonstatic_data_member(i)) {
                 throw ReflectiveOperationException("Provided Info is not a non-static data member", ^^Field);
@@ -1455,7 +1460,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Variable() noexcept = default;
 
-        consteval explicit Variable(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Variable(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_variable(i)) {
                 throw ReflectiveOperationException("Provided Info is not a variable", ^^Variable);
@@ -1579,7 +1585,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Constructor() noexcept = default;
 
-        consteval explicit Constructor(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Constructor(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_constructor(i)) {
                 throw ReflectiveOperationException("Provided Info is not a constructor", ^^Constructor);
@@ -1654,16 +1661,16 @@ export namespace stdx::meta::reflect {
         consteval EnumSet<FunctionSpecifier> specifiers() const {
             EnumSet<FunctionSpecifier> result;
             if (reflect::is_explicit(info)) {
-                result.add(FunctionSpecifier::EXPLICIT);
+                result.insert(FunctionSpecifier::EXPLICIT);
             }
             if (reflect::is_noexcept(info)) {
-                result.add(FunctionSpecifier::NOEXCEPT);
+                result.insert(FunctionSpecifier::NOEXCEPT);
             }
             if (reflect::is_deleted(info)) {
-                result.add(FunctionSpecifier::DELETED);
+                result.insert(FunctionSpecifier::DELETED);
             }
             if (reflect::is_defaulted(info)) {
-                result.add(FunctionSpecifier::DEFAULTED);
+                result.insert(FunctionSpecifier::DEFAULTED);
             }
             return result;
         }
@@ -1679,7 +1686,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Destructor() noexcept = default;
 
-        consteval explicit Destructor(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Destructor(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_destructor(i)) {
                 throw ReflectiveOperationException("Provided Info is not a destructor", ^^Destructor);
@@ -1735,19 +1743,19 @@ export namespace stdx::meta::reflect {
         consteval EnumSet<FunctionSpecifier> specifiers() const {
             EnumSet<FunctionSpecifier> result;
             if (reflect::is_virtual(info)) {
-                result.add(FunctionSpecifier::VIRTUAL);
+                result.insert(FunctionSpecifier::VIRTUAL);
             }
             if (reflect::is_pure_virtual(info)) {
-                result.add(FunctionSpecifier::PURE_VIRTUAL);
+                result.insert(FunctionSpecifier::PURE_VIRTUAL);
             }
             if (reflect::is_noexcept(info)) {
-                result.add(FunctionSpecifier::NOEXCEPT);
+                result.insert(FunctionSpecifier::NOEXCEPT);
             }
             if (reflect::is_deleted(info)) {
-                result.add(FunctionSpecifier::DELETED);
+                result.insert(FunctionSpecifier::DELETED);
             }
             if (reflect::is_defaulted(info)) {
-                result.add(FunctionSpecifier::DEFAULTED);
+                result.insert(FunctionSpecifier::DEFAULTED);
             }
             return result;
         }
@@ -1763,7 +1771,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Base() noexcept = default;
 
-        consteval explicit Base(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Base(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_base(i)) {
                 throw ReflectiveOperationException("Provided Info is not a base class", ^^Base);
@@ -1806,7 +1815,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Enumerator() noexcept = default;
 
-        consteval explicit Enumerator(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Enumerator(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_enumerator(i)) {
                 throw ReflectiveOperationException("Provided Info is not an enumerator", ^^Enumerator);
@@ -1835,7 +1845,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Namespace() noexcept = default;
 
-        consteval explicit Namespace(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Namespace(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_namespace(i)) {
                 throw ReflectiveOperationException("Provided Info is not a namespace", ^^Namespace);
@@ -1874,7 +1885,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval NamespaceAlias() noexcept = default;
 
-        consteval explicit NamespaceAlias(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit NamespaceAlias(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_namespace_alias(i)) {
                 throw ReflectiveOperationException("Provided Info is not a namespace alias", ^^NamespaceAlias);
@@ -1897,7 +1909,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval TypeAlias() noexcept = default;
 
-        consteval explicit TypeAlias(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit TypeAlias(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_type_alias(i)) {
                 throw ReflectiveOperationException("Provided Info is not a type alias", ^^TypeAlias);
@@ -1925,7 +1938,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Concept() noexcept = default;
 
-        consteval explicit Concept(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Concept(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_concept(i)) {
                 throw ReflectiveOperationException("Provided Info is not a concept", ^^Concept);
@@ -1955,7 +1969,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Template() noexcept = default;
 
-        consteval explicit Template(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Template(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_template(i)) {
                 throw ReflectiveOperationException("Provided Info is not a template", ^^Template);
@@ -2025,7 +2040,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval Annotation() noexcept = default;
 
-        consteval explicit Annotation(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit Annotation(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_annotation(i)) {
                 throw ReflectiveOperationException("Provided Info is not an annotation", ^^Annotation);
@@ -2054,7 +2070,8 @@ export namespace stdx::meta::reflect {
     public:
         consteval StructuredBinding() noexcept = default;
 
-        consteval explicit StructuredBinding(Info i) throws (ReflectiveOperationException):
+        [[=Throws<ReflectiveOperationException>()]]
+        consteval explicit StructuredBinding(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_structured_binding(i)) {
                 throw ReflectiveOperationException("Provided Info is not a structured binding", ^^StructuredBinding);

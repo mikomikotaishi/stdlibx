@@ -3392,7 +3392,8 @@ public:
      */
     template <ReflectableClass T, Bindable... Args>
     [[nodiscard]]
-    Vector<T> query(StringView sql, Args&&... args) throws (SQLException) {
+    [[=Throws<SQLException>()]]
+    Vector<T> query(StringView sql, Args&&... args) {
         static_assert(
             Ops::class_of<T>().is_default_constructible(),
             "Connection::query<T> requires T to be default-constructible"
