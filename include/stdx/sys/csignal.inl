@@ -5,10 +5,6 @@
  * @brief Standard library system operations.
  */
 export namespace stdx::sys {
-    using Handler = void (*)(i32);    
-    
-    using SignalAtomic = std::sig_atomic_t;
-
     using std::signal;
     using std::raise;
 
@@ -17,10 +13,9 @@ export namespace stdx::sys {
      * @brief Represents a system signal that can be raised and handled.
      */
     class Signal {
-    private:
-        i32 sig;
     public:
         using Handler = void (*)(i32);
+        using AtomicStatus = std::sig_atomic_t;
         
         // Signal handler constants
         static inline const Handler DEFAULT = SIG_DFL; ///< Default signal handler.
@@ -44,7 +39,7 @@ export namespace stdx::sys {
         static constexpr i32 ALARM = SIGALRM; ///< Alarm clock.
         static constexpr i32 TERMINATE = SIGTERM; ///< Termination request.
         static constexpr i32 STACK_FAULT = SIGSTKFLT; ///< Stack fault (obsolete).
-        static constexpr i32 CHILD = SIGCHLD; ///< Child terminated or stopped.
+        static constexpr i32 CHILD = SIGCHLD; ///< Process terminated or stopped.
         static constexpr i32 CONTINUE = SIGCONT; ///< Continue.
         static constexpr i32 STOP = SIGSTOP; ///< Stop, unblockable.
         static constexpr i32 TERMINAL_STOP = SIGTSTP; ///< Keyboard stop.
@@ -61,7 +56,9 @@ export namespace stdx::sys {
         static constexpr i32 BAD_SYSTEM_CALL = SIGSYS; ///< Bad system call.
         static constexpr i32 IO = SIGIO; ///< I/O now possible (4.2 BSD).
         static constexpr i32 IOT = SIGIOT; ///< IOT instruction, abort() on a PDP-11.
-
+    private:
+        i32 sig;
+    public:
         /**
          * @brief Constructs a Signal object for the specified signal number.
          * @param sig The signal number.

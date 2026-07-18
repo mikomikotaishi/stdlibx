@@ -10,6 +10,7 @@ using stdx::audio::sampled::UnsupportedAudioFileException;
 using stdx::collections::Vector;
 using stdx::fs::Path;
 using stdx::mem::UniquePointer;
+using stdx::thread::Thread;
 using stdx::time::Duration;
 using stdx::time::Instant;
 using stdx::time::SteadyClock;
@@ -120,7 +121,7 @@ void play(const Path& path, i64 max_seconds) {
             if (max_seconds > 0 && elapsed >= static_cast<f64>(max_seconds)) {
                 break;
             }
-            System::Thread::sleep_for(10ms);
+            Thread::sleep_for(10ms);
         }
         clip.close();
         System::out.println("Playback finished.");

@@ -75,6 +75,8 @@ export namespace stdx::time::chrono {
             AD = 1, ///< Anno Domini (proleptic years >= 1)
         };
 
+        using enum GregorianMonth;
+
         /**
          * @brief Returns the chronology identifier.
          * @returns "Julian"
@@ -249,6 +251,16 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<JulianChronology> of(i32 y, u32 m, u32 d) noexcept;
 
         /**
+         * @brief Create a date from a named Gregorian month.
+         * @param y The proleptic year.
+         * @param m The month.
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         */
+        [[nodiscard]]
+        static constexpr ChronoLocalDate<JulianChronology> of(i32 y, GregorianMonth m, u32 d) noexcept;
+
+        /**
          * @brief Create a date from typed year, month, and day.
          * @param y The proleptic year.
          * @param m The month.
@@ -290,6 +302,10 @@ export namespace stdx::time::chrono {
 
     constexpr JulianDate JulianChronology::of(i32 y, u32 m, u32 d) noexcept {
         return JulianDate(y, m, d);
+    }
+
+    constexpr JulianDate JulianChronology::of(i32 y, GregorianMonth m, u32 d) noexcept {
+        return of(y, static_cast<u32>(m), d);
     }
 
     constexpr JulianDate JulianChronology::of(Year y, Month m, Day d) noexcept {

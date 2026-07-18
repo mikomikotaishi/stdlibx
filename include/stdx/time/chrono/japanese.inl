@@ -20,6 +20,26 @@ export namespace stdx::time::chrono {
         static constexpr i64 SHOWA_START = gregorian_to_epoch_day(1926, 12, 25); ///< The epoch day of the Showa era (corresponding to 1926-12-25 in the Gregorian calendar).
         static constexpr i64 HEISEI_START = gregorian_to_epoch_day(1989, 1, 8); ///< The epoch day of the Heisei era (corresponding to 1989-01-08 in the Gregorian calendar).
         static constexpr i64 REIWA_START = gregorian_to_epoch_day(2019, 5, 1); ///< The epoch day of the Reiwa era (corresponding to 2019-05-01 in the Gregorian calendar).
+
+        /**
+         * @internal
+         * @enum JapaneseMonth
+         * @brief Traditional Japanese month names (和風月名, wafū getsumei).
+         */
+        enum class JapaneseMonth: u8 {
+            MUTSUKI = 1, ///< Mutsuki, the first month of the year (January)
+            KISARAGI = 2, ///< Kisaragi, the second month of the year (February)
+            YAYOI = 3, ///< Yayoi, the third month of the year (March)
+            UZUKI = 4, ///< Uzuki, the fourth month of the year (April)
+            SATSUKI = 5, ///< Satsuki, the fifth month of the year (May)
+            MINAZUKI = 6, ///< Minazuki, the sixth month of the year (June)
+            FUMIZUKI = 7, ///< Fumizuki, the seventh month of the year (July)
+            HAZUKI = 8, ///< Hazuki, the eighth month of the year (August)
+            NAGATSUKI = 9, ///< Nagatsuki, the ninth month of the year (September)
+            KANNAZUKI = 10, ///< Kannazuki, the tenth month of the year (October)
+            SHIMOTSUKI = 11, ///< Shimotsuki, the eleventh month of the year (November)
+            SHIWASU = 12, ///< Shiwasu, the twelfth month of the year (December)
+        };
     public:
         JapaneseChronology() = delete("JapaneseChronology is a static utility class and cannot be instantiated.");
 
@@ -34,6 +54,8 @@ export namespace stdx::time::chrono {
             HEISEI = 3, ///< Heisei era (1989-01-08 to 2019-04-30)
             REIWA = 4, ///< Reiwa era (2019-05-01 to present)
         };
+
+        using enum JapaneseMonth;
 
         /**
          * @brief Returns the chronology identifier.
@@ -400,6 +422,18 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<JapaneseChronology> of(i32 y, u32 m, u32 d);
 
         /**
+         * @brief Create a date from a traditional Japanese month name.
+         * @param y The ISO proleptic year.
+         * @param m The month.
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         * @throws DateTimeException if the date is before Meiji (1868-01-25).
+         */
+        [[nodiscard]]
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<JapaneseChronology> of(i32 y, JapaneseMonth m, u32 d);
+
+        /**
          * @brief Create a date from typed year, month, and day.
          * @param y The ISO proleptic year.
          * @param m The month.
@@ -453,6 +487,10 @@ export namespace stdx::time::chrono {
             throw DateTimeException("JapaneseChronology does not support dates before Meiji (1868-01-25)");
         }
         return JapaneseDate(y, m, d);
+    }
+
+    constexpr JapaneseDate JapaneseChronology::of(i32 y, JapaneseMonth m, u32 d) {
+        return of(y, static_cast<u32>(m), d);
     }
 
     constexpr JapaneseDate JapaneseChronology::of(Year y, Month m, Day d) {

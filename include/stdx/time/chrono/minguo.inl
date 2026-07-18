@@ -24,6 +24,8 @@ export namespace stdx::time::chrono {
             ROC = 1, ///< Republic of China (proleptic years >= 1)
         };
 
+        using enum GregorianMonth;
+
         static constexpr i32 YEAR_OFFSET = 1911;
 
         /**
@@ -197,6 +199,16 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<MinguoChronology> of(i32 y, u32 m, u32 d) noexcept;
 
         /**
+         * @brief Create a date from a named Gregorian month.
+         * @param y The proleptic Minguo year.
+         * @param m The month.
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         */
+        [[nodiscard]]
+        static constexpr ChronoLocalDate<MinguoChronology> of(i32 y, GregorianMonth m, u32 d) noexcept;
+
+        /**
          * @brief Create a date from typed year, month, and day.
          * @param y The proleptic Minguo year.
          * @param m The month.
@@ -238,6 +250,10 @@ export namespace stdx::time::chrono {
 
     constexpr MinguoDate MinguoChronology::of(i32 y, u32 m, u32 d) noexcept {
         return MinguoDate(y, m, d);
+    }
+
+    constexpr MinguoDate MinguoChronology::of(i32 y, GregorianMonth m, u32 d) noexcept {
+        return of(y, static_cast<u32>(m), d);
     }
 
     constexpr MinguoDate MinguoChronology::of(Year y, Month m, Day d) noexcept {

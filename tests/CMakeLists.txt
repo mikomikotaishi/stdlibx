@@ -20,7 +20,13 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
     )
-    
+
+    # Serialize the heavy stdexec-coroutine consumer TUs against each other to
+    # dodge the clang-22 concurrent-module-AST-reader crash (see top CMakeLists).
+    if(TEST_NAME MATCHES "^(FlowTest|ExecTaskTest|ExecAsyncTest)$")
+        set_target_properties(${TEST_NAME} PROPERTIES JOB_POOL_COMPILE stdexec_serial)
+    endif()
+
     # Configure as a C++ module target if the function is available
     if(COMMAND configure_cpp_module_target)
         configure_cpp_module_target(${TEST_NAME})
@@ -42,7 +48,8 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
             STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY
             STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY
             STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY
-            STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY)
+            STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY
+            STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY)
         if(${${EXT}})
             target_compile_definitions(${TEST_NAME} PRIVATE ${EXT})
         endif()

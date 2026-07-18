@@ -9,10 +9,10 @@ using stdx::thread::Thread;
 using namespace stdx::os;
 
 /**
- * @namespace stdx::process
- * @brief Process creation, management, and I/O handling.
+ * @namespace stdx::sys
+ * @brief Standard library system operations.
  */
-namespace stdx::process {
+namespace stdx::sys {
     #ifdef _WIN32
     /**
      * @brief A process-wide job object configured to kill its members when its
@@ -47,23 +47,23 @@ namespace stdx::process {
 
 
 /**
- * @namespace stdx::process
- * @brief Process creation, management, and I/O handling.
+ * @namespace stdx::sys
+ * @brief Standard library system operations.
  */
-export namespace stdx::process {
+export namespace stdx::sys {
     /**
-     * @class Command
+     * @class Builder
      * @brief Builder for configuring and spawning a child process.
      *
      * @code
-     *   Expected<Output, ErrorCode> result = Command::from("ls")
+     *   Expected<Output, ErrorCode> result = Builder::from("ls")
      *       .arg("-la")
      *       .current_dir("/tmp")
      *       .stdout(Stdio::Piped)
      *       .output();
      * @endcode
      */
-    class Command {
+    class Process::Builder {
     private:
         Vector<String> prog_args; /// The program and its arguments (first element is the program).
         Vector<Pair<String, String>> env_set; ///< Environment variables to set (key-value pairs).
@@ -76,16 +76,9 @@ export namespace stdx::process {
         bool env_clr = false; ///< If true, start with an empty environment instead of inheriting the parent's.
         bool kill_with_parent = false; ///< If true, ask the OS to kill the child when this process dies (Linux: PR_SET_PDEATHSIG).
 
-        /**
-         * @brief Construct a Command for the given program name (searched via PATH).
-         * @param program The name of the program to execute.
-         */
-        explicit Command(StringView program):
-            prog{program} {}
-
         #ifdef __unix__
         [[nodiscard]]
-        Expected<Child, ErrorCode> spawn_unix() const {
+        Expected<Process, ErrorCode> spawn_unix() const {
             i32 in_r = -1;
             i32 in_w = -1;
             i32 out_r = -1;
@@ -233,14 +226,14 @@ export namespace stdx::process {
                 }
             }
 
-            Child child(raw_pid, in_w, out_r, err_r);
+            Process child(raw_pid, in_w, out_r, err_r);
             return child;
         }
         #endif
 
         #ifdef _WIN32
         [[nodiscard]]
-        Expected<Child, ErrorCode> spawn_win32() const {
+        Expected<Process, ErrorCode> spawn_win32() const {
             SecurityAttributes sa(sizeof(sa), nullptr, TRUE);
             win32::Handle in_r = INVALID_HANDLE_VALUE;
             win32::Handle in_w = INVALID_HANDLE_VALUE;
@@ -289,7 +282,7 @@ export namespace stdx::process {
                 }
             }
 
-            StartupInfoW si{
+            StartupInfoW si {
                 .cb = sizeof(StartupInfoW),
                 .dwFlags = STARTF_USESTDHANDLES,
                 .hStdInput = (stdin_cfg == Stdio::PIPED)
@@ -350,45 +343,41 @@ export namespace stdx::process {
                 close_h(*h);
             }
 
-            Child child(pi.hProcess, pi.hThread, in_w, out_r, err_r);
+            Process child(pi.hProcess, pi.hThread, in_w, out_r, err_r);
             return child;
         }
         #endif
     public:
         /**
-         * @brief Create a Command with the given program. The program must be a valid executable name or path on the system, and must not be empty.
-         * 
-         * @param program The program to execute (executable name or path).
-         * @return Command 
+         * @brief Construct a Builder for the given program name (searched via PATH).
+         * @param program The name of the program to execute.
          */
-        [[nodiscard]]
-        static Command from(StringView program) {
-            return Command(program);
-        }
+        explicit Builder(StringView program):
+            prog{program} {}
 
-        Command& arg(StringView a) {
+        Builder& arg(StringView a) {
             prog_args.emplace_back(a);
             return *this;
         }
 
-        Command& env(StringView k, StringView v) {
+        Builder& env(StringView k, StringView v) {
             env_set.emplace_back(k, v);
             return *this;
         }
 
-        Command& env_remove(StringView k) {
+        Builder& env_remove(StringView k) {
             env_rem.emplace_back(k);
             return *this;
         }
 
-        Command& env_clear() noexcept {
+        Builder& env_clear() noexcept {
             env_clr = true;
             return *this;
         }
 
         /**
          * @brief Ask the OS to kill the spawned child if this (parent) process
-         * dies - including on SIGKILL or a crash, which a Child destructor cannot
+         * dies - including on SIGKILL or a crash, which a Process destructor cannot
          * cover because it never runs in those cases.
          *
          * Linux: sets PR_SET_PDEATHSIG(SIGKILL) on the child, with a getppid()
@@ -402,27 +391,27 @@ export namespace stdx::process {
          *
          * Other platforms (e.g. macOS/BSD): no effect - no equivalent primitive.
          */
-        Command& terminate_on_parent_exit() noexcept {
+        Builder& terminate_on_parent_exit() noexcept {
             kill_with_parent = true;
             return *this;
         }
 
-        Command& current_dir(const Path& path) noexcept {
+        Builder& current_dir(const Path& path) noexcept {
             cwd = path;
             return *this;
         }
 
-        Command& stdin(Stdio s) noexcept {
+        Builder& stdin(Stdio s) noexcept {
             stdin_cfg = s;
             return *this;
         }
 
-        Command& stdout(Stdio s) noexcept {
+        Builder& stdout(Stdio s) noexcept {
             stdout_cfg = s;
             return *this;
         }
 
-        Command& stderr(Stdio s) noexcept {
+        Builder& stderr(Stdio s) noexcept {
             stderr_cfg = s;
             return *this;
         }
@@ -431,12 +420,12 @@ export namespace stdx::process {
          * @brief Append all arguments from any input range of string-like values.
          * @tparam R The type of the input range.
          * @param range The input range of string-like values.
-         * @return Command& A reference to the modified Command object.
+         * @return Builder& A reference to the modified Builder object.
          */
         template <InputRange R>
             requires ConvertibleTo<RangeValue<R>, StringView>
-        Command& args(R&& range) {
-            for (auto&& a: range) {
+        Builder& args(R&& range) {
+            for (ConvertibleTo<StringView> auto&& a: range) {
                 prog_args.emplace_back(StringView(a));
             }
             return *this;
@@ -454,10 +443,10 @@ export namespace stdx::process {
 
         /**
          * @brief Spawn the child, returning a handle. Stdio streams follow their configured Stdio mode.
-         * @return Expected<Child, ErrorCode> A handle to the spawned child process or an error.
+         * @return Expected<Process, ErrorCode> A handle to the spawned child process or an error.
          */
         [[nodiscard]]
-        Expected<Child, ErrorCode> spawn() const {
+        Expected<Process, ErrorCode> spawn() const {
             #ifdef __unix__
             return spawn_unix();
             #elifdef _WIN32
@@ -474,7 +463,7 @@ export namespace stdx::process {
          */
         [[nodiscard]]
         Expected<ExitStatus, ErrorCode> status() const {
-            Expected<Child, ErrorCode> child = spawn();
+            Expected<Process, ErrorCode> child = spawn();
             if (!child) {
                 return Unexpected(child.error());
             }
@@ -488,11 +477,11 @@ export namespace stdx::process {
          */
         [[nodiscard]]
         Expected<Output, ErrorCode> output() const {
-            Command temp(*this);
+            Builder temp(*this);
             temp.stdin(Stdio::NULL_DEV)
                 .stdout(Stdio::PIPED)
                 .stderr(Stdio::PIPED);
-            Expected<Child, ErrorCode> child = temp.spawn();
+            Expected<Process, ErrorCode> child = temp.spawn();
             if (!child) {
                 return Unexpected(child.error());
             }

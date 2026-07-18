@@ -18,7 +18,7 @@ elseif(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY)
     message(STATUS "Microsoft GSL not found. Fetching Microsoft GSL from microsoft/gsl...")
     FetchContent_Declare(MSGSL
         GIT_REPOSITORY "https://github.com/microsoft/GSL"
-        GIT_TAG "v4.2.1"
+        GIT_TAG "v4.2.2"
         GIT_SHALLOW ON
     )
 
@@ -41,7 +41,7 @@ elseif(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY)
     FetchContent_Declare(
         libsodium
         GIT_REPOSITORY https://github.com/jedisct1/libsodium.git
-        GIT_TAG 1.0.21
+        GIT_TAG 1.0.22
         GIT_SHALLOW TRUE
     )
     FetchContent_MakeAvailable(libsodium)
@@ -139,4 +139,66 @@ elseif(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
 
     FetchContent_GetProperties(zlib SOURCE_DIR zlib_SOURCE_DIR BINARY_DIR zlib_BINARY_DIR)
     message(STATUS "Found ZLIB: ${zlib_BINARY_DIR} (found version \"1.3.2\")")
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY)
+    find_package(stdexec QUIET CONFIG)
+    if(stdexec_FOUND)
+        message(STATUS "Found stdexec (CMake package)")
+    else()
+        find_path(STDEXEC_INCLUDE_DIR NAMES stdexec/execution.hpp)
+        if(STDEXEC_INCLUDE_DIR)
+            message(STATUS "Found stdexec: ${STDEXEC_INCLUDE_DIR} (system headers)")
+            if(NOT TARGET STDEXEC::stdexec)
+                add_library(STDEXEC::stdexec INTERFACE IMPORTED GLOBAL)
+                set_target_properties(STDEXEC::stdexec PROPERTIES
+                    INTERFACE_INCLUDE_DIRECTORIES "${STDEXEC_INCLUDE_DIR}"
+                )
+            endif()
+        else()
+            message(STATUS "stdexec not found. Fetching stdexec from NVIDIA/stdexec (tag nvhpc-26.05)...")
+
+            set(STDEXEC_BUILD_TESTS OFF CACHE BOOL "Disable stdexec tests" FORCE)
+            set(STDEXEC_BUILD_EXAMPLES OFF CACHE BOOL "Disable stdexec examples" FORCE)
+            set(BUILD_TESTING OFF CACHE BOOL "Disable third-party tests" FORCE)
+            set(STDEXEC_BUILD_PARALLEL_SCHEDULER ON CACHE BOOL "Build stdexec's parallel-scheduler backend" FORCE)
+
+            FetchContent_Declare(
+                stdexec
+                GIT_REPOSITORY https://github.com/NVIDIA/stdexec.git
+                GIT_TAG nvhpc-26.05
+                GIT_SHALLOW TRUE
+            )
+            FetchContent_MakeAvailable(stdexec)
+
+            if(NOT TARGET STDEXEC::stdexec AND TARGET stdexec)
+                add_library(STDEXEC::stdexec ALIAS stdexec)
+            endif()
+
+            if(NOT TARGET STDEXEC::stdexec)
+                message(FATAL_ERROR "Fetched stdexec, but no usable STDEXEC::stdexec target was found.")
+            endif()
+
+            FetchContent_GetProperties(stdexec SOURCE_DIR stdexec_SOURCE_DIR)
+            message(STATUS "Found stdexec: ${stdexec_SOURCE_DIR} (fetched tag nvhpc-26.05)")
+        endif()
+    endif()
+
+    if(TARGET STDEXEC::stdexec)
+        get_target_property(_stdexec_aliased STDEXEC::stdexec ALIASED_TARGET)
+        if(_stdexec_aliased)
+            set(_stdexec_real "${_stdexec_aliased}")
+        else()
+            set(_stdexec_real STDEXEC::stdexec)
+        endif()
+        get_target_property(_stdexec_type "${_stdexec_real}" TYPE)
+        if(_stdexec_type STREQUAL "INTERFACE_LIBRARY")
+            set(STDLIBX_STDEXEC_NEEDS_BACKEND TRUE CACHE INTERNAL
+                "stdexec is headers-only; compile its parallel-scheduler backend ourselves")
+        else()
+            set(STDLIBX_STDEXEC_NEEDS_BACKEND FALSE CACHE INTERNAL
+                "stdexec ships a compiled parallel-scheduler backend")
+        endif()
+        message(STATUS "stdexec parallel-scheduler backend: compile-our-own = ${STDLIBX_STDEXEC_NEEDS_BACKEND}")
+    endif()
 endif()

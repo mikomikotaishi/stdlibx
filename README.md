@@ -42,7 +42,7 @@ Note that currently, Clang module support is far superior to that of GCC, and th
 - This library is developed independently. While we accept feature requests, pull requests, and improvements from everyone, do note that support is limited due to the limited resources.
 - Because of its limited development resources, bugs are bound to arise in independently-developed parts.
 - Often relies on cutting or bleeding-edge features, which may not be suitable for stability-priority projects. Development is currently unstable, and no stable release exists (yet).
-- Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes roughly 30 seconds on Clang and a minute on GCC to build on my (modest) hardware.
+- Seeing as this is a library on top of another library with additional features, it may increase compile times on your project, or even increase binary size. The library takes less than a minute on Clang and less than 2 minutes on GCC to build on my (modest) hardware, including tests and examples.
 - No support for headers. The library likely will not ever support headers, as it makes extensive use of `using` statements (and is designed to encourage their usage), and any attempt to simultaneously support headers and modules would likely clutter the code with preprocessor directives and ugly macros.
 
 ### Features

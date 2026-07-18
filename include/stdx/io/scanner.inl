@@ -34,7 +34,7 @@ export namespace stdx::io {
      *     }
      *
      *     // Read from a file
-     *     Scanner file_sc(Path("input.txt"));
+     *     Scanner file_sc("input.txt"_path);
      *     String line = file_sc.next_line();
      *
      *     // Read from a string

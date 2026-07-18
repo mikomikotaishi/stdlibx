@@ -50,10 +50,6 @@ export namespace stdx::core {
         using TryToLock = std::try_to_lock_t;
         using NoStopState = std::nostopstate_t;
         using Last = std::chrono::last_spec;
-        #ifdef __cpp_lib_senders
-        using SyncWait = std::this_thread::sync_wait_t;
-        using SyncWaitWithVariant = std::this_thread::sync_wait_with_variant_t;
-        #endif
 
         static constexpr IgnoreType IGNORE = std::ignore;
         #ifdef __cpp_lib_expected
@@ -89,9 +85,5 @@ export namespace stdx::core {
         static constexpr TryToLock TRY_TO_LOCK = std::try_to_lock;
         static constexpr NoStopState NO_STOP_STATE = std::nostopstate;
         static constexpr Last LAST = std::chrono::last;
-        #ifdef __cpp_lib_senders
-        static constexpr SyncWait SYNC_WAIT = std::this_thread::sync_wait;
-        static constexpr SyncWaitWithVariant SYNC_WAIT_WITH_VARIANT = std::this_thread::sync_wait_with_variant;
-        #endif
     };
 }

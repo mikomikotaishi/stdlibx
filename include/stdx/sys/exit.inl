@@ -3,10 +3,10 @@
 using namespace stdx::os;
 
 /**
- * @namespace stdx::process
- * @brief Process creation, management, and I/O handling.
+ * @namespace stdx::sys
+ * @brief Standard library system operations.
  */
-export namespace stdx::process {
+export namespace stdx::sys {
     /**
      * @enum Stdio
      * @brief Controls how a child process's standard stream is connected.
@@ -122,7 +122,7 @@ export namespace stdx::process {
     };
 }
 
-using stdx::process::ExitStatus;
+using stdx::sys::ExitStatus;
 
 namespace stdx::fmt {
     template <>

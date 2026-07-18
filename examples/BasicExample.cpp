@@ -63,9 +63,9 @@ int main(int argc, char* argv[]) {
     System::out.println("[argparse] verbose = {}", parser.get<bool>("--verbose"));
 
     Thread t([] -> void {
-        System::out.println("[thread] Hello from worker thread {}", System::Thread::id());
+        System::out.println("[thread] Hello from worker thread {}", Thread::current_id());
     });
-    System::out.println("[thread] Main thread is {}", System::Thread::id());
+    System::out.println("[thread] Main thread is {}", Thread::current_id());
     t.join();
 
     System::out.println("Operating system: {}", Environment::operating_system());

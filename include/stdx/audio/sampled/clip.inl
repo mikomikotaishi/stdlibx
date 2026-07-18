@@ -115,7 +115,7 @@ export namespace stdx::audio::sampled {
          */
         void wait_for_completion() noexcept {
             while (playing.load() && !finished.load()) {
-                System::Thread::sleep_for(10ms);
+                Thread::sleep_for(10ms);
             }
         }
 

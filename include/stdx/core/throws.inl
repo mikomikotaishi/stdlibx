@@ -190,19 +190,19 @@ namespace stdx::core {
      * @tparam Fn The reflection of a function or callable type.
      */
     template <Info Fn>
-    constexpr auto thrown_infos = reflect::define_static_array(collect_thrown_infos<Fn>());
+    constexpr auto ThrownInfos = reflect::define_static_array(collect_thrown_infos<Fn>());
 
     /**
      * @brief Builds the Tuple<Class<E>...> for @p Fn from the indices of its
-     * thrown_infos. The element types are spliced directly into the trailing return
+     * ThrownInfos. The element types are spliced directly into the trailing return
      * type, so the result type is fully spelled out rather than deduced.
      * @tparam Fn The reflection of a function or callable type.
-     * @tparam I The indices 0 .. thrown_infos<Fn>.size() - 1.
+     * @tparam I The indices 0 .. ThrownInfos<Fn>.size() - 1.
      */
     template <Info Fn, usize... I>
     [[nodiscard]]
-    consteval Tuple<Class<typename [:thrown_infos<Fn>[I]:]>...> build_thrown_exceptions(IndexSequence<I...> _) {
-        return Tuple<Class<typename [:thrown_infos<Fn>[I]:]>...>{};
+    consteval Tuple<Class<typename [:ThrownInfos<Fn>[I]:]>...> build_thrown_exceptions(IndexSequence<I...> _) {
+        return Tuple<Class<typename [:ThrownInfos<Fn>[I]:]>...>{};
     }
 
     /**
@@ -228,7 +228,7 @@ export namespace stdx::meta::reflect {
     template <Info Fn>
     using ThrownExceptions = decltype(
         stdx::core::build_thrown_exceptions<Fn>(
-            IndexSequenceOf<thrown_infos<Fn>.size()>{}
+            IndexSequenceOf<ThrownInfos<Fn>.size()>{}
         )
     );
 }

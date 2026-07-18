@@ -103,9 +103,6 @@ export namespace stdx::ranges {
     using RangeSize = std::ranges::range_size_t<R>;
 
     template <Range R>
-    using RangeValue = std::ranges::range_value_t<R>;
-
-    template <Range R>
     using RangeReference = std::ranges::range_reference_t<R>;
 
     template <Range R>

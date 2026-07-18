@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     constexpr AccessContext ctx = AccessContext::unchecked();
     constexpr StringView s = "Hello, world!";
     constexpr Info m1 = ^^s;
-    constexpr Info m2 = Ops::reflect_type<String>(); // Necessary, as reflecting a using-declaration is illegal
+    constexpr Info m2 = Ops::info<String>(); // Necessary, as reflecting a using-declaration is illegal
     constexpr Info m3 = ctx.designating_class();
     usize len = length([:m1:]);
     HashMap<typename [:m2:], u64> names = {
@@ -165,8 +165,8 @@ int main(int argc, char* argv[]) {
     System::out.println("Length of '{}': {}", s, len);
     System::out.println(names);
 
-    constexpr Info MATH_CLASS = Ops::reflect_type<Math>();
-    constexpr Info SYSTEM_CLASS = Ops::reflect_type<System>();
+    constexpr Info MATH_CLASS = Ops::info<Math>();
+    constexpr Info SYSTEM_CLASS = Ops::info<System>();
     static constexpr Span<const Info> MATH_CONSTANTS = Query(Ops::define_static_array(reflect::members_of(MATH_CLASS, ctx)))
         .where([](Info m) -> bool { return reflect::is_public(m); })
         .where([](Info m) -> bool { return reflect::is_variable(m); })

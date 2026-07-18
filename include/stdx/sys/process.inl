@@ -6,10 +6,10 @@ using stdx::thread::Thread;
 using namespace stdx::os;
 
 /**
- * @namespace stdx::process
- * @brief Process creation, management, and I/O handling.
+ * @namespace stdx::sys
+ * @brief Standard library system operations.
  */
-namespace stdx::process {
+namespace stdx::sys {
     #ifdef __unix__
     /**
      * @brief Read everything from fd into a buffer, then close it.
@@ -75,19 +75,21 @@ namespace stdx::process {
 }
 
 /**
- * @namespace stdx::process
- * @brief Process creation, management, and I/O handling.
+ * @namespace stdx::sys
+ * @brief Standard library system operations.
  */
-export namespace stdx::process {
+export namespace stdx::sys {
     /**
-     * @class Child
+     * @class Process
      * @brief Handle to a running child process.
      *
-     * Move-only. Dropping a Child without calling wait() will NOT automatically
+     * Move-only. Dropping a Process without calling wait() will NOT automatically
      * reap it - the caller must call wait() (or kill() then wait()) to avoid
      * zombie processes on Unix.
      */
-    class Child {
+    class Process {
+    public:
+        class Builder;
     private:
         #ifdef __unix__
         i32 pid = -1; ///< The OS process ID (from fork).
@@ -102,17 +104,15 @@ export namespace stdx::process {
         win32::Handle stderr_rd = nullptr; ///< The read end of the child's stderr pipe (or nullptr if not piped).
         #endif
 
-        Child() = default;
+        Process() = default;
 
         #ifdef __unix__
-        Child(i32 pid, i32 stdin_wr, i32 stdout_rd, i32 stderr_rd) noexcept:
+        Process(i32 pid, i32 stdin_wr, i32 stdout_rd, i32 stderr_rd) noexcept:
             pid{pid}, stdin_wr{stdin_wr}, stdout_rd{stdout_rd}, stderr_rd{stderr_rd} {}
         #elifdef _WIN32
-        Child(win32::Handle process, win32::Handle thread, win32::Handle stdin_wr, win32::Handle stdout_rd, win32::Handle stderr_rd) noexcept:
+        Process(win32::Handle process, win32::Handle thread, win32::Handle stdin_wr, win32::Handle stdout_rd, win32::Handle stderr_rd) noexcept:
             process{process}, thread{thread}, stdin_wr{stdin_wr}, stdout_rd{stdout_rd}, stderr_rd{stderr_rd} {}
         #endif
-
-        friend class Command;
 
         /**
          * @brief Close any open handles/fds. Called by the destructor and move assignment operator.
@@ -124,6 +124,7 @@ export namespace stdx::process {
                     unix::close(fd); fd = -1;
                 }
             };
+
             close_fd(stdin_wr);
             close_fd(stdout_rd);
             close_fd(stderr_rd);
@@ -133,6 +134,7 @@ export namespace stdx::process {
                     win32::CloseHandle(static_cast<win32::Handle>(h)); h = nullptr;
                 }
             };
+
             close_h(stdin_wr);
             close_h(stdout_rd);
             close_h(stderr_rd);
@@ -142,10 +144,10 @@ export namespace stdx::process {
         }
 
     public:
-        Child(const Child&) = delete("Child is not copyable.");
-        Child& operator=(const Child&) = delete("Child is not copyable.");
+        Process(const Process&) = delete("Process is not copyable.");
+        Process& operator=(const Process&) = delete("Process is not copyable.");
 
-        Child(Child&& o) noexcept:
+        Process(Process&& o) noexcept:
         #ifdef __unix__
             pid{Ops::exchange(o.pid, -1)},
             stdin_wr{Ops::exchange(o.stdin_wr, -1)},
@@ -160,15 +162,15 @@ export namespace stdx::process {
         #endif
             {}
 
-        Child& operator=(Child&& o) noexcept {
+        Process& operator=(Process&& o) noexcept {
             if (this != &o) {
                 close_handles();
-                new (this) Child(Ops::move(o));
+                new (this) Process(Ops::move(o));
             }
             return *this;
         }
 
-        ~Child() {
+        ~Process() {
             close_handles();
         }
 
@@ -340,7 +342,7 @@ export namespace stdx::process {
         }
 
         /**
-         * @brief Consume the Child: drain all piped output concurrently (to prevent
+         * @brief Consume the Process: drain all piped output concurrently (to prevent
          * pipe-buffer deadlocks), wait for exit, and return an Output.
          * @return Expected<Output, ErrorCode> The output or an error.
          */

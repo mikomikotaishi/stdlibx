@@ -47,6 +47,8 @@ import std;
 
 export import :constants;
 
+import :foundation;
+import :exec;
 import :gsl;
 import :os;
 
@@ -61,13 +63,10 @@ extern "C" {
 STDLIBX_PREPARE_IMPORT_CORE();
 STDLIBX_PREPARE_IMPORT_LITERALS();
 
-#include "Foundation.inl"
-
 #include "stdx/meta/type_traits.inl"
 #include "stdx/meta/typeindex.inl"
 #include "stdx/meta/typeinfo.inl"
 
-#include "stdx/core/cstddef.inl"
 #include "stdx/core/any.inl"
 #include "stdx/core/array.inl"
 #include "stdx/core/clocale.inl"
@@ -136,8 +135,15 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/collections/enum_map.inl"
 #include "stdx/meta/reflect.inl"
 
+#include "stdx/exec/execution.inl"
+#include "stdx/exec/senders.inl"
+#include "stdx/exec/parallel_scheduler.inl"
+#include "stdx/exec/task.inl"
+
 #include "stdx/core/throws.inl"
 #include "stdx/core/ops.inl"
+
+#include "stdx/exec/flow.inl"
 
 #include "stdx/os/unix.constants.inl"
 #include "stdx/os/linux.constants.inl"
@@ -152,8 +158,6 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/alloc/memory.inl"
 #include "stdx/alloc/new.inl"
 #include "stdx/alloc/scoped_allocator.inl"
-
-#include "stdx/exec/execution.inl"
 
 #include "stdx/core/numbers.inl"
 
@@ -177,8 +181,6 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/mem/memory.inl"
 #include "stdx/mem/new.inl"
 
-#include "stdx/core/environment.inl"
-
 #include "stdx/io/cwchar.inl"
 #include "stdx/io/fstream.inl"
 #include "stdx/io/iomanip.inl"
@@ -193,6 +195,17 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/io/string.inl"
 #include "stdx/io/syncstream.inl"
 
+#include "stdx/math/ratio.inl"
+
+#include "stdx/time/ctime.inl"
+#include "stdx/time/time.inl"
+
+#include "stdx/thread/hazard_pointer.inl"
+#include "stdx/thread/stop_token.inl"
+#include "stdx/thread/thread.inl"
+
+#include "stdx/core/environment.inl"
+
 #include "stdx/core/locale.inl"
 
 #include "stdx/random/random.inl"
@@ -202,18 +215,14 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/math/cfenv.inl"
 #include "stdx/math/cmath.inl"
 #include "stdx/math/complex.inl"
-#include "stdx/math/cstddef.inl"
 #include "stdx/math/linalg.inl"
 #include "stdx/math/numbers.inl"
 #include "stdx/math/numeric.inl"
 #include "stdx/math/quaternion.inl"
 #include "stdx/math/random.inl"
-#include "stdx/math/ratio.inl"
 
 #include "stdx/core/math.inl"
 
-// biginteger.inl/bigdecimal.inl use stdx::core::Math, so they must follow core/math.inl;
-// biginteger.inl must precede bigdecimal.inl (BigDecimal stores a BigInteger).
 #include "stdx/math/biginteger.inl"
 #include "stdx/math/bigdecimal.inl"
 
@@ -251,13 +260,6 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/sync/semaphore.inl"
 #include "stdx/sync/shared_mutex.inl"
 
-#include "stdx/thread/hazard_pointer.inl"
-#include "stdx/thread/stop_token.inl"
-#include "stdx/thread/thread.inl"
-
-#include "stdx/time/ctime.inl"
-#include "stdx/time/time.inl"
-
 #include "stdx/core/system.inl"
 #include "stdx/core/uuid.inl"
 
@@ -267,9 +269,9 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 
 #include "stdx/fs/glob.inl"
 
-#include "stdx/process/exit.inl"
-#include "stdx/process/child.inl"
-#include "stdx/process/command.inl"
+#include "stdx/sys/exit.inl"
+#include "stdx/sys/process.inl"
+#include "stdx/sys/process.builder.inl"
 
 #include "stdx/time/chrono.inl"
 #include "stdx/time/format.inl"

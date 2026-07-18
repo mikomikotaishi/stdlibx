@@ -7,6 +7,11 @@
 
 #pragma once
 
+#if defined(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY) \
+    || (defined(__cpp_senders) && defined(__cpp_lib_task) && defined(__cpp_lib_parallel_scheduler))
+#define STDLIBX_EXECUTION_AVAILABLE
+#endif
+
 #ifdef __cpp_lib_reflection
 #define THROWS(...) [[=Throws<__VA_ARGS__>()]]
 #else

@@ -146,7 +146,7 @@ namespace stdx::audio::midi {
                     }
                     cumulative_us += static_cast<i64>(static_cast<f64>(us) / f);
                     const Instant<SteadyClock> target = start_time + Microseconds{cumulative_us};
-                    System::Thread::sleep_until(target);
+                    Thread::sleep_until(target);
                 }
                 last_tick = ev.tick;
                 tick_pos.store(ev.tick);

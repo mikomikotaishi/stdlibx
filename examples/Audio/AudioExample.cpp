@@ -15,6 +15,7 @@ using stdx::audio::sampled::UnsupportedAudioFileException;
 using stdx::collections::Vector;
 using stdx::fs::Path;
 using stdx::mem::UniquePointer;
+using stdx::thread::Thread;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
@@ -114,7 +115,7 @@ void play_sine(const String& requested_id) {
             line->latency_frames()
         );
         line->start();
-        System::Thread::sleep_for(500ms);
+        Thread::sleep_for(500ms);
         line->stop();
         System::out.println("Underruns: {}", line->underrun_count());
     } catch (const AudioException& e) {

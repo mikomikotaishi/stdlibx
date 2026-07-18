@@ -6,6 +6,14 @@ set(CMAKE_CXX_STANDARD ${STDLIBX_CXX_STANDARD})
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_MODULE_STD ON)
 
+# clang-22 flakily segfaults in its module AST reader when several heavy
+# stdexec-coroutine consumer TUs (FlowExample/FlowTest/ExecTaskTest/ExecAsyncTest)
+# deserialize the stdx module BMI concurrently. It is a build-time concurrency bug,
+# not a source bug (each TU compiles fine alone). This depth-1 Ninja job pool is
+# assigned to those specific targets (see tests/ and examples/ CMakeLists) so at
+# most one compiles at a time; the rest of the build stays fully parallel.
+set_property(GLOBAL PROPERTY JOB_POOLS stdexec_serial=1)
+
 if(CMAKE_VERSION VERSION_LESS_EQUAL "3.31.7")
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "0e5b6991-d74f-4b3d-a41c-cf096e0b2508")
 elseif(CMAKE_VERSION VERSION_LESS_EQUAL "4.2.3")
@@ -248,6 +256,7 @@ option(STDLIBX_COMPILE_EXPERIMENTAL_HEADERS "Enable experimental standard librar
 option(STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY "Enable architecture intrinsics header modules in stdx::arch::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY "Enable libsodium modules in stdx::crypto::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY "Enable Microsoft Guidelines Support Library modules in stdx::core::gsl::*" ON)
+option(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY "Enable Nvidia stdexec Library modules in stdx::exec::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY "Enable compiler header modules in stdx::lua::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY "Enable GNU Multiple Precision Arithmetic modules in stdx::math::*" ON)
 option(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY "Enable SQL ODBC wrapper modules in stdx::sql::*" ON)
@@ -274,6 +283,7 @@ if(COMPILER_GCC AND STDLIBX_ENABLE_REFLECTION)
     set(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
     set(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
     set(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
+    set(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY OFF CACHE BOOL "Internal compiler error occurs on GCC" FORCE)
 endif()
 
 #   libc++     -> _LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_{FAST,EXTENSIVE,DEBUG}
@@ -400,6 +410,10 @@ endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
     target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
+endif()
+
+if(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY AND TARGET STDEXEC::stdexec)
+    target_compile_definitions(stdlibx INTERFACE STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY)
 endif()
 
 if(STDLIBX_HARDENING_DEFS)

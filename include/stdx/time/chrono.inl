@@ -1,5 +1,27 @@
 #pragma once
 
+namespace stdx::time::chrono {
+    /**
+     * @internal
+     * @enum GregorianMonth
+     * @brief Named months for the Gregorian-shaped chronologies.
+     */
+    enum class GregorianMonth: u8 {
+        JANUARY = 1, ///< January, the first month of the year
+        FEBRUARY = 2, ///< February, the second month of the year
+        MARCH = 3, ///< March, the third month of the year
+        APRIL = 4, ///< April, the fourth month of the year
+        MAY = 5, ///< May, the fifth month of the year
+        JUNE = 6, ///< June, the sixth month of the year
+        JULY = 7, ///< July, the seventh month of the year
+        AUGUST = 8, ///< August, the eighth month of the year
+        SEPTEMBER = 9, ///< September, the ninth month of the year
+        OCTOBER = 10, ///< October, the tenth month of the year
+        NOVEMBER = 11, ///< November, the eleventh month of the year
+        DECEMBER = 12, ///< December, the twelfth month of the year
+    };
+}
+
 /**
  * @namespace stdx::time::chrono
  * @brief Calendar system support.

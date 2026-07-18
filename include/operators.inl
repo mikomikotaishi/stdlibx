@@ -38,9 +38,20 @@ export namespace std {
     using std::empty;
     using std::data;
 
+    using std::coroutine_traits;
+    using std::coroutine_handle;
+    using std::noop_coroutine_promise;
+    using std::noop_coroutine_handle;
+    using std::noop_coroutine;
+    using std::suspend_always;
+    using std::suspend_never;
     using std::hash;
     using std::initializer_list;
     using std::formatter;
+    using std::tuple;
+    using std::tuple_size;
+    using std::tuple_element;
+    using std::get;
     using std::type_info;
     using std::swap;
 

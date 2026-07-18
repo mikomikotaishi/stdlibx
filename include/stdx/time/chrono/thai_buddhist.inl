@@ -24,6 +24,8 @@ export namespace stdx::time::chrono {
             BE = 1, ///< Buddhist Era (proleptic years >= 1)
         };
 
+        using enum GregorianMonth;
+
         static constexpr i32 YEAR_OFFSET = 543;
 
         /**
@@ -197,6 +199,16 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<ThaiBuddhistChronology> of(i32 y, u32 m, u32 d) noexcept;
 
         /**
+         * @brief Create a date from a named Gregorian month.
+         * @param y The proleptic Thai Buddhist year.
+         * @param m The month.
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         */
+        [[nodiscard]]
+        static constexpr ChronoLocalDate<ThaiBuddhistChronology> of(i32 y, GregorianMonth m, u32 d) noexcept;
+
+        /**
          * @brief Create a date from typed year, month, and day.
          * @param y The proleptic Thai Buddhist year.
          * @param m The month.
@@ -238,6 +250,10 @@ export namespace stdx::time::chrono {
 
     constexpr ThaiBuddhistDate ThaiBuddhistChronology::of(i32 y, u32 m, u32 d) noexcept {
         return ThaiBuddhistDate(y, m, d);
+    }
+
+    constexpr ThaiBuddhistDate ThaiBuddhistChronology::of(i32 y, GregorianMonth m, u32 d) noexcept {
+        return of(y, static_cast<u32>(m), d);
     }
 
     constexpr ThaiBuddhistDate ThaiBuddhistChronology::of(Year y, Month m, Day d) noexcept {

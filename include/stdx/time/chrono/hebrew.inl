@@ -24,6 +24,33 @@ export namespace stdx::time::chrono {
 
         /**
          * @internal
+         * @enum HebrewMonth
+         * @brief Months of the Hebrew calendar, including the leap-year split of Adar.
+         *
+         * The civil month index shifts in leap years, so these names are NOT
+         * raw month indices: pass them to HebrewChronology::of, which resolves
+         * each to the correct index for the given year. ADAR is valid only in
+         * common years; ADAR_I and ADAR_II only in leap years.
+         */
+        enum class HebrewMonth: u8 {
+            TISHRI = 1, ///< Tishri, the first month of the civil year
+            CHESHVAN = 2, ///< Cheshvan, the second month of the civil year
+            KISLEV = 3, ///< Kislev, the third month of the civil year
+            TEVET = 4, ///< Tevet, the fourth month of the civil year
+            SHEVAT = 5, ///< Shevat, the fifth month of the civil year
+            ADAR = 6, ///< Adar (common years only)
+            ADAR_I = 7, ///< Adar I / Adar Rishon (leap years only)
+            ADAR_II = 8, ///< Adar II / Adar Sheni (leap years only)
+            NISAN = 9, ///< Nisan
+            IYYAR = 10, ///< Iyyar
+            SIVAN = 11, ///< Sivan
+            TAMMUZ = 12, ///< Tammuz
+            AV = 13, ///< Av
+            ELUL = 14, ///< Elul, the last month of the civil year
+        };
+
+        /**
+         * @internal
          * @brief Check if a Hebrew year is a leap year (i.e., contains 13 months).
          * @param y The proleptic Hebrew year.
          * @returns true if the year is a leap year, false otherwise.
@@ -101,10 +128,6 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hebrew year.
          * @param m The month (1-12 in regular years, 1-13 in leap years).
          * @returns 29 or 30.
-         *
-         * Civil month numbering: 1=Tishri, 2=Cheshvan, 3=Kislev, 4=Tevet,
-         * 5=Shevat, 6=Adar (or Adar I in leap years), 7=Adar II (leap only)
-         * or Nisan, ..., 12/13=Elul.
          */
         [[nodiscard]]
         static constexpr u32 hebrew_days_in_month(i32 y, u32 m) noexcept {
@@ -196,6 +219,8 @@ export namespace stdx::time::chrono {
         enum class Era: i32 {
             AM = 1, ///< Anno Mundi (in the year of the world, proleptic years >= 1)
         };
+
+        using enum HebrewMonth;
 
         /**
          * @brief Returns the chronology identifier.
@@ -422,10 +447,23 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<HebrewChronology> of(i32 y, u32 m, u32 d);
 
         /**
+         * @brief Create a date from a named Hebrew month.
+         * @param y The proleptic Hebrew year.
+         * @param m The month; its civil index is resolved from the year's leap status.
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         * @throws DateTimeException if y < 1, if @p m is ADAR in a leap year
+         * (ambiguous - use ADAR_I or ADAR_II), or if @p m is ADAR_I / ADAR_II
+         * in a common year (they do not exist).
+         */
+        [[nodiscard]]
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<HebrewChronology> of(i32 y, HebrewMonth m, u32 d);
+
+        /**
          * @brief Create a date from typed year, month, and day.
          * @param y The proleptic Hebrew year.
-         * @param m The month (1-12 regular, 1-13 leap). Note: month 13 is
-         *          outside std::chrono::month's ok() range.
+         * @param m The month (1-12 regular, 1-13 leap).
          * @param d The day of the month.
          * @returns The date in this chronology.
          * @throws DateTimeException if y < 1.
@@ -461,6 +499,68 @@ export namespace stdx::time::chrono {
             throw DateTimeException("HebrewChronology does not support dates before year 1 AM");
         }
         return HebrewDate(y, m, d);
+    }
+
+    constexpr HebrewDate HebrewChronology::of(i32 y, HebrewMonth m, u32 d) {
+        if (y < 1) {
+            throw DateTimeException("HebrewChronology does not support dates before year 1 AM");
+        }
+        const bool leap = is_hebrew_leap(y);
+        u32 index = 0;
+        switch (m) {
+            case HebrewMonth::TISHRI:
+                index = 1;
+                break;
+            case HebrewMonth::CHESHVAN:
+                index = 2;
+                break;
+            case HebrewMonth::KISLEV:
+                index = 3;
+                break;
+            case HebrewMonth::TEVET:
+                index = 4;
+                break;
+            case HebrewMonth::SHEVAT:
+                index = 5;
+                break;
+            case HebrewMonth::ADAR:
+                if (leap) {
+                    throw DateTimeException("Adar is ambiguous in a leap year; use ADAR_I or ADAR_II");
+                }
+                index = 6;
+                break;
+            case HebrewMonth::ADAR_I:
+                if (!leap) {
+                    throw DateTimeException("Adar I exists only in a leap year");
+                }
+                index = 6;
+                break;
+            case HebrewMonth::ADAR_II:
+                if (!leap) {
+                    throw DateTimeException("Adar II exists only in a leap year");
+                }
+                index = 7;
+                break;
+            case HebrewMonth::NISAN:
+                index = leap ? 8 : 7;
+                break;
+            case HebrewMonth::IYYAR:
+                index = leap ? 9 : 8;
+                break;
+            case HebrewMonth::SIVAN:
+                index = leap ? 10 : 9;
+                break;
+            case HebrewMonth::TAMMUZ:
+                index = leap ? 11 : 10;
+                break;
+            case HebrewMonth::AV:
+                index = leap ? 12 : 11;
+                break;
+            case HebrewMonth::ELUL:
+                index = leap ? 13 : 12;
+                break;
+        }
+        return of(y, index, d);
     }
 
     constexpr HebrewDate HebrewChronology::of(Year y, Month m, Day d) {

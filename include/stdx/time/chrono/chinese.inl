@@ -364,13 +364,14 @@ export namespace stdx::time::chrono {
          * @internal
          * @brief Return the major solar term number (1–12) for a given local day.
          *
-         * The numbering follows ICU convention:
-         * - Term 1 corresponds to 330° (Dàhán, 大寒)
-         * - Term 2 corresponds to 0° (Yǔshuǐ, 雨水)
-         * - Term 3 corresponds to 30° (Chūnfēn, 春分)
+         * The numbering follows ICU convention (solar longitude measured from
+         * the vernal equinox):
+         * - Term 1 corresponds to 330° (Yǔshuǐ, 雨水)
+         * - Term 2 corresponds to 0° (Chūnfēn, 春分)
+         * - Term 3 corresponds to 30° (Gǔyǔ, 谷雨)
          * - ...
          * - Term 11 corresponds to 270° (Dōngzhì, 冬至)
-         * - Term 12 corresponds to 300° (Dàxuě, 大雪)
+         * - Term 12 corresponds to 300° (Dàhán, 大寒)
          *
          * @param days Local days (UTC+8).
          * @returns Major solar term number (1–12).
@@ -553,6 +554,82 @@ export namespace stdx::time::chrono {
         };
 
         /**
+         * @enum EarthlyBranch
+         * @brief The twelve Earthly Branches (地支) naming the Chinese lunar months.
+         *
+         * These are the traditional month-establishing branches (月建); each value
+         * is the civil month number it denotes, anchored so that ZI (子) is the
+         * winter-solstice month (month 11) and YIN (寅) begins the year (month 1).
+         * Surfaced into ChineseChronology via `using enum`; pass one to
+         * ChineseChronology::of, or wrap it with leap_month(...) for an
+         * intercalary month.
+         */
+        enum class EarthlyBranch: u8 {
+            YIN = 1, ///< 寅 (yín), the first month
+            MAO = 2, ///< 卯 (mǎo), the second month
+            CHEN = 3, ///< 辰 (chén), the third month
+            SI = 4, ///< 巳 (sì), the fourth month
+            WU = 5, ///< 午 (wǔ), the fifth month
+            WEI = 6, ///< 未 (wèi), the sixth month
+            SHEN = 7, ///< 申 (shēn), the seventh month
+            YOU = 8, ///< 酉 (yǒu), the eighth month
+            XU = 9, ///< 戌 (xū), the ninth month
+            HAI = 10, ///< 亥 (hài), the tenth month
+            ZI = 11, ///< 子 (zǐ), the eleventh month (contains the winter solstice)
+            CHOU = 12, ///< 丑 (chǒu), the twelfth month
+        };
+
+        /**
+         * @enum SolarTerm
+         * @brief The twenty-four solar terms (二十四節氣) of the Chinese calendar.
+         *
+         * Each term is a 15° arc of the sun's apparent ecliptic longitude,
+         * numbered from 立春 (Start of Spring, 315°). The twelve even-numbered
+         * terms are the principal terms (中氣, zhōngqì) that anchor the lunar
+         * months; the odd-numbered ones are the sectional terms (節, jié). A
+         * solar term is a position in the solar year, not a month.
+         */
+        enum class SolarTerm: u8 {
+            LICHUN = 1, ///< 立春 (Lìchūn, Start of Spring), solar longitude 315°
+            YUSHUI = 2, ///< 雨水 (Yǔshuǐ, Rain Water), 330°
+            JINGZHE = 3, ///< 驚蟄 (Jīngzhé, Awakening of Insects), 345°
+            CHUNFEN = 4, ///< 春分 (Chūnfēn, Spring Equinox), 0°
+            QINGMING = 5, ///< 清明 (Qīngmíng, Pure Brightness), 15°
+            GUYU = 6, ///< 穀雨 (Gǔyǔ, Grain Rain), 30°
+            LIXIA = 7, ///< 立夏 (Lìxià, Start of Summer), 45°
+            XIAOMAN = 8, ///< 小滿 (Xiǎomǎn, Grain Full), 60°
+            MANGZHONG = 9, ///< 芒種 (Mángzhòng, Grain in Ear), 75°
+            XIAZHI = 10, ///< 夏至 (Xiàzhì, Summer Solstice), 90°
+            XIAOSHU = 11, ///< 小暑 (Xiǎoshǔ, Minor Heat), 105°
+            DASHU = 12, ///< 大暑 (Dàshǔ, Major Heat), 120°
+            LIQIU = 13, ///< 立秋 (Lìqiū, Start of Autumn), 135°
+            CHUSHU = 14, ///< 處暑 (Chǔshǔ, End of Heat), 150°
+            BAILU = 15, ///< 白露 (Báilù, White Dew), 165°
+            QIUFEN = 16, ///< 秋分 (Qiūfēn, Autumn Equinox), 180°
+            HANLU = 17, ///< 寒露 (Hánlù, Cold Dew), 195°
+            SHUANGJIANG = 18, ///< 霜降 (Shuāngjiàng, Frost Descent), 210°
+            LIDONG = 19, ///< 立冬 (Lìdōng, Start of Winter), 225°
+            XIAOXUE = 20, ///< 小雪 (Xiǎoxuě, Minor Snow), 240°
+            DAXUE = 21, ///< 大雪 (Dàxuě, Major Snow), 255°
+            DONGZHI = 22, ///< 冬至 (Dōngzhì, Winter Solstice), 270°
+            XIAOHAN = 23, ///< 小寒 (Xiǎohán, Minor Cold), 285°
+            DAHAN = 24, ///< 大寒 (Dàhán, Major Cold), 300°
+        };
+
+        using enum EarthlyBranch;
+        using enum SolarTerm;
+
+        /**
+         * @brief Tag selecting the leap (intercalary) variant of a month.
+         *
+         * Constructed via @ref leap_month; passed to
+         * ChineseChronology::of to build a date in a leap month.
+         */
+        struct [[nodiscard]] LeapMonth {
+            EarthlyBranch branch; ///< The branch whose intercalary variant is meant.
+        };
+
+        /**
          * @brief Determine the era for a given proleptic year.
          * @param proleptic_year The proleptic Chinese year.
          * @returns Era::HUANGDI if proleptic_year >= 1, Era::BEFORE_HUANGDI otherwise.
@@ -641,14 +718,13 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Convert a Chinese date to an epoch day count.
-         *
-         * The month is treated as a non-leap month. For leap months, use
-         * the four-parameter overload.
-         *
          * @param proleptic_year The proleptic Chinese year.
          * @param m The month (1–12).
          * @param d The day of the month.
          * @returns Days since 1970-01-01 (Gregorian).
+         *
+         * The month is treated as a non-leap month. For leap months, use
+         * the four-parameter overload.
          */
         [[nodiscard]]
         static constexpr i64 to_epoch_day(i32 proleptic_year, u32 m, u32 d) noexcept {
@@ -656,8 +732,7 @@ export namespace stdx::time::chrono {
         }
 
         /**
-         * @brief Convert a Chinese date to an epoch day count, with
-         *        explicit leap-month flag.
+         * @brief Convert a Chinese date to an epoch day count, with explicit leap-month flag.
          * @param proleptic_year The proleptic Chinese year.
          * @param m The month (1–12).
          * @param d The day of the month.
@@ -668,20 +743,16 @@ export namespace stdx::time::chrono {
          */
         [[nodiscard]]
         static constexpr i64 to_epoch_day(i32 proleptic_year, u32 m, u32 d, bool is_leap_month) noexcept {
-            // The Chinese proleptic year roughly corresponds to the Gregorian year.
             i32 gyear = proleptic_year;
             i32 ny = chinese_new_year(gyear);
 
-            // Month is 1-based; approximate the target new moon.
             i32 new_moon = find_new_moon_near(
                 ny + static_cast<i32>(static_cast<f64>(m - 1) * SYNODIC_MONTH), true
             );
 
-            // Verify this is the correct month by decomposing it.
             DateComponents greg = epoch_day_to_gregorian(static_cast<i64>(new_moon));
             ChineseMonthInfo info = compute_chinese_month_info(new_moon, greg.proleptic_year);
 
-            // If the month number or leap status doesn't match, step one moon forward.
             if (static_cast<i32>(m) - 1 != info.month || is_leap_month != info.is_leap_month) {
                 new_moon = find_new_moon_near(new_moon + SYNODIC_GAP, true);
             }
@@ -691,7 +762,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Convert an epoch day count to full Chinese date components,
-         *        including sexagenary cycle and leap-month information.
+         * including sexagenary cycle and leap-month information.
          * @param e Days since 1970-01-01 (Gregorian).
          * @returns Full decomposed Chinese date.
          *
@@ -699,21 +770,16 @@ export namespace stdx::time::chrono {
          */
         [[nodiscard]]
         static constexpr ChineseDateComponents from_epoch_day_full(i64 e) noexcept {
-            i32 days = static_cast<i32>(e); // local_days == epoch_day for integers
+            i32 days = static_cast<i32>(e);
 
             DateComponents greg = epoch_day_to_gregorian(e);
             i32 gyear = greg.proleptic_year;
 
             ChineseMonthInfo info = compute_chinese_month_info(days, gyear);
 
-            // Extended year and cycle year are based on the epoch year.
             i32 extended_year = gyear - CHINESE_EPOCH_YEAR;
             i32 cycle_year = gyear - CYCLE_EPOCH_YEAR;
 
-            // The Chinese year increments at Chinese New Year, which falls
-            // in Gregorian January or February. For months before month 10
-            // (0-based), or any date from Gregorian July onwards, we are in
-            // the "next" Chinese year relative to the raw Gregorian year.
             if (info.month < 10 || greg.month >= 7) {
                 ++extended_year;
                 ++cycle_year;
@@ -721,7 +787,6 @@ export namespace stdx::time::chrono {
 
             i32 day_of_month = days - info.this_moon + 1;
 
-            // 60-year cycle: cycle_year 1 = year 1 of cycle 1.
             i32 yoc_minus_1 = (cycle_year - 1) % 60;
             if (yoc_minus_1 < 0) {
                 yoc_minus_1 += 60;
@@ -733,7 +798,7 @@ export namespace stdx::time::chrono {
                 .proleptic_year = extended_year,
                 .cycle = cycle,
                 .year_of_cycle = year_of_cycle,
-                .month = static_cast<u32>(info.month + 1), // 1-based
+                .month = static_cast<u32>(info.month + 1),
                 .day = static_cast<u32>(day_of_month),
                 .is_leap_month = info.is_leap_month,
             };
@@ -741,13 +806,12 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Convert an epoch day count to basic date components.
+         * @param e Days since 1970-01-01 (Gregorian).
+         * @returns Decomposed date components (proleptic_year, month, day).
          *
          * Returns a @ref DateComponents with month (1–12) and day, but no
          * leap-month information. For full decomposition use @ref
          * from_epoch_day_full.
-         *
-         * @param e Days since 1970-01-01 (Gregorian).
-         * @returns Decomposed date components (proleptic_year, month, day).
          */
         [[nodiscard]]
         static constexpr DateComponents from_epoch_day(i64 e) noexcept {
@@ -875,6 +939,38 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<ChineseChronology> of(i32 y, u32 m, u32 d) noexcept;
 
         /**
+         * @brief Create a date from a year, a branch-named month, and a day.
+         * @param y The proleptic Chinese year.
+         * @param m The month, named by its Earthly Branch (月建).
+         * @param d The day of the month.
+         * @returns The date in this chronology (an ordinary, non-leap month).
+         */
+        [[nodiscard]]
+        static constexpr ChronoLocalDate<ChineseChronology> of(i32 y, EarthlyBranch m, u32 d) noexcept;
+
+        /**
+         * @brief Create a date in an intercalary (leap) month.
+         * @param y The proleptic Chinese year.
+         * @param m A leap-month tag, e.g. leap_month(EarthlyBranch::YIN).
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         */
+        [[nodiscard]]
+        static constexpr ChronoLocalDate<ChineseChronology> of(i32 y, LeapMonth m, u32 d) noexcept;
+
+        /**
+         * @brief The solar term (节气) in effect on a date.
+         * @param date A date in this chronology.
+         * @returns The solar term the sun's longitude falls in on that day.
+         *
+         * A solar term is a position in the solar year, not a month. Because
+         * solar terms are calendar-independent, any date's epoch day yields
+         * the same answer.
+         */
+        [[nodiscard]]
+        static constexpr SolarTerm solar_term_of(const ChronoLocalDate<ChineseChronology>& date) noexcept;
+
+        /**
          * @brief Create a date from typed year, month, and day.
          * @param y The proleptic Chinese year.
          * @param m The month (1–12, non-leap).
@@ -914,8 +1010,35 @@ export namespace stdx::time::chrono {
     using ChineseDate = ChronoLocalDate<ChineseChronology>;
     using ChineseEra = ChineseChronology::Era;
 
+    /**
+     * @brief Tag an Earthly Branch as the leap (intercalary) month for ChineseChronology::of.
+     * @param branch The branch whose leap variant is wanted.
+     * @returns A tag usable as the month argument of ChineseChronology::of.
+     */
+    [[nodiscard]]
+    constexpr ChineseChronology::LeapMonth leap_month(ChineseChronology::EarthlyBranch branch) noexcept {
+        return {branch};
+    }
+
     constexpr ChineseDate ChineseChronology::of(i32 y, u32 m, u32 d) noexcept {
         return ChineseDate(y, m, d);
+    }
+
+    constexpr ChineseDate ChineseChronology::of(i32 y, EarthlyBranch m, u32 d) noexcept {
+        return of(y, Ops::to_underlying(m), d);
+    }
+
+    constexpr ChineseDate ChineseChronology::of(i32 y, ChineseChronology::LeapMonth m, u32 d) noexcept {
+        return date_epoch_day(to_epoch_day(y, Ops::to_underlying(m.branch), d, true));
+    }
+
+    constexpr ChineseChronology::SolarTerm ChineseChronology::solar_term_of(const ChineseDate& date) noexcept {
+        f64 lon = solar_longitude_deg(local_days_to_jd(static_cast<i32>(date.to_epoch_day())));
+        f64 rel = lon - 315.0;
+        if (rel < 0.0) {
+            rel += 360.0;
+        }
+        return static_cast<SolarTerm>(static_cast<i32>(Math::floor(rel / 15.0)) + 1);
     }
 
     constexpr ChineseDate ChineseChronology::of(Year y, Month m, Day d) noexcept {

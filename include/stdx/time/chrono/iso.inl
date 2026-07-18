@@ -24,6 +24,8 @@ export namespace stdx::time::chrono {
             CE = 1, ///< Common Era (proleptic years >= 1)
         };
 
+        using enum GregorianMonth;
+
         /**
          * @brief Returns the chronology identifier.
          * @returns "ISO"
@@ -93,9 +95,18 @@ export namespace stdx::time::chrono {
          * @param m The month (1-12).
          * @param d The day of the month.
          * @returns The number of days since 1970-01-01.
+         * @throws DateTimeException if @p m is not in [1, 12] or @p d is not a
+         * valid day of that month.
          */
         [[nodiscard]]
-        static constexpr i64 to_epoch_day(i32 y, u32 m, u32 d) noexcept {
+        THROWS(DateTimeException)
+        static constexpr i64 to_epoch_day(i32 y, u32 m, u32 d) {
+            if (m < 1 || m > 12) {
+                throw DateTimeException("ISO month out of range [1, 12]");
+            }
+            if (d < 1 || d > days_in_month(y, m)) {
+                throw DateTimeException("ISO day out of range for the month");
+            }
             return gregorian_to_epoch_day(y, m, d);
         }
 
@@ -134,9 +145,14 @@ export namespace stdx::time::chrono {
          * @param era The calendar era.
          * @param year_of_era The year within the era.
          * @returns The proleptic year.
+         * @throws DateTimeException if @p year_of_era is less than 1.
          */
         [[nodiscard]]
-        static constexpr i32 proleptic_year(Era era, i32 year_of_era) noexcept {
+        THROWS(DateTimeException)
+        static constexpr i32 proleptic_year(Era era, i32 year_of_era) {
+            if (year_of_era < 1) {
+                throw DateTimeException("ISO year-of-era must be at least 1");
+            }
             return era == Era::CE ? year_of_era : 1 - year_of_era;
         }
 
@@ -164,7 +180,8 @@ export namespace stdx::time::chrono {
         }
 
         [[nodiscard]]
-        static constexpr i64 to_epoch_day(Year y, Month m, Day d) noexcept {
+        THROWS(DateTimeException)
+        static constexpr i64 to_epoch_day(Year y, Month m, Day d) {
             return to_epoch_day(
                 static_cast<i32>(y),
                 static_cast<u32>(m),
@@ -183,7 +200,8 @@ export namespace stdx::time::chrono {
         }
 
         [[nodiscard]]
-        static constexpr i32 proleptic_year(Era era, Year year_of_era) noexcept {
+        THROWS(DateTimeException)
+        static constexpr i32 proleptic_year(Era era, Year year_of_era) {
             return proleptic_year(era, static_cast<i32>(year_of_era));
         }
 
@@ -323,9 +341,23 @@ export namespace stdx::time::chrono {
          * @param m The month (1-12).
          * @param d The day of the month.
          * @returns The date in this chronology.
+         * @throws DateTimeException if @p m or @p d is out of range.
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<IsoChronology> of(i32 y, u32 m, u32 d) noexcept;
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<IsoChronology> of(i32 y, u32 m, u32 d);
+
+        /**
+         * @brief Create a date from a named Gregorian month.
+         * @param y The proleptic year.
+         * @param m The month.
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         * @throws DateTimeException if @p d is out of range for the month.
+         */
+        [[nodiscard]]
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<IsoChronology> of(i32 y, GregorianMonth m, u32 d);
 
         /**
          * @brief Create a date from typed year, month, and day.
@@ -333,9 +365,11 @@ export namespace stdx::time::chrono {
          * @param m The month.
          * @param d The day of the month.
          * @returns The date in this chronology.
+         * @throws DateTimeException if @p m or @p d is out of range.
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<IsoChronology> of(Year y, Month m, Day d) noexcept;
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<IsoChronology> of(Year y, Month m, Day d);
 
         /**
          * @brief Create a date from era, year-of-era, month, and day.
@@ -344,9 +378,12 @@ export namespace stdx::time::chrono {
          * @param m The month (1-12).
          * @param d The day of the month.
          * @returns The date in this chronology.
+         * @throws DateTimeException if @p year_of_era is less than 1, or if
+         * @p m or @p d is out of range.
          */
         [[nodiscard]]
-        static constexpr ChronoLocalDate<IsoChronology> of(Era era, i32 year_of_era, u32 m, u32 d) noexcept;
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<IsoChronology> of(Era era, i32 year_of_era, u32 m, u32 d);
 
         /**
          * @brief Create a date from an epoch day count.
@@ -367,15 +404,19 @@ export namespace stdx::time::chrono {
     using IsoDate = ChronoLocalDate<IsoChronology>;
     using IsoEra = IsoChronology::Era;
 
-    constexpr IsoDate IsoChronology::of(i32 y, u32 m, u32 d) noexcept {
+    constexpr IsoDate IsoChronology::of(i32 y, u32 m, u32 d) {
         return IsoDate(y, m, d);
     }
 
-    constexpr IsoDate IsoChronology::of(Year y, Month m, Day d) noexcept {
+    constexpr IsoDate IsoChronology::of(i32 y, GregorianMonth m, u32 d) {
+        return of(y, Ops::to_underlying(m), d);
+    }
+
+    constexpr IsoDate IsoChronology::of(Year y, Month m, Day d) {
         return IsoDate(y, m, d);
     }
 
-    constexpr IsoDate IsoChronology::of(IsoChronology::Era era, i32 yoe, u32 m, u32 d) noexcept {
+    constexpr IsoDate IsoChronology::of(IsoChronology::Era era, i32 yoe, u32 m, u32 d) {
         return IsoDate(proleptic_year(era, yoe), m, d);
     }
 

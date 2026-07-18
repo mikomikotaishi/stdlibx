@@ -2,12 +2,12 @@ import stdx;
 
 using stdx::collections::Vector;
 using stdx::fs::Path;
-using stdx::process::Child;
-using stdx::process::Command;
-using stdx::process::ExitStatus;
-using stdx::process::Output;
-using stdx::process::Stdio;
+using stdx::sys::ExitStatus;
+using stdx::sys::Output;
 using stdx::sys::Signal;
+using stdx::sys::Stdio;
+using stdx::sys::Process;
+using stdx::thread::Thread;
 
 using namespace stdx::os;
 using namespace stdx::test;
@@ -17,7 +17,7 @@ using namespace stdx::core;
 #endif
 
 void test_echo() {
-    Expected<Output, ErrorCode> result = Command::from("echo")
+    Expected<Output, ErrorCode> result = Process::Builder("echo")
         .arg("hello world")
         .stdout(Stdio::PIPED)
         .output();
@@ -33,17 +33,17 @@ void test_echo() {
 }
 
 void test_true_false() {
-    Expected<ExitStatus, ErrorCode> t = Command::from("true").status();
+    Expected<ExitStatus, ErrorCode> t = Process::Builder("true").status();
     expect(t.has_value(), "true: spawned successfully");
     expect(t.has_value() && t->success(), "true: exit code 0");
 
-    Expected<ExitStatus, ErrorCode> f = Command::from("false").status();
+    Expected<ExitStatus, ErrorCode> f = Process::Builder("false").status();
     expect(f.has_value(), "false: spawned successfully");
     expect(f.has_value() && !f->success(), "false: exit code non-zero");
 }
 
 void test_cat_stdin_pipe() {
-    Expected<Child, ErrorCode> child_result = Command::from("cat")
+    Expected<Process, ErrorCode> child_result = Process::Builder("cat")
         .stdin(Stdio::PIPED)
         .stdout(Stdio::PIPED)
         .spawn();
@@ -53,7 +53,7 @@ void test_cat_stdin_pipe() {
         return;
     }
 
-    Child& child = *child_result;
+    Process& child = *child_result;
     expect(child.has_stdin(), "cat pipe: has stdin");
     expect(child.has_stdout(), "cat pipe: has stdout");
 
@@ -74,7 +74,7 @@ void test_cat_stdin_pipe() {
 }
 
 void test_null_dev() {
-    Expected<Child, ErrorCode> child_result = Command::from("echo")
+    Expected<Process, ErrorCode> child_result = Process::Builder("echo")
         .arg("should be discarded")
         .stdin(Stdio::NULL_DEV)
         .stdout(Stdio::NULL_DEV)
@@ -92,7 +92,7 @@ void test_null_dev() {
 }
 
 void test_current_dir() {
-    Expected<Output, ErrorCode> result = Command::from("pwd")
+    Expected<Output, ErrorCode> result = Process::Builder("pwd")
         .stdout(Stdio::PIPED)
         .current_dir("/tmp"_path)
         .output();
@@ -108,7 +108,7 @@ void test_current_dir() {
 }
 
 void test_env() {
-    Expected<Output, ErrorCode> result = Command::from("env")
+    Expected<Output, ErrorCode> result = Process::Builder("env")
         .env("MY_TEST_VAR", "test_value_12345")
         .stdout(Stdio::PIPED)
         .output();
@@ -127,7 +127,7 @@ void test_env() {
 }
 
 void test_multiple_args() {
-    Expected<Output, ErrorCode> result = Command::from("printf")
+    Expected<Output, ErrorCode> result = Process::Builder("printf")
         .arg("%s-%s-%s")
         .arg("a")
         .arg("b")
@@ -147,7 +147,7 @@ void test_multiple_args() {
 
 void test_args_range() {
     Vector<String> flags = {"-l", "-a", "-h"};
-    Expected<Output, ErrorCode> result = Command::from("ls")
+    Expected<Output, ErrorCode> result = Process::Builder("ls")
         .args(flags)
         .stdout(Stdio::PIPED)
         .stderr(Stdio::PIPED)
@@ -163,7 +163,7 @@ void test_args_range() {
 }
 
 void test_try_wait() {
-    Expected<Child, ErrorCode> child_result = Command::from("sleep")
+    Expected<Process, ErrorCode> child_result = Process::Builder("sleep")
         .arg("10")
         .spawn();
 
@@ -172,7 +172,7 @@ void test_try_wait() {
         return;
     }
 
-    Child& child = *child_result;
+    Process& child = *child_result;
     Expected<Optional<ExitStatus>, ErrorCode> poll = child.try_wait();
     expect(poll.has_value(), "try_wait: poll succeeded");
     expect(poll.has_value() && !poll->has_value(), "try_wait: not finished yet");
@@ -185,13 +185,13 @@ void test_try_wait() {
 }
 
 void test_exit_status() {
-    Expected<ExitStatus, ErrorCode> success = Command::from("true").status();
+    Expected<ExitStatus, ErrorCode> success = Process::Builder("true").status();
     expect(
         success.has_value() && success->code().has_value() && *success->code() == 0,
         "exit status: true code() == 0"
     );
 
-    Expected<ExitStatus, ErrorCode> failure = Command::from("sh")
+    Expected<ExitStatus, ErrorCode> failure = Process::Builder("sh")
         .arg("-c")
         .arg("exit 42")
         .status();
@@ -202,7 +202,7 @@ void test_exit_status() {
 }
 
 void test_stderr_capture() {
-    Expected<Output, ErrorCode> result = Command::from("sh")
+    Expected<Output, ErrorCode> result = Process::Builder("sh")
         .arg("-c")
         .arg("echo error_output >&2")
         .stderr(Stdio::PIPED)
@@ -222,7 +222,7 @@ void test_stderr_capture() {
 }
 
 void test_large_output() {
-    Expected<Output, ErrorCode> result = Command::from("sh")
+    Expected<Output, ErrorCode> result = Process::Builder("sh")
         .arg("-c")
         .arg("seq 1 10000")
         .stdout(Stdio::PIPED)
@@ -241,7 +241,7 @@ void test_large_output() {
 }
 
 void test_python_basic() {
-    Expected<Output, ErrorCode> result = Command::from("python3")
+    Expected<Output, ErrorCode> result = Process::Builder("python3")
         .arg("tests/scripts/hello.py")
         .stdout(Stdio::PIPED)
         .output();
@@ -260,7 +260,7 @@ void test_python_basic() {
 }
 
 void test_python_args() {
-    Expected<Output, ErrorCode> result = Command::from("python3")
+    Expected<Output, ErrorCode> result = Process::Builder("python3")
         .arg("tests/scripts/hello.py")
         .arg("foo")
         .arg("bar")
@@ -285,7 +285,7 @@ void test_python_args() {
 }
 
 void test_python_stderr() {
-    Expected<Output, ErrorCode> result = Command::from("python3")
+    Expected<Output, ErrorCode> result = Process::Builder("python3")
         .arg("tests/scripts/hello.py")
         .arg("--stderr")
         .stdout(Stdio::PIPED)
@@ -306,7 +306,7 @@ void test_python_stderr() {
 }
 
 void test_python_exit_code() {
-    Expected<ExitStatus, ErrorCode> result = Command::from("python3")
+    Expected<ExitStatus, ErrorCode> result = Process::Builder("python3")
         .arg("tests/scripts/hello.py")
         .arg("--exit-code")
         .arg("7")
@@ -323,7 +323,7 @@ void test_python_exit_code() {
 }
 
 void test_python_env() {
-    Expected<Output, ErrorCode> result = Command::from("python3")
+    Expected<Output, ErrorCode> result = Process::Builder("python3")
         .arg("-c")
         .arg("import os; print(os.environ.get('STDLIBX_TEST', 'missing'))")
         .env("STDLIBX_TEST", "present")
@@ -371,7 +371,7 @@ void test_terminate_on_parent_exit() {
 
     if (spawner == 0) {
         unix::close(fds[0]);
-        Expected<Child, ErrorCode> sleeper = Command::from("sleep")
+        Expected<Process, ErrorCode> sleeper = Process::Builder("sleep")
             .arg("60")
             .stdin(Stdio::NULL_DEV)
             .stdout(Stdio::NULL_DEV)
@@ -381,7 +381,7 @@ void test_terminate_on_parent_exit() {
         u32 sleeper_pid = sleeper.has_value() ? sleeper->id() : 0u;
         unix::write(fds[1], &sleeper_pid, sizeof(sleeper_pid));
         unix::close(fds[1]);
-        // Deliberately leak the Child (no wait) and die; PDEATHSIG must reap it.
+        // Deliberately leak the Process (no wait) and die; PDEATHSIG must reap it.
         unix::_exit(0);
     }
 
@@ -409,7 +409,7 @@ void test_terminate_on_parent_exit() {
             dead = true;
             break;
         }
-        System::Thread::sleep_for(stdx::time::Milliseconds{20});
+        Thread::sleep_for(20ms);
     }
     if (!dead) {
         // Don't leak the survivor if the assertion is about to fail.

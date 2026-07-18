@@ -15,10 +15,10 @@ using stdx::audio::midi::Transmitter;
 using stdx::collections::Vector;
 using stdx::fs::Path;
 using stdx::mem::UniquePointer;
-using stdx::process::Child;
-using stdx::process::Command;
-using stdx::process::ExitStatus;
-using stdx::process::Stdio;
+using stdx::sys::ExitStatus;
+using stdx::sys::Stdio;
+using stdx::sys::Process;
+using stdx::thread::Thread;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
@@ -105,8 +105,8 @@ Optional<Path> find_soundfont() noexcept {
 // On Linux, MIDI without an external synth produces no sound - the kernel and
 // ALSA only move bytes, they don't synthesize audio. If the user has fluidsynth
 // installed but no synth is currently serving an ALSA-seq port, spawn one for
-// the duration of the test. Returns the Child handle so main() can reap it.
-Optional<Child> maybe_spawn_fluidsynth() {
+// the duration of the test. Returns the Process handle so main() can reap it.
+Optional<Process> maybe_spawn_fluidsynth() {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
@@ -129,7 +129,7 @@ Optional<Child> maybe_spawn_fluidsynth() {
 
     System::out.println("Auto-launching fluidsynth with {}", sf2.value());
 
-    Expected<Child, ErrorCode> child = Command::from("fluidsynth")
+    Expected<Process, ErrorCode> child = Process::Builder("fluidsynth")
         .arg("-s")
         .arg("-i")
         .arg("-q")
@@ -150,8 +150,8 @@ Optional<Child> maybe_spawn_fluidsynth() {
     }
 
     // Give the synth time to register its ALSA-seq port before we re-enumerate.
-    System::Thread::sleep_for(1500ms);
-    return Optional<Child>{Ops::move(*child)};
+    Thread::sleep_for(1500ms);
+    return Optional<Process>{Ops::move(*child)};
 }
 
 void play_arpeggio(const String& requested_id) {
@@ -227,11 +227,11 @@ void play_arpeggio(const String& requested_id) {
             ShortMessage on{Status::NOTE_ON, CHANNEL, note, VELOCITY};
             rx->send(on, 0);
             System::out.println("  NoteOn  ch={} note={} vel={}", CHANNEL, note, VELOCITY);
-            System::Thread::sleep_for(200ms);
+            Thread::sleep_for(200ms);
 
             ShortMessage off{Status::NOTE_OFF, CHANNEL, note, 0};
             rx->send(off, 0);
-            System::Thread::sleep_for(50ms);
+            Thread::sleep_for(50ms);
         }
 
         device->close();
@@ -317,7 +317,7 @@ void play_smf(const String& file_path, const String& requested_id) {
         // Poll until the worker reports it's done. The sequencer self-stops
         // when it walks past the last event.
         while (sequencer.is_running()) {
-            System::Thread::sleep_for(50ms);
+            Thread::sleep_for(50ms);
         }
         sequencer.stop();
         tx->set_receiver(nullptr);
@@ -356,7 +356,7 @@ int main(int argc, char* argv[]) {
     const String device_arg = parser.get("--device");
     const String file_arg = parser.get("--file");
     const bool wants_to_play = !file_arg.empty() || parser.get<bool>("--play");
-    Optional<Child> auto_synth;
+    Optional<Process> auto_synth;
     if (wants_to_play && device_arg.empty()) {
         auto_synth = maybe_spawn_fluidsynth();
     }
@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Reap the synth we spawned. kill() sends SIGTERM; wait() reaps the zombie.
-    // Dropping a Child without wait() per the API contract leaves the process
+    // Dropping a Process without wait() per the API contract leaves the process
     // unreaped, so this is required even if kill() reports an error.
     if (auto_synth.has_value()) {
         if (Expected<void, ErrorCode> kill_result = auto_synth->kill(); kill_result.error()) {

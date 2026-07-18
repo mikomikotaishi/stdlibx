@@ -3,6 +3,12 @@
 using stdx::collections::HashMap;
 using stdx::fmt::FormatContext;
 using stdx::fmt::Formatter;
+using stdx::time::Duration;
+using stdx::time::Instant;
+
+#ifdef STDLIBX_EXECUTION_AVAILABLE
+using stdx::exec::SyncWait;
+#endif
 
 /**
  * @namespace stdx::core
@@ -11,7 +17,7 @@ using stdx::fmt::Formatter;
 export namespace stdx::core {
     /**
      * @class Environment
-     * @brief Cross-platform access to the process's environment variables.
+     * @brief Cross-platform access to the process's environment information.
      */
     class Environment final {
     public:
@@ -74,6 +80,18 @@ export namespace stdx::core {
         static i32 exec(StringView command) noexcept {
             return std::system(command.data());
         }
+
+        #ifdef STDLIBX_EXECUTION_AVAILABLE
+        [[nodiscard]]
+        static auto sync_wait(Sender auto sender) {
+            return SyncWait(Ops::move(sender));
+        }
+
+        [[nodiscard]]
+        static auto sync_wait_with_variant(Sender auto sender) {
+            return SyncWaitWithVariant(Ops::move(sender));
+        }
+        #endif
 
         [[nodiscard]]
         static OperatingSystem operating_system() noexcept {

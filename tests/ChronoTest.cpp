@@ -65,6 +65,44 @@ void test_iso_chronology() {
 
     IsoDate bce_roundtrip = IsoChronology::date_epoch_day(bce_via_era.to_epoch_day());
     expect_eq(bce_roundtrip, bce_via_era, "BCE date round-trips through epoch day");
+
+    // ISO is proleptic: year 0 and negative proleptic years are valid.
+    expect(IsoChronology::of(0, 1, 1).year() == 0, "proleptic year 0 is a valid ISO date");
+    expect(IsoChronology::of(-1, 6, 15).year() == -1, "negative proleptic year is a valid ISO date");
+
+    // Era-based construction reckons year-of-era from 1; there is no year 0.
+    expect_throws<DateTimeException>(
+        [] -> void { (void)IsoChronology::of(IsoEra::BCE, 0, 1, 1); }, "BCE year-of-era 0 is rejected"
+    );
+    expect_throws<DateTimeException>(
+        [] -> void { (void)IsoChronology::of(IsoEra::CE, 0, 1, 1); }, "CE year-of-era 0 is rejected"
+    );
+    expect_throws<DateTimeException>(
+        [] -> void { (void)IsoChronology::of(IsoEra::BCE, -5, 1, 1); }, "negative year-of-era is rejected"
+    );
+
+    // Out-of-range months and days are rejected regardless of the year.
+    expect_throws<DateTimeException>(
+        [] -> void { (void)IsoChronology::of(2024, 0, 1); }, "month 0 is rejected"
+    );
+    expect_throws<DateTimeException>(
+        [] -> void { (void)IsoChronology::of(2024, 13, 1); }, "month 13 is rejected"
+    );
+    expect_throws<DateTimeException>(
+        [] -> void { (void)IsoChronology::of(2024, 1, 0); }, "day 0 is rejected"
+    );
+    expect_throws<DateTimeException>(
+        [] -> void { (void)IsoChronology::of(2023, 2, 29); }, "2023-02-29 is rejected (2023 is not a leap year)"
+    );
+    expect_throws<DateTimeException>(
+        [] -> void { (void)IsoChronology::of(2024, 4, 31); }, "April 31 is rejected (April has 30 days)"
+    );
+    // The leap-day boundary the rejection above hinges on is still accepted.
+    expect(IsoChronology::of(2024, 2, 29).day() == 29, "2024-02-29 is accepted (2024 is a leap year)");
+
+    // Named Gregorian months construct the same date as their 1-based index.
+    expect_eq(IsoChronology::of(2024, IsoChronology::MARCH, 15), IsoChronology::of(2024, 3, 15), "IsoChronology::MARCH == month 3");
+    expect(static_cast<u32>(IsoChronology::DECEMBER) == 12, "IsoChronology::DECEMBER is the shared GregorianMonth value 12");
 }
 
 void test_julian_chronology() {
@@ -83,6 +121,8 @@ void test_julian_chronology() {
     JulianDate caesar_calendar = JulianChronology::of(JulianEra::BC, 45, 1, 1);
     expect(caesar_calendar.to_epoch_day() < ides.to_epoch_day(), "BC 45 precedes BC 44");
     expect(ides.to_iso().to_epoch_day() == ides.to_epoch_day(), "Julian BC date->ISO preserves the day");
+
+    expect_eq(JulianChronology::of(1900, JulianChronology::FEBRUARY, 29), JulianChronology::of(1900, 2, 29), "JulianChronology::FEBRUARY == month 2");
 }
 
 void test_hijrah_chronology() {
@@ -99,6 +139,8 @@ void test_hijrah_chronology() {
     expect_throws<DateTimeException>(
         [] -> void { (void)HijrahChronology::of(0, 1, 1); }, "Hijrah year 0 is rejected"
     );
+
+    expect_eq(HijrahChronology::of(1445, HijrahChronology::RAMADAN, 1), HijrahChronology::of(1445, 9, 1), "HijrahChronology::RAMADAN == month 9");
 }
 
 void test_japanese_chronology() {
@@ -123,6 +165,10 @@ void test_japanese_chronology() {
             [&] -> void { (void)JapaneseChronology::of(c.era, c.yoe, c.m, c.d); }, c.label
         );
     }
+
+    // Traditional wafū month names map 1:1 onto the Gregorian months.
+    expect_eq(JapaneseChronology::of(2019, JapaneseChronology::SHIWASU, 25), JapaneseChronology::of(2019, 12, 25), "JapaneseChronology::SHIWASU == December");
+    expect(static_cast<u32>(JapaneseChronology::MUTSUKI) == 1, "JapaneseChronology::MUTSUKI is January (month 1)");
 }
 
 void test_hebrew_chronology() {
@@ -146,6 +192,23 @@ void test_hebrew_chronology() {
     expect_throws<DateTimeException>(
         [] -> void { (void)HebrewChronology::of(0, 1, 1); }, "Hebrew year 0 is rejected"
     );
+
+    // Named Hebrew months resolve to a civil index that shifts with the leap
+    // year: Nisan is month 7 in a common year but month 8 in a leap year.
+    expect_eq(HebrewChronology::of(5785, HebrewChronology::NISAN, 1), HebrewChronology::of(5785, 7, 1), "Nisan is month 7 in common year 5785");
+    expect_eq(HebrewChronology::of(5784, HebrewChronology::NISAN, 1), HebrewChronology::of(5784, 8, 1), "Nisan is month 8 in leap year 5784");
+    expect_eq(HebrewChronology::of(5784, HebrewChronology::ADAR_I, 1), HebrewChronology::of(5784, 6, 1), "Adar I is month 6 in leap year 5784");
+    expect_eq(HebrewChronology::of(5784, HebrewChronology::ADAR_II, 1), HebrewChronology::of(5784, 7, 1), "Adar II is month 7 in leap year 5784");
+    expect_eq(HebrewChronology::of(5785, HebrewChronology::ADAR, 1), HebrewChronology::of(5785, 6, 1), "Adar is month 6 in common year 5785");
+    expect_throws<DateTimeException>(
+        [] -> void { (void)HebrewChronology::of(5784, HebrewChronology::ADAR, 1); }, "bare Adar is rejected in leap year 5784 (ambiguous)"
+    );
+    expect_throws<DateTimeException>(
+        [] -> void { (void)HebrewChronology::of(5785, HebrewChronology::ADAR_II, 1); }, "Adar II is rejected in common year 5785"
+    );
+    expect_throws<DateTimeException>(
+        [] -> void { (void)HebrewChronology::of(5785, HebrewChronology::ADAR_I, 1); }, "Adar I is rejected in common year 5785"
+    );
 }
 
 void test_minguo_chronology() {
@@ -157,6 +220,8 @@ void test_minguo_chronology() {
 
     MinguoDate xinhai = MinguoChronology::of(MinguoEra::BEFORE_ROC, 1, 10, 10);
     expect_eq(xinhai.to_iso(), IsoChronology::of(1911, 10, 10), "BEFORE_ROC year 1-10-10 is 1911-10-10 (Xinhai Revolution)");
+
+    expect_eq(MinguoChronology::of(1, MinguoChronology::JANUARY, 1), MinguoChronology::of(1, 1, 1), "MinguoChronology::JANUARY == month 1");
 }
 
 void test_thai_buddhist_chronology() {
@@ -165,6 +230,8 @@ void test_thai_buddhist_chronology() {
 
     ThaiBuddhistDate be2500 = ThaiBuddhistChronology::of(ThaiBuddhistEra::BE, 2500, 1, 1);
     expect_eq(be2500.to_iso(), IsoChronology::of(1957, 1, 1), "BE 2500 is 1957 CE (BE = CE + 543)");
+
+    expect_eq(ThaiBuddhistChronology::of(2500, ThaiBuddhistChronology::APRIL, 13), ThaiBuddhistChronology::of(2500, 4, 13), "ThaiBuddhistChronology::APRIL == month 4");
 }
 
 void test_chinese_chronology() {
@@ -184,6 +251,28 @@ void test_chinese_chronology() {
     expect(!ChineseChronology::is_leap_year(2024), "Chinese year 2024 is not a leap year");
     expect_eq(static_cast<i32>(ChineseChronology::months_in_year(2023)), 13, "leap year 2023 has 13 months");
     expect_eq(static_cast<i32>(ChineseChronology::months_in_year(2024)), 12, "common year 2024 has 12 months");
+
+    // Earthly-branch month names: YIN (寅) is the first month of the year.
+    expect_eq(ChineseChronology::of(2024, ChineseChronology::YIN, 1), ChineseChronology::of(2024, 1, 1), "ChineseChronology::YIN is the first month");
+
+    // Leap-month construction: 2023 has a leap 2nd month (閏二月); leap_month
+    // builds it, and only the leap-month path can.
+    ChineseDate leap_second = ChineseChronology::of(2023, leap_month(ChineseChronology::MAO), 1);
+    ChineseDateComponents lc = ChineseChronology::from_epoch_day_full(leap_second.to_epoch_day());
+    expect(lc.month == 2 && lc.is_leap_month, "leap_month(MAO) builds the leap 2nd month of 2023");
+
+    // Solar-term query: late December falls in the winter-solstice term, and
+    // mid-April in Qingming - a sectional term only the full 24 include.
+    ChineseDate around_solstice = IsoChronology::of(2024, 12, 25).to_chronology<ChineseChronology>();
+    expect(
+        ChineseChronology::solar_term_of(around_solstice) == ChineseChronology::DONGZHI,
+        "2024-12-25 falls in the Dongzhi (winter solstice) solar term"
+    );
+    ChineseDate qingming = IsoChronology::of(2024, 4, 10).to_chronology<ChineseChronology>();
+    expect(
+        ChineseChronology::solar_term_of(qingming) == ChineseChronology::QINGMING,
+        "2024-04-10 falls in the Qingming solar term"
+    );
 }
 
 void test_cross_chronology_conversions() {

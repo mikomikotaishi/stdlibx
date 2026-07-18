@@ -37,7 +37,7 @@ static_assert(!Bindable<Path>);
 // The live database tests share one connection opened in the suite's before_all
 // hook; each reads it through sql_connection(), which skips the test when no
 // database is reachable.
-static const Path SQL_DBFILE{"/tmp/stdx_sqltest.db"};
+static const Path SQL_DBFILE = "/tmp/stdx_sqltest.db"_path;
 static Optional<Connection> g_connection;
 
 /**

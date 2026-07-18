@@ -19,10 +19,10 @@ using stdx::audio::midi::Transmitter;
 using stdx::collections::Vector;
 using stdx::fs::Path;
 using stdx::mem::UniquePointer;
-using stdx::process::Child;
-using stdx::process::Command;
-using stdx::process::ExitStatus;
-using stdx::process::Stdio;
+using stdx::sys::ExitStatus;
+using stdx::sys::Stdio;
+using stdx::sys::Process;
+using stdx::thread::Thread;
 using stdx::time::Duration;
 using stdx::time::Instant;
 using stdx::time::SteadyClock;
@@ -78,7 +78,7 @@ Optional<Path> find_soundfont() noexcept {
 // See MidiTest.cpp for the rationale - MIDI is just messages; on Linux you
 // need a synthesizer process to turn them into audio. If none is running and
 // a soundfont is installed, fork fluidsynth for the duration of the test.
-Optional<Child> maybe_spawn_fluidsynth() {
+Optional<Process> maybe_spawn_fluidsynth() {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
@@ -102,7 +102,7 @@ Optional<Child> maybe_spawn_fluidsynth() {
 
     System::out.println("Auto-launching fluidsynth with {}", sf2.value());
 
-    Expected<Child, ErrorCode> child = Command::from("fluidsynth")
+    Expected<Process, ErrorCode> child = Process::Builder("fluidsynth")
         .arg("-s")
         .arg("-i")
         .arg("-q")
@@ -123,8 +123,8 @@ Optional<Child> maybe_spawn_fluidsynth() {
         return nullopt;
     }
 
-    System::Thread::sleep_for(1500ms);
-    return Optional<Child>{Ops::move(*child)};
+    Thread::sleep_for(1500ms);
+    return Optional<Process>{Ops::move(*child)};
 }
 
 struct EventCounts {
@@ -302,7 +302,7 @@ void play(const Path& path, i64 max_seconds) {
             if (max_seconds > 0 && elapsed_ticks >= max_seconds * TICKS_PER_SECOND) {
                 break;
             }
-            System::Thread::sleep_for(50ms);
+            Thread::sleep_for(50ms);
         }
         sequencer.stop();
         tx->set_receiver(nullptr);
@@ -357,7 +357,7 @@ int main(int argc, char* argv[]) {
     // Only spawn a synth if the user actually wants playback - pure parsing
     // doesn't need any audio path.
     const bool wants_play = parser.get<bool>("--play");
-    Optional<Child> auto_synth;
+    Optional<Process> auto_synth;
     if (wants_play) {
         auto_synth = maybe_spawn_fluidsynth();
     }

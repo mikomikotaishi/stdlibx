@@ -101,8 +101,8 @@ void test_biginteger_arithmetic() {
         "1 << 100"
     );
 
-    const BigInteger a("123456789012345678901234567890123456789");
-    const BigInteger b("98765432109876543210987654321");
+    const BigInteger a = "123456789012345678901234567890123456789"_bi;
+    const BigInteger b = "98765432109876543210987654321"_bi;
     const BigInteger product = a * b;
     expect(product / b == a, "product divided by factor");
     expect(product % b == BigInteger::ZERO, "product remainder is zero");
@@ -251,8 +251,10 @@ void test_biginteger_conversions() {
     expect_eq(stdx::fmt::format("{}", BigInteger("-12345678901234567890")), "-12345678901234567890", "formatter");
 
     expect(BigInteger(42) == BigInteger("42"), "operator== across constructors");
-    expect(Hash<BigInteger>()(BigInteger("12345678901234567890"))
-        == Hash<BigInteger>()(BigInteger("12345678901234567890")), "hash consistency");
+    expect(
+        Hash<BigInteger>()("12345678901234567890"_bi ) == Hash<BigInteger>()("12345678901234567890"_bi),
+        "hash consistency"
+    );
     BigInteger counter(41);
     expect(++counter == BigInteger(42), "pre-increment");
     expect(counter++ == BigInteger(42) && counter == BigInteger(43), "post-increment");

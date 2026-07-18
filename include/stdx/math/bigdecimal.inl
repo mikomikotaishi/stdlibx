@@ -1316,3 +1316,9 @@ struct stdx::core::hash<BigDecimal> : public stdx::core::Hash<BigDecimal> {};
 template <>
 struct stdx::fmt::formatter<BigDecimal> : public stdx::fmt::Formatter<BigDecimal> {};
 
+export namespace stdx::literals::inline math_literals {
+    [[nodiscard]]
+    inline BigDecimal operator""_bd(const char* s, usize len) {
+        return BigDecimal(StringView(s, len));
+    }
+}

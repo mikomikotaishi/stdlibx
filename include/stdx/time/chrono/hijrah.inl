@@ -20,6 +20,26 @@ export namespace stdx::time::chrono {
 
         /**
          * @internal
+         * @enum HijrahMonth
+         * @brief The twelve months of the Islamic (Hijrah) calendar.
+         */
+        enum class HijrahMonth: u8 {
+            MUHARRAM = 1, ///< Muharram, the first month of the year on the Islamic calendar
+            SAFAR = 2, ///< Safar, the second month of the year on the Islamic calendar
+            RABI_AL_AWWAL = 3, ///< Rabi' al-awwal, the third month of the year on the Islamic calendar
+            RABI_AL_THANI = 4, ///< Rabi' al-thani, the fourth month of the year on the Islamic calendar
+            JUMADA_AL_AWWAL = 5, ///< Jumada al-awwal, the fifth month of the year on the Islamic calendar
+            JUMADA_AL_THANI = 6, ///< Jumada al-thani, the sixth month of the year on the Islamic calendar
+            RAJAB = 7, ///< Rajab, the seventh month of the year on the Islamic calendar
+            SHABAN = 8, ///< Sha'ban, the eighth month of the year on the Islamic calendar
+            RAMADAN = 9, ///< Ramadan, the ninth month of the year on the Islamic calendar
+            SHAWWAL = 10, ///< Shawwal, the tenth month of the year on the Islamic calendar
+            DHU_AL_QIDAH = 11, ///< Dhu al-Qi'dah, the eleventh month of the year on the Islamic calendar
+            DHU_AL_HIJJAH = 12, ///< Dhu al-Hijjah, the twelfth month of the year on the Islamic calendar
+        };
+
+        /**
+         * @internal
          * @brief Check if a Hijrah year is a leap year.
          * @param y The proleptic year.
          * @returns true if the year is a leap year, false otherwise.
@@ -121,6 +141,8 @@ export namespace stdx::time::chrono {
         enum class Era: i32 {
             AH = 1, ///< Anno Hegirae (in the year of the Hijrah, proleptic years >= 1)
         };
+
+        using enum HijrahMonth;
 
         /**
          * @brief Returns the chronology identifier.
@@ -347,6 +369,18 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<HijrahChronology> of(i32 y, u32 m, u32 d);
 
         /**
+         * @brief Create a date from a named Islamic month.
+         * @param y The proleptic Hijrah year.
+         * @param m The month.
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         * @throws DateTimeException if y < 1.
+         */
+        [[nodiscard]]
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<HijrahChronology> of(i32 y, HijrahMonth m, u32 d);
+
+        /**
          * @brief Create a date from typed year, month, and day.
          * @param y The proleptic Hijrah year.
          * @param m The month.
@@ -385,6 +419,10 @@ export namespace stdx::time::chrono {
             throw DateTimeException("HijrahChronology does not support dates before year 1 AH");
         }
         return HijrahDate(y, m, d);
+    }
+
+    constexpr HijrahDate HijrahChronology::of(i32 y, HijrahMonth m, u32 d) {
+        return of(y, Ops::to_underlying(m), d);
     }
 
     constexpr HijrahDate HijrahChronology::of(Year y, Month m, Day d) {

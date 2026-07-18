@@ -109,6 +109,26 @@ elseif(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
     message(WARNING "ODBC not found. Skipping SQL extension.")
 endif()
 
+if(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY AND TARGET STDEXEC::stdexec)
+    target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY)
+    target_link_libraries(stdlibx_stdx PUBLIC STDEXEC::stdexec)
+
+    if(STDLIBX_STDEXEC_NEEDS_BACKEND)
+        add_library(stdlibx_stdexec_backend OBJECT
+            ${CMAKE_CURRENT_SOURCE_DIR}/exec_details/exec_parallel_scheduler_backend.cpp)
+        set_target_properties(stdlibx_stdexec_backend PROPERTIES
+            CXX_STANDARD 26
+            CXX_STANDARD_REQUIRED ON
+            CXX_EXTENSIONS OFF
+            CXX_SCAN_FOR_MODULES OFF
+            POSITION_INDEPENDENT_CODE ON)
+        target_link_libraries(stdlibx_stdexec_backend PRIVATE STDEXEC::stdexec)
+        target_sources(stdlibx_stdx PRIVATE $<TARGET_OBJECTS:stdlibx_stdexec_backend>)
+    endif()
+elseif(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY)
+    message(WARNING "stdexec not found. Skipping stdexec extension.")
+endif()
+
 if(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY)
     if(GMP_FOUND)
         target_include_directories(stdlibx_stdx PUBLIC ${GMP_INCLUDE_DIRS})

@@ -441,7 +441,7 @@ export namespace stdx {
         constexpr int SIGALRM = _detail::SigAlrm; ///< Alarm clock.
         constexpr int SIGTERM = _detail::SigTerm; ///< Termination request.
         constexpr int SIGSTKFLT = _detail::SigStkFlt; ///< Stack fault (obsolete).
-        constexpr int SIGCHLD = _detail::SigChld; ///< Child terminated or stopped.
+        constexpr int SIGCHLD = _detail::SigChld; ///< Process terminated or stopped.
         constexpr int SIGCONT = _detail::SigCont; ///< Continue.
         constexpr int SIGSTOP = _detail::SigStop; ///< Stop, unblockable.
         constexpr int SIGTSTP = _detail::SigTstp; ///< Keyboard stop.

@@ -20,6 +20,12 @@ foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
     )
+
+    # Serialize the heavy stdexec-coroutine consumer TU against the exec tests to
+    # dodge the clang-22 concurrent-module-AST-reader crash (see top CMakeLists).
+    if(EXAMPLE_NAME STREQUAL "FlowExample")
+        set_target_properties(${EXAMPLE_NAME} PROPERTIES JOB_POOL_COMPILE stdexec_serial)
+    endif()
     
     # Configure as a C++ module target if the function is available
     if(COMMAND configure_cpp_module_target)
@@ -44,6 +50,7 @@ foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
         STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY
         STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY
         STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY
+        STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY
     )
         if(${${EXT}})
             target_compile_definitions(${EXAMPLE_NAME} PRIVATE ${EXT})

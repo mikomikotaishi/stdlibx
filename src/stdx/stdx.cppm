@@ -10,10 +10,12 @@ module;
 
 export module stdx;
 
+export import :foundation;
 export import :main;
 export import :arch;
 export import :crypto;
 export import :csv;
+export import :exec;
 export import :ffi;
 export import :gsl;
 export import :json;

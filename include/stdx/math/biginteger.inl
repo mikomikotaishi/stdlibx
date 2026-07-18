@@ -1876,3 +1876,10 @@ struct stdx::core::hash<BigInteger> : public stdx::core::Hash<BigInteger> {};
 
 template <>
 struct stdx::fmt::formatter<BigInteger> : public stdx::fmt::Formatter<BigInteger> {};
+
+export namespace stdx::literals::inline math_literals {
+    [[nodiscard]]
+    inline BigInteger operator""_bi(const char* s, usize len) {
+        return BigInteger(StringView(s, len));
+    }
+}

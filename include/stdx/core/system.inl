@@ -17,15 +17,12 @@ using stdx::meta::IsNothrowInvocableValue;
 using stdx::meta::IsNothrowMoveConstructibleValue;
 using stdx::meta::RemoveReferenceType;
 using stdx::meta::TypeIdentityType;
-using stdx::time::Duration;
-using stdx::time::Instant;
 using stdx::time::LocalTime;
 using stdx::time::Milliseconds;
 using stdx::time::Nanoseconds;
 using stdx::time::Seconds;
 using stdx::time::SteadyClock;
 using stdx::time::SystemClock;
-using stdx::thread::ThreadId;
 
 /**
  * @namespace stdx::core
@@ -370,51 +367,5 @@ export namespace stdx::core {
             return "\n"sv;
             #endif
         }
-
-        /**
-         * @class Thread
-         * @brief Utility class for operations on the current thread.
-         */
-        class Thread final {
-        public:
-            Thread() = delete("Thread is a static utility class and cannot be instantiated.");
-
-            /**
-             * @brief The ID of the current thread.
-             * @return ThreadId The thread ID.
-             */
-            static ThreadId id() noexcept {
-                return std::this_thread::get_id();
-            }
-
-            /**
-             * @brief Sleep for the given duration.
-             * @tparam Rep The duration representation type.
-             * @tparam Period The duration period type.
-             * @param duration The duration to sleep for.
-             */
-            template <typename Rep, typename Period>
-            static void sleep_for(const Duration<Rep, Period>& duration) {
-                std::this_thread::sleep_for(duration);
-            }
-
-            /**
-             * @brief Sleep until the given time point. The clock of the time point determines the clock used for sleeping.
-             * @tparam Clock The clock type of the time point.
-             * @tparam Dur The duration type of the time point.
-             * @param time_point The time point to sleep until.
-             */
-            template <typename Clock, typename Dur>
-            static void sleep_until(const Instant<Clock, Dur>& time_point) {
-                std::this_thread::sleep_until(time_point);
-            }
-
-            /**
-             * @brief Yield execution to another thread. Does not guarantee any particular scheduling behavior.
-             */
-            static void yield() noexcept {
-                std::this_thread::yield();
-            }
-        };
     };
 }

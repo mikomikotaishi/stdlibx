@@ -1,4 +1,19 @@
-#pragma once
+/**
+ * @file stdx.foundation.cppm
+ * @module stdx:foundation
+ * @brief Module file for the most foundational operations.
+ *
+ * This file contains exports of the most foundational pieces of the
+ * standard library.
+ */
+
+module;
+
+#include <version>
+
+export module stdx:foundation;
+
+import std;
 
 /**
  * @namespace stdx
@@ -116,11 +131,11 @@ export namespace stdx {
 
         using Void = void;
 
-        using Div = std::div_t;
-        using LongDiv = std::ldiv_t;
-        using LongLongDiv = std::lldiv_t;
-        using IntegerMaxDiv = std::imaxdiv_t;
-        using MaximumAlignment = std::max_align_t;
+        using divres = std::div_t;
+        using ldivres = std::ldiv_t;
+        using lldivres = std::lldiv_t;
+        using imaxdiv = std::imaxdiv_t;
+        using maxalign = std::max_align_t;
 
         template <typename T, usize N>
         using Array = std::array<T, N>;
@@ -392,6 +407,9 @@ export namespace stdx {
 
         template <Range R>
         using RangeDifference = std::ranges::range_difference_t<R>;
+
+        template <Range R>
+        using RangeValue = std::ranges::range_value_t<R>;
     }
 
     /**
