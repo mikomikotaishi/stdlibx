@@ -5,19 +5,13 @@
 import stdx;
 
 #ifdef STDLIBX_EXECUTION_AVAILABLE
-using stdx::exec::SyncWait;
 using stdx::exec::Task;
 using stdx::exec::Just;
 using stdx::exec::WhenAll;
+using stdx::thread::Thread;
 
 using namespace stdx::test;
-#endif
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
-#ifdef STDLIBX_EXECUTION_AVAILABLE
 // A leaf coroutine task: co_return a value.
 Task<i32> answer() {
     co_return 42;
@@ -42,28 +36,28 @@ Task<i32> awaits_sender() {
 }
 
 void test_task_basic() {
-    Optional<Tuple<i32>> result = SyncWait(answer());
+    Optional<Tuple<i32>> result = Thread::sync_wait(answer());
     require(result.has_value(), "sync_wait over a task yields a value");
     auto [v] = *result;
     expect_eq(v, 42, "co_return round-trips through sync_wait");
 }
 
 void test_task_composition() {
-    Optional<Tuple<i32>> result = SyncWait(composed());
+    Optional<Tuple<i32>> result = Thread::sync_wait(composed());
     require(result.has_value(), "composed task completes");
     auto [v] = *result;
     expect_eq(v, 85, "42 + (42 + 1) == 85 via a co_await chain");
 }
 
 void test_task_awaits_sender() {
-    Optional<Tuple<i32>> result = SyncWait(awaits_sender());
+    Optional<Tuple<i32>> result = Thread::sync_wait(awaits_sender());
     require(result.has_value(), "a task awaiting a sender completes");
     auto [v] = *result;
     expect_eq(v, 21, "co_await Just(20) then + 1 == 21");
 }
 
 void test_when_all_senders() {
-    Optional<Tuple<i32, i32>> result = SyncWait(WhenAll(Just(3), Just(4)));
+    Optional<Tuple<i32, i32>> result = Thread::sync_wait(WhenAll(Just(3), Just(4)));
     require(result.has_value(), "when_all completes");
     auto [a, b] = *result;
     expect_eq(a + b, 7, "when_all merged both sender values");

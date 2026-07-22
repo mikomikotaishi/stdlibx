@@ -7,7 +7,10 @@ using stdx::collections::EnumMap;
 using stdx::collections::EnumSet;
 using stdx::collections::Vector;
 using stdx::linq::Query;
+using stdx::mem::Pointers;
+using stdx::mem::UniquePointer;
 using stdx::meta::reflect::AccessContext;
+using stdx::meta::reflect::Base;
 using stdx::meta::reflect::Class;
 using stdx::meta::reflect::CvQualifier;
 using stdx::meta::reflect::Enum;
@@ -16,7 +19,7 @@ using stdx::meta::reflect::Field;
 using stdx::meta::reflect::FunctionSpecifier;
 using stdx::meta::reflect::Info;
 using stdx::meta::reflect::Method;
-using stdx::meta::reflect::ReflectableClass;
+using stdx::meta::reflect::ReflectableAsClass;
 using stdx::meta::reflect::ThrownExceptions;
 using stdx::meta::reflect::Type;
 using stdx::util::ArgumentParser;
@@ -28,13 +31,7 @@ using stdx::util::ShortName;
 namespace reflect = stdx::meta::reflect;
 
 using namespace stdx::test;
-#endif
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
-#ifdef __cpp_impl_reflection
 [[nodiscard]]
 consteval usize length(StringView s) {
     return s.length();
@@ -65,6 +62,32 @@ enum class Suit: u8 {
     DIAMONDS,
     HEARTS,
     SPADES,
+};
+
+struct Shape {
+    i32 id;
+};
+
+struct Named {
+    StringView label;
+};
+
+struct Tagged {
+    u8 tag;
+};
+
+/**
+ * @struct Circle
+ * @brief Hierarchy fixture for the Base -> Class round trip.
+ * @extends Shape
+ * @extends Named
+ * @extends Tagged
+ *
+ * One base of each interesting kind - plain public, virtual public, private -
+ * so bases() has something to report that a Class<B> alone could not carry.
+ */
+struct Circle: public Shape, virtual Named, private Tagged {
+    f64 radius;
 };
 
 /**
@@ -130,7 +153,7 @@ Vector<char*> make_argv(InitializerList<const char*> tokens) {
     return argv;
 }
 
-template <ReflectableClass T>
+template <ReflectableAsClass T>
 [[nodiscard]]
 T parse_tokens(InitializerList<const char*> tokens) {
     Vector<char*> argv = make_argv(tokens);
@@ -334,6 +357,65 @@ void test_reflection_classes() {
     expect(int_size == sizeof(i32), "i32 size matches sizeof(i32)");
 }
 
+// Whether the Info-keyed Ops::class_of accepts a given reflection, so the
+// constraint can be checked without tripping a hard error at the call site.
+template <Info I>
+concept ClassOfAccepts = requires { Ops::class_of<I>(); };
+
+/**
+ * @brief Round-trips an erased Base back into a statically-typed Class through
+ * the Info-keyed Ops::class_of, and confirms the base-specifier data a Class<B>
+ * cannot carry is still reachable from the Base itself.
+ */
+void test_base_to_class() {
+    constexpr AccessContext ctx = AccessContext::unchecked();
+
+    static constexpr Span<const Base> CIRCLE_BASES =
+        Ops::define_static_array(Ops::class_of<Circle>().bases(ctx));
+    constexpr usize base_count = CIRCLE_BASES.size();
+    expect_eq(base_count, 3uz, "Circle declares three direct bases");
+
+    // Base -> Info -> Class<Shape>, which then answers class-shaped questions
+    // that the erased Type from Base::type() cannot.
+    constexpr Class<Shape> clazz = Ops::class_of<CIRCLE_BASES[0].type().value()>();
+    constexpr bool shape_identity = Class<Shape>::VALUE == ^^Shape;
+    constexpr StringView shape_name = clazz.name().value_or("");
+    constexpr usize shape_fields = clazz.fields(ctx).size();
+    expect(shape_identity, "the first base round-trips to Class<Shape>");
+    expect_eq(shape_name, "Shape", "the round-tripped wrapper reports Shape's name");
+    expect_eq(shape_fields, 1uz, "Class<Shape> reaches Shape's own fields");
+
+    // Both overloads name the same entity, so the round trip is lossless.
+    constexpr bool overloads_agree = (Ops::class_of<^^Shape>().value() == Ops::class_of<Shape>().value());
+    expect(overloads_agree, "class_of<^^Shape>() and class_of<Shape>() reflect the same type");
+
+    // What only the Base knows: virtual-ness and access.
+    constexpr bool named_virtual = CIRCLE_BASES[1].is_virtual();
+    constexpr bool tagged_private = CIRCLE_BASES[2].is_private();
+    constexpr bool shape_plain = !CIRCLE_BASES[0].is_virtual() && CIRCLE_BASES[0].is_public();
+    expect(shape_plain, "Shape is a plain public base");
+    expect(named_virtual, "Named is a virtual base");
+    expect(tagged_private, "Tagged is a private base");
+
+    // The overload is usable on the loop variable of a template for, which is
+    // the case it exists for.
+    Vector<StringView> base_names;
+    template for (constexpr Base b: CIRCLE_BASES) {
+        constexpr StringView name = Ops::class_of<b.type().value()>().name().value_or("");
+        base_names.push_back(name);
+    }
+    expect_eq(base_names.size(), 3uz, "the expansion visits every base");
+    expect_eq(base_names[0], "Shape", "bases are reported in declaration order");
+    expect_eq(base_names[1], "Named", "the virtual base round-trips too");
+    expect_eq(base_names[2], "Tagged", "the private base round-trips under an unchecked context");
+
+    // The constraint keeps non-class reflections out.
+    constexpr bool accepts_class = ClassOfAccepts<^^Shape>;
+    constexpr bool rejects_non_class = !ClassOfAccepts<^^i32>;
+    expect(accepts_class, "the Info overload accepts a class reflection");
+    expect(rejects_non_class, "the Info overload rejects a reflection that is not a class type");
+}
+
 /**
  * @brief Exercises the Throws annotation: gathering declared exception types from a
  * function and from a callable type, and the empty case.
@@ -493,7 +575,38 @@ void test_enum_map() {
     EnumMap<Suit, i32> f;
     f.insert_or_assign(Suit::CLUBS, 1);
     f.insert_or_assign(Suit::HEARTS, 3);
-    expect_eq(stdx::fmt::format("{}", f), "{CLUBS=1, HEARTS=3}", "formatter lists entries in declaration order");
+    expect_eq(Ops::fmt("{}", f), "{CLUBS=1, HEARTS=3}", "formatter lists entries in declaration order");
+
+    // of(): the variadic factory, matching EnumSet::of.
+    const EnumMap<Suit, i32> made = EnumMap<Suit, i32>::of(
+        Ops::pair(Suit::CLUBS, 1),
+        Ops::pair(Suit::SPADES, 4)
+    );
+    expect_eq(made.size(), 2uz, "of() inserts every entry");
+    expect_eq(*made.find(Suit::CLUBS), 1, "of() keeps the first entry's value");
+    expect_eq(*made.find(Suit::SPADES), 4, "of() keeps the last entry's value");
+    expect(EnumMap<Suit, i32>::of().empty(), "of() with no entries yields an empty map");
+
+    // A later entry repeating a key wins, as with the InitializerList form.
+    const EnumMap<Suit, i32> repeated = EnumMap<Suit, i32>::of(
+        Ops::pair(Suit::HEARTS, 1),
+        Ops::pair(Suit::HEARTS, 2)
+    );
+    expect_eq(repeated.size(), 1uz, "a repeated key does not add a second entry");
+    expect_eq(*repeated.find(Suit::HEARTS), 2, "the later entry overwrites the earlier one");
+
+    // The point of the factory: entries are forwarded, so a move-only V works
+    // where the InitializerList constructor could not copy it.
+    EnumMap<Suit, UniquePointer<i32>> owned = EnumMap<Suit, UniquePointer<i32>>::of(
+        Ops::pair(Suit::CLUBS, Pointers::unique<i32>(7))
+    );
+    expect_eq(owned.size(), 1uz, "of() moves a move-only value into the map");
+    expect_eq(**owned.find(Suit::CLUBS), 7, "and the moved-from pointer's value survives");
+
+    // Lvalue entries are copied rather than moved, and are still accepted.
+    const Pair<Suit, i32> entry = Ops::pair(Suit::DIAMONDS, 9);
+    const EnumMap<Suit, i32> copied = EnumMap<Suit, i32>::of(entry);
+    expect_eq(*copied.find(Suit::DIAMONDS), 9, "of() accepts a const lvalue entry");
 }
 #endif
 
@@ -501,6 +614,7 @@ int main(int argc, char* argv[]) {
     #ifdef __cpp_impl_reflection
     return run(argc, argv, {
         {"meta.reflection_classes", test_reflection_classes},
+        {"meta.base_to_class", test_base_to_class},
         {"meta.argument_parser", test_argument_parser},
         {"meta.throws_annotation", test_throws_annotation},
         {"collections.enum_map", test_enum_map},

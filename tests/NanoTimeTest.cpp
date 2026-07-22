@@ -2,10 +2,6 @@ import stdx;
 
 using namespace stdx::test;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 void test_monotonic() {
     // nano_time() never decreases across many back-to-back samples.
     u64 prev = System::nano_time();

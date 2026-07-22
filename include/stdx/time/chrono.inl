@@ -140,7 +140,7 @@ namespace stdx::time::chrono {
      * @internal
      * @brief Check if a Gregorian year is a leap year.
      * @param y The proleptic year.
-     * @returns true if the year is a leap year, false otherwise.
+     * @return true if the year is a leap year, false otherwise.
      */
     [[nodiscard]]
     constexpr bool is_gregorian_leap(i32 y) noexcept {
@@ -200,7 +200,7 @@ export namespace stdx::time::chrono {
          * @param year The proleptic year in the chronology.
          * @param month The month (1-12).
          * @param day The day of the month.
-         * @returns The constructed date.
+         * @return The constructed date.
          */
         static constexpr ChronoLocalDate of(i32 year, u32 month, u32 day) {
             return ChronoLocalDate{year, month, day};
@@ -211,7 +211,7 @@ export namespace stdx::time::chrono {
          * @param year The proleptic year in the chronology.
          * @param month The month.
          * @param day The day of the month.
-         * @returns The constructed date.
+         * @return The constructed date.
          */
         static constexpr ChronoLocalDate of(Year year, Month month, Day day) {
             return ChronoLocalDate{year, month, day};
@@ -220,7 +220,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Named constructor from an epoch day count.
          * @param epoch_day The number of days since 1970-01-01 (Gregorian).
-         * @returns The constructed date.
+         * @return The constructed date.
          */
         static constexpr ChronoLocalDate of_epoch_day(i64 epoch_day) {
             auto [y, m, d] = Chrono::from_epoch_day(epoch_day);
@@ -231,7 +231,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Construct today's date according to the system clock.
-         * @returns Today's date in this chronology.
+         * @return Today's date in this chronology.
          */
         static ChronoLocalDate now() {
             SystemDays tp = floor<Days>(SystemClock::now());
@@ -240,7 +240,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Get the proleptic year.
-         * @returns The proleptic year in the chronology.
+         * @return The proleptic year in the chronology.
          */
         [[nodiscard]]
         constexpr i32 year() const noexcept {
@@ -249,7 +249,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Get the month.
-         * @returns The month (1-12).
+         * @return The month (1-12).
          */
         [[nodiscard]]
         constexpr u32 month() const noexcept {
@@ -258,7 +258,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Get the day of the month.
-         * @returns The day of the month.
+         * @return The day of the month.
          */
         [[nodiscard]]
         constexpr u32 day() const noexcept {
@@ -267,7 +267,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Get the epoch day count.
-         * @returns The number of days since 1970-01-01 (Gregorian).
+         * @return The number of days since 1970-01-01 (Gregorian).
          */
         [[nodiscard]]
         constexpr i64 to_epoch_day() const noexcept {
@@ -276,7 +276,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Check if the year of this date is a leap year.
-         * @returns true if the year is a leap year in this chronology.
+         * @return true if the year is a leap year in this chronology.
          */
         [[nodiscard]]
         constexpr bool is_leap_year() const {
@@ -285,7 +285,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Get the number of days in this date's month.
-         * @returns The length of the month in days.
+         * @return The length of the month in days.
          */
         [[nodiscard]]
         constexpr i32 length_of_month() const {
@@ -294,7 +294,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Get the number of days in this date's year.
-         * @returns The length of the year in days.
+         * @return The length of the year in days.
          */
         [[nodiscard]]
         constexpr i32 length_of_year() const {
@@ -303,7 +303,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Convert this date to a system clock time point at midnight.
-         * @returns The corresponding SystemDays value.
+         * @return The corresponding SystemDays value.
          */
         [[nodiscard]]
         constexpr SystemDays to_sys_days() const noexcept {
@@ -312,7 +312,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Pack the chronology's (year, month, day) triple into a YearMonthDay.
-         * @returns A YearMonthDay carrying this date's components.
+         * @return A YearMonthDay carrying this date's components.
          *
          * Provided for interop with std::chrono code that expects a
          * year_month_day. For Gregorian-shaped chronologies (ISO, Julian,
@@ -331,7 +331,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Get the day of the week for this date.
-         * @returns The Weekday corresponding to this date.
+         * @return The Weekday corresponding to this date.
          *
          * Chronology-independent: two dates with the same epoch day return
          * the same weekday regardless of their calendar systems.
@@ -343,7 +343,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Explicit conversion to SystemDays.
-         * @returns The corresponding SystemDays value.
+         * @return The corresponding SystemDays value.
          */
         [[nodiscard]]
         constexpr explicit operator SystemDays() const noexcept {
@@ -353,7 +353,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Create a date from a SystemDays time point.
          * @param sd The system clock time point.
-         * @returns The corresponding date in this chronology.
+         * @return The corresponding date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate from_sys_days(SystemDays sd) {
@@ -362,7 +362,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Convert this date to the ISO (Gregorian) chronology.
-         * @returns The equivalent date in IsoChronology.
+         * @return The equivalent date in IsoChronology.
          */
         [[nodiscard]]
         constexpr auto to_iso() const noexcept;
@@ -370,7 +370,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Convert this date to another chronology.
          * @tparam Other The target chronology type.
-         * @returns The equivalent date in the target chronology.
+         * @return The equivalent date in the target chronology.
          */
         template <ChronologyLike Other>
         [[nodiscard]]
@@ -381,7 +381,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Add days to this date.
          * @param n The number of days to add.
-         * @returns A new date offset by n days.
+         * @return A new date offset by n days.
          */
         [[nodiscard]]
         constexpr ChronoLocalDate plus_days(i64 n) const {
@@ -391,7 +391,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Add a Days duration to this date.
          * @param days The number of days to add.
-         * @returns A new date offset by the given duration.
+         * @return A new date offset by the given duration.
          */
         [[nodiscard]]
         constexpr ChronoLocalDate plus_days(Days days) const {
@@ -401,7 +401,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Add a Months duration to this date.
          * @param months The number of months to add.
-         * @returns A new date with the month advanced by @p months.
+         * @return A new date with the month advanced by @p months.
          *
          * If the resulting day exceeds the length of the target month, the
          * day is clamped to the last valid day of that month
@@ -443,7 +443,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Add a Years duration to this date.
          * @param years The number of years to add.
-         * @returns A new date with the year advanced by @p years.
+         * @return A new date with the year advanced by @p years.
          *
          * If the original day does not exist in the target year's month
          * (e.g., 2024-02-29 + 1 year), the day is clamped to the last
@@ -460,7 +460,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Subtract days from this date.
          * @param n The number of days to subtract.
-         * @returns A new date offset by -n days.
+         * @return A new date offset by -n days.
          */
         [[nodiscard]]
         constexpr ChronoLocalDate minus_days(i64 n) const {
@@ -470,7 +470,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Subtract a Days duration from this date.
          * @param days The number of days to subtract.
-         * @returns A new date offset by -@p days.
+         * @return A new date offset by -@p days.
          */
         [[nodiscard]]
         constexpr ChronoLocalDate minus_days(Days days) const {
@@ -480,7 +480,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Subtract a Months duration from this date.
          * @param months The number of months to subtract.
-         * @returns A new date with the month moved back by @p months.
+         * @return A new date with the month moved back by @p months.
          */
         [[nodiscard]]
         constexpr ChronoLocalDate minus_months(Months months) const {
@@ -490,7 +490,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Subtract a Years duration from this date.
          * @param years The number of years to subtract.
-         * @returns A new date with the year moved back by @p years.
+         * @return A new date with the year moved back by @p years.
          */
         [[nodiscard]]
         constexpr ChronoLocalDate minus_years(Years years) const {
@@ -552,7 +552,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Three-way comparison with another date of the same chronology.
          * @param other The other date.
-         * @returns The ordering between the two dates.
+         * @return The ordering between the two dates.
          */
         [[nodiscard]]
         constexpr StrongOrdering operator<=>(const ChronoLocalDate& other) const noexcept = default;
@@ -561,7 +561,7 @@ export namespace stdx::time::chrono {
          * @brief Three-way comparison with a date of a different chronology.
          * @tparam Other The other chronology type.
          * @param other The other date.
-         * @returns The ordering based on epoch day comparison.
+         * @return The ordering based on epoch day comparison.
          */
         template <ChronologyLike Other>
         [[nodiscard]]
@@ -573,7 +573,7 @@ export namespace stdx::time::chrono {
          * @brief Equality comparison with a date of a different chronology.
          * @tparam Other The other chronology type.
          * @param other The other date.
-         * @returns true if both dates represent the same epoch day.
+         * @return true if both dates represent the same epoch day.
          */
         template <ChronologyLike Other>
         [[nodiscard]]
@@ -638,7 +638,7 @@ export namespace stdx::time::chrono {
 
     /**
      * @brief Difference between two dates as a Days duration.
-     * @returns The signed number of days from @p b to @p a.
+     * @return The signed number of days from @p b to @p a.
      *
      * Works across chronologies via the shared epoch_day representation.
      */
@@ -671,11 +671,11 @@ using stdx::time::chrono::ChronologyLike;
 namespace stdx::fmt {
     template <ChronologyLike Chrono, typename Char>
     struct Formatter<ChronoLocalDate<Chrono>, Char> {
-        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
             return ctx.begin();
         }
 
-        static FormatContext::iterator format(const ChronoLocalDate<Chrono>& d, FormatContext& ctx) {
+        auto format(const ChronoLocalDate<Chrono>& d, FormatContext& ctx) const {
             return format_to(ctx.out(), "{}-{:02d}-{:02d}", d.year(), d.month(), d.day());
         }
     };

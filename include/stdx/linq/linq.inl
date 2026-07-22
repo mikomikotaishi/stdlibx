@@ -23,17 +23,6 @@ using namespace stdx::ranges::views;
  */
 namespace stdx::linq {
     /**
-     * @concept DecaysTo
-     * @brief Whether From and To name the same type once both are cvref-stripped.
-     * Constrains the Query forwarding constructor while still allowing Ran to be a
-     * reference type (Query<T&>) - it strips both sides, not just the deduced one.
-     * @tparam From The (deduced) source type.
-     * @tparam To The target type (may be a reference).
-     */
-    template <typename From, typename To>
-    concept DecaysTo = SameAs<RemoveConstVolatileReferenceType<From>, RemoveConstVolatileReferenceType<To>>;
-
-    /**
      * @concept Filterable
      * @brief Concept that checks if Filter can be applied to the range.
      * @tparam Pred The predicate type.
@@ -257,14 +246,14 @@ export namespace stdx::linq {
     template <ViewableRange Ran = EmptyView<Monostate>>
     class Query {
     private:
-        Ran range; ///< The underlying range being queried.
+        Ran _range; ///< The underlying range being queried.
     public:
         /**
          * @brief Constructs a Query from a range (handles both lvalue and rvalue).
          * @param r The range to query; its decayed type must match Ran.
          */
         constexpr explicit Query(DecaysTo<Ran> auto&& r) noexcept:
-            range{Ops::forward<decltype(r)>(r)} {}
+            _range{Ops::forward<decltype(r)>(r)} {}
 
         /**
          * @brief Returns an iterator to the beginning of the range.
@@ -272,7 +261,7 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto begin() noexcept {
-            return Begin(range);
+            return Begin(_range);
         }
 
         /**
@@ -281,7 +270,7 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto end() noexcept {
-            return End(range);
+            return End(_range);
         }
 
         /**
@@ -291,8 +280,8 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto where(Filterable<Ran> auto&& pred) noexcept {
-            return Query<decltype(Filter(range, Ops::forward<decltype(pred)>(pred)))>(
-                Filter(range, Ops::forward<decltype(pred)>(pred))
+            return Query<decltype(Filter(_range, Ops::forward<decltype(pred)>(pred)))>(
+                Filter(_range, Ops::forward<decltype(pred)>(pred))
             );
         }
 
@@ -303,8 +292,8 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto select(Transformable<Ran> auto&& func) noexcept {
-            return Query<decltype(Transform(range, Ops::forward<decltype(func)>(func)))>(
-                Transform(range, Ops::forward<decltype(func)>(func))
+            return Query<decltype(Transform(_range, Ops::forward<decltype(func)>(func)))>(
+                Transform(_range, Ops::forward<decltype(func)>(func))
             );
         }
 
@@ -320,8 +309,8 @@ export namespace stdx::linq {
             requires requires (Ran& r, Func&& f) { Join(Transform(r, Ops::forward<Func>(f))); }
         [[nodiscard]]
         constexpr auto select_many(Func&& func) noexcept {
-            return Query<decltype(Join(Transform(range, Ops::forward<Func>(func))))>(
-                Join(Transform(range, Ops::forward<Func>(func)))
+            return Query<decltype(Join(Transform(_range, Ops::forward<Func>(func))))>(
+                Join(Transform(_range, Ops::forward<Func>(func)))
             );
         }
 
@@ -336,13 +325,13 @@ export namespace stdx::linq {
          * (`const char[N]` / `const char*`) is reinterpreted as a BasicStringView
          * so its terminating '\0' is not folded into the pattern (which would
          * otherwise stop it ever matching). A raw `const char*` *source* is not a
-         * range, so it must be wrapped first: `Query(StringView{ptr})`.
+         * range, so it must be wrapped first: `Query(StringView(ptr))`.
          */
         template <typename Into = void, Splittable<Ran> Delim>
         [[nodiscard]]
         constexpr auto split(Delim&& delim) noexcept {
             auto build = [this]<typename Ptrn>(Ptrn&& pattern) {
-                auto parts = Split(range, Ops::forward<Ptrn>(pattern));
+                auto parts = Split(_range, Ops::forward<Ptrn>(pattern));
                 if constexpr (SameAs<Into, void>) {
                     return Query<decltype(parts)>(Ops::move(parts));
                 } else {
@@ -367,7 +356,7 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto skip(RangeDifference<Ran> n) noexcept {
-            return Query<decltype(Drop(range, n))>(Drop(range, n));
+            return Query<decltype(Drop(_range, n))>(Drop(_range, n));
         }
 
         /**
@@ -379,8 +368,8 @@ export namespace stdx::linq {
         template <typename Pred>
         [[nodiscard]]
         constexpr auto skip_while(Pred&& pred) noexcept {
-            return Query<decltype(DropWhile(range, Ops::forward<Pred>(pred)))>(
-                DropWhile(range, Ops::forward<Pred>(pred))
+            return Query<decltype(DropWhile(_range, Ops::forward<Pred>(pred)))>(
+                DropWhile(_range, Ops::forward<Pred>(pred))
             );
         }
 
@@ -391,7 +380,7 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto take(RangeDifference<Ran> n) noexcept {
-            return Query<decltype(Take(range, n))>(Take(range, n));
+            return Query<decltype(Take(_range, n))>(Take(_range, n));
         }
 
         /**
@@ -403,8 +392,8 @@ export namespace stdx::linq {
         template <typename Pred>
         [[nodiscard]]
         constexpr auto take_while(Pred&& pred) noexcept {
-            return Query<decltype(TakeWhile(range, Ops::forward<Pred>(pred)))>(
-                TakeWhile(range, Ops::forward<Pred>(pred))
+            return Query<decltype(TakeWhile(_range, Ops::forward<Pred>(pred)))>(
+                TakeWhile(_range, Ops::forward<Pred>(pred))
             );
         }
 
@@ -415,7 +404,7 @@ export namespace stdx::linq {
         template <Reversible R = Ran>
         [[nodiscard]]
         constexpr auto reverse() noexcept {
-            return Query<decltype(Reverse(range))>(Reverse(range));
+            return Query<decltype(Reverse(_range))>(Reverse(_range));
         }
 
         #ifdef __cpp_lib_ranges_enumerate
@@ -425,7 +414,7 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto enumerate() noexcept {
-            return Query<decltype(Enumerate(range))>(Enumerate(range));
+            return Query<decltype(Enumerate(_range))>(Enumerate(_range));
         }
         #endif
 
@@ -438,8 +427,8 @@ export namespace stdx::linq {
         template <typename... Others>
         [[nodiscard]]
         constexpr auto zip(Others&&... others) noexcept {
-            return Query<decltype(Zip(range, Ops::forward<Others>(others)...))>(
-                Zip(range, Ops::forward<Others>(others)...)
+            return Query<decltype(Zip(_range, Ops::forward<Others>(others)...))>(
+                Zip(_range, Ops::forward<Others>(others)...)
             );
         }
 
@@ -451,7 +440,7 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto stride(RangeDifference<Ran> n) noexcept {
-            return Query<decltype(Stride(range, n))>(Stride(range, n));
+            return Query<decltype(Stride(_range, n))>(Stride(_range, n));
         }
         #endif
 
@@ -463,7 +452,7 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto chunk(RangeDifference<Ran> n) noexcept {
-            return Query<decltype(Chunk(range, n))>(Chunk(range, n));
+            return Query<decltype(Chunk(_range, n))>(Chunk(_range, n));
         }
         #endif
 
@@ -481,7 +470,7 @@ export namespace stdx::linq {
         template <Slideable R = Ran>
         [[nodiscard]]
         constexpr auto slide(RangeDifference<Ran> n) noexcept {
-            return Query<decltype(Slide(range, n))>(Slide(range, n));
+            return Query<decltype(Slide(_range, n))>(Slide(_range, n));
         }
         #endif
 
@@ -492,7 +481,7 @@ export namespace stdx::linq {
         template <KeysAccessible R = Ran>
         [[nodiscard]]
         constexpr auto keys() noexcept {
-            return Query<decltype(Keys(range))>(Keys(range));
+            return Query<decltype(Keys(_range))>(Keys(_range));
         }
 
         /**
@@ -502,7 +491,7 @@ export namespace stdx::linq {
         template <ValuesAccessible R = Ran>
         [[nodiscard]]
         constexpr auto values() noexcept {
-            return Query<decltype(Values(range))>(Values(range));
+            return Query<decltype(Values(_range))>(Values(_range));
         }
 
         /**
@@ -514,7 +503,7 @@ export namespace stdx::linq {
             requires ElementsAccessible<N, Ran>
         [[nodiscard]]
         constexpr auto elements() noexcept {
-            return Query<decltype(Elements<N>(range))>(Elements<N>(range));
+            return Query<decltype(Elements<N>(_range))>(Elements<N>(_range));
         }
 
         /**
@@ -525,7 +514,7 @@ export namespace stdx::linq {
             requires Joinable<R>
         [[nodiscard]]
         constexpr auto flatten() noexcept {
-            return Query<decltype(Join(range))>(Join(range));
+            return Query<decltype(Join(_range))>(Join(_range));
         }
 
         /**
@@ -711,7 +700,7 @@ export namespace stdx::linq {
             requires AnyOfQueryable<Ran, Pred>
         [[nodiscard]]
         constexpr bool any(Pred&& pred) const noexcept {
-            return stdx::ranges::any_of(range, Ops::forward<Pred>(pred));
+            return stdx::ranges::any_of(_range, Ops::forward<Pred>(pred));
         }
 
         /**
@@ -724,7 +713,7 @@ export namespace stdx::linq {
             requires AllOfQueryable<Ran, Pred>
         [[nodiscard]]
         constexpr bool all(Pred&& pred) const noexcept {
-            return stdx::ranges::all_of(range, Ops::forward<Pred>(pred));
+            return stdx::ranges::all_of(_range, Ops::forward<Pred>(pred));
         }
 
         /**
@@ -737,7 +726,7 @@ export namespace stdx::linq {
             requires NoneOfQueryable<Ran, Pred>
         [[nodiscard]]
         constexpr bool none(Pred&& pred) const noexcept {
-            return stdx::ranges::none_of(range, Ops::forward<Pred>(pred));
+            return stdx::ranges::none_of(_range, Ops::forward<Pred>(pred));
         }
 
         /**
@@ -749,7 +738,7 @@ export namespace stdx::linq {
         template <typename T>
         [[nodiscard]]
         constexpr bool contains(const T& value) const noexcept {
-            return stdx::ranges::contains(range, value);
+            return stdx::ranges::contains(_range, value);
         }
 
         /**
@@ -771,7 +760,7 @@ export namespace stdx::linq {
             requires CountIfQueryable<Ran, Pred>
         [[nodiscard]]
         constexpr usize count(Pred&& pred) const noexcept {
-            return stdx::ranges::count_if(range, Ops::forward<Pred>(pred));
+            return stdx::ranges::count_if(_range, Ops::forward<Pred>(pred));
         }
 
         /**
@@ -805,7 +794,7 @@ export namespace stdx::linq {
         THROWS(InvalidOperationException)
         constexpr RangeValue<Ran> single(Pred&& pred) const {
             Optional<RangeValue<Ran>> found;
-            for (auto&& elem: range) {
+            for (auto&& elem: _range) {
                 if (pred(elem)) {
                     if (found.has_value()) {
                         throw InvalidOperationException("More than one element matches predicate in range.");
@@ -830,7 +819,7 @@ export namespace stdx::linq {
         [[nodiscard]]
         constexpr RangeValue<Ran> single(Pred&& pred, RangeValue<Ran> default_value) const noexcept {
             Optional<RangeValue<Ran>> found;
-            for (auto&& elem: range) {
+            for (auto&& elem: _range) {
                 if (pred(elem)) {
                     if (found.has_value()) {
                         return default_value;
@@ -857,7 +846,7 @@ export namespace stdx::linq {
             requires Foldable<Ran, Init, Func>
         [[nodiscard]]
         constexpr auto aggregate(Init&& init, Func&& func) const noexcept {
-            return stdx::ranges::fold_left(range, Ops::forward<Init>(init), Ops::forward<Func>(func));
+            return stdx::ranges::fold_left(_range, Ops::forward<Init>(init), Ops::forward<Func>(func));
         }
 
         /**
@@ -866,7 +855,7 @@ export namespace stdx::linq {
          */
         [[nodiscard]]
         constexpr auto sum() noexcept {
-            return stdx::ranges::fold_left(range, RangeValue<Ran>(), Plus<>());
+            return stdx::ranges::fold_left(_range, RangeValue<Ran>(), Plus<>());
         }
         #endif
 
@@ -878,8 +867,8 @@ export namespace stdx::linq {
         [[nodiscard]]
         THROWS(InvalidOperationException)
         constexpr RangeValue<Ran> min() {
-            auto it = stdx::ranges::min_element(range);
-            if (it == End(range)) {
+            auto it = stdx::ranges::min_element(_range);
+            if (it == End(_range)) {
                 throw InvalidOperationException("Range is empty.");
             }
             return *it;
@@ -893,8 +882,8 @@ export namespace stdx::linq {
         [[nodiscard]]
         THROWS(InvalidOperationException)
         constexpr RangeValue<Ran> max() {
-            auto it = stdx::ranges::max_element(range);
-            if (it == End(range)) {
+            auto it = stdx::ranges::max_element(_range);
+            if (it == End(_range)) {
                 throw InvalidOperationException("Range is empty.");
             }
             return *it;
@@ -907,7 +896,7 @@ export namespace stdx::linq {
          */
         template <typename Func>
         constexpr void for_each(Func&& func) {
-            stdx::ranges::for_each(range, Ops::forward<Func>(func));
+            stdx::ranges::for_each(_range, Ops::forward<Func>(func));
         }
 
         /**
@@ -919,7 +908,7 @@ export namespace stdx::linq {
         [[nodiscard]]
         constexpr Collection to() {
             Collection result;
-            for (auto&& elem: range) {
+            for (auto&& elem: _range) {
                 result.push_back(Ops::forward<decltype(elem)>(elem));
             }
             return result;
@@ -935,7 +924,7 @@ export namespace stdx::linq {
         [[nodiscard]]
         constexpr Collection<RangeValue<Ran>> to() {
             Collection<RangeValue<Ran>> result;
-            for (auto&& elem: range) {
+            for (auto&& elem: _range) {
                 result.push_back(Ops::forward<decltype(elem)>(elem));
             }
             return result;

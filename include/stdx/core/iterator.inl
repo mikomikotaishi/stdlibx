@@ -181,17 +181,17 @@ export namespace stdx::core {
     template <typename Container>
     using InsertIterator = std::insert_iterator<Container>;
 
-    template <typename T, typename CharT = char, typename Traits = CharTraits<CharT>, typename Distance = ptrdiff>
-    using InputStreamIterator = std::istream_iterator<T, CharT, Traits, Distance>;
+    template <typename T, typename Char = char, typename Traits = CharTraits<Char>, typename Distance = ptrdiff>
+    using InputStreamIterator = std::istream_iterator<T, Char, Traits, Distance>;
 
-    template <typename T, typename CharT = char, typename Traits = CharTraits<CharT>>
-    using OutputStreamIterator = std::ostream_iterator<T, CharT, Traits>;
+    template <typename T, typename Char = char, typename Traits = CharTraits<Char>>
+    using OutputStreamIterator = std::ostream_iterator<T, Char, Traits>;
 
-    template <typename CharT, typename Traits = CharTraits<CharT>>
-    using InputStreamBufferIterator = std::istreambuf_iterator<CharT, Traits>;
+    template <typename Char, typename Traits = CharTraits<Char>>
+    using InputStreamBufferIterator = std::istreambuf_iterator<Char, Traits>;
 
-    template <typename CharT, typename Traits = CharTraits<CharT>>
-    using OutputStreamBufferIterator = std::ostreambuf_iterator<CharT, Traits>;
+    template <typename Char, typename Traits = CharTraits<Char>>
+    using OutputStreamBufferIterator = std::ostreambuf_iterator<Char, Traits>;
 
     inline constexpr DefaultSentinel DEFAULT_SENTINEL = std::default_sentinel;
     inline constexpr UnreachableSentinel UNREACHABLE_SENTINEL = std::unreachable_sentinel;

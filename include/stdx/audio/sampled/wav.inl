@@ -86,26 +86,26 @@ namespace stdx::audio::sampled {
      */
     class WavAudioInputStream final: public AudioInputStream {
     private:
-        InputFileStream file;
-        AudioFormat fmt{};
-        u16 src_format_tag = 0; ///< Effective format tag after EXTENSIBLE unwrap.
-        u16 src_bits_per_sample = 0;
-        u16 src_bytes_per_sample = 0; ///< bits / 8 - stride between consecutive samples.
-        u32 src_bytes_per_frame = 0; ///< channels * bytes_per_sample.
-        u64 frame_count = 0; ///< Total frames in the data chunk.
-        u64 frames_remaining = 0; ///< Frames left to deliver via read().
-        Vector<u8> raw_buf; ///< Reusable scratch - sized lazily on first read().
+        InputFileStream _file;
+        Vector<u8> _raw_buf; ///< Reusable scratch - sized lazily on first read().
+        AudioFormat _fmt = {};
+        u64 _frame_count = 0; ///< Total frames in the data chunk.
+        u64 _frames_remaining = 0; ///< Frames left to deliver via read().
+        u32 _src_bytes_per_frame = 0; ///< channels * bytes_per_sample.
+        u16 _src_format_tag = 0; ///< Effective format tag after EXTENSIBLE unwrap.
+        u16 _src_bits_per_sample = 0;
+        u16 _src_bytes_per_sample = 0; ///< bits / 8 - stride between consecutive samples.
 
         void convert_to_f32(const u8* src, usize frames, Span<f32> out) const noexcept {
-            const usize samples = frames * fmt.channels;
-            const u16 stride = src_bytes_per_sample;
-            if (src_format_tag == WAVE_FORMAT_IEEE_FLOAT) {
+            const usize samples = frames * _fmt.channels;
+            const u16 stride = _src_bytes_per_sample;
+            if (_src_format_tag == WAVE_FORMAT_IEEE_FLOAT) {
                 for (usize i = 0; i < samples; ++i) {
                     out[i] = read_f32_le(src + i * stride);
                 }
                 return;
             }
-            switch (src_bits_per_sample) {
+            switch (_src_bits_per_sample) {
                 case 16:
                     for (usize i = 0; i < samples; ++i) {
                         out[i] = static_cast<f32>(read_i16_le(src + i * stride)) * INT16_NORM;
@@ -128,14 +128,14 @@ namespace stdx::audio::sampled {
     public:
         THROWS(UnsupportedAudioFileException)
         explicit WavAudioInputStream(const Path& path) {
-            file.open(path, OpenMode::BINARY);
-            if (!file) {
+            _file.open(path, OpenMode::BINARY);
+            if (!_file) {
                 throw UnsupportedAudioFileException("cannot open WAV file");
             }
 
             u8 header[12];
-            file.read(reinterpret_cast<char*>(header), sizeof(header));
-            if (file.gcount() != sizeof(header) ||
+            _file.read(reinterpret_cast<char*>(header), sizeof(header));
+            if (_file.gcount() != sizeof(header) ||
                 !tag_equals(header, "RIFF") ||
                 !tag_equals(header + 8, "WAVE")
             ) {
@@ -151,8 +151,8 @@ namespace stdx::audio::sampled {
             // declared size is odd.
             u8 chunk_hdr[8];
             while (
-                file.read(reinterpret_cast<char*>(chunk_hdr), sizeof(chunk_hdr)),
-                file.gcount() == sizeof(chunk_hdr)
+                _file.read(reinterpret_cast<char*>(chunk_hdr), sizeof(chunk_hdr)),
+                _file.gcount() == sizeof(chunk_hdr)
             ) {
                 const u32 chunk_size = read_u32_le(chunk_hdr + 4);
                 const u32 padded_size = chunk_size + (chunk_size & 1u);
@@ -162,20 +162,20 @@ namespace stdx::audio::sampled {
                         throw UnsupportedAudioFileException("fmt chunk too small");
                     }
                     Vector<u8> fmt_buf(chunk_size);
-                    file.read(reinterpret_cast<char*>(fmt_buf.data()), chunk_size);
-                    if (file.gcount() != static_cast<StreamSize>(chunk_size)) {
+                    _file.read(reinterpret_cast<char*>(fmt_buf.data()), chunk_size);
+                    if (_file.gcount() != static_cast<StreamSize>(chunk_size)) {
                         throw UnsupportedAudioFileException("truncated fmt chunk");
                     }
                     if (chunk_size & 1u) {
-                        file.seekg(1, SeekingDirection::CURRENT);
+                        _file.seekg(1, SeekingDirection::CURRENT);
                     }
 
-                    src_format_tag = read_u16_le(fmt_buf.data());
-                    fmt.channels = read_u16_le(fmt_buf.data() + 2);
-                    fmt.sample_rate = read_u32_le(fmt_buf.data() + 4);
-                    src_bits_per_sample = read_u16_le(fmt_buf.data() + 14);
+                    _src_format_tag = read_u16_le(fmt_buf.data());
+                    _fmt.channels = read_u16_le(fmt_buf.data() + 2);
+                    _fmt.sample_rate = read_u32_le(fmt_buf.data() + 4);
+                    _src_bits_per_sample = read_u16_le(fmt_buf.data() + 14);
 
-                    if (src_format_tag == WAVE_FORMAT_EXTENSIBLE) {
+                    if (_src_format_tag == WAVE_FORMAT_EXTENSIBLE) {
                         if (chunk_size < 40) {
                             throw UnsupportedAudioFileException(
                                 "EXTENSIBLE fmt chunk truncated"
@@ -183,15 +183,15 @@ namespace stdx::audio::sampled {
                         }
                         // SubFormat GUID at offset 24; its first 2 bytes are
                         // the effective format tag.
-                        src_format_tag = read_u16_le(fmt_buf.data() + 24);
+                        _src_format_tag = read_u16_le(fmt_buf.data() + 24);
                     }
                     got_fmt = true;
                 } else if (tag_equals(chunk_hdr, "data")) {
-                    data_chunk_offset = static_cast<u32>(file.tellg());
+                    data_chunk_offset = static_cast<u32>(_file.tellg());
                     data_chunk_size = chunk_size;
-                    file.seekg(padded_size, SeekingDirection::CURRENT);
+                    _file.seekg(padded_size, SeekingDirection::CURRENT);
                 } else {
-                    file.seekg(padded_size, SeekingDirection::CURRENT);
+                    _file.seekg(padded_size, SeekingDirection::CURRENT);
                 }
 
                 if (got_fmt && data_chunk_size > 0) {
@@ -207,82 +207,82 @@ namespace stdx::audio::sampled {
             }
 
             const bool tag_ok =
-                (src_format_tag == WAVE_FORMAT_PCM)
-                || (src_format_tag == WAVE_FORMAT_IEEE_FLOAT);
+                (_src_format_tag == WAVE_FORMAT_PCM)
+                || (_src_format_tag == WAVE_FORMAT_IEEE_FLOAT);
             if (!tag_ok) {
                 throw UnsupportedAudioFileException(
                     "WAV codec not supported (only PCM and IEEE float)"
                 );
             }
-            if (src_format_tag == WAVE_FORMAT_IEEE_FLOAT && src_bits_per_sample != 32) {
+            if (_src_format_tag == WAVE_FORMAT_IEEE_FLOAT && _src_bits_per_sample != 32) {
                 throw UnsupportedAudioFileException(
                     "WAV: IEEE float at bit depth != 32"
                 );
             }
-            if (src_format_tag == WAVE_FORMAT_PCM &&
-                src_bits_per_sample != 16 &&
-                src_bits_per_sample != 24 &&
-                src_bits_per_sample != 32) {
+            if (_src_format_tag == WAVE_FORMAT_PCM &&
+                _src_bits_per_sample != 16 &&
+                _src_bits_per_sample != 24 &&
+                _src_bits_per_sample != 32) {
                 throw UnsupportedAudioFileException(
                     "WAV: PCM bit depth must be 16, 24, or 32"
                 );
             }
-            if (fmt.channels == 0) {
+            if (_fmt.channels == 0) {
                 throw UnsupportedAudioFileException("WAV: zero channels");
             }
 
-            src_bytes_per_sample = static_cast<u16>(src_bits_per_sample / 8);
-            src_bytes_per_frame = static_cast<u32>(fmt.channels) * src_bytes_per_sample;
-            fmt.format = SampleFormat::FLOAT;
-            frame_count = data_chunk_size / src_bytes_per_frame;
-            frames_remaining = frame_count;
+            _src_bytes_per_sample = static_cast<u16>(_src_bits_per_sample / 8);
+            _src_bytes_per_frame = static_cast<u32>(_fmt.channels) * _src_bytes_per_sample;
+            _fmt.format = SampleFormat::FLOAT;
+            _frame_count = data_chunk_size / _src_bytes_per_frame;
+            _frames_remaining = _frame_count;
 
-            file.seekg(data_chunk_offset, SeekingDirection::BEGINNING);
+            _file.seekg(data_chunk_offset, SeekingDirection::BEGINNING);
 
             // ~250ms of scratch - typical render periods are 5-20ms, so the
             // first read() resizes within reserve() and subsequent calls hit
             // the existing capacity.
-            raw_buf.reserve(static_cast<usize>(fmt.sample_rate) * src_bytes_per_frame / 4);
+            _raw_buf.reserve(static_cast<usize>(_fmt.sample_rate) * _src_bytes_per_frame / 4);
         }
 
         usize read(Span<f32> out) noexcept override {
-            if (frames_remaining == 0 || fmt.channels == 0) {
+            if (_frames_remaining == 0 || _fmt.channels == 0) {
                 return 0;
             }
-            usize frames_req = out.size() / fmt.channels;
+            usize frames_req = out.size() / _fmt.channels;
             if (frames_req == 0) {
                 return 0;
             }
-            const usize frames = (frames_req < frames_remaining)
+            const usize frames = (frames_req < _frames_remaining)
                 ? frames_req
-                : static_cast<usize>(frames_remaining);
-            const usize bytes = frames * src_bytes_per_frame;
+                : static_cast<usize>(_frames_remaining);
+            const usize bytes = frames * _src_bytes_per_frame;
 
-            raw_buf.resize(bytes);
-            file.read(
-                reinterpret_cast<char*>(raw_buf.data()), static_cast<StreamSize>(bytes)
+            _raw_buf.resize(bytes);
+            _file.read(
+                reinterpret_cast<char*>(_raw_buf.data()), static_cast<StreamSize>(bytes)
             );
-            const usize got_bytes = static_cast<usize>(file.gcount());
-            const usize got_frames = got_bytes / src_bytes_per_frame;
+            const usize got_bytes = static_cast<usize>(_file.gcount());
+            const usize got_frames = got_bytes / _src_bytes_per_frame;
 
-            convert_to_f32(raw_buf.data(), got_frames, out);
-            frames_remaining -= got_frames;
+            convert_to_f32(_raw_buf.data(), got_frames, out);
+            _frames_remaining -= got_frames;
             return got_frames;
         }
 
         [[nodiscard]]
         const AudioFormat& format() const noexcept override {
-            return fmt;
+            return _fmt;
         }
 
         [[nodiscard]]
         u64 total_frames() const noexcept override {
-            return frame_count;
+            return _frame_count;
         }
 
         [[nodiscard]]
         u64 position_frames() const noexcept override {
-            return frame_count - frames_remaining;
+            return _frame_count - _frames_remaining;
         }
     };
 }

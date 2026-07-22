@@ -6,6 +6,11 @@
  */
 export namespace stdx::os::unix::arpa {
     #if defined(__unix__) && __has_include(<arpa/inet.h>)
+    using ::htons;
+    using ::htonl;
+    using ::ntohs;
+    using ::ntohl;
+
     using ::inet_addr;
     using ::inet_lnaof;
     using ::inet_makeaddr;

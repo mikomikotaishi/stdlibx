@@ -10,8 +10,7 @@ export namespace stdx::math::linalg {
     using LayoutBlasPacked = std::linalg::layout_blas_packed<Triangle, StorageOrder>;
 
     template <typename Triangle, typename StorageOrder, typename Extents>
-    using LayoutBlasPackedMapping = typename std::linalg::layout_blas_packed<Triangle, StorageOrder>
-        ::template mapping<Extents>;
+    using LayoutBlasPackedMapping = std::linalg::layout_blas_packed_mapping<Triangle, StorageOrder, Extents>
 
     template <typename ScalingFactor, typename NestedAccessor>
     using ScaledAccessor = std::linalg::scaled_accessor<ScalingFactor, NestedAccessor>;

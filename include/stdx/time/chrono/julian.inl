@@ -13,13 +13,13 @@ export namespace stdx::time::chrono {
      * with no century correction. This is the calendar used in Europe
      * before the Gregorian reform of 1582-10-15.
      */
-    class [[nodiscard]] JulianChronology final {
+    class JulianChronology final {
     private:
         /**
          * @internal
          * @brief Check if a Julian year is a leap year.
          * @param y The proleptic year.
-         * @returns true if the year is a leap year, false otherwise.
+         * @return true if the year is a leap year, false otherwise.
          */
         [[nodiscard]]
         static constexpr bool is_julian_leap(i32 y) noexcept {
@@ -79,7 +79,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the chronology identifier.
-         * @returns "Julian"
+         * @return "Julian"
          */
         [[nodiscard]]
         static constexpr StringView id() noexcept {
@@ -88,7 +88,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the calendar type.
-         * @returns "julian"
+         * @return "julian"
          */
         [[nodiscard]]
         static constexpr StringView calendar_type() noexcept {
@@ -98,7 +98,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Check if a year is a leap year.
          * @param y The proleptic year.
-         * @returns true if the year is divisible by 4.
+         * @return true if the year is divisible by 4.
          */
         [[nodiscard]]
         static constexpr bool is_leap_year(i32 y) noexcept {
@@ -109,7 +109,7 @@ export namespace stdx::time::chrono {
          * @brief Get the number of days in a month.
          * @param y The proleptic year.
          * @param m The month (1-12).
-         * @returns The number of days in the month.
+         * @return The number of days in the month.
          */
         [[nodiscard]]
         static constexpr u32 days_in_month(i32 y, u32 m) noexcept {
@@ -123,7 +123,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of days in a year.
          * @param y The proleptic year.
-         * @returns 366 if the year is a leap year, 365 otherwise.
+         * @return 366 if the year is a leap year, 365 otherwise.
          */
         [[nodiscard]]
         static constexpr i32 days_in_year(i32 y) noexcept {
@@ -133,7 +133,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of months in a year.
          * @param y The proleptic year.
-         * @returns 12
+         * @return 12
          */
         [[nodiscard]]
         static constexpr u32 months_in_year([[maybe_unused]] i32 y) noexcept {
@@ -145,7 +145,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic year.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The number of days since 1970-01-01 (Gregorian).
+         * @return The number of days since 1970-01-01 (Gregorian).
          */
         [[nodiscard]]
         static constexpr i64 to_epoch_day(i32 y, u32 m, u32 d) noexcept {
@@ -155,7 +155,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Convert an epoch day count to date components.
          * @param e The number of days since 1970-01-01 (Gregorian).
-         * @returns The decomposed Julian date components.
+         * @return The decomposed Julian date components.
          */
         [[nodiscard]]
         static constexpr DateComponents from_epoch_day(i64 e) noexcept {
@@ -165,7 +165,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Determine the era for a given proleptic year.
          * @param proleptic_year The proleptic year.
-         * @returns Era::AD if proleptic_year >= 1, Era::BC otherwise.
+         * @return Era::AD if proleptic_year >= 1, Era::BC otherwise.
          */
         [[nodiscard]]
         static constexpr Era era_of(i32 proleptic_year) noexcept {
@@ -175,7 +175,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the year-of-era from a proleptic year.
          * @param proleptic_year The proleptic year.
-         * @returns The positive year-of-era value.
+         * @return The positive year-of-era value.
          */
         [[nodiscard]]
         static constexpr i32 year_of_era(i32 proleptic_year) noexcept {
@@ -186,7 +186,7 @@ export namespace stdx::time::chrono {
          * @brief Convert an era and year-of-era to a proleptic year.
          * @param era The calendar era.
          * @param year_of_era The year within the era.
-         * @returns The proleptic year.
+         * @return The proleptic year.
          */
         [[nodiscard]]
         static constexpr i32 proleptic_year(Era era, i32 year_of_era) noexcept {
@@ -245,7 +245,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic year.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<JulianChronology> of(i32 y, u32 m, u32 d) noexcept;
@@ -255,7 +255,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic year.
          * @param m The month.
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<JulianChronology> of(i32 y, GregorianMonth m, u32 d) noexcept;
@@ -265,7 +265,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic year.
          * @param m The month.
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<JulianChronology> of(Year y, Month m, Day d) noexcept;
@@ -276,7 +276,7 @@ export namespace stdx::time::chrono {
          * @param year_of_era The positive year-of-era value.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<JulianChronology> of(Era era, i32 year_of_era, u32 m, u32 d) noexcept;
@@ -284,14 +284,14 @@ export namespace stdx::time::chrono {
         /**
          * @brief Create a date from an epoch day count.
          * @param e The number of days since 1970-01-01 (Gregorian).
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<JulianChronology> date_epoch_day(i64 e) noexcept;
 
         /**
          * @brief Create a date for today according to the system clock.
-         * @returns Today's date in this chronology.
+         * @return Today's date in this chronology.
          */
         [[nodiscard]]
         static ChronoLocalDate<JulianChronology> date_now() noexcept;

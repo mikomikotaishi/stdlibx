@@ -26,22 +26,22 @@ export namespace stdx::audio::midi {
      */
     class Instrument {
     protected:
-        Patch inst_patch;
-        String inst_name;
+        Patch _patch;
+        String _name;
     public:
         Instrument() = default;
         Instrument(Patch patch, String name):
-            inst_patch{patch}, inst_name{Ops::move(name)} {}
+            _patch{patch}, _name{Ops::move(name)} {}
         virtual ~Instrument() = default;
 
         [[nodiscard]]
         const Patch& patch() const noexcept {
-            return inst_patch;
+            return _patch;
         }
 
         [[nodiscard]]
         const String& name() const noexcept {
-            return inst_name;
+            return _name;
         }
     };
 
@@ -52,27 +52,27 @@ export namespace stdx::audio::midi {
      */
     class SoundBank {
     protected:
-        String bank_name;
-        Vector<UniquePointer<Instrument>> bank_instruments;
+        String _name;
+        Vector<UniquePointer<Instrument>> _instruments;
     public:
         SoundBank() = default;
         explicit SoundBank(String name):
-            bank_name{Ops::move(name)} {}
+            _name{Ops::move(name)} {}
 
         virtual ~SoundBank() = default;
 
         [[nodiscard]]
         const String& name() const noexcept {
-            return bank_name;
+            return _name;
         }
 
         [[nodiscard]]
         Span<const UniquePointer<Instrument>> instruments() const noexcept {
-            return Span{bank_instruments.data(), bank_instruments.size()};
+            return Span{_instruments.data(), _instruments.size()};
         }
 
         void add(UniquePointer<Instrument> i) {
-            bank_instruments.push_back(Ops::move(i));
+            _instruments.push_back(Ops::move(i));
         }
 
         /**
@@ -82,7 +82,7 @@ export namespace stdx::audio::midi {
          */
         [[nodiscard]]
         const Instrument* find(const Patch& patch) const noexcept {
-            for (const UniquePointer<Instrument>& i: bank_instruments) {
+            for (const UniquePointer<Instrument>& i: _instruments) {
                 if (i->patch() == patch) {
                     return i.get();
                 }

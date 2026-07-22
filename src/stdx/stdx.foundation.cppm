@@ -48,8 +48,11 @@ export namespace stdx {
      * @brief Standard library allocation operations.
      */
     namespace alloc {
-        template <typename Ptr>
-        using Allocator = std::allocator<Ptr>;
+        template <typename T>
+        using Allocator = std::allocator<T>;
+
+        using BadAllocationException = std::bad_alloc;
+        using BadArrayLengthException = std::bad_array_new_length;
     }
 
     /**
@@ -115,7 +118,6 @@ export namespace stdx {
         using bf16 = std::bfloat16_t;
         #endif
 
-        using byte = unsigned char;
         using char8 = char8_t;
         using char16 = char16_t;
         using char32 = char32_t;
@@ -125,7 +127,7 @@ export namespace stdx {
         using c64 = std::complex<double>;
         using c128 = std::complex<long double>;
 
-        using ByteUnit = std::byte;
+        using std::byte;
 
         using NullPointer = std::nullptr_t;
 
@@ -136,6 +138,29 @@ export namespace stdx {
         using lldivres = std::lldiv_t;
         using imaxdiv = std::imaxdiv_t;
         using maxalign = std::max_align_t;
+
+        using Exception = std::exception;
+        using NestedException = std::nested_exception;
+
+        /// @extends Exception
+        using BadExceptionException = std::bad_exception;
+        using LogicException = std::logic_error;
+        using RuntimeException = std::runtime_error;
+
+        /// @extends LogicException
+        using InvalidDomainException = std::domain_error;
+        using InvalidArgumentException = std::invalid_argument;
+        using LengthException = std::length_error;
+        using OutOfRangeException = std::out_of_range;
+
+        /// @extends RuntimeException
+        using InvalidRangeException = std::range_error;
+        using OverflowException = std::overflow_error;
+        using UnderflowException = std::underflow_error;
+        
+        using TerminateHandler = std::terminate_handler;
+
+        using ExceptionPointer = std::exception_ptr;
 
         template <typename T, usize N>
         using Array = std::array<T, N>;
@@ -161,6 +186,7 @@ export namespace stdx {
         using Optional = std::optional<T>;
 
         using std::nullopt;
+
         using NullOption = std::nullopt_t;
 
         template <typename... Ts>
@@ -172,9 +198,7 @@ export namespace stdx {
         using Function = std::function<Sig>;
 
         template <typename T>
-        struct Hash: std::hash<T> {
-            
-        };
+        struct Hash: std::hash<T> {};
 
         template <typename T = void>
         using EqualTo = std::equal_to<T>;
@@ -282,6 +306,38 @@ export namespace stdx {
                 return value;
             }
         };
+
+        template <typename T, typename U>
+        concept SameAs = std::same_as<T, U>;
+
+        template <typename T, typename U>
+        concept NotSameAs = !std::same_as<T, U>;
+
+        /**
+         * @concept DecaysTo
+         * @brief Whether From and To name the same type once both are cvref-stripped.
+         * @tparam From The (deduced) source type.
+         * @tparam To The target type.
+         *
+         * Written for forwarding-reference parameters. `SameAs<To> auto&& x` deduces
+         * a reference type from an lvalue argument, so it silently accepts rvalues
+         * only; `DecaysTo<To> auto&& x` takes both value categories. Both sides are
+         * stripped, so To may itself be a reference type.
+         */
+        template <typename From, typename To>
+        concept DecaysTo = std::same_as<std::remove_cvref_t<From>, std::remove_cvref_t<To>>;
+
+        template <typename From, typename To>
+        concept ConvertibleTo = std::convertible_to<From, To>;
+
+        template <typename From, typename To>
+        concept NotConvertibleTo = !std::convertible_to<From, To>;
+
+        template <typename Derived, typename Base>
+        concept Extends = std::derived_from<Derived, Base>;
+
+        template <typename Base, typename Derived>
+        concept Super = std::derived_from<Derived, Base>;
     }
 
     /**

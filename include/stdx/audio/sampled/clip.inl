@@ -20,13 +20,13 @@ export namespace stdx::audio::sampled {
      */
     class Clip final {
     private:
-        UniquePointer<AudioInputStream> stream;
-        UniquePointer<OutputLine> line;
-        Atomic<bool> finished{false};
-        Atomic<bool> playing{false};
+        UniquePointer<AudioInputStream> _stream;
+        UniquePointer<OutputLine> _line;
+        Atomic<bool> _finished{false};
+        Atomic<bool> _playing{false};
     public:
         explicit Clip(UniquePointer<AudioInputStream> stream) noexcept:
-            stream{Ops::move(stream)} {}
+            _stream{Ops::move(stream)} {}
 
         ~Clip() noexcept {
             close();
@@ -45,23 +45,23 @@ export namespace stdx::audio::sampled {
          */
         THROWS(UnsupportedAudioFormatException, LineUnavailableException)
         void play() {
-            if (playing.load() || !stream) {
+            if (_playing.load() || !_stream) {
                 return;
             }
 
-            const AudioFormat fmt = stream->format();
+            const AudioFormat fmt = _stream->format();
             // The lambda captures @c this; safe because line is destroyed
             // before stream/finished by reverse-declaration-order teardown,
             // and the OutputLine destructor joins its worker.
             RenderCallback cb = [this](Span<f32> out, AudioTime) -> void {
-                if (finished.load()) {
+                if (_finished.load()) {
                     for (f32& s : out) {
                         s = 0.0f;
                     }
                     return;
                 }
-                const usize channels = stream->format().channels;
-                const usize frames_filled = stream->read(out);
+                const usize channels = _stream->format().channels;
+                const usize frames_filled = _stream->read(out);
                 const usize samples_filled = frames_filled * channels;
                 // Pad the trailing portion with silence on a short read (EOF
                 // mid-buffer) so the device doesn't replay stale frames.
@@ -69,13 +69,13 @@ export namespace stdx::audio::sampled {
                     out[i] = 0.0f;
                 }
                 if (frames_filled == 0) {
-                    finished.store(true);
+                    _finished.store(true);
                 }
             };
 
-            line = AudioSystem::open_default_output(fmt, Ops::move(cb));
-            line->start();
-            playing.store(true);
+            _line = AudioSystem::open_default_output(fmt, Ops::move(cb));
+            _line->start();
+            _playing.store(true);
         }
 
         /**
@@ -83,18 +83,18 @@ export namespace stdx::audio::sampled {
          *        line - call close() to release device resources.
          */
         void stop() noexcept {
-            if (!playing.exchange(false)) {
+            if (!_playing.exchange(false)) {
                 return;
             }
-            if (line) {
+            if (_line) {
                 try {
-                    line->stop();
+                    _line->stop();
                 } catch (...) {
                     // stop() throws LineUnavailableException; on close-path
                     // there's nothing useful we can do, so swallow it.
                 }
             }
-            finished.store(true);
+            _finished.store(true);
         }
 
         /**
@@ -102,9 +102,9 @@ export namespace stdx::audio::sampled {
          */
         void close() noexcept {
             stop();
-            if (line) {
-                line->close();
-                line.reset();
+            if (_line) {
+                _line->close();
+                _line.reset();
             }
         }
 
@@ -114,29 +114,29 @@ export namespace stdx::audio::sampled {
          * check from your own event loop.
          */
         void wait_for_completion() noexcept {
-            while (playing.load() && !finished.load()) {
+            while (_playing.load() && !_finished.load()) {
                 Thread::sleep_for(10ms);
             }
         }
 
         [[nodiscard]]
         bool is_finished() const noexcept {
-            return finished.load();
+            return _finished.load();
         }
 
         [[nodiscard]]
         bool is_playing() const noexcept {
-            return playing.load() && !finished.load();
+            return _playing.load() && !_finished.load();
         }
 
         [[nodiscard]]
         const AudioFormat& format() const noexcept {
-            return stream->format();
+            return _stream->format();
         }
 
         [[nodiscard]]
         u64 total_frames() const noexcept {
-            return stream ? stream->total_frames() : 0;
+            return _stream ? _stream->total_frames() : 0;
         }
     };
 }

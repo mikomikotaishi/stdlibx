@@ -27,24 +27,24 @@ export namespace stdx::math {
      */
     class [[nodiscard]] MathContext final {
     private:
-        u32 digits = 0; ///< The number of significant digits, 0 for unlimited.
-        RoundingMode rounding = RoundingMode::HALF_UP; ///< The rounding mode.
+        u32 _digits = 0; ///< The number of significant digits, 0 for unlimited.
+        RoundingMode _rounding = RoundingMode::HALF_UP; ///< The rounding mode.
     public:
         /**
-            * @brief Constructs the unlimited-precision context.
-            */
+         * @brief Constructs the unlimited-precision context.
+         */
         constexpr MathContext() noexcept = default;
 
         /**
-            * @brief Constructs a context with the given precision and rounding mode.
-            * @param precision_value The number of significant digits (0 for unlimited).
-            * @param mode The rounding mode to apply.
-            */
+         * @brief Constructs a context with the given precision and rounding mode.
+         * @param precision_value The number of significant digits (0 for unlimited).
+         * @param mode The rounding mode to apply.
+         */
         constexpr explicit MathContext(
             u32 precision_value,
             RoundingMode mode = RoundingMode::HALF_UP
         ) noexcept:
-            digits{precision_value}, rounding{mode} {}
+            _digits{precision_value}, _rounding{mode} {}
 
         static const MathContext UNLIMITED; ///< Unlimited precision arithmetic.
         static const MathContext DECIMAL32; ///< IEEE 754R Decimal32: 7 digits, HALF_EVEN.
@@ -52,21 +52,21 @@ export namespace stdx::math {
         static const MathContext DECIMAL128; ///< IEEE 754R Decimal128: 34 digits, HALF_EVEN.
 
         /**
-            * @brief Returns the number of significant digits (0 means unlimited).
-            * @return The number of significant digits, or 0 for unlimited.
-            */
+         * @brief Returns the number of significant digits (0 means unlimited).
+         * @return The number of significant digits, or 0 for unlimited.
+         */
         [[nodiscard]]
         constexpr u32 precision() const noexcept {
-            return digits;
+            return _digits;
         }
 
         /**
-            * @brief Returns the rounding mode.
-            * @return The rounding mode.
-            */
+         * @brief Returns the rounding mode.
+         * @return The rounding mode.
+         */
         [[nodiscard]]
         constexpr RoundingMode rounding_mode() const noexcept {
-            return rounding;
+            return _rounding;
         }
 
         [[nodiscard]]
@@ -88,8 +88,8 @@ export namespace stdx::math {
      */
     class [[nodiscard]] BigDecimal final {
     private:
-        BigInteger int_val; ///< The unscaled value.
-        i32 scale_val = 0; ///< The scale; the value is int_val * 10^-scale_val.
+        BigInteger _int_val; ///< The unscaled value.
+        i32 _scale_val = 0; ///< The scale; the value is int_val * 10^-scale_val.
 
         /**
          * @brief Returns a hash code.
@@ -97,10 +97,10 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         usize hash_code() const noexcept {
-            return 31uz * Hash<BigInteger>{}(int_val) + scale_val;
+            return 31uz * Hash<BigInteger>()(_int_val) + _scale_val;
         }
 
-        friend struct stdx::core::Hash<BigDecimal>;
+        friend struct Hash<BigDecimal>;
 
         [[nodiscard]]
         THROWS(ArithmeticException)
@@ -141,9 +141,9 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         BigInteger aligned_unscaled(i32 target_scale) const {
-            return target_scale == scale_val
-                ? int_val
-                : int_val * pow_ten(static_cast<i64>(target_scale) - scale_val);
+            return target_scale == _scale_val
+                ? _int_val
+                : _int_val * pow_ten(static_cast<i64>(target_scale) - _scale_val);
         }
 
         /**
@@ -221,7 +221,7 @@ export namespace stdx::math {
         template <FloatingPoint F>
         [[nodiscard]]
         F overflowed_value() const noexcept {
-            const i64 adjusted = static_cast<i64>(precision()) - 1 - scale_val;
+            const i64 adjusted = static_cast<i64>(precision()) - 1 - _scale_val;
             if (adjusted > 0) {
                 return signum() < 0
                     ? -NumericLimits<F>::infinity()
@@ -237,19 +237,19 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         String layout(bool engineering) const {
-            const String coefficient = int_val.abs().to_string();
-            const bool negative = int_val.signum() < 0;
-            if (scale_val == 0) {
+            const String coefficient = _int_val.abs().to_string();
+            const bool negative = _int_val.signum() < 0;
+            if (_scale_val == 0) {
                 return negative ? "-" + coefficient : coefficient;
             }
-            const i64 adjusted = -static_cast<i64>(scale_val)
+            const i64 adjusted = -static_cast<i64>(_scale_val)
                 + (static_cast<i64>(coefficient.size()) - 1);
             String result;
             if (negative) {
                 result += '-';
             }
-            if (scale_val > 0 && adjusted >= -6) {
-                const i64 point = static_cast<i64>(coefficient.size()) - scale_val;
+            if (_scale_val > 0 && adjusted >= -6) {
+                const i64 point = static_cast<i64>(coefficient.size()) - _scale_val;
                 if (point <= 0) {
                     result += "0.";
                     result.append(static_cast<usize>(-point), '0');
@@ -266,8 +266,8 @@ export namespace stdx::math {
                     result += coefficient.substr(1);
                 }
                 append_exponent(result, adjusted);
-            } else if (int_val.signum() == 0) {
-                const i64 value_exponent = -static_cast<i64>(scale_val);
+            } else if (_int_val.signum() == 0) {
+                const i64 value_exponent = -static_cast<i64>(_scale_val);
                 const i64 mod = ((value_exponent % 3) + 3) % 3;
                 const i64 display_exponent = mod == 0 ? value_exponent : value_exponent + (3 - mod);
                 result += '0';
@@ -315,14 +315,14 @@ export namespace stdx::math {
          */
         template <Integral T>
         BigDecimal(T value):
-            int_val{value} {}
+            _int_val{value} {}
 
         /**
          * @brief Constructs a BigDecimal from a BigInteger, with a scale of zero.
          * @param value The unscaled value.
          */
         BigDecimal(BigInteger value) noexcept:
-            int_val{Ops::move(value)} {}
+            _int_val{Ops::move(value)} {}
 
         /**
          * @brief Constructs a BigDecimal from an unscaled BigInteger value and a scale.
@@ -330,7 +330,7 @@ export namespace stdx::math {
          * @param scale_value The scale; the value is unscaled * 10^-scale_value.
          */
         BigDecimal(BigInteger unscaled, i32 scale_value) noexcept:
-            int_val{Ops::move(unscaled)}, scale_val{scale_value} {}
+            _int_val{Ops::move(unscaled)}, _scale_val{scale_value} {}
 
         /**
          * @brief Constructs a BigDecimal from its string representation.
@@ -399,8 +399,8 @@ export namespace stdx::math {
             if (negative) {
                 unscaled = -unscaled;
             }
-            int_val = Ops::move(unscaled);
-            scale_val = static_cast<i32>(scale_value);
+            _int_val = Ops::move(unscaled);
+            _scale_val = static_cast<i32>(scale_value);
         }
 
         /**
@@ -437,9 +437,9 @@ export namespace stdx::math {
                 unscaled = unscaled << exponent;
             } else {
                 unscaled = unscaled * BigInteger(5).pow(-exponent);
-                scale_val = -exponent;
+                _scale_val = -exponent;
             }
-            int_val = negative ? -unscaled : Ops::move(unscaled);
+            _int_val = negative ? -unscaled : Ops::move(unscaled);
         }
 
         static const BigDecimal ZERO; ///< The BigDecimal constant zero (scale 0).
@@ -484,24 +484,12 @@ export namespace stdx::math {
         }
 
         /**
-         * @brief Parses a BigDecimal from a string.
-         * @param value The string representation.
-         * @return A BigDecimal with the parsed value.
-         * @throws NumberFormatException If the string is not a valid BigDecimal.
-         */
-        [[nodiscard]]
-        THROWS(NumberFormatException)
-        static BigDecimal parse(StringView value) {
-            return BigDecimal(value);
-        }
-
-        /**
          * @brief Parses a BigDecimal from a string, returning nullopt on failure.
          * @param value The string representation.
          * @return An Optional containing the parsed BigDecimal, or nullopt on failure.
          */
         [[nodiscard]]
-        static Optional<BigDecimal> try_parse(StringView value) noexcept {
+        static Optional<BigDecimal> parse(StringView value) noexcept {
             try {
                 return BigDecimal(value);
             } catch (const NumberFormatException& _) {
@@ -523,9 +511,9 @@ export namespace stdx::math {
             if (divisor.signum() == 0) {
                 throw ArithmeticException("Division by zero.");
             }
-            const i64 shift = static_cast<i64>(result_scale) - scale_val + divisor.scale_val;
-            BigInteger numerator = int_val;
-            BigInteger denominator = divisor.int_val;
+            const i64 shift = static_cast<i64>(result_scale) - _scale_val + divisor._scale_val;
+            BigInteger numerator = _int_val;
+            BigInteger denominator = divisor._int_val;
             if (shift >= 0) {
                 numerator = numerator * pow_ten(shift);
             } else {
@@ -545,7 +533,7 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigDecimal divide(const BigDecimal& divisor, RoundingMode rounding_mode) const {
-            return divide(divisor, scale_val, rounding_mode);
+            return divide(divisor, _scale_val, rounding_mode);
         }
 
         /**
@@ -561,10 +549,10 @@ export namespace stdx::math {
             if (divisor.signum() == 0) {
                 throw ArithmeticException("Division by zero.");
             }
-            const i64 preferred = static_cast<i64>(scale_val) - divisor.scale_val;
-            const i64 diff = static_cast<i64>(divisor.scale_val) - scale_val;
-            BigInteger numerator = int_val;
-            BigInteger denominator = divisor.int_val;
+            const i64 preferred = static_cast<i64>(_scale_val) - divisor._scale_val;
+            const i64 diff = static_cast<i64>(divisor._scale_val) - _scale_val;
+            BigInteger numerator = _int_val;
+            BigInteger denominator = divisor._int_val;
             if (diff > 0) {
                 numerator = numerator * pow_ten(diff);
             } else if (diff < 0) {
@@ -619,8 +607,8 @@ export namespace stdx::math {
                 throw ArithmeticException("Invalid exponent.");
             }
             return BigDecimal(
-                int_val.pow(exponent),
-                check_scale(static_cast<i64>(scale_val) * exponent)
+                _int_val.pow(exponent),
+                check_scale(static_cast<i64>(_scale_val) * exponent)
             );
         }
 
@@ -639,7 +627,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         i32 signum() const noexcept {
-            return int_val.signum();
+            return _int_val.signum();
         }
 
         /**
@@ -649,7 +637,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         i32 scale() const noexcept {
-            return scale_val;
+            return _scale_val;
         }
 
         /**
@@ -658,10 +646,10 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         i32 precision() const {
-            if (int_val.signum() == 0) {
+            if (_int_val.signum() == 0) {
                 return 1;
             }
-            const BigInteger magnitude = int_val.abs();
+            const BigInteger magnitude = _int_val.abs();
             const i32 bits = magnitude.bit_length();
             i64 digits = static_cast<i64>(static_cast<f64>(bits - 1) * 0.30102999566398120) + 1;
             if (digits > 1 && magnitude < pow_ten(digits - 1)) {
@@ -678,7 +666,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         BigInteger unscaled_value() const {
-            return int_val;
+            return _int_val;
         }
 
         /**
@@ -694,13 +682,13 @@ export namespace stdx::math {
                 return *this;
             }
             BigDecimal result = *this;
-            while (result.int_val.signum() != 0
+            while (result._int_val.signum() != 0
                 && result.precision() > static_cast<i32>(context.precision())) {
                 const i64 drop = static_cast<i64>(result.precision())
                     - static_cast<i32>(context.precision());
                 result = BigDecimal(
-                    divide_rounded(result.int_val, pow_ten(drop), context.rounding_mode()),
-                    check_scale(static_cast<i64>(result.scale_val) - drop)
+                    divide_rounded(result._int_val, pow_ten(drop), context.rounding_mode()),
+                    check_scale(static_cast<i64>(result._scale_val) - drop)
                 );
             }
             return result;
@@ -716,17 +704,17 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigDecimal set_scale(i32 new_scale, RoundingMode rounding_mode) const {
-            if (new_scale == scale_val) {
+            if (new_scale == _scale_val) {
                 return *this;
             }
-            if (int_val.signum() == 0) {
+            if (_int_val.signum() == 0) {
                 return BigDecimal(BigInteger::ZERO, new_scale);
             }
-            const i64 diff = static_cast<i64>(new_scale) - scale_val;
+            const i64 diff = static_cast<i64>(new_scale) - _scale_val;
             if (diff > 0) {
-                return BigDecimal(int_val * pow_ten(diff), new_scale);
+                return BigDecimal(_int_val * pow_ten(diff), new_scale);
             }
-            return BigDecimal(divide_rounded(int_val, pow_ten(-diff), rounding_mode), new_scale);
+            return BigDecimal(divide_rounded(_int_val, pow_ten(-diff), rounding_mode), new_scale);
         }
 
         /**
@@ -752,10 +740,10 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigDecimal move_point_left(i32 distance) const {
-            const i64 new_scale = static_cast<i64>(scale_val) + distance;
+            const i64 new_scale = static_cast<i64>(_scale_val) + distance;
             return new_scale >= 0
-                ? BigDecimal(int_val, check_scale(new_scale))
-                : BigDecimal(int_val * pow_ten(-new_scale), 0);
+                ? BigDecimal(_int_val, check_scale(new_scale))
+                : BigDecimal(_int_val * pow_ten(-new_scale), 0);
         }
 
         /**
@@ -768,10 +756,10 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigDecimal move_point_right(i32 distance) const {
-            const i64 new_scale = static_cast<i64>(scale_val) - distance;
+            const i64 new_scale = static_cast<i64>(_scale_val) - distance;
             return new_scale >= 0
-                ? BigDecimal(int_val, check_scale(new_scale))
-                : BigDecimal(int_val * pow_ten(-new_scale), 0);
+                ? BigDecimal(_int_val, check_scale(new_scale))
+                : BigDecimal(_int_val * pow_ten(-new_scale), 0);
         }
 
         /**
@@ -783,7 +771,7 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigDecimal scale_by_power_of_ten(i32 distance) const {
-            return BigDecimal(int_val, check_scale(static_cast<i64>(scale_val) - distance));
+            return BigDecimal(_int_val, check_scale(static_cast<i64>(_scale_val) - distance));
         }
 
         /**
@@ -793,11 +781,11 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         BigDecimal strip_trailing_zeros() const {
-            if (int_val.signum() == 0) {
+            if (_int_val.signum() == 0) {
                 return ZERO;
             }
-            BigInteger value = int_val;
-            i64 result_scale = scale_val;
+            BigInteger value = _int_val;
+            i64 result_scale = _scale_val;
             while (result_scale > Integer::MIN_VALUE) {
                 auto [quotient, rem] = value.divide_and_remainder(BigInteger::TEN);
                 if (rem.signum() != 0) {
@@ -815,7 +803,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         BigDecimal ulp() const {
-            return BigDecimal(BigInteger::ONE, scale_val);
+            return BigDecimal(BigInteger::ONE, _scale_val);
         }
 
         /**
@@ -825,7 +813,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         bool equals(const BigDecimal& other) const noexcept {
-            return scale_val == other.scale_val && int_val == other.int_val;
+            return _scale_val == other._scale_val && _int_val == other._int_val;
         }
 
         [[nodiscard]]
@@ -849,21 +837,21 @@ export namespace stdx::math {
             if (this_signum == 0) {
                 return WeakOrdering::EQUIVALENT;
             }
-            if (scale_val == other.scale_val) {
-                return compare(int_val, other.int_val);
+            if (_scale_val == other._scale_val) {
+                return compare(_int_val, other._int_val);
             }
             // Compare adjusted exponents first so wildly different magnitudes never
             // require materializing a huge power of ten for scale alignment.
-            const i64 this_adjusted = static_cast<i64>(precision()) - scale_val;
-            const i64 other_adjusted = static_cast<i64>(other.precision()) - other.scale_val;
+            const i64 this_adjusted = static_cast<i64>(precision()) - _scale_val;
+            const i64 other_adjusted = static_cast<i64>(other.precision()) - other._scale_val;
             if (this_adjusted != other_adjusted) {
                 const bool less = (this_adjusted < other_adjusted) == (this_signum > 0);
                 return less ? WeakOrdering::LESS : WeakOrdering::GREATER;
             }
-            const i64 diff = static_cast<i64>(scale_val) - other.scale_val;
+            const i64 diff = static_cast<i64>(_scale_val) - other._scale_val;
             return diff > 0
-                ? compare(int_val, other.int_val * pow_ten(diff))
-                : compare(int_val * pow_ten(-diff), other.int_val);
+                ? compare(_int_val, other._int_val * pow_ten(diff))
+                : compare(_int_val * pow_ten(-diff), other._int_val);
         }
 
         /**
@@ -872,13 +860,13 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         BigInteger to_big_integer() const {
-            if (scale_val == 0) {
-                return int_val;
+            if (_scale_val == 0) {
+                return _int_val;
             }
-            if (scale_val > 0) {
-                return int_val / pow_ten(scale_val);
+            if (_scale_val > 0) {
+                return _int_val / pow_ten(_scale_val);
             }
-            return int_val * pow_ten(-static_cast<i64>(scale_val));
+            return _int_val * pow_ten(-static_cast<i64>(_scale_val));
         }
 
         /**
@@ -890,10 +878,10 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigInteger to_big_integer_exact() const {
-            if (scale_val <= 0) {
+            if (_scale_val <= 0) {
                 return to_big_integer();
             }
-            auto [quotient, rem] = int_val.divide_and_remainder(pow_ten(scale_val));
+            auto [quotient, rem] = _int_val.divide_and_remainder(pow_ten(_scale_val));
             if (rem.signum() != 0) {
                 throw ArithmeticException("Rounding necessary.");
             }
@@ -1013,23 +1001,23 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         String to_plain_string() const {
-            if (scale_val == 0) {
-                return int_val.to_string();
+            if (_scale_val == 0) {
+                return _int_val.to_string();
             }
-            if (scale_val < 0) {
-                if (int_val.signum() == 0) {
+            if (_scale_val < 0) {
+                if (_int_val.signum() == 0) {
                     return "0";
                 }
-                String result = int_val.to_string();
-                result.append(static_cast<usize>(-static_cast<i64>(scale_val)), '0');
+                String result = _int_val.to_string();
+                result.append(static_cast<usize>(-static_cast<i64>(_scale_val)), '0');
                 return result;
             }
-            const String coefficient = int_val.abs().to_string();
+            const String coefficient = _int_val.abs().to_string();
             String result;
-            if (int_val.signum() < 0) {
+            if (_int_val.signum() < 0) {
                 result += '-';
             }
-            const i64 point = static_cast<i64>(coefficient.size()) - scale_val;
+            const i64 point = static_cast<i64>(coefficient.size()) - _scale_val;
             if (point <= 0) {
                 result += "0.";
                 result.append(static_cast<usize>(-point), '0');
@@ -1061,7 +1049,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         friend BigDecimal operator+(const BigDecimal& lhs, const BigDecimal& rhs) {
-            const i32 result_scale = Math::max(lhs.scale_val, rhs.scale_val);
+            const i32 result_scale = Math::max(lhs._scale_val, rhs._scale_val);
             return BigDecimal(
                 lhs.aligned_unscaled(result_scale) + rhs.aligned_unscaled(result_scale),
                 result_scale
@@ -1077,7 +1065,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         friend BigDecimal operator-(const BigDecimal& lhs, const BigDecimal& rhs) {
-            const i32 result_scale = Math::max(lhs.scale_val, rhs.scale_val);
+            const i32 result_scale = Math::max(lhs._scale_val, rhs._scale_val);
             return BigDecimal(
                 lhs.aligned_unscaled(result_scale) - rhs.aligned_unscaled(result_scale),
                 result_scale
@@ -1096,8 +1084,8 @@ export namespace stdx::math {
         THROWS(ArithmeticException)
         friend BigDecimal operator*(const BigDecimal& lhs, const BigDecimal& rhs) {
             return BigDecimal(
-                lhs.int_val * rhs.int_val,
-                check_scale(static_cast<i64>(lhs.scale_val) + rhs.scale_val)
+                lhs._int_val * rhs._int_val,
+                check_scale(static_cast<i64>(lhs._scale_val) + rhs._scale_val)
             );
         }
 
@@ -1119,12 +1107,12 @@ export namespace stdx::math {
             if (rhs.signum() == 0) {
                 throw ArithmeticException("Division by zero.");
             }
-            const i64 preferred = static_cast<i64>(lhs.scale_val) - rhs.scale_val;
+            const i64 preferred = static_cast<i64>(lhs._scale_val) - rhs._scale_val;
             if (lhs.signum() == 0) {
                 return BigDecimal(BigInteger::ZERO, saturate_scale(preferred));
             }
-            BigInteger numerator = lhs.int_val;
-            BigInteger denominator = rhs.int_val;
+            BigInteger numerator = lhs._int_val;
+            BigInteger denominator = rhs._int_val;
             const BigInteger common = numerator.gcd(denominator);
             numerator = numerator / common;
             denominator = denominator / common;
@@ -1174,7 +1162,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         BigDecimal operator-() const {
-            return BigDecimal(-int_val, scale_val);
+            return BigDecimal(-_int_val, _scale_val);
         }
 
         [[nodiscard]]
@@ -1299,11 +1287,11 @@ namespace stdx {
     namespace fmt {
         template <>
         struct Formatter<BigDecimal> {
-            static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+            constexpr auto parse(FormatParseContext& ctx) noexcept {
                 return ctx.begin();
             }
 
-            static FormatContext::iterator format(const BigDecimal& value, FormatContext& ctx) {
+            auto format(const BigDecimal& value, FormatContext& ctx) const {
                 return format_to(ctx.out(), "{}", value.to_string());
             }
         };

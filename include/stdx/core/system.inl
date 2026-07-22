@@ -3,7 +3,6 @@
 using stdx::collections::HashMap;
 using stdx::io::Cerr;
 using stdx::io::Cin;
-using stdx::io::Clog;
 using stdx::io::Cout;
 using stdx::io::IOErrc;
 using stdx::io::InputStream;
@@ -103,7 +102,9 @@ export namespace stdx::core {
             inline static const InputStream& in = Cin;
 
             friend class System;
+
             In() noexcept = default;
+            ~In() = default;
             In(const In&) = delete("System::In is not copyable.");
             In& operator=(const In&) = delete("System::In is not copyable.");
         public:
@@ -131,7 +132,7 @@ export namespace stdx::core {
 
             [[nodiscard]]
             String readln(StringView prompt) const override {
-                stdx::io::print(Cout, "{}", prompt);
+                stdx::io::print(File::stdout(), "{}", prompt);
                 return readln();
             }
 
@@ -145,7 +146,9 @@ export namespace stdx::core {
             inline static const OutputStream& out = Cout;
 
             friend class System;
+
             Out() noexcept = default;
+            ~Out() = default;
             Out(const Out&) = delete("System::Out is not copyable.");
             Out& operator=(const Out&) = delete("System::Out is not copyable.");
         public:
@@ -161,41 +164,41 @@ export namespace stdx::core {
 
             template <typename... Args>
             void print(FormatString<Args...> fmt, Args&&... args) const {
-                stdx::io::print(Cout, fmt, Ops::forward<Args>(args)...);
+                stdx::io::print(File::stdout(), fmt, Ops::forward<Args>(args)...);
             }
 
             void printf(StringView fmt) const {
-                stdx::io::printf(Cout, fmt);
+                stdx::io::printf(File::stdout(), fmt);
             }
 
             template <typename... Args>
             void printf(TypeIdentityType<PrintfString<Args...>> fmt, Args&&... args) const {
-                stdx::io::printf(Cout, fmt, Ops::forward<Args>(args)...);
+                stdx::io::printf(File::stdout(), fmt, Ops::forward<Args>(args)...);
             }
 
             template <typename... Args>
             void println(FormatString<Args...> fmt, Args&&... args) const {
-                stdx::io::println(Cout, fmt, Ops::forward<Args>(args)...);
+                stdx::io::println(File::stdout(), fmt, Ops::forward<Args>(args)...);
             }
 
             template <typename T>
             void print(T&& x) const {
-                stdx::io::print(Cout, Ops::forward<T>(x));
+                stdx::io::print(File::stdout(), Ops::forward<T>(x));
             }
 
             template <typename T>
                 requires (!IsConvertibleValue<T, StringView>)
             void printf(T&& x) const {
-                stdx::io::printf(Cout, Ops::forward<T>(x));
+                stdx::io::printf(File::stdout(), Ops::forward<T>(x));
             }
 
             void println() const {
-                stdx::io::println(Cout);
+                stdx::io::println(File::stdout());
             }
 
             template <typename T>
             void println(T&& x) const {
-                stdx::io::println(Cout, Ops::forward<T>(x));
+                stdx::io::println(File::stdout(), Ops::forward<T>(x));
             }
 
             void flush() const override {
@@ -208,7 +211,9 @@ export namespace stdx::core {
             inline static const OutputStream& err = Cerr;
 
             friend class System;
+
             Err() noexcept = default;
+            ~Err() = default;
             Err(const Err&) = delete("System::Err is not copyable.");
             Err& operator=(const Err&) = delete("System::Err is not copyable.");
         public:
@@ -224,41 +229,41 @@ export namespace stdx::core {
 
             template <typename... Args>
             void print(FormatString<Args...> fmt, Args&&... args) const {
-                stdx::io::print(Cerr, fmt, forward<Args>(args)...);
+                stdx::io::print(File::stderr(), fmt, Ops::forward<Args>(args)...);
             }
 
             void printf(StringView fmt) const {
-                stdx::io::printf(Cerr, fmt);
+                stdx::io::printf(File::stderr(), fmt);
             }
 
             template <typename... Args>
             void printf(TypeIdentityType<PrintfString<Args...>> fmt, Args&&... args) const {
-                stdx::io::printf(Cerr, fmt, Ops::forward<Args>(args)...);
+                stdx::io::printf(File::stderr(), fmt, Ops::forward<Args>(args)...);
             }
 
             template <typename... Args>
             void println(FormatString<Args...> fmt, Args&&... args) const {
-                stdx::io::println(Cerr, fmt, Ops::forward<Args>(args)...);
+                stdx::io::println(File::stderr(), fmt, Ops::forward<Args>(args)...);
             }
 
             template <typename T>
             void print(T&& x) const {
-                stdx::io::print(Cerr, Ops::forward<T>(x));
+                stdx::io::print(File::stderr(), Ops::forward<T>(x));
             }
 
             template <typename T>
                 requires (!IsConvertibleValue<T, StringView>)
             void printf(T&& x) const {
-                stdx::io::printf(Cerr, Ops::forward<T>(x));
+                stdx::io::printf(File::stderr(), Ops::forward<T>(x));
             }
 
             void println() const {
-                stdx::io::println(Cerr);
+                stdx::io::println(File::stderr());
             }
 
             template <typename T>
             void println(T&& x) const {
-                stdx::io::println(Cerr, Ops::forward<T>(x));
+                stdx::io::println(File::stderr(), Ops::forward<T>(x));
             }
 
             void flush() const override {
@@ -266,72 +271,9 @@ export namespace stdx::core {
             }
         };
 
-        class Log final: public GlobalOutputStream {
-        private:
-            inline static const OutputStream& log = Clog;
-
-            friend class System;
-            Log() noexcept = default;
-            Log(const Log&) = delete("System::Log is not copyable.");
-            Log& operator=(const Log&) = delete("System::Log is not copyable.");        public:
-            [[nodiscard]]
-            operator const OutputStream&() const noexcept override {
-                return log;
-            }
-
-            [[nodiscard]]
-            operator File::Handle*() const noexcept override {
-                return File::stderr();
-            }
-
-            template <typename... Args>
-            void print(FormatString<Args...> fmt, Args&&... args) const {
-                stdx::io::print(Clog, fmt, Ops::forward<Args>(args)...);
-            }
-
-            void printf(StringView fmt) const {
-                stdx::io::printf(Clog, fmt);
-            }
-
-            template <typename... Args>
-            void printf(TypeIdentityType<PrintfString<Args...>> fmt, Args&&... args) const {
-                stdx::io::printf(Clog, fmt, Ops::forward<Args>(args)...);
-            }
-
-            template <typename... Args>
-            void println(FormatString<Args...> fmt, Args&&... args) const {
-                stdx::io::println(Clog, fmt, Ops::forward<Args>(args)...);
-            }
-
-            template <typename T>
-            void print(T&& x) const {
-                stdx::io::print(Clog, Ops::forward<T>(x));
-            }
-
-            template <typename T>
-                requires (!IsConvertibleValue<T, StringView>)
-            void printf(T&& x) const {
-                stdx::io::printf(Clog, Ops::forward<T>(x));
-            }
-
-            void println() const {
-                stdx::io::println(Clog);
-            }
-
-            template <typename T>
-            void println(T&& x) const {
-                stdx::io::println(Clog, Ops::forward<T>(x));
-            }
-
-            void flush() const override {
-                Clog.flush();
-            }
-        };
-
-        inline static const In in = {};
-        inline static const Out out = {};
-        inline static const Err err = {};
-        inline static const Log log = {};
+        inline static const In in;
+        inline static const Out out;
+        inline static const Err err;
 
         [[nodiscard]]
         static u64 current_time_millis() noexcept {
@@ -343,11 +285,11 @@ export namespace stdx::core {
         }
 
         [[nodiscard]]
-        static String current_time_formatted() {
+        static String local_timestamp() {
             Instant<SystemClock> now = SystemClock::now();
             LocalTime<Seconds> currentTime = stdx::time::current_zone()
                 ->to_local(stdx::time::floor<Seconds>(now));
-            return stdx::fmt::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
+            return Ops::fmt("{:%Y-%m-%d %H:%M:%S}", currentTime);
         }
 
         [[nodiscard]]

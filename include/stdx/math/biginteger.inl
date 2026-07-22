@@ -17,10 +17,10 @@ export namespace stdx::math {
      */
     class [[nodiscard]] BigInteger final {
     private:
-        Vector<u32> mag; ///< The magnitude, little-endian with no trailing zero limbs.
-        i32 sign = 0; ///< The signum: -1, 0 or 1.
+        Vector<u32> _mag; ///< The magnitude, little-endian with no trailing zero limbs.
+        i32 _sign = 0; ///< The signum: -1, 0 or 1.
 
-        static constexpr usize KARATSUBA_THRESHOLD = 64uz;
+        static constexpr usize KARATSUBA_THRESHOLD = 64uz; ///< The limb count threshold for switching to Karatsuba multiplication.
 
         /**
          * @brief Constructs from a signum and an already normalized magnitude.
@@ -28,8 +28,8 @@ export namespace stdx::math {
          * @param magnitude The magnitude, little-endian with no trailing zero limbs.
          */
         BigInteger(i32 signum_value, Vector<u32>&& magnitude) noexcept:
-            mag{Ops::move(magnitude)},
-            sign{mag.empty() ? 0 : signum_value} {}
+            _mag{Ops::move(magnitude)},
+            _sign{_mag.empty() ? 0 : signum_value} {}
 
         /**
          * @brief Returns a hash code.
@@ -38,13 +38,13 @@ export namespace stdx::math {
         [[nodiscard]]
         usize hash_code() const noexcept {
             u32 hash = 0;
-            for (usize i = mag.size(); i-- > 0;) {
-                hash = 31u * hash + mag[i];
+            for (usize i = _mag.size(); i-- > 0;) {
+                hash = 31u * hash + _mag[i];
             }
-            return static_cast<usize>(hash) * sign;
+            return static_cast<usize>(hash) * _sign;
         }
 
-        friend struct stdx::core::Hash<BigInteger>;
+        friend struct Hash<BigInteger>;
 
         static void trim(Vector<u32>& magnitude) noexcept {
             while (!magnitude.empty() && magnitude.back() == 0) {
@@ -445,11 +445,11 @@ export namespace stdx::math {
         [[nodiscard]]
         BigInteger shift_right_magnitude(usize distance) const {
             bool lost_bits = false;
-            Vector<u32> shifted = mag_shr(mag, distance, lost_bits);
-            if (sign < 0 && lost_bits) {
+            Vector<u32> shifted = mag_shr(_mag, distance, lost_bits);
+            if (_sign < 0 && lost_bits) {
                 mag_increment(shifted);
             }
-            return BigInteger(sign, Ops::move(shifted));
+            return BigInteger(_sign, Ops::move(shifted));
         }
 
         /**
@@ -460,24 +460,24 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         u32 twos_word(usize index, usize first_nonzero) const noexcept {
-            if (index >= mag.size()) {
-                return sign < 0 ? 0xFFFFFFFFu : 0u;
+            if (index >= _mag.size()) {
+                return _sign < 0 ? 0xFFFFFFFFu : 0u;
             }
-            if (sign >= 0) {
-                return mag[index];
+            if (_sign >= 0) {
+                return _mag[index];
             }
             if (index < first_nonzero) {
                 return 0;
             }
             if (index == first_nonzero) {
-                return ~mag[index] + 1u;
+                return ~_mag[index] + 1u;
             }
-            return ~mag[index];
+            return ~_mag[index];
         }
 
         [[nodiscard]]
         u32 low_twos_word() const noexcept {
-            return twos_word(0, first_nonzero_index(mag));
+            return twos_word(0, first_nonzero_index(_mag));
         }
 
         /**
@@ -520,9 +520,9 @@ export namespace stdx::math {
             bool negative_result,
             Op operation
         ) {
-            const usize length = Math::max(lhs.mag.size(), rhs.mag.size()) + 1;
-            const usize lhs_first = first_nonzero_index(lhs.mag);
-            const usize rhs_first = first_nonzero_index(rhs.mag);
+            const usize length = Math::max(lhs._mag.size(), rhs._mag.size()) + 1;
+            const usize lhs_first = first_nonzero_index(lhs._mag);
+            const usize rhs_first = first_nonzero_index(rhs._mag);
             Vector<u32> words(length);
             for (usize i = 0; i < length; ++i) {
                 words[i] = operation(lhs.twos_word(i, lhs_first), rhs.twos_word(i, rhs_first));
@@ -539,12 +539,12 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         u64 top_bits_sticky(u32 count) const noexcept {
-            const usize bits = mag_bit_length(mag);
+            const usize bits = mag_bit_length(_mag);
             const usize shift = bits - count;
             const usize limb_offset = shift / 32;
             const u32 bit_offset = static_cast<u32>(shift % 32);
             const auto word = [this](usize index) -> u64 {
-                return index < mag.size() ? mag[index] : 0u;
+                return index < _mag.size() ? _mag[index] : 0u;
             };
             u64 top = (word(limb_offset) | (word(limb_offset + 1) << 32)) >> bit_offset;
             if (bit_offset != 0) {
@@ -552,10 +552,10 @@ export namespace stdx::math {
             }
             bool sticky = false;
             for (usize i = 0; i < limb_offset && !sticky; ++i) {
-                sticky = mag[i] != 0;
+                sticky = _mag[i] != 0;
             }
             if (!sticky && bit_offset != 0) {
-                sticky = (mag[limb_offset] & ((1u << bit_offset) - 1)) != 0;
+                sticky = (_mag[limb_offset] & ((1u << bit_offset) - 1)) != 0;
             }
             if (sticky) {
                 top |= 1u;
@@ -611,22 +611,22 @@ export namespace stdx::math {
             u64 magnitude = 0;
             if constexpr (SignedIntegral<T>) {
                 if (value < 0) {
-                    sign = -1;
+                    _sign = -1;
                     magnitude = 0ull - static_cast<u64>(static_cast<i64>(value));
                 } else if (value > 0) {
-                    sign = 1;
+                    _sign = 1;
                     magnitude = static_cast<u64>(value);
                 }
             } else {
                 if (value != 0) {
-                    sign = 1;
+                    _sign = 1;
                     magnitude = static_cast<u64>(value);
                 }
             }
             if (magnitude != 0) {
-                mag.push_back(static_cast<u32>(magnitude));
+                _mag.push_back(static_cast<u32>(magnitude));
                 if ((magnitude >> 32) != 0) {
-                    mag.push_back(static_cast<u32>(magnitude >> 32));
+                    _mag.push_back(static_cast<u32>(magnitude >> 32));
                 }
             }
         }
@@ -689,11 +689,11 @@ export namespace stdx::math {
                     group = group * radix + static_cast<u32>(digit);
                     group_radix *= radix;
                 }
-                mag_mul_add(mag, group_radix, group);
+                mag_mul_add(_mag, group_radix, group);
                 group_size = digits_per_group;
             }
-            trim(mag);
-            sign = mag.empty() ? 0 : (negative ? -1 : 1);
+            trim(_mag);
+            _sign = _mag.empty() ? 0 : (negative ? -1 : 1);
         }
 
         /**
@@ -738,8 +738,8 @@ export namespace stdx::math {
             if (!words.empty() && signum_value == 0) {
                 throw NumberFormatException("Signum-magnitude mismatch.");
             }
-            sign = words.empty() ? 0 : signum_value;
-            mag = Ops::move(words);
+            _sign = words.empty() ? 0 : signum_value;
+            _mag = Ops::move(words);
         }
 
         /**
@@ -753,26 +753,13 @@ export namespace stdx::math {
         }
 
         /**
-         * @brief Parses a BigInteger from a string in the given radix.
-         * @param value The string representation.
-         * @param radix The radix to use for parsing.
-         * @return A BigInteger with the parsed value.
-         * @throws NumberFormatException If the string is not a valid representation of a BigInteger in the given radix.
-         */
-        [[nodiscard]]
-        THROWS(NumberFormatException)
-        static BigInteger parse(StringView value, u32 radix = 10) {
-            return BigInteger(value, radix);
-        }
-
-        /**
          * @brief Parses a BigInteger from a string, returning nullopt on failure.
          * @param value The string representation.
          * @param radix The radix to use for parsing.
          * @return An Optional containing the parsed BigInteger, or nullopt if parsing failed.
          */
         [[nodiscard]]
-        static Optional<BigInteger> try_parse(StringView value, u32 radix = 10) noexcept {
+        static Optional<BigInteger> parse(StringView value, u32 radix = 10) noexcept {
             try {
                 return BigInteger(value, radix);
             } catch (const NumberFormatException& _) {
@@ -789,18 +776,18 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         Pair<BigInteger, BigInteger> divide_and_remainder(const BigInteger& other) const {
-            if (other.sign == 0) {
+            if (other._sign == 0) {
                 throw ArithmeticException("Division by zero.");
             }
-            if (sign == 0) {
+            if (_sign == 0) {
                 return {ZERO, ZERO};
             }
             Vector<u32> quotient;
             Vector<u32> rem;
-            mag_divrem(mag, other.mag, quotient, rem);
+            mag_divrem(_mag, other._mag, quotient, rem);
             return {
-                BigInteger(sign == other.sign ? 1 : -1, Ops::move(quotient)),
-                BigInteger(sign, Ops::move(rem))
+                BigInteger(_sign == other._sign ? 1 : -1, Ops::move(quotient)),
+                BigInteger(_sign, Ops::move(rem))
             };
         }
 
@@ -813,11 +800,11 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigInteger mod(const BigInteger& modulus) const {
-            if (modulus.sign <= 0) {
+            if (modulus._sign <= 0) {
                 throw ArithmeticException("Modulus not positive.");
             }
             const BigInteger result = *this % modulus;
-            return result.sign < 0 ? result + modulus : result;
+            return result._sign < 0 ? result + modulus : result;
         }
 
         /**
@@ -835,7 +822,7 @@ export namespace stdx::math {
             if (exponent == 0) {
                 return ONE;
             }
-            if (sign == 0) {
+            if (_sign == 0) {
                 return ZERO;
             }
             BigInteger base = *this;
@@ -861,13 +848,13 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigInteger sqrt() const {
-            if (sign < 0) {
+            if (_sign < 0) {
                 throw ArithmeticException("Negative BigInteger.");
             }
-            if (sign == 0) {
+            if (_sign == 0) {
                 return ZERO;
             }
-            BigInteger guess = ONE << static_cast<i32>(mag_bit_length(mag) / 2 + 1);
+            BigInteger guess = ONE << static_cast<i32>(mag_bit_length(_mag) / 2 + 1);
             while (true) {
                 BigInteger next = (guess + *this / guess) >> 1;
                 if (next >= guess) {
@@ -898,7 +885,7 @@ export namespace stdx::math {
         BigInteger gcd(const BigInteger& other) const {
             BigInteger a = abs();
             BigInteger b = other.abs();
-            while (b.sign != 0) {
+            while (b._sign != 0) {
                 BigInteger r = a % b;
                 a = Ops::move(b);
                 b = Ops::move(r);
@@ -914,7 +901,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         BigInteger lcm(const BigInteger& other) const {
-            if (sign == 0 || other.sign == 0) {
+            if (_sign == 0 || other._sign == 0) {
                 return ZERO;
             }
             return (*this / gcd(other) * other).abs();
@@ -927,7 +914,7 @@ export namespace stdx::math {
         [[nodiscard]]
         BigInteger abs() const {
             BigInteger result = *this;
-            result.sign = sign < 0 ? 1 : sign;
+            result._sign = _sign < 0 ? 1 : _sign;
             return result;
         }
 
@@ -937,7 +924,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         i32 signum() const noexcept {
-            return sign;
+            return _sign;
         }
 
         /**
@@ -952,10 +939,10 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigInteger mod_pow(const BigInteger& exponent, const BigInteger& modulus) const {
-            if (modulus.sign <= 0) {
+            if (modulus._sign <= 0) {
                 throw ArithmeticException("Modulus not positive.");
             }
-            if (exponent.sign < 0) {
+            if (exponent._sign < 0) {
                 return mod_inverse(modulus).mod_pow(-exponent, modulus);
             }
             if (modulus == ONE) {
@@ -984,7 +971,7 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigInteger mod_inverse(const BigInteger& modulus) const {
-            if (modulus.sign <= 0) {
+            if (modulus._sign <= 0) {
                 throw ArithmeticException("Modulus not positive.");
             }
             if (modulus == ONE) {
@@ -994,10 +981,10 @@ export namespace stdx::math {
             BigInteger current_r = modulus;
             BigInteger previous_s = ONE;
             BigInteger current_s = ZERO;
-            if (previous_r.sign == 0) {
+            if (previous_r._sign == 0) {
                 throw ArithmeticException("BigInteger not invertible.");
             }
-            while (current_r.sign != 0) {
+            while (current_r._sign != 0) {
                 auto [quotient, rem] = previous_r.divide_and_remainder(current_r);
                 BigInteger next_s = previous_s - quotient * current_s;
                 previous_r = Ops::move(current_r);
@@ -1021,7 +1008,7 @@ export namespace stdx::math {
             return bitwise_op(
                 *this,
                 other,
-                sign < 0 && other.sign >= 0,
+                _sign < 0 && other._sign >= 0,
                 [](u32 a, u32 b) -> u32 { return a & ~b; }
             );
         }
@@ -1039,7 +1026,7 @@ export namespace stdx::math {
             if (index < 0) {
                 throw ArithmeticException("Negative bit address.");
             }
-            const usize fnz = first_nonzero_index(mag);
+            const usize fnz = first_nonzero_index(_mag);
             const u32 word = twos_word(static_cast<usize>(index) / 32, fnz);
             return ((word >> (static_cast<u32>(index) % 32)) & 1u) != 0;
         }
@@ -1096,11 +1083,11 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         i32 bit_length() const noexcept {
-            if (sign == 0) {
+            if (_sign == 0) {
                 return 0;
             }
-            usize bits = mag_bit_length(mag);
-            if (sign < 0 && mag_is_power_of_two(mag)) {
+            usize bits = mag_bit_length(_mag);
+            if (_sign < 0 && mag_is_power_of_two(_mag)) {
                 --bits;
             }
             return static_cast<i32>(bits);
@@ -1114,12 +1101,12 @@ export namespace stdx::math {
         [[nodiscard]]
         i32 bit_count() const noexcept {
             usize count = 0;
-            for (u32 limb: mag) {
+            for (u32 limb: _mag) {
                 count += static_cast<usize>(Math::count_pop(limb));
             }
-            if (sign < 0) {
-                const usize fnz = first_nonzero_index(mag);
-                count += fnz * 32 + static_cast<usize>(Math::count_right_zero(mag[fnz])) - 1;
+            if (_sign < 0) {
+                const usize fnz = first_nonzero_index(_mag);
+                count += fnz * 32 + static_cast<usize>(Math::count_right_zero(_mag[fnz])) - 1;
             }
             return static_cast<i32>(count);
         }
@@ -1130,11 +1117,11 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         i32 get_lowest_set_bit() const noexcept {
-            if (sign == 0) {
+            if (_sign == 0) {
                 return -1;
             }
-            const usize fnz = first_nonzero_index(mag);
-            return static_cast<i32>(fnz * 32 + static_cast<usize>(Math::count_right_zero(mag[fnz])));
+            const usize fnz = first_nonzero_index(_mag);
+            return static_cast<i32>(fnz * 32 + static_cast<usize>(Math::count_right_zero(_mag[fnz])));
         }
 
         /**
@@ -1163,7 +1150,7 @@ export namespace stdx::math {
             if (w == TWO) {
                 return true;
             }
-            if (w.sign == 0 || w == ONE || !w.test_bit(0)) {
+            if (w._sign == 0 || w == ONE || !w.test_bit(0)) {
                 return false;
             }
             for (u32 prime: SMALL_PRIMES) {
@@ -1171,7 +1158,7 @@ export namespace stdx::math {
                 if (w == value) {
                     return true;
                 }
-                if ((w % value).sign == 0) {
+                if ((w % value)._sign == 0) {
                     return false;
                 }
             }
@@ -1213,7 +1200,7 @@ export namespace stdx::math {
         [[nodiscard]]
         THROWS(ArithmeticException)
         BigInteger next_probable_prime() const {
-            if (sign < 0) {
+            if (_sign < 0) {
                 throw ArithmeticException("Negative BigInteger.");
             }
             if (*this < TWO) {
@@ -1234,12 +1221,12 @@ export namespace stdx::math {
 
         [[nodiscard]]
         StrongOrdering operator<=>(const BigInteger& other) const noexcept {
-            if (sign != other.sign) {
-                return sign <=> other.sign;
+            if (_sign != other._sign) {
+                return _sign <=> other._sign;
             }
-            const i32 comparison = sign < 0
-                ? mag_cmp(other.mag, mag)
-                : mag_cmp(mag, other.mag);
+            const i32 comparison = _sign < 0
+                ? mag_cmp(other._mag, _mag)
+                : mag_cmp(_mag, other._mag);
             if (comparison < 0) {
                 return StrongOrdering::LESS;
             }
@@ -1279,7 +1266,7 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         i64 long_value() const noexcept {
-            const usize fnz = first_nonzero_index(mag);
+            const usize fnz = first_nonzero_index(_mag);
             const u64 low = static_cast<u64>(twos_word(0, fnz))
                 | (static_cast<u64>(twos_word(1, fnz)) << 32);
             return static_cast<i64>(low);
@@ -1349,13 +1336,13 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         f32 float_value() const noexcept {
-            if (sign == 0) {
+            if (_sign == 0) {
                 return 0.0f;
             }
-            const usize bits = mag_bit_length(mag);
+            const usize bits = mag_bit_length(_mag);
             f32 magnitude;
             if (bits <= 31) {
-                magnitude = static_cast<f32>(mag[0]);
+                magnitude = static_cast<f32>(_mag[0]);
             } else if (bits > 256) {
                 magnitude = Float::POSITIVE_INFINITY;
             } else {
@@ -1364,7 +1351,7 @@ export namespace stdx::math {
                     static_cast<i32>(bits - 31)
                 );
             }
-            return sign < 0 ? -magnitude : magnitude;
+            return _sign < 0 ? -magnitude : magnitude;
         }
 
         /**
@@ -1375,15 +1362,15 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         f64 double_value() const noexcept {
-            if (sign == 0) {
+            if (_sign == 0) {
                 return 0.0;
             }
-            const usize bits = mag_bit_length(mag);
+            const usize bits = mag_bit_length(_mag);
             f64 magnitude;
             if (bits <= 63) {
-                u64 value = mag[0];
-                if (mag.size() > 1) {
-                    value |= static_cast<u64>(mag[1]) << 32;
+                u64 value = _mag[0];
+                if (_mag.size() > 1) {
+                    value |= static_cast<u64>(_mag[1]) << 32;
                 }
                 magnitude = static_cast<f64>(value);
             } else if (bits > 2048) {
@@ -1394,7 +1381,7 @@ export namespace stdx::math {
                     static_cast<i32>(bits - 63)
                 );
             }
-            return sign < 0 ? -magnitude : magnitude;
+            return _sign < 0 ? -magnitude : magnitude;
         }
 
         /**
@@ -1411,19 +1398,19 @@ export namespace stdx::math {
             if (radix < 2 || radix > 36) {
                 radix = 10;
             }
-            if (sign == 0) {
+            if (_sign == 0) {
                 return "0";
             }
             u32 limb_radix = 0;
             const u32 digits_per_group = digits_per_limb(radix, limb_radix);
             Vector<u32> groups;
-            Vector<u32> work = mag;
+            Vector<u32> work = _mag;
             while (!work.empty()) {
                 groups.push_back(mag_divrem_word(work, limb_radix));
             }
             String result;
             result.reserve(groups.size() * digits_per_group + 1);
-            if (sign < 0) {
+            if (_sign < 0) {
                 result += '-';
             }
             String group_digits;
@@ -1455,7 +1442,7 @@ export namespace stdx::math {
         Vector<u8> to_byte_array() const {
             const usize byte_count = static_cast<usize>(bit_length()) / 8 + 1;
             Vector<u8> bytes(byte_count);
-            const usize fnz = first_nonzero_index(mag);
+            const usize fnz = first_nonzero_index(_mag);
             for (usize i = 0; i < byte_count; ++i) {
                 const u32 word = twos_word(i / 4, fnz);
                 bytes[byte_count - 1 - i] = static_cast<u8>(word >> ((i % 4) * 8));
@@ -1471,22 +1458,22 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         friend BigInteger operator+(const BigInteger& lhs, const BigInteger& rhs) {
-            if (lhs.sign == 0) {
+            if (lhs._sign == 0) {
                 return rhs;
             }
-            if (rhs.sign == 0) {
+            if (rhs._sign == 0) {
                 return lhs;
             }
-            if (lhs.sign == rhs.sign) {
-                return BigInteger(lhs.sign, mag_add(lhs.mag, rhs.mag));
+            if (lhs._sign == rhs._sign) {
+                return BigInteger(lhs._sign, mag_add(lhs._mag, rhs._mag));
             }
-            const i32 comparison = mag_cmp(lhs.mag, rhs.mag);
+            const i32 comparison = mag_cmp(lhs._mag, rhs._mag);
             if (comparison == 0) {
                 return ZERO;
             }
             return comparison > 0
-                ? BigInteger(lhs.sign, mag_sub(lhs.mag, rhs.mag))
-                : BigInteger(rhs.sign, mag_sub(rhs.mag, lhs.mag));
+                ? BigInteger(lhs._sign, mag_sub(lhs._mag, rhs._mag))
+                : BigInteger(rhs._sign, mag_sub(rhs._mag, lhs._mag));
         }
 
         /**
@@ -1497,22 +1484,22 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         friend BigInteger operator-(const BigInteger& lhs, const BigInteger& rhs) {
-            if (rhs.sign == 0) {
+            if (rhs._sign == 0) {
                 return lhs;
             }
-            if (lhs.sign == 0) {
+            if (lhs._sign == 0) {
                 return -rhs;
             }
-            if (lhs.sign != rhs.sign) {
-                return BigInteger(lhs.sign, mag_add(lhs.mag, rhs.mag));
+            if (lhs._sign != rhs._sign) {
+                return BigInteger(lhs._sign, mag_add(lhs._mag, rhs._mag));
             }
-            const i32 comparison = mag_cmp(lhs.mag, rhs.mag);
+            const i32 comparison = mag_cmp(lhs._mag, rhs._mag);
             if (comparison == 0) {
                 return ZERO;
             }
             return comparison > 0
-                ? BigInteger(lhs.sign, mag_sub(lhs.mag, rhs.mag))
-                : BigInteger(-lhs.sign, mag_sub(rhs.mag, lhs.mag));
+                ? BigInteger(lhs._sign, mag_sub(lhs._mag, rhs._mag))
+                : BigInteger(-lhs._sign, mag_sub(rhs._mag, lhs._mag));
         }
 
         /**
@@ -1523,10 +1510,10 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         friend BigInteger operator*(const BigInteger& lhs, const BigInteger& rhs) {
-            if (lhs.sign == 0 || rhs.sign == 0) {
+            if (lhs._sign == 0 || rhs._sign == 0) {
                 return ZERO;
             }
-            return BigInteger(lhs.sign == rhs.sign ? 1 : -1, mag_mul(lhs.mag, rhs.mag));
+            return BigInteger(lhs._sign == rhs._sign ? 1 : -1, mag_mul(lhs._mag, rhs._mag));
         }
 
         /**
@@ -1566,7 +1553,7 @@ export namespace stdx::math {
             return bitwise_op(
                 lhs,
                 rhs,
-                lhs.sign < 0 && rhs.sign < 0,
+                lhs._sign < 0 && rhs._sign < 0,
                 [](u32 a, u32 b) -> u32 { return a & b; }
             );
         }
@@ -1582,7 +1569,7 @@ export namespace stdx::math {
             return bitwise_op(
                 lhs,
                 rhs,
-                lhs.sign < 0 || rhs.sign < 0,
+                lhs._sign < 0 || rhs._sign < 0,
                 [](u32 a, u32 b) -> u32 { return a | b; }
             );
         }
@@ -1598,7 +1585,7 @@ export namespace stdx::math {
             return bitwise_op(
                 lhs,
                 rhs,
-                (lhs.sign < 0) != (rhs.sign < 0),
+                (lhs._sign < 0) != (rhs._sign < 0),
                 [](u32 a, u32 b) -> u32 { return a ^ b; }
             );
         }
@@ -1619,7 +1606,7 @@ export namespace stdx::math {
         [[nodiscard]]
         BigInteger operator-() const {
             BigInteger result = *this;
-            result.sign = -result.sign;
+            result._sign = -result._sign;
             return result;
         }
 
@@ -1635,11 +1622,11 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         BigInteger operator<<(i32 distance) const {
-            if (sign == 0 || distance == 0) {
+            if (_sign == 0 || distance == 0) {
                 return *this;
             }
             return distance > 0
-                ? BigInteger(sign, mag_shl(mag, static_cast<usize>(distance)))
+                ? BigInteger(_sign, mag_shl(_mag, static_cast<usize>(distance)))
                 : shift_right_magnitude(static_cast<usize>(0ull - static_cast<u64>(static_cast<i64>(distance))));
         }
 
@@ -1651,14 +1638,14 @@ export namespace stdx::math {
          */
         [[nodiscard]]
         BigInteger operator>>(i32 distance) const {
-            if (sign == 0 || distance == 0) {
+            if (_sign == 0 || distance == 0) {
                 return *this;
             }
             return distance > 0
                 ? shift_right_magnitude(static_cast<usize>(distance))
                 : BigInteger(
-                    sign,
-                    mag_shl(mag, static_cast<usize>(0ull - static_cast<u64>(static_cast<i64>(distance))))
+                    _sign,
+                    mag_shl(_mag, static_cast<usize>(0ull - static_cast<u64>(static_cast<i64>(distance))))
                 );
         }
 
@@ -1860,11 +1847,11 @@ namespace stdx {
     namespace fmt {
         template <>
         struct Formatter<BigInteger> {
-            static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+            constexpr auto parse(FormatParseContext& ctx) noexcept {
                 return ctx.begin();
             }
 
-            static FormatContext::iterator format(const BigInteger& value, FormatContext& ctx) {
+            auto format(const BigInteger& value, FormatContext& ctx) const {
                 return format_to(ctx.out(), "{}", value.to_string());
             }
         };

@@ -29,11 +29,6 @@ using stdx::time::SteadyClock;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-using namespace stdx::literals;
-#endif
-
 [[nodiscard]]
 Optional<Path> resolve_default_sample() noexcept {
     static constexpr Array<StringView, 4> CANDIDATES = {
@@ -191,7 +186,7 @@ void describe(const Path& path) {
     }
     System::out.println("parses {}: ok", path.filename());
 
-    const TimingType timing = seq->timing_type();
+    const TimingType timing = seq->type();
     const i32 division = seq->division();
     System::out.println(
         "       timing: {}, division={}, tracks={}, last_tick={}",

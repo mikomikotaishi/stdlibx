@@ -31,7 +31,6 @@ export namespace stdx::text::regex {
 
     using CMatch = std::cmatch;
 
-
     using WideCMatch = std::wcmatch;
     using StringMatch = std::smatch;
     using WideStringMatch = std::wsmatch;

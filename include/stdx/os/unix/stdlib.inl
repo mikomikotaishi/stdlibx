@@ -10,5 +10,8 @@ export namespace stdx::os::unix {
     using ::unsetenv;
     using ::clearenv;
     using ::putenv;
+
+    // The process environment block (parallels win32::_environ).
+    using ::environ;
     #endif
 }

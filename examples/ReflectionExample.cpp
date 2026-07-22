@@ -9,6 +9,7 @@ using stdx::collections::Vector;
 using stdx::linq::Query;
 using stdx::meta::reflect::AccessContext;
 using stdx::meta::reflect::AccessFlag;
+using stdx::meta::reflect::Base;
 using stdx::meta::reflect::Class;
 using stdx::meta::reflect::CvQualifier;
 using stdx::meta::reflect::Enum;
@@ -17,7 +18,7 @@ using stdx::meta::reflect::Field;
 using stdx::meta::reflect::FunctionSpecifier;
 using stdx::meta::reflect::Info;
 using stdx::meta::reflect::Method;
-using stdx::meta::reflect::ReflectableClass;
+using stdx::meta::reflect::ReflectableAsClass;
 using stdx::meta::reflect::ReflectionOf;
 using stdx::meta::reflect::Type;
 using stdx::util::ArgumentParser;
@@ -27,13 +28,7 @@ using stdx::util::Env;
 using stdx::util::ShortName;
 
 namespace reflect = stdx::meta::reflect;
-#endif
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
-#ifdef __cpp_lib_reflection
 /**
  * @brief Example function to demonstrate reflection capabilities.
  * @param s A string view to calculate the length of.
@@ -77,6 +72,32 @@ enum class Suit: u8 {
     DIAMONDS,
     HEARTS,
     SPADES,
+};
+
+struct Shape {
+    i32 id;
+};
+
+struct Named {
+    StringView label;
+};
+
+struct Tagged {
+    u8 tag;
+};
+
+/**
+ * @struct Circle
+ * @brief Hierarchy fixture for the Base -> Class round trip.
+ * @extends Shape
+ * @extends Named
+ * @extends Tagged
+ *
+ * One base of each interesting kind - plain public, virtual public, private -
+ * so bases() has something to report that a Class<B> alone could not carry.
+ */
+struct Circle: public Shape, virtual Named, private Tagged {
+    f64 radius;
 };
 
 /**
@@ -258,6 +279,13 @@ int main(int argc, char* argv[]) {
         INT_TYPE.is_signed(),
         INT_TYPE.size()
     );
+
+    static constexpr Span<const Base> CIRCLE_BASES =
+        Ops::define_static_array(Ops::class_of<Circle>().bases(ctx));
+    constexpr Class<Shape> clazz = Ops::class_of<CIRCLE_BASES[0].type().value()>();
+    constexpr bool shape_identity = Class<Shape>::VALUE == ^^Shape;
+    constexpr StringView shape_name = clazz.name().value_or("");
+    constexpr usize shape_fields = clazz.fields(ctx).size();
     #else
     System::out.println("Example disabled (compiler does not support reflection).");
     #endif

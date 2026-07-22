@@ -121,15 +121,15 @@ export namespace stdx::audio::sampled {
 
         /**
          * @brief Open an audio file as a pull-style f32 stream.
-         *
-         * The current build supports WAV (PCM s16/s24/s32 + IEEE float).
-         * Other containers throw UnsupportedAudioFileException - they will
-         * become available as optional extensions in future revisions.
          * @param path The file to open.
          * @return An AudioInputStream for the file, positioned at the start of
          * the audio data.
          * @throws UnsupportedAudioFileException if the file can't be opened or
          * isn't a supported format.
+         *
+         * The current build supports WAV (PCM s16/s24/s32 + IEEE float).
+         * Other containers throw UnsupportedAudioFileException - they will
+         * become available as optional extensions in future revisions.
          */
         [[nodiscard]]
         THROWS(UnsupportedAudioFileException)

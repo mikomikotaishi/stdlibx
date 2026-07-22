@@ -15,7 +15,7 @@ using stdx::exec::UponError;
 using stdx::exec::ValueTypesOf;
 using stdx::exec::WhenAll;
 using stdx::meta::RemoveConstVolatileReferenceType;
-#endif
+using stdx::thread::Thread;
 
 /**
  * @namespace stdx::exec
@@ -26,7 +26,6 @@ using stdx::meta::RemoveConstVolatileReferenceType;
  * surface.
  */
 namespace stdx::exec {
-    #ifdef STDLIBX_EXECUTION_AVAILABLE
     /**
      * @struct NoSingleValue
      * @brief Sentinel meaning a Sender does not complete with exactly one value.
@@ -142,7 +141,6 @@ namespace stdx::exec {
     concept WhenAllable = requires (Others&&... others) {
         WhenAll(Ops::declval<S>(), Ops::forward<Others>(others)...);
     };
-    #endif
 }
 
 /**
@@ -150,7 +148,6 @@ namespace stdx::exec {
  * @brief Standard library execution operations.
  */
 export namespace stdx::exec {
-    #ifdef STDLIBX_EXECUTION_AVAILABLE
     /**
      * @class Flow
      * @brief A fluent, method-chaining wrapper over a Sender.
@@ -162,14 +159,14 @@ export namespace stdx::exec {
     template <Sender S = decltype(Just())>
     class [[nodiscard]] Flow {
     private:
-        S sender; ///< The underlying sender being built up.
+        S _sender; ///< The underlying sender being built up.
 
         /**
          * @brief Materializes the pipeline as a coroutine Task.
          * @tparam V The single value type (deduced from the sender).
          * @return A Task<V> completing with the sent value.
          *
-         * This is the WhenAll-safe endpoint (mirrors Async::offload): routing
+         * This is the WhenAll-safe endpoint (mirrors Thread::offload): routing
          * through a Task frame lets scheduler-backed work compose under WhenAll.
          *
          * @warning Do not `co_await` the resulting Task inside another Task when
@@ -185,8 +182,8 @@ export namespace stdx::exec {
          * @brief Wraps a sender (rvalue or matching lvalue) in a Flow.
          * @param s The sender to wrap; its decayed type must be S.
          */
-        explicit Flow(SameAs<RemoveConstVolatileReferenceType<S>> auto&& s):
-            sender{Ops::forward<decltype(s)>(s)} {}
+        explicit Flow(DecaysTo<S> auto&& s):
+            _sender{Ops::forward<decltype(s)>(s)} {}
 
         /**
          * @brief Starts a Flow on a scheduler.
@@ -199,7 +196,7 @@ export namespace stdx::exec {
          */
         explicit Flow(Scheduler auto scheduler)
             requires SameAs<S, RemoveConstVolatileReferenceType<decltype(Schedule(Ops::move(scheduler)))>>:
-            sender{Schedule(Ops::move(scheduler))} {}
+            _sender{Schedule(Ops::move(scheduler))} {}
 
         /**
          * @brief Maps the value channel through a function.
@@ -209,9 +206,9 @@ export namespace stdx::exec {
          */
         template <Thenable<S> Func>
         [[nodiscard]]
-        auto then(Func&& func) && {
-            return Flow<decltype(Then(Ops::move(sender), Ops::forward<Func>(func)))>(
-                Then(Ops::move(sender), Ops::forward<Func>(func))
+        auto then(this Flow<S>&& self, Func&& func) {
+            return Flow<decltype(Then(Ops::move(self._sender), Ops::forward<Func>(func)))>(
+                Then(Ops::move(self._sender), Ops::forward<Func>(func))
             );
         }
 
@@ -223,9 +220,9 @@ export namespace stdx::exec {
          */
         template <ErrorHandleable<S> Func>
         [[nodiscard]]
-        auto catch_error(Func&& func) && {
-            return Flow<decltype(UponError(Ops::move(sender), Ops::forward<Func>(func)))>(
-                UponError(Ops::move(sender), Ops::forward<Func>(func))
+        auto catch_error(this Flow<S>&& self, Func&& func) {
+            return Flow<decltype(UponError(Ops::move(self._sender), Ops::forward<Func>(func)))>(
+                UponError(Ops::move(self._sender), Ops::forward<Func>(func))
             );
         }
 
@@ -236,9 +233,9 @@ export namespace stdx::exec {
          */
         template <Bindable<S> Func>
         [[nodiscard]]
-        auto let(Func&& func) && {
-            return Flow<decltype(LetValue(Ops::move(sender), Ops::forward<Func>(func)))>(
-                LetValue(Ops::move(sender), Ops::forward<Func>(func))
+        auto let(this Flow<S>&& self, Func&& func) {
+            return Flow<decltype(LetValue(Ops::move(self._sender), Ops::forward<Func>(func)))>(
+                LetValue(Ops::move(self._sender), Ops::forward<Func>(func))
             );
         }
 
@@ -248,9 +245,9 @@ export namespace stdx::exec {
          * @return A Flow whose downstream runs on @p scheduler.
          */
         [[nodiscard]]
-        auto continue_on(ContinuableOn<S> auto scheduler) && {
-            return Flow<decltype(ContinuesOn(Ops::move(sender), Ops::move(scheduler)))>(
-                ContinuesOn(Ops::move(sender), Ops::move(scheduler))
+        auto continue_on(this Flow<S>&& self, ContinuableOn<S> auto scheduler) {
+            return Flow<decltype(ContinuesOn(Ops::move(self._sender), Ops::move(scheduler)))>(
+                ContinuesOn(Ops::move(self._sender), Ops::move(scheduler))
             );
         }
 
@@ -265,8 +262,8 @@ export namespace stdx::exec {
         template <typename Sch, typename Func>
             requires ThenContinuableOn<S, Sch, Func>
         [[nodiscard]]
-        auto then_on(Sch scheduler, Func&& func) && {
-            auto scheduled = ContinuesOn(Ops::move(sender), Ops::move(scheduler));
+        auto then_on(this Flow<S>&& self, Sch scheduler, Func&& func) {
+            auto scheduled = ContinuesOn(Ops::move(self._sender), Ops::move(scheduler));
             return Flow<decltype(Then(Ops::move(scheduled), Ops::forward<Func>(func)))>(
                 Then(Ops::move(scheduled), Ops::forward<Func>(func))
             );
@@ -281,9 +278,9 @@ export namespace stdx::exec {
         template <Sender... Others>
             requires WhenAllable<S, Others...>
         [[nodiscard]]
-        auto when_all(Others&&... others) && {
-            return Flow<decltype(WhenAll(Ops::move(sender), Ops::forward<Others>(others)...))>(
-                WhenAll(Ops::move(sender), Ops::forward<Others>(others)...)
+        auto when_all(this Flow<S>&& self, Others&&... others) {
+            return Flow<decltype(WhenAll(Ops::move(self._sender), Ops::forward<Others>(others)...))>(
+                WhenAll(Ops::move(self._sender), Ops::forward<Others>(others)...)
             );
         }
 
@@ -296,8 +293,8 @@ export namespace stdx::exec {
          * parallel-scheduler-Task pitfall that as_task() can hit.
          */
         [[nodiscard]]
-        S unwrap() && {
-            return Ops::move(sender);
+        S unwrap(this Flow<S>&& self) {
+            return Ops::move(self._sender);
         }
 
         /**
@@ -305,8 +302,8 @@ export namespace stdx::exec {
          * @return An Optional<Tuple<...>> of the sent values (empty if stopped).
          */
         [[nodiscard]]
-        auto wait() && {
-            return SyncWait(Ops::move(sender));
+        auto wait(this Flow<S>&& self) {
+            return SyncWait(Ops::move(self._sender));
         }
 
         /**
@@ -320,8 +317,8 @@ export namespace stdx::exec {
         template <typename V = SingleValueType<S>>
             requires SingleValued<S>
         [[nodiscard]]
-        Optional<V> value() && {
-            auto result = SyncWait(Ops::move(sender));
+        Optional<V> value(this Flow<S>&& self) {
+            auto result = SyncWait(Ops::move(self._sender));
             if (!result) {
                 return Optional<V>();
             }
@@ -331,8 +328,8 @@ export namespace stdx::exec {
         template <typename V = SingleValueType<S>>
             requires SingleValued<S>
         [[nodiscard]]
-        Task<V> as_task() && {
-            return into_task<V>(Ops::move(sender));
+        Task<V> as_task(this Flow<S>&& self) {
+            return into_task<V>(Ops::move(self._sender));
         }
 
         /**
@@ -354,9 +351,9 @@ export namespace stdx::exec {
          * @param scheduler The scheduler to start on.
          * @return A Flow whose first stage runs on @p scheduler.
          */
-        template <Scheduler Sch = decltype(Async::parallel_scheduler())>
+        template <Scheduler Sch = decltype(Thread::parallel_scheduler())>
         [[nodiscard]]
-        static auto on_schedule(Sch scheduler = Async::parallel_scheduler()) {
+        static auto on_schedule(Sch scheduler = Thread::parallel_scheduler()) {
             return from(Schedule(Ops::move(scheduler)));
         }
     };
@@ -372,5 +369,5 @@ export namespace stdx::exec {
      */
     template <Scheduler Sch>
     Flow(Sch) -> Flow<RemoveConstVolatileReferenceType<decltype(Schedule(Ops::declval<Sch>()))>>;
-    #endif
 }
+#endif

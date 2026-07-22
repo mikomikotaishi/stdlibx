@@ -1,10 +1,10 @@
 #pragma once
 
 /**
- * @namespace stdx::math
- * @brief Standard library mathematical operations.
+ * @namespace stdx::core
+ * @brief The core objects of the standard library.
  */
-export namespace stdx::math {
+export namespace stdx::core {
     class [[nodiscard]] Endian final {
     public:
         using Self = std::endian;
@@ -22,18 +22,4 @@ export namespace stdx::math {
             return value;
         }
     };
-
-    using std::bit_cast;
-    using std::byteswap;
-    using std::has_single_bit;
-    using std::bit_ceil;
-    using std::bit_floor;
-    using std::bit_width;
-    using std::rotl;
-    using std::rotr;
-    using std::countl_zero;
-    using std::countl_one;
-    using std::countr_zero;
-    using std::countr_one;
-    using std::popcount;
 }

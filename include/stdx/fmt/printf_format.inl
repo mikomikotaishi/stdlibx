@@ -227,7 +227,7 @@ export namespace stdx::fmt {
     template <typename... Args>
     class PrintfString {
     private:
-        StringView fmt;
+        StringView _fmt;
 
         [[nodiscard]]
         static consteval bool is_valid_specifier(char c) noexcept {
@@ -384,13 +384,13 @@ export namespace stdx::fmt {
     public:
         template <usize N>
         consteval PrintfString(const char (&s)[N]):
-            fmt(s, N - 1) {
+            _fmt(s, N - 1) {
             validate(s, N - 1);
         }
 
         [[nodiscard]]
         constexpr StringView get() const noexcept {
-            return fmt;
+            return _fmt;
         }
     };
 }

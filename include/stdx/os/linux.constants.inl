@@ -1029,6 +1029,22 @@ export namespace stdx::os::linux {
             EDGE_TRIGGERED = 1u << 31
         };
 
+        enum class EpollControl: i32 {
+            ADD = 1, ///< Register a descriptor the instance does not hold yet.
+            DEL = 2, ///< Drop a registered descriptor.
+            MOD = 3 ///< Replace a registered descriptor's interest mask.
+        };
+
+        inline constexpr i32 EPOLL_CLOEXEC = 02000000;
+
+        /**
+         * <sys/eventfd.h> constants
+         */
+
+        inline constexpr i32 EFD_SEMAPHORE = 00000001;
+        inline constexpr i32 EFD_CLOEXEC = 02000000;
+        inline constexpr i32 EFD_NONBLOCK = 00004000;
+
         /**
          * <sys/inotify.h> constants
          */

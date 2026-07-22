@@ -6,18 +6,6 @@
  */
 export namespace stdx::core {
     template <typename T, typename U>
-    concept SameAs = std::same_as<T, U>;
-
-    template <typename Derived, typename Base>
-    concept Extends = std::derived_from<Derived, Base>;
-
-    template <typename Base, typename Derived>
-    concept Super = std::derived_from<Derived, Base>;
-
-    template <typename From, typename To>
-    concept ConvertibleTo = std::convertible_to<From, To>;
-
-    template <typename T, typename U>
     concept CommonReferenceWith = std::common_reference_with<T, U>;
 
     template <typename T, typename U>

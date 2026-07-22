@@ -123,20 +123,20 @@ namespace stdx::audio::sampled {
      */
     class AiffAudioInputStream final: public AudioInputStream {
     private:
-        InputFileStream file;
-        AudioFormat fmt{};
-        AiffCodec codec = AiffCodec::NONE;
-        u16 src_bits_per_sample = 0;
-        u16 src_bytes_per_sample = 0; ///< bits / 8 - stride between consecutive samples.
-        u32 src_bytes_per_frame = 0; ///< channels * bytes_per_sample.
-        u64 frame_count = 0;
-        u64 frames_remaining = 0;
-        Vector<u8> raw_buf;
+        InputFileStream _file;
+        Vector<u8> _raw_buf;
+        AudioFormat _fmt = {};
+        u64 _frame_count = 0;
+        u64 _frames_remaining = 0;
+        u32 _src_bytes_per_frame = 0; ///< channels * bytes_per_sample.
+        u16 _src_bits_per_sample = 0;
+        u16 _src_bytes_per_sample = 0; ///< bits / 8 - stride between consecutive samples.
+        AiffCodec _codec = AiffCodec::NONE;
 
         void convert_to_f32(const u8* src, usize frames, Span<f32> out) const noexcept {
-            const usize samples = frames * fmt.channels;
-            const u16 stride = src_bytes_per_sample;
-            if (codec == AiffCodec::FL32) {
+            const usize samples = frames * _fmt.channels;
+            const u16 stride = _src_bytes_per_sample;
+            if (_codec == AiffCodec::FL32) {
                 for (usize i = 0; i < samples; ++i) {
                     out[i] = read_f32_be(src + i * stride);
                 }
@@ -144,8 +144,8 @@ namespace stdx::audio::sampled {
             }
             // codec is NONE (BE int) or SOWT (LE int). Branch once per codec
             // rather than per sample to keep the inner loop tight.
-            const bool be = (codec == AiffCodec::NONE);
-            switch (src_bits_per_sample) {
+            const bool be = (_codec == AiffCodec::NONE);
+            switch (_src_bits_per_sample) {
                 case 16:
                     if (be) {
                         for (usize i = 0; i < samples; ++i) {
@@ -188,14 +188,14 @@ namespace stdx::audio::sampled {
     public:
         THROWS(UnsupportedAudioFileException)
         explicit AiffAudioInputStream(const Path& path) {
-            file.open(path, OpenMode::BINARY);
-            if (!file) {
+            _file.open(path, OpenMode::BINARY);
+            if (!_file) {
                 throw UnsupportedAudioFileException("cannot open AIFF file");
             }
 
             u8 header[12];
-            file.read(reinterpret_cast<char*>(header), sizeof(header));
-            if (file.gcount() != sizeof(header) || !aiff_tag_equals(header, "FORM")) {
+            _file.read(reinterpret_cast<char*>(header), sizeof(header));
+            if (_file.gcount() != sizeof(header) || !aiff_tag_equals(header, "FORM")) {
                 throw UnsupportedAudioFileException("not a FORM file");
             }
             const bool is_aifc = aiff_tag_equals(header + 8, "AIFC");
@@ -212,8 +212,8 @@ namespace stdx::audio::sampled {
             // even byte boundary - skip the trailer byte when size is odd.
             u8 chunk_hdr[8];
             while (
-                file.read(reinterpret_cast<char*>(chunk_hdr), sizeof(chunk_hdr)),
-                file.gcount() == sizeof(chunk_hdr)
+                _file.read(reinterpret_cast<char*>(chunk_hdr), sizeof(chunk_hdr)),
+                _file.gcount() == sizeof(chunk_hdr)
             ) {
                 const u32 chunk_size = read_u32_be(chunk_hdr + 4);
                 const u32 padded_size = chunk_size + (chunk_size & 1u);
@@ -225,12 +225,12 @@ namespace stdx::audio::sampled {
                         throw UnsupportedAudioFileException("COMM chunk too small");
                     }
                     Vector<u8> comm_buf(chunk_size);
-                    file.read(reinterpret_cast<char*>(comm_buf.data()), chunk_size);
-                    if (file.gcount() != static_cast<StreamSize>(chunk_size)) {
+                    _file.read(reinterpret_cast<char*>(comm_buf.data()), chunk_size);
+                    if (_file.gcount() != static_cast<StreamSize>(chunk_size)) {
                         throw UnsupportedAudioFileException("truncated COMM");
                     }
                     if (chunk_size & 1u) {
-                        file.seekg(1, SeekingDirection::CURRENT);
+                        _file.seekg(1, SeekingDirection::CURRENT);
                     }
 
                     // COMM body layout:
@@ -239,11 +239,11 @@ namespace stdx::audio::sampled {
                     //   [6..7]   sampleSize (bits) (i16 BE)
                     //   [8..17]  sampleRate        (80-bit IEEE extended BE)
                     //   [18..21] (AIFC only) compressionType FourCC
-                    fmt.channels = static_cast<u16>(read_i16_be(comm_buf.data()));
-                    frame_count = read_u32_be(comm_buf.data() + 2);
-                    src_bits_per_sample = static_cast<u16>(read_i16_be(comm_buf.data() + 6));
+                    _fmt.channels = static_cast<u16>(read_i16_be(comm_buf.data()));
+                    _frame_count = read_u32_be(comm_buf.data() + 2);
+                    _src_bits_per_sample = static_cast<u16>(read_i16_be(comm_buf.data() + 6));
                     const f64 rate = read_extended_be(comm_buf.data() + 8);
-                    fmt.sample_rate = static_cast<u32>(rate);
+                    _fmt.sample_rate = static_cast<u32>(rate);
 
                     if (is_aifc) {
                         if (chunk_size < 22) {
@@ -251,7 +251,7 @@ namespace stdx::audio::sampled {
                         }
                         const u8* ct = comm_buf.data() + 18;
                         if (aiff_tag_equals(ct, "NONE")) {
-                            codec = AiffCodec::NONE;
+                            _codec = AiffCodec::NONE;
                         } else if (
                             aiff_tag_equals(ct, "sowt") ||
                             aiff_tag_equals(ct, "SOWT") ||
@@ -259,45 +259,45 @@ namespace stdx::audio::sampled {
                         ) {
                             // "twos" is technically also BE PCM; treat the
                             // common case (sowt = swap-to-little-endian) as LE.
-                            codec = aiff_tag_equals(ct, "twos")
+                            _codec = aiff_tag_equals(ct, "twos")
                                 ? AiffCodec::NONE
                                 : AiffCodec::SOWT;
                         } else if (
                             aiff_tag_equals(ct, "fl32") ||
                             aiff_tag_equals(ct, "FL32")
                         ) {
-                            codec = AiffCodec::FL32;
+                            _codec = AiffCodec::FL32;
                         } else {
                             throw UnsupportedAudioFileException(
                                 "AIFC compression not supported (PCM and fl32 only)"
                             );
                         }
                     } else {
-                        codec = AiffCodec::NONE; // plain AIFF is always BE PCM.
+                        _codec = AiffCodec::NONE; // plain AIFF is always BE PCM.
                     }
                     got_comm = true;
                 } else if (aiff_tag_equals(chunk_hdr, "SSND")) {
                     // SSND: offset(4) + blocksize(4) + sample bytes
                     u8 ssnd_hdr[8];
-                    file.read(reinterpret_cast<char*>(ssnd_hdr), sizeof(ssnd_hdr));
-                    if (file.gcount() != sizeof(ssnd_hdr)) {
+                    _file.read(reinterpret_cast<char*>(ssnd_hdr), sizeof(ssnd_hdr));
+                    if (_file.gcount() != sizeof(ssnd_hdr)) {
                         throw UnsupportedAudioFileException("truncated SSND header");
                     }
                     const u32 offset = read_u32_be(ssnd_hdr);
                     // sample bytes start after the 8-byte SSND header + alignment offset
-                    ssnd_data_offset = static_cast<u32>(file.tellg()) + offset;
+                    ssnd_data_offset = static_cast<u32>(_file.tellg()) + offset;
                     ssnd_data_size = chunk_size - 8 - offset;
                     // Skip the rest of this chunk; we'll seek back to the
                     // data offset once we've validated COMM.
-                    file.seekg(
+                    _file.seekg(
                         static_cast<StreamOffset>(chunk_size - 8),
                         SeekingDirection::CURRENT
                     );
                     if (chunk_size & 1u) {
-                        file.seekg(1, SeekingDirection::CURRENT);
+                        _file.seekg(1, SeekingDirection::CURRENT);
                     }
                 } else {
-                    file.seekg(
+                    _file.seekg(
                         static_cast<StreamOffset>(padded_size),
                         SeekingDirection::CURRENT
                     );
@@ -314,77 +314,77 @@ namespace stdx::audio::sampled {
             if (ssnd_data_size == 0) {
                 throw UnsupportedAudioFileException("AIFF: no SSND chunk");
             }
-            if (fmt.channels == 0) {
+            if (_fmt.channels == 0) {
                 throw UnsupportedAudioFileException("AIFF: zero channels");
             }
-            if (codec != AiffCodec::FL32
-                    && src_bits_per_sample != 16
-                    && src_bits_per_sample != 24
-                    && src_bits_per_sample != 32) {
+            if (_codec != AiffCodec::FL32
+                    && _src_bits_per_sample != 16
+                    && _src_bits_per_sample != 24
+                    && _src_bits_per_sample != 32) {
                 throw UnsupportedAudioFileException(
                     "AIFF: PCM bit depth must be 16, 24, or 32"
                 );
             }
-            if (codec == AiffCodec::FL32 && src_bits_per_sample != 32) {
+            if (_codec == AiffCodec::FL32 && _src_bits_per_sample != 32) {
                 throw UnsupportedAudioFileException(
                     "AIFF: fl32 with bit depth != 32"
                 );
             }
 
-            src_bytes_per_sample = static_cast<u16>(src_bits_per_sample / 8);
-            src_bytes_per_frame = static_cast<u32>(fmt.channels) * src_bytes_per_sample;
-            fmt.format = SampleFormat::FLOAT;
+            _src_bytes_per_sample = static_cast<u16>(_src_bits_per_sample / 8);
+            _src_bytes_per_frame = static_cast<u32>(_fmt.channels) * _src_bytes_per_sample;
+            _fmt.format = SampleFormat::FLOAT;
             // COMM's frame count is authoritative; SSND may be padded.
-            const u64 frames_from_ssnd = ssnd_data_size / src_bytes_per_frame;
-            if (frames_from_ssnd < frame_count) {
-                frame_count = frames_from_ssnd;
+            const u64 frames_from_ssnd = ssnd_data_size / _src_bytes_per_frame;
+            if (frames_from_ssnd < _frame_count) {
+                _frame_count = frames_from_ssnd;
             }
-            frames_remaining = frame_count;
+            _frames_remaining = _frame_count;
 
-            file.seekg(ssnd_data_offset, SeekingDirection::BEGINNING);
+            _file.seekg(ssnd_data_offset, SeekingDirection::BEGINNING);
 
-            raw_buf.reserve(static_cast<usize>(fmt.sample_rate) * src_bytes_per_frame / 4);
+            _raw_buf.reserve(static_cast<usize>(_fmt.sample_rate) * _src_bytes_per_frame / 4);
         }
 
         usize read(Span<f32> out) noexcept override {
-            if (frames_remaining == 0 || fmt.channels == 0) {
+            if (_frames_remaining == 0 || _fmt.channels == 0) {
                 return 0;
             }
-            const usize frames_req = out.size() / fmt.channels;
+            const usize frames_req = out.size() / _fmt.channels;
             if (frames_req == 0) {
                 return 0;
             }
-            const usize frames = (frames_req < frames_remaining)
+            const usize frames = (frames_req < _frames_remaining)
                 ? frames_req
-                : static_cast<usize>(frames_remaining);
-            const usize bytes = frames * src_bytes_per_frame;
+                : static_cast<usize>(_frames_remaining);
+            const usize bytes = frames * _src_bytes_per_frame;
 
-            raw_buf.resize(bytes);
-            file.read(
-                reinterpret_cast<char*>(raw_buf.data()),
+            _raw_buf.resize(bytes);
+            _file.read(
+                reinterpret_cast<char*>(_raw_buf.data()),
                 static_cast<StreamSize>(bytes)
             );
-            const usize got_bytes = static_cast<usize>(file.gcount());
-            const usize got_frames = got_bytes / src_bytes_per_frame;
+            const usize got_bytes = static_cast<usize>(_file.gcount());
+            const usize got_frames = got_bytes / _src_bytes_per_frame;
 
-            convert_to_f32(raw_buf.data(), got_frames, out);
-            frames_remaining -= got_frames;
+            convert_to_f32(_raw_buf.data(), got_frames, out);
+            _frames_remaining -= got_frames;
             return got_frames;
         }
 
         [[nodiscard]]
         const AudioFormat& format() const noexcept override {
-            return fmt;
+            return _fmt;
         }
 
         [[nodiscard]]
         u64 total_frames() const noexcept override {
-            return frame_count;
+            return _frame_count;
         }
 
         [[nodiscard]]
         u64 position_frames() const noexcept override {
-            return frame_count - frames_remaining;
+            return _frame_count - _frames_remaining;
         }
     };
 }

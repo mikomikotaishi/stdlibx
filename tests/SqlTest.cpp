@@ -6,23 +6,26 @@ import stdx;
 using stdx::collections::Vector;
 using stdx::fs::Path;
 using stdx::linq::Query;
+using stdx::net::Endpoint;
+using stdx::net::IPAddress;
+using stdx::net::IPv4Address;
+using stdx::net::IPv6Address;
+using stdx::net::Socket;
+using stdx::net::Uri;
+using stdx::net::SocketException;
 using stdx::sql::Bindable;
 using stdx::sql::Connection;
+using stdx::sql::DatabaseUrl;
 using stdx::sql::DriverManager;
+using stdx::sql::Encryption;
 using stdx::sql::PreparedStatement;
 using stdx::sql::ResultSet;
 using stdx::sql::SQLException;
 using stdx::sql::Statement;
+using stdx::time::Seconds;
 
 using namespace stdx::test;
-#endif
 
-#ifdef __GNUC__
-using namespace stdx::core;
-using namespace stdx::literals;
-#endif
-
-#ifdef STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
 static_assert(Bindable<i32>);
 static_assert(Bindable<i64>);
 static_assert(Bindable<f64>);
@@ -54,7 +57,6 @@ Connection& sql_connection() {
 /**
  * @brief Tests that attempting to connect with a bogus driver string throws SQLException,
  * rather than crashing or doing something else.
- * 
  * @param ctx TestContext to record pass/fail results.
  *
  * Negative-path tests: these run unconditionally because they don't need a
@@ -80,7 +82,6 @@ void test_bad_connection() {
 /**
  * @brief Tests that an empty connection string throws SQLException, 
  * rather than crashing or doing something else.
- * 
  * @param ctx TestContext to record pass/fail results.
  */
 void test_empty_connection_string() {
@@ -95,8 +96,46 @@ void test_empty_connection_string() {
 }
 
 /**
+ * @brief Whether something is accepting connections at @p endpoint right now.
+ *
+ * The connect is blocking, deliberately: a non-blocking one reports EINPROGRESS
+ * rather than ECONNREFUSED even on loopback, so telling "refused" from "still
+ * handshaking" would need a readiness poll - which is the reactor's job, not a
+ * test helper's. Against loopback a refusal arrives in microseconds, and the
+ * send timeout bounds the pathological case where a firewall drops the SYN
+ * instead of rejecting it.
+ */
+[[nodiscard]]
+bool is_listening(const Endpoint& endpoint) noexcept {
+    try {
+        Socket probe(endpoint.family(), Socket::Type::STREAM);
+        probe.set_send_timeout(250ms);
+        probe.connect(endpoint);
+        return true;
+    } catch (const SocketException& _) {
+        return false;
+    }
+}
+
+/**
+ * @brief The SQL Server endpoint the live tests use.
+ */
+[[nodiscard]]
+Endpoint mssql_endpoint() noexcept {
+    return Endpoint(IPAddress(IPv4Address::LOOPBACK), 1433);
+}
+
+/**
+ * @brief The password the live SQL Server is expected to accept.
+ */
+[[nodiscard]]
+StringView mssql_password() noexcept {
+    const Optional<StringView> configured = Environment::get("STDX_MSSQL_PASSWORD");
+    return configured.has_value() ? *configured : "Stdx#Passw0rd"sv;
+}
+
+/**
  * @brief Attempts to open a live connection to a database file.
- * 
  * @param dbfile Path to a database file (e.g. SQLite) that the test can create and use.
  * Ignored if testing against a server-based database.
  * @return Optional<Connection> A live Connection if one could be established,
@@ -117,14 +156,40 @@ void test_empty_connection_string() {
  */
 [[nodiscard]]
 Optional<Connection> try_open_live(const Path& dbfile) noexcept {
-    Vector<String> connection_strings;
+    // Each candidate gets a short deadline rather than the driver's own. The
+    // Microsoft driver otherwise spends a flat 15 seconds on an absent server -
+    // which, since it is tried first and a database is usually not running, is
+    // 15 seconds added to every run of this suite.
+    static constexpr Seconds PROBE_TIMEOUT = 2s;
 
-    const Optional<StringView> mssql_password = Environment::get("STDX_MSSQL_PASSWORD");
-    connection_strings.push_back(stdx::fmt::format(
-        "Driver={{ODBC Driver 18 for SQL Server}};Server=127.0.0.1,1433;"
-        "UID=sa;PWD={};Encrypt=no;TrustServerCertificate=yes;MARS_Connection=yes;",
-        mssql_password.has_value() ? *mssql_password : StringView("Stdx#Passw0rd")
-    ));
+    // Only offer the SQL Server candidate when the port answers. The login
+    // timeout already bounds the wait, but a dead port can be ruled out in
+    // microseconds instead of seconds, and usually no database is running.
+    //
+    // Built through the component-wise overload rather than by hand, so the
+    // password is quoted by the library. A hand-written "PWD={}" is cut short by
+    // any ';' the password happens to contain, and the resulting failure reads
+    // as "no database reachable" - a skip that looks like an absent server.
+    const Endpoint mssql = mssql_endpoint();
+    if (is_listening(mssql)) {
+        try {
+            return DriverManager::connection(
+                "ODBC Driver 18 for SQL Server",
+                mssql.address(),
+                "master",
+                "sa",
+                mssql_password(),
+                {
+                    .port = mssql.port(),
+                    .login_timeout = PROBE_TIMEOUT,
+                    .encryption = Encryption::TRUSTED,
+                    .extra = "MARS_Connection=yes;"
+                }
+            );
+        } catch (const SQLException& _) {
+            // Fall through to the file-backed candidates.
+        }
+    }
 
     static constexpr Array<StringView, 3> SQLITE_DRIVERS = {
         "SQLite3",
@@ -132,14 +197,10 @@ Optional<Connection> try_open_live(const Path& dbfile) noexcept {
         "SQLite",
     };
     for (StringView driver: SQLITE_DRIVERS) {
-        connection_strings.push_back(stdx::fmt::format(
-            "Driver={{{}}};Database={};", driver, dbfile
-        ));
-    }
-
-    for (const String& connection_string: connection_strings) {
         try {
-            return DriverManager::connection(connection_string);
+            return DriverManager::connection(
+                Ops::fmt("Driver={{{}}};Database={};", driver, dbfile), PROBE_TIMEOUT
+            );
         } catch (const SQLException& _) {
             // Try the next candidate.
         }
@@ -149,7 +210,6 @@ Optional<Connection> try_open_live(const Path& dbfile) noexcept {
 
 /**
  * @brief Tests that we can connect to a live database and perform basic CRUD operations.
- * 
  * @param ctx TestContext to record pass/fail results.
  * @param c A live Connection to a test database.
  * The test creates and drops its own table, so the schema doesn't matter.
@@ -237,7 +297,6 @@ void test_crud() {
 
 /**
  * @brief Tests that parameter binding is safe against SQL injection.
- * 
  * @param ctx TestContext to record pass/fail results.
  * @param c A live Connection to a test database. The test creates
  * and drops its own table, so the schema doesn't matter.
@@ -283,8 +342,293 @@ void test_sql_injection_safe() {
 }
 
 /**
+ * @brief Tests that the component-wise overload spells the port and the encryption
+ * the way the driver reads them.
+ *
+ * Both halves matter and neither is observable without a live server. ODBC
+ * defines no port or encryption keyword, so a driver silently drops the ones it
+ * does not recognise: before the connection string was built per driver, a
+ * wrong port still connected (to the default 1433) and an encryption request
+ * could not be expressed at all, which left this overload unable to reach any
+ * Driver 18 server without a trusted certificate.
+ */
+void test_connection_components() {
+    if (!is_listening(mssql_endpoint())) {
+        skip("no SQL Server on 127.0.0.1:1433");
+    }
+
+    static constexpr StringView DRIVER = "ODBC Driver 18 for SQL Server";
+    const StringView password = mssql_password();
+
+    expect_no_throw(
+        [password] -> void {
+            Connection c = DriverManager::connection(
+                DRIVER, "127.0.0.1", "master", "sa", password,
+                {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+            );
+            c.close();
+        },
+        "the component-wise overload reaches the server and negotiates encryption"
+    );
+
+    // Only fails because the port reached the driver; with the port dropped it
+    // would have connected to 1433 and passed for the wrong reason. The driver
+    // waits out its login timeout rather than reporting the refusal, so this
+    // costs whatever deadline it is given - hence the shortest useful one.
+    expect_throws<SQLException>(
+        [password] -> void {
+            Connection c = DriverManager::connection(
+                DRIVER, "127.0.0.1", "master", "sa", password,
+                {.port = 9999, .login_timeout = 1s, .encryption = Encryption::TRUSTED}
+            );
+            c.close();
+        },
+        "a wrong port fails rather than silently reaching the default"
+    );
+
+    // A driver whose encryption spelling is unknown is refused outright, rather
+    // than connected in the clear while the caller believes otherwise.
+    String refusal;
+    try {
+        Connection c = DriverManager::connection(
+            "Some Unknown Driver", "127.0.0.1", "db", "u", "p",
+            {.encryption = Encryption::VERIFIED}
+        );
+        c.close();
+    } catch (const SQLException& e) {
+        refusal = e.what();
+    }
+    expect(
+        refusal.find("encryption") != String::npos,
+        "an unspellable encryption mode is refused by name, not quietly dropped"
+    );
+
+    // Gated separately from the IPv4 probe above: a host may publish 1433 on
+    // IPv4 only. What this proves is the spelling - the driver reads the bare
+    // RFC 5952 literal that IPAddress::to_string produces, brackets and all
+    // absent, with the port still comma-separated behind it.
+    if (is_listening(Endpoint(IPv6Address::LOOPBACK, 1433))) {
+        expect_no_throw(
+            [password] -> void {
+                Connection c = DriverManager::connection(
+                    DRIVER, IPv6Address::LOOPBACK, "master", "sa", password,
+                    {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+                );
+                c.close();
+            },
+            "the address overload reaches the server over IPv6"
+        );
+    }
+}
+
+/**
+ * @brief Tests that a value carrying a ';' survives into the driver intact.
+ *
+ * ';' ends one connection-string keyword and begins the next, so an unquoted
+ * password holding one is not merely truncated: the tail is parsed as further
+ * keywords. A password ending ";Encrypt=no" would negotiate plaintext, and
+ * ";Trusted_Connection=yes" would change how the caller authenticates.
+ *
+ * Proving it needs a credential the server accepts, so the test makes one. The
+ * DDL is built by concatenation because a login name and password cannot be
+ * bound as parameters - the values here are test constants, not input.
+ */
+void test_connection_value_escaping() {
+    if (!is_listening(mssql_endpoint())) {
+        skip("no SQL Server on 127.0.0.1:1433");
+    }
+
+    static constexpr StringView DRIVER = "ODBC Driver 18 for SQL Server";
+    static constexpr StringView LOGIN = "stdx_escape_probe";
+    static constexpr StringView AWKWARD = "Semi;Colon}Brace#1";
+
+    Connection admin = DriverManager::connection(
+        DRIVER, "127.0.0.1", "master", "sa", mssql_password(),
+        {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+    );
+
+    try {
+        (void)admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN));
+    } catch (const SQLException& _) {
+        // The login is not expected to exist; this only cleans up after a
+        // previous run that died before its own teardown.
+    }
+    (void)admin.execute(Ops::fmt(
+        "CREATE LOGIN {} WITH PASSWORD = '{}', CHECK_POLICY = OFF;", LOGIN, AWKWARD
+    ));
+
+    expect_no_throw(
+        [] -> void {
+            Connection c = DriverManager::connection(
+                DRIVER, "127.0.0.1", "master", LOGIN, AWKWARD,
+                {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+            );
+            c.close();
+        },
+        "a password holding ';' and '}' authenticates rather than being cut at the ';'"
+    );
+
+    (void)admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN));
+    admin.close();
+}
+
+/**
+ * @brief Tests that a database URL is taken apart into usable pieces.
+ *
+ * Needs no server: this is decoding and splitting, nothing more. What it pins
+ * down is the order of those two operations. Splitting the userinfo before
+ * decoding it is what lets a password contain an escaped ':'; splitting the
+ * query before decoding each half is what lets a value contain an escaped '&'.
+ * Decoding first would promote both to separators and divide in the wrong place.
+ */
+void test_database_url_parsing() {
+    const DatabaseUrl url(
+        Uri("postgresql://us%3Aer:p%40ss%3B1@db.example.com:5432/my%20store?sslmode=require&opt=a%26b")
+    );
+
+    expect_eq(url.scheme(), "postgresql", "the scheme is reported as written");
+    expect_eq(url.host(), "db.example.com", "the host is reported");
+    expect(url.port() == 5432, "the port is reported");
+    expect_eq(url.database(), "my store", "the database is the path without its leading slash, decoded");
+    expect_eq(url.username(), "us:er", "an escaped ':' stays in the user name");
+    expect_eq(url.password(), "p@ss;1", "an escaped '@' and ';' stay in the password");
+
+    expect(url.parameter("sslmode").has_value(), "a parameter is found by name");
+    expect_eq(*url.parameter("sslmode"), "require", "its value is reported");
+    expect_eq(*url.parameter("opt"), "a&b", "an escaped '&' stays inside the value");
+    expect(!url.parameter("SSLMODE").has_value(), "parameter names are matched case-sensitively");
+    expect(!url.parameter("absent").has_value(), "an absent parameter reports nothing");
+    expect(url.parameters().size() == 2, "every parameter is kept");
+
+    // A file-backed URL has no authority, and its leading slash is part of the
+    // name rather than a separator - which is why path() exists beside database().
+    const DatabaseUrl file(Uri("sqlite:///tmp/store.db"));
+    expect_eq(file.host(), "", "a file-backed URL has no host");
+    expect(file.port() == 0, "an absent port reports 0, which ConnectionOptions reads as 'unspecified'");
+    expect_eq(file.path(), "/tmp/store.db", "path() keeps the leading slash for a file name");
+    expect_eq(file.database(), "tmp/store.db", "database() strips it, which is wrong for a file - hence both");
+
+    const DatabaseUrl bare(Uri("mssql://server/db"));
+    expect_eq(bare.username(), "", "an absent userinfo yields an empty user name");
+    expect_eq(bare.password(), "", "an absent userinfo yields an empty password");
+    expect(bare.parameters().empty(), "an absent query yields no parameters");
+
+    // Userinfo with no ':' is all user name, no password.
+    expect_eq(DatabaseUrl(Uri("mssql://sa@server/db")).username(), "sa", "userinfo without ':' is the user name");
+
+    expect(!DatabaseUrl::parse("//host/db").has_value(), "a relative reference is not a database URL");
+    expect(!DatabaseUrl::parse("http://a/100%").has_value(), "a malformed escape is rejected");
+    expect(DatabaseUrl::parse("mssql://h/d").has_value(), "a well-formed URL parses");
+}
+
+/**
+ * @brief Tests that a URL's credentials reach the server unaltered.
+ *
+ * The two halves have to compose: the URL escapes what its own syntax reserves
+ * ('#' would start a fragment, '@' would end the userinfo), and the connection
+ * string quotes what *its* grammar reserves (';' would start a keyword). A
+ * password needing both is the case where getting either wrong is invisible
+ * until authentication fails for the wrong reason.
+ */
+void test_database_url_round_trip() {
+    if (!is_listening(mssql_endpoint())) {
+        skip("no SQL Server on 127.0.0.1:1433");
+    }
+
+    static constexpr StringView DRIVER = "ODBC Driver 18 for SQL Server";
+    static constexpr StringView LOGIN = "stdx_url_probe";
+    // ';' and '}' are the connection string's to quote; '#' and '@' are the URL's
+    // to escape. This password needs all four handled.
+    static constexpr StringView PLAIN = "Url;Pass}Word#1@x";
+    static constexpr StringView ESCAPED = "Url%3BPass%7DWord%231%40x";
+
+    Connection admin = DriverManager::connection(
+        DRIVER, "127.0.0.1", "master", "sa", mssql_password(),
+        {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+    );
+    try {
+        (void)admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN));
+    } catch (const SQLException& _) {
+        // Only cleaning up after a run that died before its own teardown.
+    }
+    (void)admin.execute(Ops::fmt(
+        "CREATE LOGIN {} WITH PASSWORD = '{}', CHECK_POLICY = OFF;", LOGIN, PLAIN
+    ));
+
+    const DatabaseUrl url(Uri(Ops::fmt(
+        "mssql://{}:{}@127.0.0.1:1433/master", LOGIN, ESCAPED
+    )));
+    expect_eq(url.password(), PLAIN, "the URL decodes back to the password the server was given");
+
+    expect_no_throw(
+        [&url] -> void {
+            Connection c = DriverManager::connection(
+                DRIVER, url.host(), url.database(), url.username(), url.password(),
+                {.port = url.port(), .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+            );
+            c.close();
+        },
+        "a URL's parts feed the component overload and authenticate"
+    );
+
+    (void)admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN));
+    admin.close();
+}
+
+/**
+ * @brief Tests that a server holding a reserved character is refused, not quoted.
+ *
+ * Needs no server. The host cannot be brace-quoted like the other values,
+ * because for SQL Server the comma before the port belongs to the grammar of
+ * that clause and quoting would fold it into the host name. Since no real host
+ * name or address contains these, refusing is the honest answer - and it stops
+ * "localhost;Encrypt=no" from reading as two keywords.
+ */
+void test_connection_reserved_server() {
+    String refusal;
+    try {
+        Connection c = DriverManager::connection(
+            "ODBC Driver 18 for SQL Server", "127.0.0.1;Encrypt=no", "master", "sa", "pw",
+            {.port = 1433, .login_timeout = 1s}
+        );
+        c.close();
+    } catch (const SQLException& e) {
+        refusal = e.what();
+    }
+    expect(
+        refusal.find("reserves") != String::npos,
+        "a server holding ';' is refused by name rather than smuggled in as a keyword"
+    );
+}
+
+/**
+ * @brief Tests that a bracketed IPv6 literal is refused rather than mis-resolved.
+ *
+ * Needs no server, because the string is rejected before a driver ever sees it.
+ * "[::1]" is the URI spelling and no ODBC driver parses it: Driver 18 looks the
+ * brackets up as part of a hostname, misses, and reports that as "Login timeout
+ * expired" once the whole deadline has run down - a message that points at the
+ * network rather than at the two characters actually responsible.
+ */
+void test_connection_bracketed_address() {
+    String refusal;
+    try {
+        Connection c = DriverManager::connection(
+            "ODBC Driver 18 for SQL Server", "[::1]", "master", "sa", "pw",
+            {.port = 1433, .login_timeout = 1s, .encryption = Encryption::TRUSTED}
+        );
+        c.close();
+    } catch (const SQLException& e) {
+        refusal = e.what();
+    }
+    expect(
+        refusal.find("bracket") != String::npos,
+        "a bracketed IPv6 literal is refused by name, not resolved as a hostname"
+    );
+}
+
+/**
  * @brief Tests the Connection-level convenience methods for executing SQL with optional parameters.
- * 
  * @param ctx TestContext to record pass/fail results.
  * @param c A live Connection to a test database.
  * The test creates and drops its own table, so the schema doesn't matter.
@@ -328,7 +672,6 @@ void test_connection_convenience() {
 
 /**
  * @brief Tests that ResultSet can be used as a single-pass input range.
- * 
  * @param ctx TestContext to record pass/fail results.
  * @param c A live Connection to a test database.
  * The test creates and drops its own table, so the schema doesn't matter.
@@ -408,7 +751,6 @@ struct UserRow {
 
 /**
  * @brief Tests that query<T>() can map rows to a reflectable struct T.
- * 
  * @param ctx TestContext to record pass/fail results.
  * @param c A live Connection to a test database.
  * The test creates and drops its own table, so the schema doesn't matter.
@@ -450,7 +792,6 @@ void test_reflection_row_mapping() {
 
 /**
  * @brief Best-effort removal: ignore any failure (e.g. file doesn't exist).
- * 
  * @param p Path to remove.
  */
 void try_remove(const Path& p) noexcept {
@@ -497,6 +838,12 @@ int main(int argc, char* argv[]) {
             {"sql.empty_connection_string", test_empty_connection_string},
             {"sql.crud", test_crud, {"db"}},
             {"sql.sql_injection_safe", test_sql_injection_safe, {"db"}},
+            {"sql.connection_components", test_connection_components, {"db"}},
+            {"sql.connection_bracketed_address", test_connection_bracketed_address},
+            {"sql.connection_reserved_server", test_connection_reserved_server},
+            {"sql.database_url_parsing", test_database_url_parsing},
+            {"sql.database_url_round_trip", test_database_url_round_trip, {"db"}},
+            {"sql.connection_value_escaping", test_connection_value_escaping, {"db"}},
             {"sql.connection_convenience", test_connection_convenience, {"db"}},
             {"sql.result_set_range", test_result_set_range, {"db"}},
             #ifdef __cpp_impl_reflection

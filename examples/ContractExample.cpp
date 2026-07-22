@@ -2,10 +2,6 @@
 
 import stdx;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 #ifdef __cpp_contracts
 void handle_contract_violation(const ContractViolation& v) {
     // ...

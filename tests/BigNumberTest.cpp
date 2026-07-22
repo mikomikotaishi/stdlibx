@@ -8,10 +8,6 @@ using stdx::math::RoundingMode;
 
 using namespace stdx::test;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 void test_biginteger_basic() {
     expect(BigInteger() == BigInteger::ZERO, "default constructor is zero");
     expect_eq(BigInteger(0).to_string(), "0", "zero to_string");
@@ -28,8 +24,8 @@ void test_biginteger_basic() {
     expect_eq(BigInteger("-5").signum(), -1, "negative signum");
     expect_eq(BigInteger::ZERO.signum(), 0, "zero signum");
     expect(BigInteger::value_of(123456789) == BigInteger("123456789"), "value_of");
-    expect(BigInteger::try_parse("123").has_value(), "try_parse success");
-    expect(!BigInteger::try_parse("12x3").has_value(), "try_parse failure");
+    expect(BigInteger::parse("123").has_value(), "parse success");
+    expect(!BigInteger::parse("12x3").has_value(), "parse failure");
     expect(BigInteger("ff", 16) == BigInteger(255), "hex parse");
     expect(BigInteger("-FF", 16) == BigInteger(-255), "uppercase hex parse");
     expect(BigInteger("101", 2) == BigInteger(5), "binary parse");
@@ -248,7 +244,7 @@ void test_biginteger_conversions() {
     expect_eq(BigInteger(-255).to_string(16), "-ff", "negative to_string radix 16");
     expect_eq(BigInteger(5).to_string(2), "101", "to_string radix 2");
     expect_eq(BigInteger(255).to_string(99), "255", "invalid radix falls back to 10");
-    expect_eq(stdx::fmt::format("{}", BigInteger("-12345678901234567890")), "-12345678901234567890", "formatter");
+    expect_eq(Ops::fmt("{}", BigInteger("-12345678901234567890")), "-12345678901234567890", "formatter");
 
     expect(BigInteger(42) == BigInteger("42"), "operator== across constructors");
     expect(
@@ -287,11 +283,11 @@ void test_bigdecimal_parse_format() {
     expect(BigDecimal().precision() == 1, "precision of zero");
     expect(BigDecimal("123.45").unscaled_value() == BigInteger(12345), "unscaled_value");
 
-    expect(!BigDecimal::try_parse("").has_value(), "empty string rejected");
-    expect(!BigDecimal::try_parse(".").has_value(), "lone dot rejected");
-    expect(!BigDecimal::try_parse("1e5x").has_value(), "trailing junk rejected");
-    expect(!BigDecimal::try_parse("1e+-5").has_value(), "double exponent sign rejected");
-    expect(BigDecimal::try_parse("-12.5e-3").has_value(), "valid form accepted");
+    expect(!BigDecimal::parse("").has_value(), "empty string rejected");
+    expect(!BigDecimal::parse(".").has_value(), "lone dot rejected");
+    expect(!BigDecimal::parse("1e5x").has_value(), "trailing junk rejected");
+    expect(!BigDecimal::parse("1e+-5").has_value(), "double exponent sign rejected");
+    expect(BigDecimal::parse("-12.5e-3").has_value(), "valid form accepted");
 }
 
 void test_bigdecimal_arithmetic() {
@@ -455,7 +451,7 @@ void test_bigdecimal_conversions() {
     expect(BigDecimal("2.5").float_value() == 2.5f, "float_value");
     expect(BigDecimal("1E+400").double_value() == Double::POSITIVE_INFINITY, "double_value overflow");
     expect(BigDecimal("1E-400").double_value() == 0.0, "double_value underflow");
-    expect_eq(stdx::fmt::format("{}", BigDecimal("3.14")), "3.14", "formatter");
+    expect_eq(Ops::fmt("{}", BigDecimal("3.14")), "3.14", "formatter");
 
     expect(BigDecimal(BigInteger("123")) + BigDecimal(5) == BigDecimal(128), "BigInteger interop");
     expect(BigDecimal("2.5") * BigDecimal(2) == BigDecimal(5), "integral operand promotion");

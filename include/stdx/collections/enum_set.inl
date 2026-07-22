@@ -21,7 +21,7 @@ export namespace stdx::collections {
      */
     template <typename E>
         requires (IsEnumValue<E>)
-    class EnumSet {
+    class [[nodiscard]] EnumSet {
     public:
         using ValueType = E;
         using UnderlyingType = UnderlyingTypeType<E>;
@@ -30,7 +30,7 @@ export namespace stdx::collections {
         static constexpr const Array<E, stdx::meta::reflect::count<E>()>& VALUES = ValuesPer<E>; ///< All enumerator values of E, in declaration order.
         static constexpr usize CAPACITY = VALUES.size(); ///< Number of enumerators of E.
     private:
-        BitSet<CAPACITY> bits; ///< Bitset storing the presence of each enumerator in VALUES.
+        BitSet<CAPACITY> _bits; ///< Bitset storing the presence of each enumerator in VALUES.
 
         [[nodiscard]]
         static constexpr usize index_of(E v) noexcept {
@@ -43,14 +43,14 @@ export namespace stdx::collections {
         }
 
         constexpr explicit EnumSet(BitSet<CAPACITY> b) noexcept:
-            bits{b} {}
+            _bits{b} {}
     public:
         constexpr EnumSet() noexcept = default;
 
         constexpr EnumSet(InitializerList<E> values) noexcept {
             for (E v: values) {
                 if (usize i = index_of(v); i < CAPACITY) {
-                    bits.set(i);
+                    _bits.set(i);
                 }
             }
         }
@@ -63,7 +63,7 @@ export namespace stdx::collections {
         [[nodiscard]]
         static constexpr EnumSet all_of() noexcept {
             EnumSet s;
-            s.bits.set();
+            s._bits.set();
             return s;
         }
 
@@ -74,10 +74,8 @@ export namespace stdx::collections {
             return s;
         }
 
-        template <typename... Es>
-            requires (IsSameValue<Es, E> && ...)
         [[nodiscard]]
-        static constexpr EnumSet of(E first, Es... rest) noexcept {
+        static constexpr EnumSet of(E first, SameAs<E> auto... rest) noexcept {
             EnumSet s;
             s.insert(first);
             (s.insert(rest), ...);
@@ -98,7 +96,7 @@ export namespace stdx::collections {
                 end = tmp;
             }
             for (usize i = start; i <= end; ++i) {
-                s.bits.set(i);
+                s._bits.set(i);
             }
             return s;
         }
@@ -106,39 +104,39 @@ export namespace stdx::collections {
         [[nodiscard]]
         static constexpr EnumSet complement_of(const EnumSet& other) noexcept {
             EnumSet s = other;
-            s.bits.flip();
+            s._bits.flip();
             return s;
         }
 
         [[nodiscard]]
         constexpr bool contains(E v) const noexcept {
             usize i = index_of(v);
-            return i < CAPACITY && bits.test(i);
+            return i < CAPACITY && _bits.test(i);
         }
 
         [[nodiscard]]
         constexpr bool contains_all(const EnumSet& other) const noexcept {
-            return (bits & other.bits) == other.bits;
+            return (_bits & other._bits) == other._bits;
         }
 
         [[nodiscard]]
         constexpr bool contains_any(const EnumSet& other) const noexcept {
-            return (bits & other.bits).any();
+            return (_bits & other._bits).any();
         }
 
         [[nodiscard]]
         constexpr usize size() const noexcept {
-            return bits.count();
+            return _bits.count();
         }
 
         [[nodiscard]]
         constexpr bool empty() const noexcept {
-            return bits.none();
+            return _bits.none();
         }
 
         [[nodiscard]]
         constexpr bool is_full() const noexcept {
-            return bits.all();
+            return _bits.all();
         }
 
         [[nodiscard]]
@@ -151,8 +149,8 @@ export namespace stdx::collections {
             if (i >= CAPACITY) {
                 return false;
             }
-            bool was_set = bits.test(i);
-            bits.set(i);
+            bool was_set = _bits.test(i);
+            _bits.set(i);
             return !was_set;
         }
 
@@ -161,50 +159,50 @@ export namespace stdx::collections {
             if (i >= CAPACITY) {
                 return false;
             }
-            bool was_set = bits.test(i);
-            bits.reset(i);
+            bool was_set = _bits.test(i);
+            _bits.reset(i);
             return was_set;
         }
 
         constexpr void clear() noexcept {
-            bits.reset();
+            _bits.reset();
         }
 
         constexpr bool add_all(const EnumSet& other) noexcept {
-            BitSet<CAPACITY> before = bits;
-            bits |= other.bits;
-            return bits != before;
+            BitSet<CAPACITY> before = _bits;
+            _bits |= other._bits;
+            return _bits != before;
         }
 
         constexpr bool remove_all(const EnumSet& other) noexcept {
-            BitSet<CAPACITY> before = bits;
-            bits &= ~other.bits;
-            return bits != before;
+            BitSet<CAPACITY> before = _bits;
+            _bits &= ~other._bits;
+            return _bits != before;
         }
 
         constexpr bool retain_all(const EnumSet& other) noexcept {
-            BitSet<CAPACITY> before = bits;
-            bits &= other.bits;
-            return bits != before;
+            BitSet<CAPACITY> before = _bits;
+            _bits &= other._bits;
+            return _bits != before;
         }
 
         constexpr EnumSet& operator|=(const EnumSet& o) noexcept {
-            bits |= o.bits;
+            _bits |= o._bits;
             return *this;
         }
 
         constexpr EnumSet& operator&=(const EnumSet& o) noexcept {
-            bits &= o.bits;
+            _bits &= o._bits;
             return *this;
         }
 
         constexpr EnumSet& operator^=(const EnumSet& o) noexcept {
-            bits ^= o.bits;
+            _bits ^= o._bits;
             return *this;
         }
 
         constexpr EnumSet& operator-=(const EnumSet& o) noexcept {
-            bits &= ~o.bits;
+            _bits &= ~o._bits;
             return *this;
         }
 
@@ -243,17 +241,17 @@ export namespace stdx::collections {
         class Iterator {
         private:
             friend class EnumSet;
-            const BitSet<CAPACITY>* bits{};
-            usize idx = 0;
+            const BitSet<CAPACITY>* _bits;
+            usize _idx = 0;
 
             constexpr Iterator(const BitSet<CAPACITY>* b, usize i) noexcept:
-                bits{b}, idx{i} {
+                _bits{b}, _idx{i} {
                 advance();
             }
 
             constexpr void advance() noexcept {
-                while (idx < CAPACITY && !bits->test(idx)) {
-                    ++idx;
+                while (_idx < CAPACITY && !_bits->test(_idx)) {
+                    ++_idx;
                 }
             }
         public:
@@ -267,11 +265,11 @@ export namespace stdx::collections {
 
             [[nodiscard]]
             constexpr E operator*() const noexcept {
-                return VALUES[idx];
+                return VALUES[_idx];
             }
 
             constexpr Iterator& operator++() noexcept {
-                ++idx;
+                ++_idx;
                 advance();
                 return *this;
             }
@@ -295,11 +293,11 @@ export namespace stdx::collections {
 
         [[nodiscard]]
         constexpr Iterator begin() const noexcept {
-            return Iterator(&bits, 0);
+            return Iterator(&_bits, 0);
         }
         [[nodiscard]]
         constexpr Iterator end() const noexcept {
-            return Iterator(&bits, CAPACITY);
+            return Iterator(&_bits, CAPACITY);
         }
 
         [[nodiscard]]
@@ -324,11 +322,11 @@ using stdx::collections::EnumSet;
 namespace stdx::fmt {
     template <typename T, typename Char>
     struct Formatter<EnumSet<T>, Char> {
-        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
             return ctx.begin();
         }
 
-        static FormatContext::iterator format(const EnumSet<T>& s, FormatContext& ctx) {
+        auto format(const EnumSet<T>& s, FormatContext& ctx) const {
             auto out = ctx.out();
             out = format_to(out, "{{");
             bool first = true;

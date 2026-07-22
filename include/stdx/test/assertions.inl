@@ -1,6 +1,7 @@
 #pragma once
 
 using stdx::debug::SourceLocation;
+using stdx::meta::TypeIdentityType;
 using stdx::sync::Atomic;
 using stdx::sync::MemoryOrder;
 
@@ -10,12 +11,12 @@ namespace stdx::test {
      * @class Context
      * @brief Per-run state shared by the assertions and the runner.
      */
-    class Context {
+    class [[nodiscard]] Context {
     private:
-        Atomic<usize> total_assertions_count{0}; ///< Assertions evaluated across the whole run.
-        Atomic<usize> test_assertions_count{0}; ///< Assertions evaluated in the current test.
-        Atomic<usize> test_failures_count{0}; ///< Failed assertions in the current test.
-        bool use_color = true; ///< Set once before the run, read-only while it runs.
+        Atomic<usize> _total_assertions_count{0}; ///< Assertions evaluated across the whole run.
+        Atomic<usize> _test_assertions_count{0}; ///< Assertions evaluated in the current test.
+        Atomic<usize> _test_failures_count{0}; ///< Failed assertions in the current test.
+        bool _use_color = true; ///< Set once before the run, read-only while it runs.
     
         Context() = default;
     public:
@@ -35,42 +36,42 @@ namespace stdx::test {
          * This is not thread-safe and should only be used when no tests are running.
          */
         void reset() noexcept {
-            total_assertions_count.store(0, MemoryOrder::RELAXED);
-            test_assertions_count.store(0, MemoryOrder::RELAXED);
-            test_failures_count.store(0, MemoryOrder::RELAXED);
-            use_color = true;
+            _total_assertions_count.store(0, MemoryOrder::RELAXED);
+            _test_assertions_count.store(0, MemoryOrder::RELAXED);
+            _test_failures_count.store(0, MemoryOrder::RELAXED);
+            _use_color = true;
         }
 
         /**
          * @brief Resets the per-test counters before a test runs.
          */
         void begin_test() noexcept {
-            test_assertions_count.store(0, MemoryOrder::RELAXED);
-            test_failures_count.store(0, MemoryOrder::RELAXED);
+            _test_assertions_count.store(0, MemoryOrder::RELAXED);
+            _test_failures_count.store(0, MemoryOrder::RELAXED);
         }
 
         /**
          * @brief Atomically records a passing assertion.
          */
         void record_pass() noexcept {
-            total_assertions_count.fetch_add(1, MemoryOrder::RELAXED);
-            test_assertions_count.fetch_add(1, MemoryOrder::RELAXED);
+            _total_assertions_count.fetch_add(1, MemoryOrder::RELAXED);
+            _test_assertions_count.fetch_add(1, MemoryOrder::RELAXED);
         }
 
         /**
          * @brief Atomically records a failing assertion.
          */
         void record_failure() noexcept {
-            total_assertions_count.fetch_add(1, MemoryOrder::RELAXED);
-            test_assertions_count.fetch_add(1, MemoryOrder::RELAXED);
-            test_failures_count.fetch_add(1, MemoryOrder::RELAXED);
+            _total_assertions_count.fetch_add(1, MemoryOrder::RELAXED);
+            _test_assertions_count.fetch_add(1, MemoryOrder::RELAXED);
+            _test_failures_count.fetch_add(1, MemoryOrder::RELAXED);
         }
 
         /**
          * @brief Atomically records a non-assertion test failure (e.g. an uncaught exception).
          */
         void record_error() noexcept {
-            test_failures_count.fetch_add(1, MemoryOrder::RELAXED);
+            _test_failures_count.fetch_add(1, MemoryOrder::RELAXED);
         }
 
         /**
@@ -79,7 +80,7 @@ namespace stdx::test {
          */
         [[nodiscard]]
         usize total_assertions() const noexcept {
-            return total_assertions_count.load(MemoryOrder::RELAXED);
+            return _total_assertions_count.load(MemoryOrder::RELAXED);
         }
 
         /**
@@ -88,7 +89,7 @@ namespace stdx::test {
          */         
         [[nodiscard]]
         usize test_assertions() const noexcept {
-            return test_assertions_count.load(MemoryOrder::RELAXED);
+            return _test_assertions_count.load(MemoryOrder::RELAXED);
         }
 
         /**
@@ -97,24 +98,24 @@ namespace stdx::test {
          */
         [[nodiscard]]
         usize test_failures() const noexcept {
-            return test_failures_count.load(MemoryOrder::RELAXED);
+            return _test_failures_count.load(MemoryOrder::RELAXED);
         }
 
         /**
-         * @brief Returns whether the test run should colorise its output.
+         * @brief Returns whether the test run should colorize its output.
          * @return True if color is enabled, false otherwise.
          */
         [[nodiscard]]
         bool color_enabled() const noexcept {
-            return use_color;
+            return _use_color;
         }
 
         /**
-         * @brief Enables or disables colorised output for the test run.
+         * @brief Enables or disables colorized output for the test run.
          * @param enable True to enable color, false to disable.
          */
         void color(bool enable) noexcept {
-            use_color = enable;
+            _use_color = enable;
         }
     };
 
@@ -147,7 +148,7 @@ namespace stdx::test {
     [[nodiscard]]
     inline String annotate(String detail, StringView message) {
         if (!message.empty()) {
-            detail += stdx::fmt::format(" ({})", message);
+            detail += Ops::fmt(" ({})", message);
         }
         return detail;
     }
@@ -177,7 +178,7 @@ namespace stdx::test {
             pass();
             return;
         }
-        fail(loc, annotate(stdx::fmt::format("expected {} {} {}", a, op, b), message));
+        fail(loc, annotate(Ops::fmt("expected {} {} {}", a, op, b), message));
     }
 }
 
@@ -382,12 +383,16 @@ export namespace stdx::test {
      * @param epsilon The maximum tolerated absolute difference.
      * @param message Optional context shown on failure.
      * @param loc The source location of the call (defaulted to the call site).
+     *
+     * Only the actual value takes part in deduction, so the tolerance and the
+     * expected value may be written as plain literals even when the value under
+     * test is of an extended floating-point type such as f64.
      */
     template <FloatingPoint F>
     inline void expect_near(
         F actual,
-        F expected,
-        F epsilon,
+        TypeIdentityType<F> expected,
+        TypeIdentityType<F> epsilon,
         StringView message = "",
         SourceLocation loc = SourceLocation::current()
     ) {
@@ -398,7 +403,7 @@ export namespace stdx::test {
         }
         fail(
             loc,
-            annotate(stdx::fmt::format("expected {} within {} of {}", actual, epsilon, expected), message)
+            annotate(Ops::fmt("expected {} within {} of {}", actual, epsilon, expected), message)
         );
     }
 
@@ -422,7 +427,7 @@ export namespace stdx::test {
             pass();
             return;
         } catch (const Exception& e) {
-            fail(loc, annotate(stdx::fmt::format("threw a different exception: {}", e.what()), message));
+            fail(loc, annotate(Ops::fmt("threw a different exception: {}", e.what()), message));
             return;
         } catch (...) {
             fail(loc, annotate("threw an unrecognized exception", message));
@@ -448,7 +453,7 @@ export namespace stdx::test {
             fn();
             pass();
         } catch (const Exception& e) {
-            fail(loc, annotate(stdx::fmt::format("threw: {}", e.what()), message));
+            fail(loc, annotate(Ops::fmt("threw: {}", e.what()), message));
         } catch (...) {
             fail(loc, annotate("threw an unrecognized exception", message));
         }
@@ -493,7 +498,7 @@ export namespace stdx::test {
             pass();
             return;
         }
-        fail(loc, annotate(stdx::fmt::format("expected {} == {}", actual, expected), message));
+        fail(loc, annotate(Ops::fmt("expected {} == {}", actual, expected), message));
         abort_test();
     }
 

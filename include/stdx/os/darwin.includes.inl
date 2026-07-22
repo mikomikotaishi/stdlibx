@@ -1,5 +1,12 @@
 #pragma once
 
+// Darwin's own C headers, as opposed to the Objective-C frameworks below. These
+// need no Blocks support, so they are gated on the platform alone: a GCC or
+// -fno-blocks build still wants kqueue.
+#if defined(__APPLE__)
+#include <sys/event.h>
+#endif
+
 // Apple's audio/MIDI framework headers are built on Clang Blocks (the `^`
 // syntax) and Clang-only availability attributes, so they only parse when
 // Blocks are enabled. Gate on __BLOCKS__ so GCC (and clang -fno-blocks) skip

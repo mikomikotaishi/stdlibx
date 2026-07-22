@@ -3,6 +3,10 @@
 using stdx::collections::Vector;
 using stdx::io::TextStyle;
 
+#ifdef __cpp_impl_reflection
+using stdx::meta::reflect::Info;
+#endif
+
 /**
  * @namespace stdx::test
  * @brief Minimal assertion-based unit-testing framework.
@@ -18,6 +22,7 @@ export namespace stdx::test {
         StringView name; ///< Test display name.
         Callback fn; ///< The test body.
         Vector<StringView> tags; ///< Optional tags for --tag filtering.
+        Optional<StringView> disabled = nullopt; ///< When set, the test is reported skipped, with this reason, without running.
     };
 
     /**
@@ -33,6 +38,23 @@ export namespace stdx::test {
         Callback before_all = nullptr; ///< Run once before the first selected test.
         Callback after_all = nullptr; ///< Run once after the last selected test.
         Vector<Test> tests = {}; ///< The tests in this suite.
+
+        #ifdef __cpp_impl_reflection
+        /**
+         * @brief The suite a namespace declares: the tests reflection finds in it,
+         * under the hooks it declares.
+         * @tparam Nsp The reflection of the namespace or class to scan, e.g. ^^tests.
+         * @return A suite named after the namespace.
+         *
+         * A test is a nullary void member named test_* or annotated with TestCase; a
+         * hook is one annotated with BeforeEach, AfterEach, BeforeAll or AfterAll, or
+         * simply named before_each, after_each, before_all or after_all. Defined in
+         * discovery.inl, alongside the machinery it drives.
+         */
+        template <Info Nsp>
+        [[nodiscard]]
+        static Suite of();
+        #endif
     };
 }
 
@@ -176,6 +198,8 @@ namespace stdx::test {
      * @param suite The owning suite (for its hooks).
      * @param options The active options.
      * @param tally The running totals to update.
+     *
+     * A test carrying a disabled reason is reported skipped without being run.
      */
     inline void run_one(
         const Test& test,
@@ -185,6 +209,17 @@ namespace stdx::test {
     ) {
         Context& ctx = Context::context();
         ctx.begin_test();
+        if (test.disabled.has_value()) {
+            ++tally.skipped;
+            const StringView why = *test.disabled;
+            report(
+                "SKIP",
+                TextStyle::Color::YELLOW,
+                why.empty() ? String(test.name) : Ops::fmt("{} - {}", test.name, why),
+                options.color
+            );
+            return;
+        }
         bool skipped = false;
         String skip_reason;
         const u64 start = System::nano_time();
@@ -213,7 +248,7 @@ namespace stdx::test {
             // Teardown failures are ignored.
         }
         const f64 elapsed_ms = static_cast<f64>(System::nano_time() - start) / 1.0e6;
-        const String line = stdx::fmt::format(
+        const String line = Ops::fmt(
             "{} ({:.3f} ms, {} assertions)",
             test.name,
             elapsed_ms,
@@ -224,7 +259,7 @@ namespace stdx::test {
             report(
                 "SKIP",
                 TextStyle::Color::YELLOW,
-                skip_reason.empty() ? line : stdx::fmt::format("{} - {}", line, skip_reason),
+                skip_reason.empty() ? line : Ops::fmt("{} - {}", line, skip_reason),
                 options.color
             );
         } else if (ctx.test_failures() == 0) {
@@ -281,7 +316,7 @@ namespace stdx::test {
             }
         }
         const f64 elapsed_ms = static_cast<f64>(System::nano_time() - start) / 1.0e6;
-        const String summary = stdx::fmt::format(
+        const String summary = Ops::fmt(
             "{} passed, {} failed, {} skipped - {} assertions, {:.3f} ms",
             tally.passed,
             tally.failed,
@@ -313,7 +348,7 @@ export namespace stdx::test {
      * @return 0 if no test failed, 1 otherwise.
      */
     int run(int argc, char* argv[], InitializerList<Test> tests) {
-        return run_impl(argc, argv, {Suite{.tests = Vector<Test>(tests)}});
+        return run_impl(argc, argv, {Suite {.tests = Vector<Test>(tests)}});
     }
 
     /**
@@ -324,14 +359,13 @@ export namespace stdx::test {
      * @return 0 if no test failed, 1 otherwise.
      *
      * The variadic form accepts explicitly-typed Test arguments, e.g.
-     * run(argc, argv, Test{...}, Test{...}); a brace-enclosed list selects the
-     * InitializerList<Test> overload instead.
+     * run(argc, argv, Test {...}, Test {...}).
      */
-    int run(int argc, char* argv[], SameAs<Test> auto&&... tests) {
+    int run(int argc, char* argv[], DecaysTo<Test> auto&&... tests) {
         Vector<Test> list;
         list.reserve(sizeof...(tests));
         (list.push_back(Ops::forward<decltype(tests)>(tests)), ...);
-        return run_impl(argc, argv, {Suite{.tests = Ops::move(list)}});
+        return run_impl(argc, argv, {Suite {.tests = Ops::move(list)}});
     }
 
     /**
@@ -341,10 +375,40 @@ export namespace stdx::test {
      * @param suite The suite to run.
      * @return 0 if no test failed, 1 otherwise.
      *
-     * Pass an explicit Suite{...} to reach this overload; a brace-enclosed list
+     * Pass an explicit Suite {...} to reach this overload; a brace-enclosed list
      * of {name, fn} entries selects the InitializerList<Test> overload instead.
      */
     int run(int argc, char* argv[], const Suite& suite) {
         return run_impl(argc, argv, {suite});
+    }
+
+    /**
+     * @brief Runs several suites in order under one summary.
+     * @param argc The argument count from main.
+     * @param argv The argument vector from main.
+     * @param suites The suites to run.
+     * @return 0 if no test failed, 1 otherwise.
+     *
+     * Each suite's hooks run around its own tests only. This is spelled differently
+     * from run() because a brace-enclosed {name, fn} entry initializes a Suite just
+     * as readily as a Test, which would make every run(argc, argv, {...}) call
+     * ambiguous.
+     */
+    int run_suites(int argc, char* argv[], InitializerList<Suite> suites) {
+        return run_impl(argc, argv, suites);
+    }
+
+    /**
+     * @brief Runs suites passed as separate arguments as an anonymous suite.
+     * @param argc The argument count from main.
+     * @param argv The argument vector from main.
+     * @param suites The suites to run, each given as its own argument.
+     * @return 0 if no test failed, 1 otherwise.
+     *
+     * The variadic form accepts explicitly-typed Suite arguments, e.g.
+     * run(argc, argv, Suite {...}, Suite {...}).
+     */
+    int run(int argc, char* argv[], DecaysTo<Suite> auto&&... suites) {
+        return run_impl(argc, argv, {Ops::forward<decltype(suites)>(suites)...});
     }
 }

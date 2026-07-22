@@ -6,10 +6,6 @@ using stdx::io::OutputFileStream;
 
 using namespace stdx::test;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 // A scratch directory tree, rebuilt fresh for the suite:
 //
 //   <tmp>/stdx_fs_walk_test/

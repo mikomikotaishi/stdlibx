@@ -44,33 +44,33 @@ export namespace stdx::io {
      */
     class Scanner {
     private:
-        UniquePointer<InputFileStream> owned_file_stream; ///< Owned file stream (when constructed from Path/File).
-        InputStream* source = nullptr; ///< Non-owning pointer to the input stream being scanned.
-        String delimiter = " \t\n\r\f\v"; ///< Current set of delimiter characters.
-        String buffered_line; ///< Internal line buffer for token parsing.
-        InputStringStream line_stream; ///< Stream over the current buffered line.
-        bool line_consumed = true; ///< Whether the current line buffer has been fully consumed.
+        UniquePointer<InputFileStream> _owned_file_stream; ///< Owned file stream (when constructed from Path/File).
+        InputStream* _source = nullptr; ///< Non-owning pointer to the input stream being scanned.
+        String _delimiter = " \t\n\r\f\v"; ///< Current set of delimiter characters.
+        String _buffered_line; ///< Internal line buffer for token parsing.
+        InputStringStream _line_stream; ///< Stream over the current buffered line.
+        bool _line_consumed = true; ///< Whether the current line buffer has been fully consumed.
 
         /**
          * @brief Ensures the line buffer has content to parse.
          * @return True if there is content available, false if the source is exhausted.
          */
         bool ensure_line() {
-            if (!line_consumed) {
-                if (line_stream.peek() != CharTraits<char>::eof()) {
-                    InputStringStream test(line_stream.str().substr(
-                        static_cast<usize>(line_stream.tellg())
+            if (!_line_consumed) {
+                if (_line_stream.peek() != CharTraits<char>::eof()) {
+                    InputStringStream test(_line_stream.str().substr(
+                        static_cast<usize>(_line_stream.tellg())
                     ));
                     String token;
                     if (test >> token) {
                         return true;
                     }
                 }
-                line_consumed = true;
+                _line_consumed = true;
             }
-            while (source && getline(*source, buffered_line)) {
-                line_stream = InputStringStream(buffered_line);
-                line_consumed = false;
+            while (_source && getline(*_source, _buffered_line)) {
+                _line_stream = InputStringStream(_buffered_line);
+                _line_consumed = false;
                 return true;
             }
             return false;
@@ -82,7 +82,7 @@ export namespace stdx::io {
          * @param stream The input stream to read from (e.g., System.in / Cin).
          */
         explicit Scanner(InputStream& stream) noexcept:
-            source{&stream} {}
+            _source{&stream} {}
 
         /**
          * @brief Constructs a Scanner that reads from a filesystem Path.
@@ -92,11 +92,11 @@ export namespace stdx::io {
          */
         THROWS(IOException)
         explicit Scanner(const Path& path):
-            owned_file_stream{Pointers::unique<InputFileStream>(path)} {
-            if (!owned_file_stream->is_open()) {
-                throw IOException(stdx::fmt::format("Failed to open file: {}", path));
+            _owned_file_stream{Pointers::unique<InputFileStream>(path)} {
+            if (!_owned_file_stream->is_open()) {
+                throw IOException(Ops::fmt("Failed to open file: {}", path));
             }
-            source = owned_file_stream.get();
+            _source = _owned_file_stream.get();
         }
 
         /**
@@ -112,11 +112,11 @@ export namespace stdx::io {
             if (!path.has_value()) {
                 throw IOException("File has no associated path.");
             }
-            owned_file_stream = Pointers::unique<InputFileStream>(*path);
-            if (!owned_file_stream->is_open()) {
-                throw IOException(stdx::fmt::format("Failed to open file: {}", path->string()));
+            _owned_file_stream = Pointers::unique<InputFileStream>(*path);
+            if (!_owned_file_stream->is_open()) {
+                throw IOException(Ops::fmt("Failed to open file: {}", path->string()));
             }
-            source = owned_file_stream.get();
+            _source = _owned_file_stream.get();
         }
 
         /**
@@ -125,11 +125,11 @@ export namespace stdx::io {
          * @param input The string to scan.
          */
         explicit Scanner(const String& input):
-            owned_file_stream{nullptr},
-            source{nullptr} {
-            buffered_line = input;
-            line_stream = InputStringStream(buffered_line);
-            line_consumed = false;
+            _owned_file_stream{nullptr},
+            _source{nullptr} {
+            _buffered_line = input;
+            _line_stream = InputStringStream(_buffered_line);
+            _line_consumed = false;
         }
 
         ~Scanner() = default;
@@ -142,9 +142,9 @@ export namespace stdx::io {
          * @brief Closes the scanner and releases any underlying resources.
          */
         void close() noexcept {
-            owned_file_stream.reset();
-            source = nullptr;
-            line_consumed = true;
+            _owned_file_stream.reset();
+            _source = nullptr;
+            _line_consumed = true;
         }
 
         /**
@@ -167,14 +167,14 @@ export namespace stdx::io {
                 return nullopt;
             }
             String token;
-            if (line_stream >> token) {
+            if (_line_stream >> token) {
                 return token;
             }
-            line_consumed = true;
+            _line_consumed = true;
             if (!ensure_line()) {
                 return nullopt;
             }
-            if (line_stream >> token) {
+            if (_line_stream >> token) {
                 return token;
             }
             return nullopt;
@@ -187,10 +187,10 @@ export namespace stdx::io {
          */
         [[nodiscard]]
         bool has_next_line() {
-            if (!line_consumed) {
+            if (!_line_consumed) {
                 return true;
             }
-            return source && source->peek() != CharTraits<char>::eof();
+            return _source && _source->peek() != CharTraits<char>::eof();
         }
 
         /**
@@ -199,17 +199,17 @@ export namespace stdx::io {
          * @return The rest of the current line as an Optional<String>, or empty if no more lines are available.
          */
         Optional<String> next_line() {
-            if (!line_consumed) {
-                line_consumed = true;
-                StreamPosition pos = line_stream.tellg();
-                if (pos >= 0 && static_cast<usize>(pos) < buffered_line.size()) {
-                    return buffered_line.substr(static_cast<usize>(pos));
+            if (!_line_consumed) {
+                _line_consumed = true;
+                StreamPosition pos = _line_stream.tellg();
+                if (pos >= 0 && static_cast<usize>(pos) < _buffered_line.size()) {
+                    return _buffered_line.substr(static_cast<usize>(pos));
                 }
                 return ""s;
             }
-            if (source && getline(*source, buffered_line)) {
-                line_consumed = true;
-                return buffered_line;
+            if (_source && getline(*_source, _buffered_line)) {
+                _line_consumed = true;
+                return _buffered_line;
             }
             return nullopt;
         }
@@ -267,11 +267,11 @@ export namespace stdx::io {
             if (!ensure_line()) {
                 return false;
             }
-            StreamPosition pos = line_stream.tellg();
+            StreamPosition pos = _line_stream.tellg();
             String token;
-            bool result = (line_stream >> token) && Integer::try_parse(token).has_value();
-            line_stream.seekg(pos);
-            line_stream.clear();
+            bool result = (_line_stream >> token) && Integer::parse(token).has_value();
+            _line_stream.seekg(pos);
+            _line_stream.clear();
             return result;
         }
 
@@ -286,7 +286,7 @@ export namespace stdx::io {
             if (!token.has_value()) {
                 return nullopt;
             }
-            return Integer::try_parse(*token);
+            return Integer::parse(*token);
         }
 
         /**
@@ -299,11 +299,11 @@ export namespace stdx::io {
             if (!ensure_line()) {
                 return false;
             }
-            StreamPosition pos = line_stream.tellg();
+            StreamPosition pos = _line_stream.tellg();
             String token;
-            bool result = (line_stream >> token) && Long::try_parse(token).has_value();
-            line_stream.seekg(pos);
-            line_stream.clear();
+            bool result = (_line_stream >> token) && Long::parse(token).has_value();
+            _line_stream.seekg(pos);
+            _line_stream.clear();
             return result;
         }
 
@@ -318,7 +318,7 @@ export namespace stdx::io {
             if (!token.has_value()) {
                 return nullopt;
             }
-            return Long::try_parse(*token);
+            return Long::parse(*token);
         }
 
         /**
@@ -331,11 +331,11 @@ export namespace stdx::io {
             if (!ensure_line()) {
                 return false;
             }
-            StreamPosition pos = line_stream.tellg();
+            StreamPosition pos = _line_stream.tellg();
             String token;
-            bool result = (line_stream >> token) && Float::try_parse(token).has_value();
-            line_stream.seekg(pos);
-            line_stream.clear();
+            bool result = (_line_stream >> token) && Float::parse(token).has_value();
+            _line_stream.seekg(pos);
+            _line_stream.clear();
             return result;
         }
 
@@ -350,7 +350,7 @@ export namespace stdx::io {
             if (!token.has_value()) {
                 return nullopt;
             }
-            return Float::try_parse(*token);
+            return Float::parse(*token);
         }
 
         /**
@@ -363,11 +363,11 @@ export namespace stdx::io {
             if (!ensure_line()) {
                 return false;
             }
-            StreamPosition pos = line_stream.tellg();
+            StreamPosition pos = _line_stream.tellg();
             String token;
-            bool result = (line_stream >> token) && Double::try_parse(token).has_value();
-            line_stream.seekg(pos);
-            line_stream.clear();
+            bool result = (_line_stream >> token) && Double::parse(token).has_value();
+            _line_stream.seekg(pos);
+            _line_stream.clear();
             return result;
         }
 
@@ -382,7 +382,7 @@ export namespace stdx::io {
             if (!token.has_value()) {
                 return nullopt;
             }
-            return Double::try_parse(*token);
+            return Double::parse(*token);
         }
 
         /**
@@ -395,11 +395,11 @@ export namespace stdx::io {
             if (!ensure_line()) {
                 return false;
             }
-            StreamPosition pos = line_stream.tellg();
+            StreamPosition pos = _line_stream.tellg();
             String token;
-            bool result = (line_stream >> token) && Boolean::try_parse(token).has_value();
-            line_stream.seekg(pos);
-            line_stream.clear();
+            bool result = (_line_stream >> token) && Boolean::parse(token).has_value();
+            _line_stream.seekg(pos);
+            _line_stream.clear();
             return result;
         }
 
@@ -414,7 +414,7 @@ export namespace stdx::io {
             if (!token.has_value()) {
                 return nullopt;
             }
-            return Boolean::try_parse(*token);
+            return Boolean::parse(*token);
         }
 
         /**
@@ -427,11 +427,11 @@ export namespace stdx::io {
             if (!ensure_line()) {
                 return false;
             }
-            StreamPosition pos = line_stream.tellg();
+            StreamPosition pos = _line_stream.tellg();
             String token;
-            bool result = (line_stream >> token) && SignedByte::try_parse(token).has_value();
-            line_stream.seekg(pos);
-            line_stream.clear();
+            bool result = (_line_stream >> token) && SignedByte::parse(token).has_value();
+            _line_stream.seekg(pos);
+            _line_stream.clear();
             return result;
         }
 
@@ -446,7 +446,7 @@ export namespace stdx::io {
             if (!token.has_value()) {
                 return nullopt;
             }
-            return SignedByte::try_parse(*token);
+            return SignedByte::parse(*token);
         }
 
         /**
@@ -459,11 +459,11 @@ export namespace stdx::io {
             if (!ensure_line()) {
                 return false;
             }
-            StreamPosition pos = line_stream.tellg();
+            StreamPosition pos = _line_stream.tellg();
             String token;
-            bool result = (line_stream >> token) && Short::try_parse(token).has_value();
-            line_stream.seekg(pos);
-            line_stream.clear();
+            bool result = (_line_stream >> token) && Short::parse(token).has_value();
+            _line_stream.seekg(pos);
+            _line_stream.clear();
             return result;
         }
 
@@ -478,7 +478,7 @@ export namespace stdx::io {
             if (!token.has_value()) {
                 return nullopt;
             }
-            return Short::try_parse(*token);
+            return Short::parse(*token);
         }
     };
 }

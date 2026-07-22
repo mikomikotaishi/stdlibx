@@ -19,11 +19,6 @@ using stdx::thread::Thread;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-using namespace stdx::literals;
-#endif
-
 /**
  * @struct SineRenderer
  * @brief 440 Hz sine generator. Stateful across render callbacks via the

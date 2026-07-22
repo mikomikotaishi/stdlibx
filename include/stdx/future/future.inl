@@ -58,9 +58,6 @@ export namespace stdx::future {
     using IsErrorCodeEnum = std::is_error_code_enum<T>;
 
     using std::future_category;
-    using std::make_error_code;
-    using std::make_error_condition;
-
     using std::async;
 }
 
@@ -70,6 +67,4 @@ export namespace stdx::future {
  */
 export namespace stdx::core {
     using stdx::future::future_category;
-    using stdx::future::make_error_code;
-    using stdx::future::make_error_condition;
 }

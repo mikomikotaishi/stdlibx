@@ -6,10 +6,6 @@ using stdx::io::Scanner;
 
 using namespace stdx::test;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 void test_lines_splits_input() {
     InputStringStream in("line one\nline two\nline three");
     Scanner sc(in);

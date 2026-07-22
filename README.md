@@ -8,7 +8,7 @@ The motivation for creating this was that at the time, support for `import std;`
 
 The main features of this repackaging of the standard library are:
 
-- Symbols follow Rust naming conventions (object type names in PascalCase, constants in UPPER_SNAKE_CASE, variables and methods in snake_case)
+- Symbols follow Rust naming conventions (object type names in PascalCase, constants in UPPER_SNAKE_CASE, variables and methods in snake_case, no `_t` nonsense at all)
   - While I personally would have preferred methods to be in camelCase (like in Java), this would have been too much work to rename existing functions and methods, for very little gain.
   - Perhaps in the future I might wrap all standard library classes using private inheritance, but this may be a gargantuan effort and not in the scope of the project at the present.
 - Splitting the standard library into sub-namespaces (in constrast to the ISO C++ `std::` namespace which is largely flat).

@@ -78,7 +78,7 @@ namespace stdx::fs {
                                     contents += s;
                                     first = false;
                                 } else {
-                                    contents += stdx::fmt::format("-{}", s);
+                                    contents += Ops::fmt("-{}", s);
                                 }
                             }
                         }
@@ -94,17 +94,17 @@ namespace stdx::fs {
                         i = j + 1;
                         switch (contents[0]) {
                             case '!':
-                                contents = stdx::fmt::format("^{}", String(contents.begin() + 1, contents.end()));
+                                contents = Ops::fmt("^{}", String(contents.begin() + 1, contents.end()));
                                 break;
                             case '^':
                             case '[':
-                                contents = stdx::fmt::format("\\\\{}", contents);
+                                contents = Ops::fmt("\\\\{}", contents);
                                 break;
                             default:
                                 // empty
                                 break;
                         }
-                        result = stdx::fmt::format("{}[{}]", result, contents);
+                        result = Ops::fmt("{}[{}]", result, contents);
                     }
                     break;
                 default:
@@ -113,7 +113,7 @@ namespace stdx::fs {
                     if (special_characters_map.empty()) {
                         for (const char& sc: SPECIAL_CHARACTERS) {
                             special_characters_map.insert(
-                                {static_cast<i32>(sc), stdx::fmt::format("\\{}", String(1, sc))}
+                                {static_cast<i32>(sc), Ops::fmt("\\{}", String(1, sc))}
                             );
                         }
                     }
@@ -125,7 +125,7 @@ namespace stdx::fs {
                     }
             }
         }
-        return stdx::fmt::format("(({}{}", result, R"()|[\r\n])$)");
+        return Ops::fmt("(({}{}", result, R"()|[\r\n])$)");
     }
 
     [[nodiscard]]
@@ -162,7 +162,7 @@ namespace stdx::fs {
         }
         String s = p.string();
         if (s[0] == '~') {
-            s = stdx::fmt::format("{}{}", home.value(), s.substr(1, s.length() - 1));
+            s = Ops::fmt("{}{}", home.value(), s.substr(1, s.length() - 1));
             return Path(s);
         }
         return p;
@@ -328,41 +328,22 @@ namespace stdx::fs {
  */
 export namespace stdx::fs {
     [[nodiscard]]
-    Vector<Path> glob(const Path& path) noexcept {
-        return glob_impl(path.string(), false);
+    Vector<Path> glob(const Path& path, bool recursive = false, bool dironly = false) noexcept {
+        return glob_impl(path.string(), recursive, dironly);
     }
 
     [[nodiscard]]
-    Vector<Path> glob_recursive(const Path& path) noexcept {
-        return glob_impl(path.string(), true);
-    }
-
-    [[nodiscard]]
-    Vector<Path> glob(const Vector<Path>& paths) noexcept {
+    Vector<Path> glob(const Vector<Path>& paths, bool recursive = false, bool dironly = false) noexcept {
         return Query(paths)
-            .select_many([](const Path& path) -> Vector<Path> {
-                return glob_impl(path.string(), false);
+            .select_many([recursive, dironly](const Path& path) -> Vector<Path> {
+                return glob_impl(path.string(), recursive, dironly);
             })
             .to<Vector<Path>>();
     }
 
     [[nodiscard]]
-    Vector<Path> glob_recursive(const Vector<Path>& paths) noexcept {
-        return Query(paths)
-            .select_many([](const Path& path) -> Vector<Path> {
-                return glob_impl(path.string(), true);
-            })
-            .to<Vector<Path>>();
-    }
-
-    [[nodiscard]]
-    Vector<Path> glob(const InitializerList<Path>& paths) noexcept {
-        return glob(Vector<Path>(paths));
-    }
-
-    [[nodiscard]]
-    Vector<Path> glob_recursive(const InitializerList<Path>& paths) noexcept {
-        return glob_recursive(Vector<Path>(paths));
+    Vector<Path> glob(const InitializerList<Path>& paths, bool recursive = false, bool dironly = false) noexcept {
+        return glob(Vector<Path>(paths), recursive, dironly);
     }
 
     #ifdef __cpp_lib_generator
@@ -380,8 +361,8 @@ export namespace stdx::fs {
      * @return A Generator yielding each descendant Path in pre-order.
      *
      * @note Synchronous: each step performs blocking filesystem reads. This is
-     *       lazy iteration, not asynchronous I/O. Only the current directory
-     *       level is held in memory at a time, never the whole subtree.
+     * a lazy iteration, not asynchronous I/O. Only the current directory
+     * level is held in memory at a time, never the whole subtree.
      */
     [[nodiscard]]
     Generator<Path> walk(const Path& dir, bool dironly = false) {

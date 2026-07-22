@@ -28,7 +28,7 @@ using stdx::ranges::IotaView;
 using stdx::text::CharTraits;
 
 #ifdef __cpp_lib_reflection
-using stdx::meta::reflect::ReflectableClass;
+using stdx::meta::reflect::ReflectableAsClass;
 #endif
 
 using namespace stdx::literals;
@@ -38,7 +38,7 @@ namespace stdx::util {
 template <typename T>
 concept Collection = !IsSameValue<T, String> 
     && !IsSameValue<T, StringView>
-    && requires(T t) {
+    && requires (T t) {
     typename T::value_type;
     { t.begin() } -> InputIterator;
     { t.end() } -> InputIterator;
@@ -58,7 +58,7 @@ String represent(const T& val) {
     if constexpr (IsSameValue<T, bool>) {
         return val ? "true" : "false";
     } else if constexpr (IsConvertibleValue<T, StringView>) {
-        return stdx::fmt::format("\"{}\"", val);
+        return Ops::fmt("\"{}\"", val);
     } else if constexpr (Collection<T>) {
         StringStream out;
         out << "{";
@@ -68,7 +68,7 @@ String represent(const T& val) {
             usize count = 1;
             const usize limit = Math::min<usize>(size, REPRESENTATION_MAX_CONTAINER_SIZE);
             for (auto it = Iterators::next(val.begin()); count < limit - 1; ++it, ++count) {
-                out << stdx::fmt::format(" {}", represent(*it));
+                out << Ops::fmt(" {}", represent(*it));
             }
             if (size <= REPRESENTATION_MAX_CONTAINER_SIZE) {
                 out << " ";
@@ -85,9 +85,8 @@ String represent(const T& val) {
         StringStream out;
         out << val;
         return out.str();
-    } else {
-        return "<Not representable!>";
     }
+    return "<Not representable!>";
 }
 
 template <typename F, typename Tpl, typename Ext, usize... I>
@@ -110,9 +109,9 @@ constexpr Pair<const char*, const char*> pointer_range(StringView s) noexcept {
     return Pair(s.data(), s.data() + s.size());
 }
 
-template <class CharT, class Traits1, class Traits2>
+template <class Char, class Traits1, class Traits2>
 [[nodiscard]]
-constexpr bool starts_with(BasicStringView<CharT, Traits1> s, BasicStringView<CharT, Traits2> prefix) noexcept {
+constexpr bool starts_with(BasicStringView<Char, Traits1> s, BasicStringView<Char, Traits2> prefix) noexcept {
     return s.substr(0, prefix.size()) == prefix;
 }
 
@@ -169,13 +168,13 @@ T perform_from_chars(StringView s) {
             if (ptr == last) {
                 return x;
             }
-            throw InvalidArgumentException(stdx::fmt::format("Pattern {} does not match to the end!", s));
+            throw InvalidArgumentException(Ops::fmt("Pattern {} does not match to the end!", s));
         case Errc::INVALID_ARGUMENT:
-            throw InvalidArgumentException(stdx::fmt::format("Pattern {} not found!", s));
+            throw InvalidArgumentException(Ops::fmt("Pattern {} not found!", s));
         case Errc::RESULT_OUT_OF_RANGE:
-            throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
+            throw InvalidRangeException(Ops::fmt("'{}' not representable!", s));
         default:
-            throw InvalidArgumentException(stdx::fmt::format("Unknown error while parsing '{}'", s));
+            throw InvalidArgumentException(Ops::fmt("Unknown error while parsing '{}'", s));
     }
     Ops::unreachable();
 }
@@ -194,7 +193,7 @@ struct ParseNumber<T, 2uz> {
         if (auto [ok, rest] = consume_binary_prefix(s); ok) {
             return perform_from_chars<T, 2uz>(rest);
         }
-        throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
+        throw InvalidArgumentException(Ops::fmt("Pattern '{}' not found!", s));
     }
 };
 
@@ -202,16 +201,18 @@ template <typename T>
 struct ParseNumber<T, 16uz> {
     THROWS(InvalidArgumentException, InvalidRangeException)
     T operator()(StringView s) {
-        if (auto [ok, rest] = consume_hexadecimal_prefix(s); ok) {
-            try {
-                return perform_from_chars<T, 16uz>(rest);
-            } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
-            } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
-            }
+        // The prefix is optional here, unlike for binary: asking for shape 'x'
+        // has already said the base, so 'ff' is not ambiguous and refusing it
+        // would make the shape useless.
+        const auto [ok, rest] = consume_hexadecimal_prefix(s);
+        try {
+            return perform_from_chars<T, 16uz>(ok ? rest : s);
+        } catch (const InvalidArgumentException& e) {
+            throw InvalidArgumentException(Ops::fmt("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+        } catch (const InvalidRangeException& e) {
+            throw InvalidRangeException(Ops::fmt("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
         }
-        throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' not identified as hexadecimal!", s));
+        Ops::unreachable();
     }
 };
 
@@ -225,9 +226,9 @@ struct ParseNumber<T> {
             try {
                 return perform_from_chars<T, 16uz>(rest);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidArgumentException(Ops::fmt("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidRangeException(Ops::fmt("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             }
         }
 
@@ -237,9 +238,9 @@ struct ParseNumber<T> {
             try {
                 return perform_from_chars<T, 2uz>(rest_binary);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as binary: {}", s, e.what()));
+                throw InvalidArgumentException(Ops::fmt("Failed to parse '{}' as binary: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as binary: {}", s, e.what()));
+                throw InvalidRangeException(Ops::fmt("Failed to parse '{}' as binary: {}", s, e.what()));
             }
         }
 
@@ -248,9 +249,9 @@ struct ParseNumber<T> {
             try {
                 return perform_from_chars<T, 8uz>(rest);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as octal: {}", s, e.what()));
+                throw InvalidArgumentException(Ops::fmt("Failed to parse '{}' as octal: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as octal: {}", s, e.what()));
+                throw InvalidRangeException(Ops::fmt("Failed to parse '{}' as octal: {}", s, e.what()));
             }
         }
 
@@ -258,34 +259,78 @@ struct ParseNumber<T> {
         try {
             return perform_from_chars<T, 10uz>(rest);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::fmt("Failed to parse '{}' as decimal integer: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
+            throw InvalidRangeException(Ops::fmt("Failed to parse '{}' as decimal integer: {}", s, e.what()));
         }
+        Ops::unreachable();
     }
 };
+
+/**
+ * @internal
+ * @brief The type @p T is actually parsed as.
+ *
+ * from_chars is specified for float, double and long double and nothing else,
+ * so an extended floating type has no overload to call - and stdx's own f64 is
+ * _Float64, not double. Those are parsed through the standard type of the same
+ * width and converted, which is exact for f32 and f64 because they share a
+ * representation with float and double.
+ */
+template <FloatingPoint T>
+using FromCharsFloat = ConditionalType<
+    (sizeof(T) <= sizeof(float)), float,
+    ConditionalType<(sizeof(T) <= sizeof(double)), double, long double>
+>;
+
+/**
+ * @internal
+ * @brief The std::chars_format @p fmt stands for.
+ *
+ * This header's CharsFormat carries an extra BINARY that std::chars_format has
+ * no spelling for. scan<> constrains 'b' to unsigned integers, so no floating
+ * parse can reach it; it maps to general rather than inventing a format.
+ */
+[[nodiscard]]
+constexpr stdx::text::CharsFormat::Self std_chars_format(CharsFormat fmt) noexcept {
+    switch (fmt) {
+        case CharsFormat::SCIENTIFIC:
+            return stdx::text::CharsFormat::SCIENTIFIC;
+        case CharsFormat::FIXED:
+            return stdx::text::CharsFormat::FIXED;
+        case CharsFormat::HEX:
+            return stdx::text::CharsFormat::HEX;
+        case CharsFormat::GENERAL:
+        case CharsFormat::BINARY:
+            return stdx::text::CharsFormat::GENERAL;
+    }
+    Ops::unreachable();
+}
 
 template <FloatingPoint T>
 THROWS(InvalidArgumentException, InvalidRangeException)
 T perform_floating_from_chars(StringView s, CharsFormat fmt) {
     if (Character::is_whitespace(static_cast<unsigned char>(s[0])) || s[0] == '+') {
-        throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
+        throw InvalidArgumentException(Ops::fmt("Pattern '{}' not found!", s));
     }
-    
-    T x{0};
+
+    FromCharsFloat<T> parsed{0};
     auto [first, last] = pointer_range(s);
-    auto [ptr, ec] = stdx::text::from_chars(first, last, x, fmt);
+    auto [ptr, ec] = stdx::text::from_chars(first, last, parsed, std_chars_format(fmt));
+    const T x = static_cast<T>(parsed);
 
     switch (ec) {
         case Errc::SUCCESS:
             if (ptr == last) {
                 return x;
             }
-            throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' does not match to the end!", s));
+            throw InvalidArgumentException(Ops::fmt("Pattern '{}' does not match to the end!", s));
         case Errc::INVALID_ARGUMENT:
-            throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
+            throw InvalidArgumentException(Ops::fmt("Pattern '{}' not found!", s));
         case Errc::RESULT_OUT_OF_RANGE:
-            throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
+            throw InvalidRangeException(Ops::fmt("'{}' not representable!", s));
+        default:
+            throw InvalidArgumentException(Ops::fmt("Unknown error while parsing '{}'", s));
     }
     Ops::unreachable();
 }
@@ -305,10 +350,11 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::GENERAL)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::GENERAL);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as number: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::fmt("Failed to parse '{}' as number: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as number: {}", s, e.what()));
+            throw InvalidRangeException(Ops::fmt("Failed to parse '{}' as number: {}", s, e.what()));
         }
+        Ops::unreachable();
     }
 };
 
@@ -327,10 +373,11 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::HEX)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::HEX);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::fmt("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+            throw InvalidRangeException(Ops::fmt("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
         }
+        Ops::unreachable();
     }
 };
 
@@ -368,10 +415,11 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::SCIENTIFIC)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::SCIENTIFIC);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::fmt("Failed to parse '{}' as scientific notation: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
+            throw InvalidRangeException(Ops::fmt("Failed to parse '{}' as scientific notation: {}", s, e.what()));
         }
+        Ops::unreachable();
     }
 };
 
@@ -393,10 +441,11 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::FIXED)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::FIXED);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::fmt("Failed to parse '{}' as fixed notation: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
+            throw InvalidRangeException(Ops::fmt("Failed to parse '{}' as fixed notation: {}", s, e.what()));
         }
+        Ops::unreachable();
     }
 };
 
@@ -409,7 +458,7 @@ String join(It first, It last, const String& separator) {
     value << *first;
     ++first;
     while (first != last) {
-        value << stdx::fmt::format("{}{}", separator, *first);
+        value << Ops::fmt("{}{}", separator, *first);
         ++first;
     }
     return value.str();
@@ -425,14 +474,14 @@ String join(It first, It last, StringView separator) {
     value << *first;
     ++first;
     while (first != last) {
-        value << stdx::fmt::format("{}{}", separator, *first);
+        value << Ops::fmt("{}{}", separator, *first);
         ++first;
     }
     return value.str();
 }
 
 template <typename T>
-concept CanInvokeToString = requires(T val) {
+concept CanInvokeToString = requires (T val) {
     { to_string(val) } -> ConvertibleTo<String>;
 };
 
@@ -533,12 +582,12 @@ public:
 
     class NArgsRange {
     private:
-        usize min_val;
-        usize max_val;
+        usize _min;
+        usize _max;
     public:
         THROWS(InvalidArgumentException)
         NArgsRange(usize min, usize max):
-            min_val{min}, max_val{max} {
+            _min{min}, _max{max} {
             if (min > max) {
                 throw InvalidArgumentException("Range of number of arguments is invalid!");
             }
@@ -546,27 +595,27 @@ public:
 
         [[nodiscard]]
         bool contains(usize value) const noexcept {
-            return value >= min_val && value <= max_val;
+            return value >= _min && value <= _max;
         }
 
         [[nodiscard]]
         bool is_exact() const noexcept {
-            return min_val == max_val;
+            return _min == _max;
         }
 
         [[nodiscard]]
         bool is_right_bounded() const noexcept {
-            return max_val < UnsignedSize::MAX_VALUE;
+            return _max < UnsignedSize::MAX_VALUE;
         }
 
         [[nodiscard]]
         usize min() const noexcept {
-            return min_val;
+            return _min;
         }
 
         [[nodiscard]]
         usize max() const noexcept {
-            return max_val;
+            return _max;
         }
 
         [[nodiscard]]
@@ -574,13 +623,13 @@ public:
 
         [[nodiscard]]
         StrongOrdering operator<=>(const NArgsRange& other) const noexcept {
-            return min_val != other.min_val ? min_val <=> other.min_val : max_val <=> other.max_val;
+            return _min != other._min ? _min <=> other._min : _max <=> other._max;
         }
     };
 
 private:
-    Vector<String> names;
-    Vector<Variant<ReturnableAction, VoidAction>> actions;
+    Vector<String> _names;
+    Vector<Variant<ReturnableAction, VoidAction>> _actions;
     Variant<ReturnableAction, VoidAction> default_action {
         InPlaceType<ReturnableAction>, [](const String& s) -> String { return s; }
     };
@@ -725,28 +774,28 @@ private:
     THROWS(CommandLineParserException)
     void throw_nargs_range_validation() const {
         StringStream stream;
-        stream << (!used_name.empty() ? used_name : StringView(names.front())) << ": ";
+        stream << (!used_name.empty() ? used_name : StringView(_names.front())) << ": ";
         if (num_args_range.is_exact()) {
             stream << num_args_range.min();
         } else if (num_args_range.is_right_bounded()) {
-            stream << stdx::fmt::format("{} to {}", num_args_range.min(), num_args_range.max());
+            stream << Ops::fmt("{} to {}", num_args_range.min(), num_args_range.max());
         } else {
-            stream << stdx::fmt::format("{} or more", num_args_range.min());
+            stream << Ops::fmt("{} or more", num_args_range.min());
         }
-        stream << stdx::fmt::format(" argument(s) expected. {} provided.", values.size());
+        stream << Ops::fmt(" argument(s) expected. {} provided.", values.size());
         throw CommandLineParserException(stream.str());
     }
 
     [[noreturn]]
     THROWS(CommandLineParserException)
     void throw_required_arg_not_used() const {
-        throw CommandLineParserException(stdx::fmt::format("{}: required.", names.front()));
+        throw CommandLineParserException(Ops::fmt("{}: required.", _names.front()));
     }
 
     [[noreturn]]
     THROWS(CommandLineParserException)
     void throw_required_arg_no_value_provided() const {
-        throw CommandLineParserException(stdx::fmt::format("{}: no value provided.", used_name));
+        throw CommandLineParserException(Ops::fmt("{}: no value provided.", used_name));
     }
 
     template <typename T>
@@ -763,26 +812,16 @@ private:
     THROWS(CommandLineParserException)
     void find_default_value_in_choices_or_throw() const {
         const Vector<String>& ch = choice_values.value();
-        if (default_val.has_value()) {
-            if (stdx::util::find(ch.begin(), ch.end(), default_value_string) == ch.end()) {
-                String csv = stdx::util::accumulate(
-                    ch.begin(),
-                    ch.end(),
-                    ""s,
-                    [](const String& a, const String& b) -> String {
-                        return stdx::fmt::format("{}{}", a, (a.empty() ? "" : ", ") + b);
-                    }
-                );
-                throw CommandLineParserException(stdx::fmt::format("Invalid default value {} - allowed options: {{{}}}", default_value_repr, csv));
-            }
+        if (default_val.has_value() && !stdx::ranges::contains(ch, default_value_string)) {
+            const String csv = join(ch.begin(), ch.end(), ", "sv);
+            throw CommandLineParserException(Ops::fmt("Invalid default value {} - allowed options: {{{}}}", default_value_repr, csv));
         }
     }
 
     template <typename Iter>
     [[nodiscard]]
     bool is_value_in_choices(Iter option_it) const {
-        const Vector<String>& ch = choice_values.value();
-        return stdx::util::find(ch.begin(), ch.end(), *option_it) != ch.end();
+        return stdx::ranges::contains(choice_values.value(), *option_it);
     }
 
     template <typename Iter>
@@ -790,15 +829,8 @@ private:
     THROWS(CommandLineParserException)
     void throw_invalid_arguments(Iter option_it) const {
         const Vector<String>& ch = choice_values.value();
-        String csv = stdx::util::accumulate(
-            ch.begin(),
-            ch.end(),
-            ""s,
-            [](const String& a, const String& b) -> String {
-                return stdx::fmt::format("{}{}", a, (a.empty() ? "" : ", ") + b);
-            }
-        );
-        throw CommandLineParserException(stdx::fmt::format("Invalid argument {} - allowed options: {{{}}}", represent(*option_it), csv));
+        const String csv = join(ch.begin(), ch.end(), ", "sv);
+        throw CommandLineParserException(Ops::fmt("Invalid argument {} - allowed options: {{{}}}", represent(*option_it), csv));
     }
 
     void set_usage_newline_counter(u32 i) {
@@ -812,8 +844,8 @@ private:
     template <usize N, usize... I>
     explicit Argument(StringView pfx, Array<StringView, N>&& a, [[maybe_unused]] IndexSequence<I...> ind_seq):
         prefix_chars{pfx}, is_optional{(check_optional(a[I], pfx) || ...)} {
-        (names.emplace_back(a[I]), ...);
-        stdx::ranges::sort(names,
+        (_names.emplace_back(a[I]), ...);
+        stdx::ranges::sort(_names,
             []<TotallyOrdered T>(const T& lhs, const T& rhs) -> bool
                 requires requires (const T& t) { { t.size() } -> ConvertibleTo<usize>; }
             { return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size(); }
@@ -839,7 +871,7 @@ public:
         num_args_range = NArgsRange{0, num_args_range.max()};
         default_value_repr = represent(value);
         if constexpr (IsConvertibleValue<T, StringView>) {
-            default_value_string = String{StringView{value}};
+            default_value_string = String(StringView(value));
         } else if constexpr (CanInvokeToString<T>) {
             default_value_string = to_string(value);
         }
@@ -875,9 +907,9 @@ public:
             ReturnableAction
         >;
         if constexpr (sizeof...(Args) == 0) {
-            actions.emplace_back(ActionType(Ops::forward<F>(callable)));
+            _actions.emplace_back(ActionType(Ops::forward<F>(callable)));
         } else {
-            actions.emplace_back(ActionType(
+            _actions.emplace_back(ActionType(
                 [
                     f = Ops::forward<F>(callable),
                     tup = make_tuple(Ops::forward<Args>(bound_args)...)
@@ -1069,7 +1101,7 @@ public:
             choice_values = Vector<String>{};
         }
         if constexpr (IsConvertibleValue<T, StringView>) {
-            choice_values.value().push_back(String{StringView{Ops::forward<T>(choice)}});
+            choice_values.value().push_back(String(StringView(Ops::forward<T>(choice))));
         } else if constexpr (CanInvokeToString<T>) {
             choice_values.value().push_back(to_string(Ops::forward<T>(choice)));
         }
@@ -1093,9 +1125,9 @@ public:
 
     template <typename Iter>
     THROWS(CommandLineParserException)
-    Iter consume(Iter start, Iter end, StringView name_used = {}, bool dry_run = false) {
+    Iter consume(Iter start, Iter end, StringView name_used = ""sv, bool dry_run = false) {
         if (!is_repeatable && is_used) {
-            throw CommandLineParserException(stdx::fmt::format("Duplicate argument {}", name_used));
+            throw CommandLineParserException(Ops::fmt("Duplicate argument {}", name_used));
         }
         this->used_name = name_used;
         usize passed_options = 0;
@@ -1120,10 +1152,10 @@ public:
         if (num_args_max == 0) {
             if (!dry_run) {
                 values.emplace_back(implicit_val);
-                for (auto& act: actions) {
+                for (auto& act: _actions) {
                     visit([&](const auto& f) { f({}); }, act);
                 }
-                if (actions.empty()) {
+                if (_actions.empty()) {
                     visit([&](const auto& f) { f({}); }, default_action);
                 }
                 is_used = true;
@@ -1145,7 +1177,7 @@ public:
                 );
                 dist = static_cast<usize>(Iterators::distance(start, end));
                 if (dist < num_args_min) {
-                    throw CommandLineParserException(stdx::fmt::format("Too few arguments for '{}'.", used_name));
+                    throw CommandLineParserException(Ops::fmt("Too few arguments for '{}'.", used_name));
                 }
             }
 
@@ -1170,10 +1202,10 @@ public:
             };
 
             if (!dry_run) {
-                for (auto& act: actions) {
+                for (auto& act: _actions) {
                     visit(ActionApply{start, end, *this}, act);
                 }
-                if (actions.empty()) {
+                if (_actions.empty()) {
                     visit(ActionApply{start, end, *this}, default_action);
                 }
                 is_used = true;
@@ -1187,7 +1219,7 @@ public:
             }
             return start;
         }
-        throw CommandLineParserException(stdx::fmt::format("Too few arguments for '{}'.", used_name));
+        throw CommandLineParserException(Ops::fmt("Too few arguments for '{}'.", used_name));
     }
 
     THROWS(CommandLineParserException)
@@ -1211,14 +1243,7 @@ public:
 
     [[nodiscard]]
     String get_names_csv(char separator = ',') const {
-        return stdx::util::accumulate(
-            names.begin(),
-            names.end(),
-            ""s,
-            [&](const String& result, const String& name) -> String {
-                return result.empty() ? name : stdx::fmt::format("{}{}{}", result, separator, name);
-            }
-        );
+        return join(_names.begin(), _names.end(), String(1, separator));
     }
 
     [[nodiscard]]
@@ -1227,7 +1252,7 @@ public:
         usage << get_names_csv('/');
         const String mv = !meta_variable.empty() ? meta_variable : "VAR";
         if (num_args_range.max() > 0) {
-            usage << stdx::fmt::format(" {}", mv);
+            usage << Ops::fmt(" {}", mv);
             if (num_args_range.max() > 1) {
                 usage << "...";
             }
@@ -1238,8 +1263,8 @@ public:
     [[nodiscard]]
     String get_inline_usage() const {
         StringStream usage;
-        String longest_name = names.front();
-        for (const String& s: names) {
+        String longest_name = _names.front();
+        for (const String& s: _names) {
             if (s.size() > longest_name.size()) {
                 longest_name = s;
             }
@@ -1250,7 +1275,7 @@ public:
         usage << longest_name;
         const String mv = !meta_variable.empty() ? meta_variable : "VAR";
         if (num_args_range.max() > 0) {
-            usage << stdx::fmt::format(" {}", mv);
+            usage << Ops::fmt(" {}", mv);
             if (num_args_range.max() > 1 && meta_variable.find("> <") == String::npos) {
                 usage << "...";
             }
@@ -1266,20 +1291,20 @@ public:
 
     [[nodiscard]] usize get_arguments_length() const {
         usize names_size = stdx::util::accumulate(
-            names.begin(),
-            names.end(),
+            _names.begin(),
+            _names.end(),
             0uz,
             [](const usize& sum, const String& s) -> usize {
                 return sum + s.size();
             }
         );
-        if (check_positional(names.front(), prefix_chars)) {
+        if (check_positional(_names.front(), prefix_chars)) {
             if (!meta_variable.empty()) {
                 return 2 + meta_variable.size();
             }
-            return 2 + names_size + (names.size() - 1);
+            return 2 + names_size + (_names.size() - 1);
         }
-        usize size = names_size + 2 * (names.size() - 1);
+        usize size = names_size + 2 * (_names.size() - 1);
         if (!meta_variable.empty() && num_args_range == NArgsRange{1, 1}) {
             size += meta_variable.size() + 1;
         }
@@ -1305,7 +1330,7 @@ public:
                 return any_cast_container<T>(values);
             }
         }
-        throw LogicException(stdx::fmt::format("No value provided for '{}'.", names.back()));
+        throw LogicException(Ops::fmt("No value provided for '{}'.", _names.back()));
     }
 
     template <typename T>
@@ -1349,50 +1374,50 @@ public:
     friend OutputStream& operator<<(OutputStream& stream, const Argument& arg) {
         StringStream name_stream;
         name_stream << "  ";
-        if (check_positional(arg.names.front(), arg.prefix_chars)) {
+        if (check_positional(arg._names.front(), arg.prefix_chars)) {
             if (!arg.meta_variable.empty()) {
                 name_stream << arg.meta_variable;
             } else {
-                name_stream << join(arg.names.begin(), arg.names.end(), " "sv);
+                name_stream << join(arg._names.begin(), arg._names.end(), " "sv);
             }
         } else {
-            name_stream << join(arg.names.begin(), arg.names.end(), ", "sv);
+            name_stream << join(arg._names.begin(), arg._names.end(), ", "sv);
             if (!arg.meta_variable.empty() && arg.num_args_range == NArgsRange{1, 1}) {
-                name_stream << stdx::fmt::format(" {}", arg.meta_variable);
+                name_stream << Ops::fmt(" {}", arg.meta_variable);
             } else if (
                 !arg.meta_variable.empty() &&
                 arg.num_args_range.min() == arg.num_args_range.max() &&
                 arg.meta_variable.find("> <") != String::npos
             ) {
-                name_stream << stdx::fmt::format(" {}", arg.meta_variable);
+                name_stream << Ops::fmt(" {}", arg.meta_variable);
             }
         }
 
         StreamSize stream_width = stream.width();
         String name_pad = String(name_stream.str().size(), ' ');
-        String::size_type pos{};
-        String::size_type prev_pos{};
+        usize pos{};
+        usize prev_pos{};
         bool first_line = true;
         stream << name_stream.str();
         StringView hv(arg.help_text);
         while ((pos = arg.help_text.find('\n', prev_pos)) != String::npos) {
             StringView line = hv.substr(prev_pos, pos - prev_pos + 1);
             if (first_line) {
-                stream << stdx::fmt::format("  {}", line);
+                stream << Ops::fmt("  {}", line);
                 first_line = false;
             } else {
                 stream.width(stream_width);
-                stream << stdx::fmt::format("{}  {}", name_pad, line);
+                stream << Ops::fmt("{}  {}", name_pad, line);
             }
             prev_pos += pos - prev_pos + 1;
         }
         if (first_line) {
-            stream << stdx::fmt::format("  {}", arg.help_text);
+            stream << Ops::fmt("  {}", arg.help_text);
         } else {
             StringView leftover = hv.substr(prev_pos, arg.help_text.size() - prev_pos);
             if (!leftover.empty()) {
                 stream.width(stream_width);
-                stream << stdx::fmt::format("{}  {}", name_pad, leftover);
+                stream << Ops::fmt("{}  {}", name_pad, leftover);
             }
         }
 
@@ -1401,19 +1426,19 @@ public:
         }
         if (arg.num_args_range.is_exact()) {
             if (arg.num_args_range.min() != 0 && arg.num_args_range.min() != 1) {
-                stream << stdx::fmt::format("[nargs: {}]", arg.num_args_range.min());
+                stream << Ops::fmt("[nargs: {}]", arg.num_args_range.min());
             }
         } else {
             if (!arg.num_args_range.is_right_bounded()) {
-                stream << stdx::fmt::format("[nargs: {} or more]", arg.num_args_range.min());
+                stream << Ops::fmt("[nargs: {} or more]", arg.num_args_range.min());
             } else {
-                stream << stdx::fmt::format("[nargs={}..{}]", arg.num_args_range.min(), arg.num_args_range.max());
+                stream << Ops::fmt("[nargs={}..{}]", arg.num_args_range.min(), arg.num_args_range.max());
             }
         }
 
         bool add_space = false;
         if (arg.default_val.has_value() && arg.num_args_range != NArgsRange{0, 0}) {
-            stream << stdx::fmt::format("[default: {}]", arg.default_value_repr);
+            stream << Ops::fmt("[default: {}]", arg.default_value_repr);
             add_space = true;
         } else if (arg.is_required) {
             stream << "[required]";
@@ -1444,7 +1469,7 @@ public:
     T get(const String& name) const {
         auto it = values.find(name);
         if (it == values.end()) {
-            throw LogicException(stdx::fmt::format("No such argument: '{}'", name));
+            throw LogicException(Ops::fmt("No such argument: '{}'", name));
         }
         return any_cast<T>(it->second);
     }
@@ -1486,34 +1511,33 @@ public:
 
 /**
  * @class ArgumentParser
- * @brief Argument parser for modern C++.
- * Adapted from p-ranav/argparse (https://github.com/p-ranav/argparse)
+ * @brief A command-line argument parser.
  */
 class ArgumentParser {
 public:
     class MutuallyExclusiveGroup {
     private:
-        ArgumentParser& parent;
-        bool required = false;
-        Vector<Argument*> elems;
+        ArgumentParser& _parent;
+        bool _required = false;
+        Vector<Argument*> _elems;
 
         friend class ArgumentParser;
     public:
         explicit MutuallyExclusiveGroup(ArgumentParser& parent, bool required = false):
-            parent{parent}, required{required} {}
+            _parent{parent}, _required{required} {}
 
         MutuallyExclusiveGroup(const MutuallyExclusiveGroup&) = delete("MutuallyExclusiveGroup is not copyable.");
         MutuallyExclusiveGroup& operator=(const MutuallyExclusiveGroup&) = delete("MutuallyExclusiveGroup is not copyable.");
         MutuallyExclusiveGroup(MutuallyExclusiveGroup&& other) noexcept:
-            parent{other.parent}, required{other.required},
-            elems{Ops::move(other.elems)} {
-            other.elems.clear();
+            _parent{other._parent}, _required{other._required},
+            _elems{Ops::move(other._elems)} {
+            other._elems.clear();
         }
 
         template <typename... Ts>
         Argument& add_argument(Ts... args) {
-            Argument& argument = parent.add_argument(Ops::forward<Ts>(args)...);
-            elems.push_back(&argument);
+            Argument& argument = _parent.add_argument(Ops::forward<Ts>(args)...);
+            _elems.push_back(&argument);
             return argument;
         }
     };
@@ -1521,31 +1545,31 @@ public:
     using ArgumentIterator = LinkedList<Argument>::iterator;
     using SubparserIterator = LinkedList<ReferenceWrapper<ArgumentParser>>::iterator;
 private:
-    String prog_name;
-    String ver;
-    String desc;
-    String epilog;
-    bool exit_on_default_arguments = true;
-    String prefix_chars= "-";
-    String assign_chars= "=";
-    bool is_parsed = false;
-    LinkedList<Argument> positional_arguments;
-    LinkedList<Argument> optional_arguments;
-    TreeMap<String, ArgumentIterator> argument_map;
-    String parser_path;
-    LinkedList<ReferenceWrapper<ArgumentParser>> subparsers;
-    TreeMap<String, SubparserIterator> subparser_map;
-    TreeMap<String, bool> subparser_used;
-    Vector<MutuallyExclusiveGroup> mutually_exclusive_groups;
-    bool suppress = false;
-    usize usage_max_line_width = UnsignedSize::MAX_VALUE;
-    bool usage_break_on_mutex = false;
-    u32 usage_newline_counter = 0;
-    Vector<String> group_names;
+    TreeMap<String, ArgumentIterator> _argument_map;
+    TreeMap<String, SubparserIterator> _subparser_map;
+    TreeMap<String, bool> _subparser_used;
+    Vector<MutuallyExclusiveGroup> _mutually_exclusive_groups;
+    Vector<String> _group_names;
+    String _name;
+    String _version;
+    String _description;
+    String _epilog;
+    String _prefix_chars = "-";
+    String _assign_chars = "=";
+    String _parser_path;
+    LinkedList<Argument> _positional_arguments;
+    LinkedList<Argument> _optional_arguments;
+    LinkedList<ReferenceWrapper<ArgumentParser>> _subparsers;
+    usize _usage_max_line_width = UnsignedSize::MAX_VALUE;
+    u32 _usage_newline_counter = 0;
+    bool _exit_on_default_arguments = true;
+    bool _suppress = false;
+    bool _is_parsed = false;
+    bool _usage_break_on_mutex = false;
 protected:
     const MutuallyExclusiveGroup* get_belonging_mutex(const Argument* arg) const {
-        for (const MutuallyExclusiveGroup& m: mutually_exclusive_groups) {
-            if (stdx::util::find(m.elems.begin(), m.elems.end(), arg) != m.elems.end()) {
+        for (const MutuallyExclusiveGroup& m: _mutually_exclusive_groups) {
+            if (stdx::util::find(m._elems.begin(), m._elems.end(), arg) != m._elems.end()) {
                 return &m;
             }
         }
@@ -1554,12 +1578,12 @@ protected:
 
     [[nodiscard]]
     bool is_valid_prefix_char(char c) const {
-        return prefix_chars.find(c) != String::npos;
+        return _prefix_chars.find(c) != String::npos;
     }
 
     [[nodiscard]]
     char get_any_valid_prefix_char() const {
-        return prefix_chars[0];
+        return _prefix_chars[0];
     }
 
     [[nodiscard]]
@@ -1571,17 +1595,17 @@ protected:
                     return false;
                 }
                 auto lp = [this](char c) -> bool {
-                    return prefix_chars.find(c) != String::npos;
+                    return _prefix_chars.find(c) != String::npos;
                 };
                 if (lp('/')) {
                     return lp(a[0]);
                 }
                 return a.size() > 1 && lp(a[0]) && lp(a[1]);
             };
-            auto pos = arg.find_first_of(assign_chars);
-            if (argument_map.find(arg) == argument_map.end() && apc(arg) && pos != String::npos) {
+            auto pos = arg.find_first_of(_assign_chars);
+            if (_argument_map.find(arg) == _argument_map.end() && apc(arg) && pos != String::npos) {
                 String opt = arg.substr(0, pos);
-                if (argument_map.find(opt) != argument_map.end()) {
+                if (_argument_map.find(opt) != _argument_map.end()) {
                     args.push_back(Ops::move(opt));
                     args.push_back(arg.substr(pos + 1));
                     continue;
@@ -1594,87 +1618,87 @@ protected:
 
     void parse_args_internal(Span<const String> raw_arguments) {
         Vector<String> arguments = preprocess_arguments(raw_arguments);
-        if (prog_name.empty() && !arguments.empty()) {
-            prog_name = arguments.front();
+        if (_name.empty() && !arguments.empty()) {
+            _name = arguments.front();
         }
         auto end = arguments.end();
-        auto pos_it = positional_arguments.begin();
+        auto pos_it = _positional_arguments.begin();
 
         for (auto it = Iterators::next(arguments.begin()); it != end;) {
             const String& cur = *it;
-            if (Argument::check_positional(cur, prefix_chars)) {
-                if (pos_it == positional_arguments.end()) {
-                    if (auto sub_it = subparser_map.find(cur); sub_it != subparser_map.end()) {
-                        is_parsed = true;
-                        subparser_used[cur] = true;
+            if (Argument::check_positional(cur, _prefix_chars)) {
+                if (pos_it == _positional_arguments.end()) {
+                    if (auto sub_it = _subparser_map.find(cur); sub_it != _subparser_map.end()) {
+                        _is_parsed = true;
+                        _subparser_used[cur] = true;
                         return sub_it->second->get().parse_args(Vector<String>(it, end));
                     }
-                    if (positional_arguments.empty()) {
-                        if (!subparser_map.empty()) {
+                    if (_positional_arguments.empty()) {
+                        if (!_subparser_map.empty()) {
                             throw CommandLineParserException(
-                                stdx::fmt::format("Failed to parse '{}', did you mean '{}'",
+                                Ops::fmt("Failed to parse '{}', did you mean '{}'",
                                 cur,
-                                get_most_similar_string(subparser_map, cur))
+                                get_most_similar_string(_subparser_map, cur))
                             );
                         }
                         throw CommandLineParserException("Zero positional arguments expected");
                     }
-                    throw CommandLineParserException(stdx::fmt::format(
+                    throw CommandLineParserException(Ops::fmt(
                         "Maximum number of positional arguments exceeded, failed to parse '{}'", cur));
                 }
                 auto argument = pos_it++;
                 if (argument->num_args_range.min() == 1 &&
                     argument->num_args_range.max() == UnsignedSize::MAX_VALUE &&
-                    pos_it != positional_arguments.end() &&
-                    Iterators::next(pos_it) == positional_arguments.end() &&
+                    pos_it != _positional_arguments.end() &&
+                    Iterators::next(pos_it) == _positional_arguments.end() &&
                     pos_it->num_args_range.min() == 1 && pos_it->num_args_range.max() == 1) {
                     if (Iterators::next(it) != end) {
                         pos_it->consume(Iterators::prev(end), end);
                         end = Iterators::prev(end);
                     } else {
-                        throw CommandLineParserException(stdx::fmt::format("Missing {}", pos_it->names.front()));
+                        throw CommandLineParserException(Ops::fmt("Missing {}", pos_it->_names.front()));
                     }
                 }
                 it = argument->consume(it, end);
                 continue;
             }
 
-            if (auto ami = argument_map.find(cur); ami != argument_map.end()) {
+            if (auto ami = _argument_map.find(cur); ami != _argument_map.end()) {
                 it = ami->second->consume(Iterators::next(it), end, ami->first);
             } else if (cur.size() > 1 && is_valid_prefix_char(cur[0]) && !is_valid_prefix_char(cur[1])) {
                 ++it;
                 for (usize j = 1; j < cur.size(); j++) {
                     String ha{'-', cur[j]};
-                    if (auto ami2 = argument_map.find(ha); ami2 != argument_map.end()) {
+                    if (auto ami2 = _argument_map.find(ha); ami2 != _argument_map.end()) {
                         it = ami2->second->consume(it, end, ami2->first);
                     } else {
-                        throw CommandLineParserException(stdx::fmt::format("Unknown argument: {}", cur));
+                        throw CommandLineParserException(Ops::fmt("Unknown argument: {}", cur));
                     }
                 }
             } else {
-                throw CommandLineParserException(stdx::fmt::format("Unknown argument: {}", cur));
+                throw CommandLineParserException(Ops::fmt("Unknown argument: {}", cur));
             }
         }
-        is_parsed = true;
+        _is_parsed = true;
     }
 
     Vector<String> parse_known_args_internal(Span<const String> raw_arguments) {
         Vector<String> arguments = preprocess_arguments(raw_arguments);
         Vector<String> unknown;
-        if (prog_name.empty() && !arguments.empty()) {
-            prog_name = arguments.front();
+        if (_name.empty() && !arguments.empty()) {
+            _name = arguments.front();
         }
         auto end = arguments.end();
-        auto pos_it = positional_arguments.begin();
+        auto pos_it = _positional_arguments.begin();
 
         for (auto it = Iterators::next(arguments.begin()); it != end;) {
             const String& cur = *it;
-            if (Argument::check_positional(cur, prefix_chars)) {
-                if (pos_it == positional_arguments.end()) {
-                    auto sub_it = subparser_map.find(cur);
-                    if (sub_it != subparser_map.end()) {
-                        is_parsed = true;
-                        subparser_used[cur] = true;
+            if (Argument::check_positional(cur, _prefix_chars)) {
+                if (pos_it == _positional_arguments.end()) {
+                    auto sub_it = _subparser_map.find(cur);
+                    if (sub_it != _subparser_map.end()) {
+                        _is_parsed = true;
+                        _subparser_used[cur] = true;
                         return sub_it->second->get()
                             .parse_known_args_internal(Vector<String>(it, end));
                     }
@@ -1686,13 +1710,13 @@ protected:
                 }
                 continue;
             }
-            if (auto ami = argument_map.find(cur); ami != argument_map.end()) {
+            if (auto ami = _argument_map.find(cur); ami != _argument_map.end()) {
                 it = ami->second->consume(Iterators::next(it), end, ami->first);
             } else if (cur.size() > 1 && is_valid_prefix_char(cur[0]) && !is_valid_prefix_char(cur[1])) {
                 ++it;
                 for (usize j = 1; j < cur.size(); j++) {
                     String ha{'-', cur[j]};
-                    if (auto ami2 = argument_map.find(ha); ami2 != argument_map.end()) {
+                    if (auto ami2 = _argument_map.find(ha); ami2 != _argument_map.end()) {
                         it = ami2->second->consume(it, end, ami2->first);
                     } else {
                         unknown.push_back(cur);
@@ -1704,28 +1728,28 @@ protected:
                 ++it;
             }
         }
-        is_parsed = true;
+        _is_parsed = true;
         return unknown;
     }
 
     [[nodiscard]]
     usize length_of_longest_argument() const {
-        if (argument_map.empty()) {
+        if (_argument_map.empty()) {
             return 0;
         }
         usize max_size = 0;
-        for (const auto& [_, arg]: argument_map) {
+        for (const auto& [_, arg]: _argument_map) {
             max_size = Math::max<usize>(max_size, arg->get_arguments_length());
         }
-        for (const auto& [cmd, _]: subparser_map) {
+        for (const auto& [cmd, _]: _subparser_map) {
             max_size = Math::max<usize>(max_size, cmd.size());
         }
         return max_size;
     }
 
     void index_argument(ArgumentIterator it) {
-        for (const String& name: it->names) {
-            argument_map.insert_or_assign(name, it);
+        for (const String& name: it->_names) {
+            _argument_map.insert_or_assign(name, it);
         }
     }
 public:
@@ -1736,8 +1760,8 @@ public:
         bool exit_on_default_arguments = true,
         OutputStream& os = Cout
     ):
-        prog_name{Ops::move(program_name)}, ver{Ops::move(version)},
-        exit_on_default_arguments{exit_on_default_arguments}, parser_path{prog_name} {
+        _name{Ops::move(program_name)}, _version{Ops::move(version)},
+        _parser_path{_name}, _exit_on_default_arguments{exit_on_default_arguments} {
         if ((add_args & DefaultArguments::HELP) == DefaultArguments::HELP) {
             add_argument("-h", "--help")
                 .action(
@@ -1753,7 +1777,7 @@ public:
         if ((add_args & DefaultArguments::VERSION) == DefaultArguments::VERSION) {
             add_argument("-v", "--version")
                 .action([&](const auto& _) -> void {
-                    os << stdx::fmt::format("{}\n", ver);
+                    os << Ops::fmt("{}\n", _version);
                     if (exit_on_default_arguments) {
                         Environment::exit(0);
                     }
@@ -1773,61 +1797,61 @@ public:
 
     explicit operator bool() const {
         bool arg_used = stdx::util::any_of(
-            argument_map.cbegin(),
-            argument_map.cend(),
+            _argument_map.cbegin(),
+            _argument_map.cend(),
             [](auto& it) -> bool { return it.second->is_used; }
         );
         bool sub_used = stdx::util::any_of(
-            subparser_used.cbegin(),
-            subparser_used.cend(),
+            _subparser_used.cbegin(),
+            _subparser_used.cend(),
             [](auto& it) -> const bool { return it.second; }
         );
-        return is_parsed && (arg_used || sub_used);
+        return _is_parsed && (arg_used || sub_used);
     }
 
     template <typename... Targs>
     Argument& add_argument(Targs... f_args) {
         using ArrayOfSv = Array<StringView, sizeof...(Targs)>;
-        auto argument = optional_arguments.emplace(optional_arguments.cend(), prefix_chars, ArrayOfSv{f_args...});
+        auto argument = _optional_arguments.emplace(_optional_arguments.cend(), _prefix_chars, ArrayOfSv{f_args...});
         if (!argument->is_optional) {
-            positional_arguments.splice(positional_arguments.cend(), optional_arguments, argument);
+            _positional_arguments.splice(_positional_arguments.cend(), _optional_arguments, argument);
         }
-        argument->set_usage_newline_counter(usage_newline_counter);
-        argument->set_group_index(group_names.size());
+        argument->set_usage_newline_counter(_usage_newline_counter);
+        argument->set_group_index(_group_names.size());
         index_argument(argument);
         return *argument;
     }
 
     MutuallyExclusiveGroup& add_mutually_exclusive_group(bool required = false) {
-        mutually_exclusive_groups.emplace_back(*this, required);
-        return mutually_exclusive_groups.back();
+        _mutually_exclusive_groups.emplace_back(*this, required);
+        return _mutually_exclusive_groups.back();
     }
 
     ArgumentParser& add_usage_newline() {
-        ++usage_newline_counter;
+        ++_usage_newline_counter;
         return *this;
     }
 
     ArgumentParser& add_group(String group_name) {
-        group_names.emplace_back(Ops::move(group_name));
+        _group_names.emplace_back(Ops::move(group_name));
         return *this;
     }
 
     ArgumentParser& add_description(String desc) {
-        desc = Ops::move(desc);
+        _description = Ops::move(desc);
         return *this;
     }
 
     ArgumentParser& add_epilog(String ep) {
-        epilog = Ops::move(ep);
+        _epilog = Ops::move(ep);
         return *this;
     }
 
     THROWS(LogicException)
     ArgumentParser& add_hidden_alias_for(Argument& arg, StringView alias) {
-        for (auto it = optional_arguments.begin(); it != optional_arguments.end(); ++it) {
+        for (auto it = _optional_arguments.begin(); it != _optional_arguments.end(); ++it) {
             if (&(*it) == &arg) {
-                argument_map.insert_or_assign(String(alias), it);
+                _argument_map.insert_or_assign(String(alias), it);
                 return *this;
             }
         }
@@ -1842,10 +1866,10 @@ public:
             return (*this)[name];
         } else {
             String str_name(name);
-            if (auto it = subparser_map.find(str_name); it != subparser_map.end()) {
+            if (auto it = _subparser_map.find(str_name); it != _subparser_map.end()) {
                 return it->second->get();
             }
-            throw LogicException(stdx::fmt::format("No such subparser: {}", str_name));
+            throw LogicException(Ops::fmt("No such subparser: {}", str_name));
         }
     }
 
@@ -1857,47 +1881,47 @@ public:
     }
 
     ArgumentParser& set_prefix_chars(String pc) {
-        prefix_chars = Ops::move(pc);
+        _prefix_chars = Ops::move(pc);
         return *this;
     }
 
     ArgumentParser& set_assign_chars(String ac) {
-        assign_chars = Ops::move(ac);
+        _assign_chars = Ops::move(ac);
         return *this;
     }
 
     THROWS(CommandLineParserException)
     void parse_args(Span<const String> arguments) {
         parse_args_internal(arguments);
-        for (const auto& [_, argument]: argument_map) {
+        for (const auto& [_, argument]: _argument_map) {
             argument->validate();
         }
-        for (const MutuallyExclusiveGroup& group: mutually_exclusive_groups) {
+        for (const MutuallyExclusiveGroup& group: _mutually_exclusive_groups) {
             bool mutex_used = false;
             Argument* mutex_arg = nullptr;
-            for (Argument* arg: group.elems) {
+            for (Argument* arg: group._elems) {
                 if (!mutex_used && arg->is_used) {
                     mutex_used = true;
                     mutex_arg = arg;
                 } else if (mutex_used && arg->is_used) {
                     throw CommandLineParserException(
-                        stdx::fmt::format("Argument '{}' not allowed with '{}'",
+                        Ops::fmt("Argument '{}' not allowed with '{}'",
                         arg->get_usage_full(),
                         mutex_arg->get_usage_full())
                     );
                 }
             }
-            if (!mutex_used && group.required) {
+            if (!mutex_used && group._required) {
                 String names;
                 usize i = 0;
-                for (Argument* arg: group.elems) {
-                    names += stdx::fmt::format("'{}' ", arg->get_usage_full());
-                    if (i + 1 != group.elems.size()) {
+                for (Argument* arg: group._elems) {
+                    names += Ops::fmt("'{}' ", arg->get_usage_full());
+                    if (i + 1 != group._elems.size()) {
                         names += "or ";
                     }
                     ++i;
                 }
-                throw CommandLineParserException(stdx::fmt::format("One of the arguments {} is required", names));
+                throw CommandLineParserException(Ops::fmt("One of the arguments {} is required", names));
             }
         }
     }
@@ -1921,7 +1945,7 @@ public:
     THROWS_DISABLED(CommandLineParserException)
     Vector<String> parse_known_args(Span<const String> arguments) {
         Vector<String> unknown = parse_known_args_internal(arguments);
-        for (const auto& [_, argument]: argument_map) {
+        for (const auto& [_, argument]: _argument_map) {
             argument->validate();
         }
         return unknown;
@@ -1939,8 +1963,11 @@ public:
         return parse_known_args(Vector<String>(arguments.begin(), arguments.end()));
     }
 
+    // Disabled here for the same reason as the variadic parse_args above: GCC 16
+    // ICEs in tsubst_expr substituting the annotation into a variadic function
+    // template. The forwarding target keeps its own annotation.
     [[nodiscard]]
-    THROWS(CommandLineParserException)
+    THROWS_DISABLED(CommandLineParserException)
     Vector<String> parse_known_args(ConvertibleTo<StringView> auto&&... arguments) requires (sizeof...(arguments) >= 1) {
         return parse_known_args(Vector<String>{String(StringView(arguments))...});
     }
@@ -1970,7 +1997,7 @@ public:
      * @throws InvalidArgumentException, InvalidRangeException if a value fails to
      * convert to a field's type.
      */
-    template <ReflectableClass T>
+    template <ReflectableAsClass T>
     [[nodiscard]]
     [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>()]]
     static T parse(int argc, char* argv[]);
@@ -1980,7 +2007,7 @@ public:
      * field (flags, Description, friendly type, and default/optional markers).
      * @tparam T A reflectable, default-constructible struct describing the args.
      */
-    template <ReflectableClass T>
+    template <ReflectableAsClass T>
     [[nodiscard]]
     static String help(int argc, char* argv[]);
     #endif
@@ -2001,7 +2028,7 @@ public:
     [[nodiscard]]
     THROWS_DISABLED(LogicException)
     T get(StringView arg_name) const {
-        if (!is_parsed) {
+        if (!_is_parsed) {
             throw LogicException("Nothing parsed, no arguments are available.");
         }
         return (*this)[arg_name].template get<T>();
@@ -2019,71 +2046,71 @@ public:
 
     [[nodiscard]]
     bool is_subcommand_used(StringView name) const {
-        return subparser_used.at(String(name));
+        return _subparser_used.at(String(name));
     }
 
     [[nodiscard]]
     bool is_subcommand_used(const ArgumentParser& sub) const {
-        return is_subcommand_used(sub.prog_name);
+        return is_subcommand_used(sub._name);
     }
 
     Argument& operator[](StringView arg_name) const {
         String name(arg_name);
-        auto it = argument_map.find(name);
-        if (it != argument_map.end()) {
+        auto it = _argument_map.find(name);
+        if (it != _argument_map.end()) {
             return *(it->second);
         }
         if (!is_valid_prefix_char(arg_name.front())) {
             String prefix = String(1, get_any_valid_prefix_char());
             name = prefix + name;
-            it = argument_map.find(name);
-            if (it != argument_map.end()) {
+            it = _argument_map.find(name);
+            if (it != _argument_map.end()) {
                 return *(it->second);
             }
             name = prefix + name;
-            it = argument_map.find(name);
-            if (it != argument_map.end()) {
+            it = _argument_map.find(name);
+            if (it != _argument_map.end()) {
                 return *(it->second);
             }
         }
-        throw LogicException(stdx::fmt::format("No such argument: {}", arg_name));
+        throw LogicException(Ops::fmt("No such argument: {}", arg_name));
     }
 
     friend OutputStream& operator<<(OutputStream& stream, const ArgumentParser& parser) {
         stream.setf(FormatFlags::LEFT);
         usize longest = parser.length_of_longest_argument();
-        stream << stdx::fmt::format("{}\n\n", parser.usage());
-        if (!parser.desc.empty()) {
-            stream << stdx::fmt::format("{}\n\n", parser.desc);
+        stream << Ops::fmt("{}\n\n", parser.usage());
+        if (!parser._description.empty()) {
+            stream << Ops::fmt("{}\n\n", parser._description);
         }
 
         bool has_vis_pos = stdx::util::find_if(
-            parser.positional_arguments.begin(),
-            parser.positional_arguments.end(), [](const Argument& a) -> bool { return !a.is_hidden; }
-        ) != parser.positional_arguments.end();
+            parser._positional_arguments.begin(),
+            parser._positional_arguments.end(), [](const Argument& a) -> bool { return !a.is_hidden; }
+        ) != parser._positional_arguments.end();
         if (has_vis_pos) {
             stream << "Positional arguments:\n";
         }
-        for (const Argument& a: parser.positional_arguments) {
+        for (const Argument& a: parser._positional_arguments) {
             if (!a.is_hidden) {
                 stream.width(static_cast<long>(longest));
                 stream << a;
             }
         }
 
-        if (!parser.optional_arguments.empty()) {
-            stream << stdx::fmt::format("{}{}", !has_vis_pos ? "" : "\n", "Optional arguments:\n");
+        if (!parser._optional_arguments.empty()) {
+            stream << Ops::fmt("{}{}", !has_vis_pos ? "" : "\n", "Optional arguments:\n");
         }
-        for (const Argument& a: parser.optional_arguments) {
+        for (const Argument& a: parser._optional_arguments) {
             if (a.group_index == 0 && !a.is_hidden) {
                 stream.width(static_cast<long>(longest));
                 stream << a;
             }
         }
 
-        for (usize ig = 0; ig < parser.group_names.size(); ++ig) {
-            stream << stdx::fmt::format("\n{} (detailed usage):\n", parser.group_names[ig]);
-            for (const Argument& a: parser.optional_arguments) {
+        for (usize ig = 0; ig < parser._group_names.size(); ++ig) {
+            stream << Ops::fmt("\n{} (detailed usage):\n", parser._group_names[ig]);
+            for (const Argument& a: parser._optional_arguments) {
                 if (a.group_index == ig + 1 && !a.is_hidden) {
                     stream.width(static_cast<long>(longest));
                     stream << a;
@@ -2091,23 +2118,28 @@ public:
             }
         }
 
-        if (stdx::util::any_of(parser.subparser_map.begin(), parser.subparser_map.end(),
-                [](auto& p) -> bool { return !p.second->get().suppress; })) {
-            stream << stdx::fmt::format("{}{}", 
-                parser.positional_arguments.empty() ? parser.optional_arguments.empty() ? "" : "\n" : "\n", 
+        if (
+            stdx::util::any_of(
+                parser._subparser_map.begin(),
+                parser._subparser_map.end(),
+                [](auto& p) -> bool { return !p.second->get()._suppress; }
+            )
+        ) {
+            stream << Ops::fmt("{}{}", 
+                parser._positional_arguments.empty() ? parser._optional_arguments.empty() ? "" : "\n" : "\n",
                 "Subcommands:\n"
             );
-            for (const auto& [cmd, sub]: parser.subparser_map) {
-                if (sub->get().suppress) {
+            for (const auto& [cmd, sub]: parser._subparser_map) {
+                if (sub->get()._suppress) {
                     continue;
                 }
                 stream << "  ";
                 stream.width(static_cast<long>(longest - 2));
-                stream << stdx::fmt::format("{} {}\n", cmd, sub->get().desc);
+                stream << Ops::fmt("{} {}\n", cmd, sub->get()._description);
             }
         }
-        if (!parser.epilog.empty()) {
-            stream << stdx::fmt::format("\n{}\n\n", parser.epilog);
+        if (!parser._epilog.empty()) {
+            stream << Ops::fmt("\n{}\n\n", parser._epilog);
         }
         return stream;
     }
@@ -2120,12 +2152,12 @@ public:
     }
 
     ArgumentParser& set_usage_max_line_width(usize w) {
-        usage_max_line_width = w;
+        _usage_max_line_width = w;
         return *this;
     }
 
     ArgumentParser& set_usage_break_on_mutex() {
-        usage_break_on_mutex = true;
+        _usage_break_on_mutex = true;
         return *this;
     }
 
@@ -2133,15 +2165,15 @@ public:
     String usage() const {
         StringStream stream;
         String curline("Usage: ");
-        curline += parser_path;
-        const bool multiline = usage_max_line_width < UnsignedSize::MAX_VALUE;
+        curline += _parser_path;
+        const bool multiline = _usage_max_line_width < UnsignedSize::MAX_VALUE;
         const usize indent = curline.size();
 
         const auto deal_with_group = [&](usize group_idx) -> bool {
             bool found = false;
             const MutuallyExclusiveGroup* cur_mutex = nullptr;
             i32 nl_counter = -1;
-            for (const Argument& arg: optional_arguments) {
+            for (const Argument& arg: _optional_arguments) {
                 if (arg.is_hidden) {
                     continue;
                 }
@@ -2151,7 +2183,7 @@ public:
                     }
                     if (nl_counter != static_cast<i32>(arg.usage_newline_counter)) {
                         if (nl_counter >= 0 && curline.size() > indent) {
-                            stream << stdx::fmt::format("{}\n", curline);
+                            stream << Ops::fmt("{}\n", curline);
                             curline = String(indent, ' ');
                         }
                         nl_counter = static_cast<i32>(arg.usage_newline_counter);
@@ -2162,21 +2194,21 @@ public:
                 const MutuallyExclusiveGroup* am = get_belonging_mutex(&arg);
                 if (cur_mutex && !am) {
                     curline += ']';
-                    if (usage_break_on_mutex) {
-                        stream << stdx::fmt::format("{}\n", curline);
+                    if (_usage_break_on_mutex) {
+                        stream << Ops::fmt("{}\n", curline);
                         curline = String(indent, ' ');
                     }
                 } else if (!cur_mutex && am) {
-                    if ((usage_break_on_mutex && curline.size() > indent) || curline.size() + 3 + iu.size() > usage_max_line_width) {
-                        stream << stdx::fmt::format("{}\n", curline);
+                    if ((_usage_break_on_mutex && curline.size() > indent) || curline.size() + 3 + iu.size() > _usage_max_line_width) {
+                        stream << Ops::fmt("{}\n", curline);
                         curline = String(indent, ' ');
                     }
                     curline += " [";
                 } else if (cur_mutex && am) {
                     if (cur_mutex != am) {
                         curline += ']';
-                        if (usage_break_on_mutex || curline.size() + 3 + iu.size() > usage_max_line_width) {
-                            stream << stdx::fmt::format("{}\n", curline);
+                        if (_usage_break_on_mutex || curline.size() + 3 + iu.size() > _usage_max_line_width) {
+                            stream << Ops::fmt("{}\n", curline);
                             curline = String(indent, ' ');
                         }
                         curline += " [";
@@ -2185,8 +2217,8 @@ public:
                     }
                 }
                 cur_mutex = am;
-                if (curline.size() != indent && curline.size() + 1 + iu.size() > usage_max_line_width) {
-                    stream << stdx::fmt::format("{}\n", curline);
+                if (curline.size() != indent && curline.size() + 1 + iu.size() > _usage_max_line_width) {
+                    stream << Ops::fmt("{}\n", curline);
                     curline = String(indent, ' ');
                     curline += " ";
                 } else if (!cur_mutex) {
@@ -2201,44 +2233,44 @@ public:
         };
 
         const bool found = deal_with_group(0);
-        if (found && multiline && !positional_arguments.empty()) {
-            stream << stdx::fmt::format("{}\n", curline);
+        if (found && multiline && !_positional_arguments.empty()) {
+            stream << Ops::fmt("{}\n", curline);
             curline = String(indent, ' ');
         }
-        for (const Argument& arg: positional_arguments) {
+        for (const Argument& arg: _positional_arguments) {
             if (arg.is_hidden) {
                 continue;
             }
-            const String pa = !arg.meta_variable.empty() ? arg.meta_variable : arg.names.front();
-            if (curline.size() + 1 + pa.size() > usage_max_line_width) {
-                stream << stdx::fmt::format("{}\n", curline);
+            const String pa = !arg.meta_variable.empty() ? arg.meta_variable : arg._names.front();
+            if (curline.size() + 1 + pa.size() > _usage_max_line_width) {
+                stream << Ops::fmt("{}\n", curline);
                 curline = String(indent, ' ');
             }
             curline += " ";
             if (arg.num_args_range.min() == 0 && !arg.num_args_range.is_right_bounded()) {
-                curline += stdx::fmt::format("[{}]...", pa);
+                curline += Ops::fmt("[{}]...", pa);
             } else if (arg.num_args_range.min() == 1 && !arg.num_args_range.is_right_bounded()) {
-                curline += stdx::fmt::format("{}...", pa);
+                curline += Ops::fmt("{}...", pa);
             } else {
                 curline += pa;
             }
         }
         if (multiline) {
-            for (usize i = 0; i < group_names.size(); ++i) {
-                stream << stdx::fmt::format("{}\n\n{}:\n", curline, group_names[i]);
+            for (usize i = 0; i < _group_names.size(); ++i) {
+                stream << Ops::fmt("{}\n\n{}:\n", curline, _group_names[i]);
                 curline = String(indent, ' ');
                 deal_with_group(i + 1);
             }
         }
         stream << curline;
-        if (!subparser_map.empty()) {
+        if (!_subparser_map.empty()) {
             stream << " {";
             usize i = 0;
-            for (const auto& [cmd, sub]: subparser_map) {
-                if (sub->get().suppress) {
+            for (const auto& [cmd, sub]: _subparser_map) {
+                if (sub->get()._suppress) {
                     continue;
                 }
-                stream << stdx::fmt::format("{}{}", i == 0 ? "" : ",", cmd);
+                stream << Ops::fmt("{}{}", i == 0 ? "" : ",", cmd);
                 ++i;
             }
             stream << "}";
@@ -2247,14 +2279,14 @@ public:
     }
 
     void add_subparser(ArgumentParser& parser) {
-        parser.parser_path = stdx::fmt::format("{} {}", prog_name, parser.prog_name);
-        auto it = subparsers.emplace(subparsers.cend(), parser);
-        subparser_map.insert_or_assign(parser.prog_name, it);
-        subparser_used.insert_or_assign(parser.prog_name, false);
+        parser._parser_path = Ops::fmt("{} {}", _name, parser._name);
+        auto it = _subparsers.emplace(_subparsers.cend(), parser);
+        _subparser_map.insert_or_assign(parser._name, it);
+        _subparser_used.insert_or_assign(parser._name, false);
     }
 
     void set_suppress(bool suppress) {
-        this->suppress = suppress;
+        this->_suppress = suppress;
     }
 };
 

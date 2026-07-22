@@ -12,10 +12,6 @@ using stdx::thread::Thread;
 using namespace stdx::os;
 using namespace stdx::test;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 void test_echo() {
     Expected<Output, ErrorCode> result = Process::Builder("echo")
         .arg("hello world")

@@ -11,13 +11,7 @@ using stdx::inject::Singleton;
 using stdx::mem::SharedPointer;
 using stdx::util::logging::Logger;
 using stdx::util::logging::LoggerFactory;
-#endif
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
-#ifdef __cpp_impl_reflection
 class [[=Singleton()]] GreetingService {
 private:
     SharedPointer<Logger> logger;
@@ -80,7 +74,6 @@ public:
         binder.add_binding<Application>();
     }
 };
-
 #endif
 
 int main(int argc, char* argv[]) {

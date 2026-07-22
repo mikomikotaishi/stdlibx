@@ -19,13 +19,7 @@ using stdx::io::ByteBuffer;
 using stdx::math::BigInteger;
 
 using namespace stdx::test;
-#endif
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
-#ifdef STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY
 /**
  * @brief Convert a span of bytes to a hexadecimal string representation.
  * @param bytes The span of bytes to convert.
@@ -282,7 +276,7 @@ int main(int argc, char* argv[]) {
         {"crypto.bigint_integration", test_bigint_integration},
     });
     #else
-    System::out.println("[test] Crypto disabled (libsodium not compiled in).");
+    System::out.println("[test] Test disabled (enable with STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY).");
     return System::EXIT_SUCCESS;
     #endif
 }

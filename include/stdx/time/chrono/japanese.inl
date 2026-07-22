@@ -13,7 +13,7 @@ export namespace stdx::time::chrono {
      * Japanese Imperial era-based year numbering. Supports eras
      * from Meiji (1868) through Reiwa (2019-).
      */
-    class [[nodiscard]] JapaneseChronology final {
+    class JapaneseChronology final {
     private:
         static constexpr i64 MEIJI_START = gregorian_to_epoch_day(1868, 1, 25); ///< The epoch day of the Meiji era (corresponding to 1868-01-25 in the Gregorian calendar).
         static constexpr i64 TAISHO_START = gregorian_to_epoch_day(1912, 7, 30); ///< The epoch day of the Taisho era (corresponding to 1912-07-30 in the Gregorian calendar).
@@ -27,18 +27,18 @@ export namespace stdx::time::chrono {
          * @brief Traditional Japanese month names (和風月名, wafū getsumei).
          */
         enum class JapaneseMonth: u8 {
-            MUTSUKI = 1, ///< Mutsuki, the first month of the year (January)
-            KISARAGI = 2, ///< Kisaragi, the second month of the year (February)
-            YAYOI = 3, ///< Yayoi, the third month of the year (March)
-            UZUKI = 4, ///< Uzuki, the fourth month of the year (April)
-            SATSUKI = 5, ///< Satsuki, the fifth month of the year (May)
-            MINAZUKI = 6, ///< Minazuki, the sixth month of the year (June)
-            FUMIZUKI = 7, ///< Fumizuki, the seventh month of the year (July)
-            HAZUKI = 8, ///< Hazuki, the eighth month of the year (August)
-            NAGATSUKI = 9, ///< Nagatsuki, the ninth month of the year (September)
-            KANNAZUKI = 10, ///< Kannazuki, the tenth month of the year (October)
-            SHIMOTSUKI = 11, ///< Shimotsuki, the eleventh month of the year (November)
-            SHIWASU = 12, ///< Shiwasu, the twelfth month of the year (December)
+            MUTSUKI = 1, ///< Mutsuki (睦月), the first month of the year (January)
+            KISARAGI = 2, ///< Kisaragi (如月), the second month of the year (February)
+            YAYOI = 3, ///< Yayoi (弥生), the third month of the year (March)
+            UZUKI = 4, ///< Uzuki (卯月), the fourth month of the year (April)
+            SATSUKI = 5, ///< Satsuki (皐月), the fifth month of the year (May)
+            MINAZUKI = 6, ///< Minazuki (水無月), the sixth month of the year (June)
+            FUMIZUKI = 7, ///< Fumizuki (文月), the seventh month of the year (July)
+            HAZUKI = 8, ///< Hazuki (葉月), the eighth month of the year (August)
+            NAGATSUKI = 9, ///< Nagatsuki (長月), the ninth month of the year (September)
+            KANNAZUKI = 10, ///< Kannazuki (神無月), the tenth month of the year (October)
+            SHIMOTSUKI = 11, ///< Shimotsuki (霜月), the eleventh month of the year (November)
+            SHIWASU = 12, ///< Shiwasu (師走), the twelfth month of the year (December)
         };
     public:
         JapaneseChronology() = delete("JapaneseChronology is a static utility class and cannot be instantiated.");
@@ -56,10 +56,11 @@ export namespace stdx::time::chrono {
         };
 
         using enum JapaneseMonth;
+        using enum GregorianMonth;
 
         /**
          * @brief Returns the chronology identifier.
-         * @returns "Japanese"
+         * @return "Japanese"
          */
         [[nodiscard]]
         static constexpr StringView id() noexcept {
@@ -68,7 +69,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the calendar type.
-         * @returns "japanese"
+         * @return "japanese"
          */
         [[nodiscard]]
         static constexpr StringView calendar_type() noexcept {
@@ -78,7 +79,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Check if a year is a leap year (uses Gregorian rules).
          * @param y The ISO proleptic year.
-         * @returns true if the year is a leap year.
+         * @return true if the year is a leap year.
          * @throws DateTimeException if y < 1868.
          */
         [[nodiscard]]
@@ -94,7 +95,7 @@ export namespace stdx::time::chrono {
          * @brief Get the number of days in a month.
          * @param y The ISO proleptic year.
          * @param m The month (1-12).
-         * @returns The number of days in the month.
+         * @return The number of days in the month.
          * @throws DateTimeException if y < 1868.
          */
         [[nodiscard]]
@@ -109,7 +110,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of days in a year.
          * @param y The ISO proleptic year.
-         * @returns 366 if the year is a leap year, 365 otherwise.
+         * @return 366 if the year is a leap year, 365 otherwise.
          * @throws DateTimeException if y < 1868.
          */
         [[nodiscard]]
@@ -124,7 +125,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of months in a year.
          * @param y The ISO proleptic year.
-         * @returns 12
+         * @return 12
          * @throws DateTimeException if y < 1868.
          */
         [[nodiscard]]
@@ -141,7 +142,7 @@ export namespace stdx::time::chrono {
          * @param y The ISO proleptic year.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The number of days since 1970-01-01.
+         * @return The number of days since 1970-01-01.
          * @throws DateTimeException if the date is before Meiji (1868-01-25).
          */
         [[nodiscard]]
@@ -157,7 +158,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Convert an epoch day count to date components.
          * @param e The number of days since 1970-01-01.
-         * @returns The decomposed date components.
+         * @return The decomposed date components.
          * @throws DateTimeException if e < MEIJI_START.
          */
         [[nodiscard]]
@@ -172,7 +173,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Determine the Japanese era for a given epoch day.
          * @param epoch_day The number of days since 1970-01-01.
-         * @returns The Japanese era (MEIJI, TAISHO, SHOWA, HEISEI, or REIWA).
+         * @return The Japanese era (MEIJI, TAISHO, SHOWA, HEISEI, or REIWA).
          * @throws DateTimeException if epoch_day < MEIJI_START.
          */
         [[nodiscard]]
@@ -195,7 +196,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the Gregorian start year of a Japanese era.
          * @param era The Japanese era.
-         * @returns The ISO proleptic year in which the era begins.
+         * @return The ISO proleptic year in which the era begins.
          */
         [[nodiscard]]
         static constexpr i32 era_start_year(Era era) noexcept {
@@ -218,7 +219,7 @@ export namespace stdx::time::chrono {
          * @brief Get the year within the current era.
          * @param proleptic_year The ISO proleptic year.
          * @param epoch_day The epoch day for era determination.
-         * @returns The year-of-era (1-based).
+         * @return The year-of-era (1-based).
          * @throws DateTimeException if epoch_day < MEIJI_START.
          */
         [[nodiscard]]
@@ -231,7 +232,7 @@ export namespace stdx::time::chrono {
          * @brief Convert an era and year-of-era to an ISO proleptic year.
          * @param era The Japanese era.
          * @param year_of_era The year within the era (1-based).
-         * @returns The ISO proleptic year.
+         * @return The ISO proleptic year.
          * @throws DateTimeException if year_of_era < 1.
          */
         [[nodiscard]]
@@ -296,7 +297,7 @@ export namespace stdx::time::chrono {
          * @brief English/native name of a Japanese era.
          * @param era The era.
          * @param style The desired textual style.
-         * @returns The era name.
+         * @return The era name.
          * @details
          * NARROW returns the native kanji (e.g. "令和");
          * SHORT returns the single-letter Latin abbreviation (e.g. "R");
@@ -364,7 +365,7 @@ export namespace stdx::time::chrono {
          * @param year Unused (Japanese uses Gregorian month structure).
          * @param month The month (1-12).
          * @param style The desired textual style.
-         * @returns The month name in the requested style.
+         * @return The month name in the requested style.
          * @throws DateTimeException if @p month is not in [1, 12].
          *
          * Japanese formal documents typically use numeric months (一月,
@@ -380,7 +381,7 @@ export namespace stdx::time::chrono {
          * @brief Parse an era name back into an Era value.
          * @param text The text to match.
          * @param style The style the text is expected to be in.
-         * @returns The matched era, or empty Optional on no match.
+         * @return The matched era, or empty Optional on no match.
          */
         [[nodiscard]]
         THROWS(DateTimeException)
@@ -401,7 +402,7 @@ export namespace stdx::time::chrono {
          * @param text The text to match.
          * @param year Unused.
          * @param style The style the text is expected to be in.
-         * @returns The 1-based month, or empty Optional on no match.
+         * @return The 1-based month, or empty Optional on no match.
          */
         [[nodiscard]]
         THROWS(DateTimeException)
@@ -414,7 +415,7 @@ export namespace stdx::time::chrono {
          * @param y The ISO proleptic year.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if the date is before Meiji (1868-01-25).
          */
         [[nodiscard]]
@@ -426,7 +427,7 @@ export namespace stdx::time::chrono {
          * @param y The ISO proleptic year.
          * @param m The month.
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if the date is before Meiji (1868-01-25).
          */
         [[nodiscard]]
@@ -434,11 +435,26 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<JapaneseChronology> of(i32 y, JapaneseMonth m, u32 d);
 
         /**
+         * @brief Create a date from a Gregorian month name.
+         * @param y The ISO proleptic year.
+         * @param m The month.
+         * @param d The day of the month.
+         * @return The date in this chronology.
+         * @throws DateTimeException if the date is before Meiji (1868-01-25).
+         *
+         * The modern Japanese calendar uses the Gregorian months, so this is
+         * an alternative to the traditional wafū names of @ref JapaneseMonth.
+         */
+        [[nodiscard]]
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<JapaneseChronology> of(i32 y, GregorianMonth m, u32 d);
+
+        /**
          * @brief Create a date from typed year, month, and day.
          * @param y The ISO proleptic year.
          * @param m The month.
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if the date is before Meiji (1868-01-25).
          */
         [[nodiscard]]
@@ -448,7 +464,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Create a date from an epoch day count.
          * @param e The number of days since 1970-01-01.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if e < MEIJI_START.
          */
         [[nodiscard]]
@@ -461,7 +477,7 @@ export namespace stdx::time::chrono {
          * @param year_of_era The year within the era (1-based).
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if year_of_era < 1, if the date is before Meiji
          *   (1868-01-25), or if the resulting date does not fall within the requested
          *   era (e.g. Showa 64-01-08, which is the first day of Heisei).
@@ -472,7 +488,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Create a date for today according to the system clock.
-         * @returns Today's date in this chronology.
+         * @return Today's date in this chronology.
          */
         [[nodiscard]]
         THROWS(DateTimeException)
@@ -490,6 +506,10 @@ export namespace stdx::time::chrono {
     }
 
     constexpr JapaneseDate JapaneseChronology::of(i32 y, JapaneseMonth m, u32 d) {
+        return of(y, static_cast<u32>(m), d);
+    }
+
+    constexpr JapaneseDate JapaneseChronology::of(i32 y, GregorianMonth m, u32 d) {
         return of(y, static_cast<u32>(m), d);
     }
 

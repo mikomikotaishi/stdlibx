@@ -46,28 +46,28 @@ export namespace stdx::audio::midi {
      */
     class MidiMessage {
     protected:
-        Vector<u8> bytes;
+        Vector<u8> _bytes;
     public:
         MidiMessage() = default;
 
         explicit MidiMessage(Vector<u8> raw):
-            bytes{Ops::move(raw)} {}
+            _bytes{Ops::move(raw)} {}
 
         virtual ~MidiMessage() = default;
 
         [[nodiscard]]
         Span<const u8> data() const noexcept {
-            return Span{bytes.data(), bytes.size()};
+            return Span{_bytes.data(), _bytes.size()};
         }
 
         [[nodiscard]]
         usize length() const noexcept {
-            return bytes.size();
+            return _bytes.size();
         }
 
         [[nodiscard]]
         u8 status() const noexcept {
-            return bytes.empty() ? 0 : bytes[0];
+            return _bytes.empty() ? 0 : _bytes[0];
         }
     };
 
@@ -103,34 +103,34 @@ export namespace stdx::audio::midi {
             const u8 s = static_cast<u8>(status);
             const bool two_byte = (s == static_cast<u8>(Status::PROGRAM_CHANGE))
                 || (s == static_cast<u8>(Status::CHANNEL_PRESSURE));
-            bytes.clear();
-            bytes.push_back(static_cast<u8>(s | (channel & 0x0F)));
-            bytes.push_back(data1);
+            _bytes.clear();
+            _bytes.push_back(static_cast<u8>(s | (channel & 0x0F)));
+            _bytes.push_back(data1);
             if (!two_byte) {
-                bytes.push_back(data2);
+                _bytes.push_back(data2);
             }
         }
 
         [[nodiscard]]
         u8 channel() const noexcept {
-            return bytes.empty() ? 0 : static_cast<u8>(bytes[0] & 0x0F);
+            return _bytes.empty() ? 0 : static_cast<u8>(_bytes[0] & 0x0F);
         }
 
         [[nodiscard]]
         Status command() const noexcept {
-            return bytes.empty()
+            return _bytes.empty()
                 ? Status::SYSTEM_RESET
-                : static_cast<Status>(bytes[0] & 0xF0);
+                : static_cast<Status>(_bytes[0] & 0xF0);
         }
 
         [[nodiscard]]
         u8 data1() const noexcept {
-            return bytes.size() > 1 ? bytes[1] : 0;
+            return _bytes.size() > 1 ? _bytes[1] : 0;
         }
 
         [[nodiscard]]
         u8 data2() const noexcept {
-            return bytes.size() > 2 ? bytes[2] : 0;
+            return _bytes.size() > 2 ? _bytes[2] : 0;
         }
     };
 
@@ -165,8 +165,8 @@ export namespace stdx::audio::midi {
             if (type > 0x7F) {
                 throw InvalidMidiDataException("meta type out of range");
             }
-            bytes.push_back(META_STATUS);
-            bytes.push_back(type);
+            _bytes.push_back(META_STATUS);
+            _bytes.push_back(type);
             // Variable-length payload size, 7-bit groups MSB-first.
             usize n = payload.size();
             u8 buf[5];
@@ -176,14 +176,14 @@ export namespace stdx::audio::midi {
                 buf[bi++] = static_cast<u8>(0x80 | (n & 0x7F));
             }
             for (usize i = bi; i > 0; --i) {
-                bytes.push_back(buf[i - 1]);
+                _bytes.push_back(buf[i - 1]);
             }
-            bytes.insert(bytes.end(), payload.begin(), payload.end());
+            _bytes.insert(_bytes.end(), payload.begin(), payload.end());
         }
 
         [[nodiscard]]
         u8 type() const noexcept {
-            return bytes.size() > 1 ? bytes[1] : 0;
+            return _bytes.size() > 1 ? _bytes[1] : 0;
         }
     };
 }

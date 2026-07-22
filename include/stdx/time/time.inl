@@ -3,8 +3,6 @@
 using stdx::fmt::FormatContext;
 using stdx::fmt::FormatParseContext;
 using stdx::fmt::Formatter;
-
-using stdx::io::BasicOutputStream;
 using stdx::math::ratio::Ratio;
 
 /**
@@ -312,7 +310,6 @@ export namespace stdx::time {
     /**
      * @class DateTimeException
      * @brief Exception thrown upon a problem with creating, querying or manipulating date-time objects.
-     *
      * @extends RuntimeException
      */
     class DateTimeException: public RuntimeException {
@@ -404,16 +401,6 @@ export namespace stdx::time {
         return static_cast<Weekday::Self>(w1) - static_cast<Weekday::Self>(w2);
     }
 
-    template <typename Char, typename Traits>
-    BasicOutputStream<Char, Traits>& operator<<(BasicOutputStream<Char, Traits>& os, const Month& m) {
-        return os << static_cast<Month::Self>(m);
-    }
-
-    template <typename Char, typename Traits>
-    BasicOutputStream<Char, Traits>& operator<<(BasicOutputStream<Char, Traits>& os, const Weekday& w) {
-        return os << static_cast<Weekday::Self>(w);
-    }
-
     using std::chrono::operator+;
     using std::chrono::operator-;
     using std::chrono::operator*;
@@ -434,22 +421,22 @@ using stdx::time::Weekday;
 namespace stdx::fmt {
     template <>
     struct Formatter<Month> {
-        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
             return ctx.begin();
         }
 
-        static FormatContext::iterator format(const Month& m, FormatContext& ctx) {
+        auto format(const Month& m, FormatContext& ctx) const {
             return format_to(ctx.out(), "{}", static_cast<Month::Self>(m));
         }
     };
 
     template <>
     struct Formatter<Weekday> {
-        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
             return ctx.begin();
         }
 
-        static FormatContext::iterator format(const Weekday& w, FormatContext& ctx) {
+        auto format(const Weekday& w, FormatContext& ctx) const {
             return format_to(ctx.out(), "{}", static_cast<Weekday::Self>(w));
         }
     };

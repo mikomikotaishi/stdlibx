@@ -1,7 +1,14 @@
 #pragma once
 
+using stdx::alloc::BadAllocationException;
 using stdx::time::Duration;
 using stdx::time::Instant;
+
+#ifdef STDLIBX_EXECUTION_AVAILABLE
+using stdx::exec::Sender;
+using stdx::exec::SyncWait;
+using stdx::exec::SyncWaitWithVariant;
+#endif
 
 /**
  * @namespace stdx::thread
@@ -9,6 +16,7 @@ using stdx::time::Instant;
  */
 namespace stdx::thread {
     /**
+     * @internal
      * @concept StandardThread
      * @brief The set of standard thread types BasicThread is intended to wrap.
      * @tparam Thr The candidate underlying thread type.
@@ -17,6 +25,7 @@ namespace stdx::thread {
     concept StandardThread = SameAs<Thr, std::jthread> || SameAs<Thr, std::thread>;
 
     /**
+     * @internal
      * @concept Stoppable
      * @brief Whether the wrapped thread type carries cooperative-cancellation
      * state (std::jthread's shared stop-source), so the stop API can be exposed.
@@ -28,26 +37,21 @@ namespace stdx::thread {
         t.get_stop_source();
         ct.get_stop_token();
     };
-}
 
-/**
- * @namespace stdx::thread
- * @brief Standard library threading operations.
- */
-export namespace stdx::thread {
     /**
+     * @internal
      * @class BasicThread
      * @brief A uniform, move-only wrapper over a standard thread type.
      * @tparam Thr The underlying thread type (std::thread or std::jthread).
      */
     template <StandardThread Thr>
-    class BasicThread {
+    class [[nodiscard]] BasicThread {
     public:
+        using Self = Thr; ///< The underlying thread type being wrapped.
         using Id = Thr::id; ///< The thread identifier type.
         using NativeHandle = Thr::native_handle_type; ///< The implementation-defined handle type.
-        using Of = Thr; ///< The underlying thread type being wrapped.
     private:
-        Thr thread; ///< The wrapped thread.
+        Thr _thread; ///< The wrapped thread.
     public:
         /**
          * @brief Constructs a wrapper with no associated thread of execution.
@@ -67,7 +71,7 @@ export namespace stdx::thread {
         template <typename Fn, typename... Args>
             requires ConstructibleFrom<Thr, Fn, Args...>
         explicit BasicThread(Fn&& func, Args&&... args):
-            thread{Ops::forward<Fn>(func), Ops::forward<Args>(args)...} {}
+            _thread{Ops::forward<Fn>(func), Ops::forward<Args>(args)...} {}
 
         /**
          * @brief Whether this object identifies an active thread of execution.
@@ -75,7 +79,7 @@ export namespace stdx::thread {
          */
         [[nodiscard]]
         bool joinable() const noexcept {
-            return thread.joinable();
+            return _thread.joinable();
         }
 
         /**
@@ -83,7 +87,7 @@ export namespace stdx::thread {
          */
         THROWS(SystemException)
         void join() {
-            thread.join();
+            _thread.join();
         }
 
         /**
@@ -91,7 +95,16 @@ export namespace stdx::thread {
          */
         THROWS(SystemException)
         void detach() {
-            thread.detach();
+            _thread.detach();
+        }
+
+        /**
+         * @brief Converts the wrapper to the underlying thread type.
+         * @return The underlying thread.
+         */
+        [[nodiscard]]
+        constexpr operator Thr() const noexcept {
+            return _thread;
         }
 
         /**
@@ -100,7 +113,7 @@ export namespace stdx::thread {
          */
         [[nodiscard]]
         Id id() const noexcept {
-            return thread.get_id();
+            return _thread.get_id();
         }
 
         /**
@@ -109,7 +122,7 @@ export namespace stdx::thread {
          */
         [[nodiscard]]
         NativeHandle native_handle() {
-            return thread.native_handle();
+            return _thread.native_handle();
         }
 
         /**
@@ -117,7 +130,7 @@ export namespace stdx::thread {
          * @param other The wrapper to swap with.
          */
         void swap(BasicThread& other) noexcept {
-            thread.swap(other.thread);
+            _thread.swap(other._thread);
         }
 
         /**
@@ -135,7 +148,7 @@ export namespace stdx::thread {
          * @return true if this call made the stop request (none was pending).
          */
         bool request_stop() noexcept requires Stoppable<Thr> {
-            return thread.request_stop();
+            return _thread.request_stop();
         }
 
         /**
@@ -145,7 +158,7 @@ export namespace stdx::thread {
          */
         [[nodiscard]]
         StopSource stop_source() noexcept requires Stoppable<Thr> {
-            return thread.get_stop_source();
+            return _thread.get_stop_source();
         }
 
         /**
@@ -156,7 +169,7 @@ export namespace stdx::thread {
         [[nodiscard]]
         StopToken stop_token() const noexcept
             requires Stoppable<Thr> {
-            return thread.get_stop_token();
+            return _thread.get_stop_token();
         }
 
         /**
@@ -205,8 +218,105 @@ export namespace stdx::thread {
         static void yield() noexcept {
             std::this_thread::yield();
         }
+
+        /**
+         * @brief Defers or spawns a callable on a new thread by calling std::async.
+         * @tparam F A callable type.
+         * @tparam Args The argument types for the callable.
+         * @param f The callable to invoke.
+         * @param args The arguments to pass to the callable.
+         * @return A Future representing the result of the callable.
+         * @throws SystemException if the thread cannot be created.
+         * @throws BadAllocationException if memory allocation fails.
+         */
+        template <typename F, typename... Args>
+        THROWS(SystemException, BadAllocationException)
+        static Future<InvokeResultType<DecayType<F>, DecayType<Args>...>> defer_or_spawn(F&& f, Args&&... args) {
+            return std::async(forward<F>(f), forward<Args>(args)...);
+        }
+
+        /**
+         * @brief Defers or spawns a callable on a new thread by calling std::async with a launch policy.
+         * @tparam F A callable type.
+         * @tparam Args The argument types for the callable.
+         * @param policy The launch policy (e.g., std::launch::async or std::launch::deferred).
+         * @param f The callable to invoke.
+         * @param args The arguments to pass to the callable.
+         * @return A Future representing the result of the callable.
+         * @throws SystemException if the thread cannot be created.
+         * @throws BadAllocationException if memory allocation fails.
+         *
+         * @note The launch policy determines whether the callable is executed asynchronously on a new thread or deferred until the result is needed.
+         */
+        template <typename F, typename... Args>
+        THROWS(SystemException, BadAllocationException)
+        static Future<InvokeResultType<DecayType<F>, DecayType<Args>...>> defer_or_spawn(LaunchPolicy policy, F&& f, Args&&... args) {
+            return std::async(policy, forward<F>(f), forward<Args>(args)...);
+        }
+
+        #ifdef STDLIBX_EXECUTION_AVAILABLE
+        /**
+         * @brief Synchronously wait for the result of a sender.
+         * @tparam Sender The type of the sender.
+         * @param sender The sender to wait for.
+         * @return The result of the sender (Optional<Tuple<Ts...>>), or nullopt if the operation failed.
+         */
+        static auto sync_wait(Sender auto sender) {
+            return SyncWait(Ops::move(sender));
+        }
+
+        /**
+         * @brief Synchronously wait for the result of a sender, returning a variant.
+         * @tparam Sender The type of the sender.
+         * @param sender The sender to wait for.
+         * @return The result of the sender (Optional<Variant<Ts...>>), or nullopt if the operation failed.
+         */
+        static auto sync_wait_with_variant(Sender auto sender) {
+            return SyncWaitWithVariant(Ops::move(sender));
+        }
+
+        [[nodiscard]]
+        static ParallelScheduler parallel_scheduler() {
+            return stdx::exec::get_parallel_scheduler();
+        }
+
+        /**
+         * @brief Offloads a blocking callable onto the system thread pool.
+         * @tparam F A nullary callable.
+         * @param f The blocking work to run off the calling thread.
+         * @return A sender completing with the result of f() (or set_error if it
+         * throws; the exception is re-raised at the await / sync_wait site).
+         *
+         * @warning Do not compose two of these senders under WhenAll.
+         * To overlap two offloads, use the Task-based `Ops::offload` and
+         * `WhenAll(offload(f), offload(g))` instead. Likewise a `void` callable
+         *  under `Thread::sync_wait()` trips the same move miscompile — use `offload` there.
+         */
+        template <Invocable F>
+        [[nodiscard]]
+        static Sender auto offload_sender(F f) {
+            return Then(Schedule(parallel_scheduler()), Ops::move(f));
+        }
+
+        /**
+         * @brief Coroutine bridge: run a blocking callable on the parallel scheduler.
+         * @tparam F A nullary callable.
+         * @param f The blocking work to run off the calling thread.
+         * @return A Task completing with the result of f() (or set_error if it throws;
+         * the exception is re-raised at the await / sync_wait site).
+         *
+         * @warning Do not `co_await offload(...)` inside another Task.
+         * To co_await an offload from inside a Task, use the
+         * sender-based `Ops::offload_sender`.
+         */
+        template <Invocable F>
+        static Task<InvokeResultType<F&>> offload(F f) {
+            co_await Schedule(parallel_scheduler());
+            co_return f();
+        }
+        #endif
     };
 
-    using ManualThread = BasicThread<std::thread>;
-    using Thread = BasicThread<std::jthread>;
+    export using ManualThread = BasicThread<std::thread>;
+    export using Thread = BasicThread<std::jthread>;
 }

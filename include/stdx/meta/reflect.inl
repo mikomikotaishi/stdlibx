@@ -15,31 +15,28 @@ namespace reflect = stdx::meta::reflect;
 export namespace stdx::meta::reflect {
     #ifdef __cpp_lib_reflection
     /**
-     * @concept ReflectableClass
+     * @concept ReflectableAsClass
      * @brief A class type that can be reflected on. Excludes unions.
-     * 
      * @tparam T A type to test for reflectability as a class.
      */
     template <typename T>
-    concept ReflectableClass = is_class_type(^^T) && !is_union_type(^^T);
+    concept ReflectableAsClass = is_class_type(^^T) && !is_union_type(^^T);
 
     /**
-     * @concept ReflectableEnum
+     * @concept ReflectableAsEnum
      * @brief An enumeration type that can be reflected on.
-     * 
      * @tparam T A type to test for reflectability as an enum.
      */
     template <typename T>
-    concept ReflectableEnum = is_enum_type(^^T);
+    concept ReflectableAsEnum = is_enum_type(^^T);
 
     /**
-     * @concept ReflectableUnion
+     * @concept ReflectableAsUnion
      * @brief A union type that can be reflected on.
-     * 
      * @tparam T A type to test for reflectability as a union.
      */
     template <typename T>
-    concept ReflectableUnion = is_union_type(^^T);
+    concept ReflectableAsUnion = is_union_type(^^T);
 
     /**
      * @enum ReflectionOf
@@ -191,13 +188,13 @@ export namespace stdx::meta::reflect {
     class Annotation;
     class StructuredBinding;
 
-    template <ReflectableClass T>
+    template <ReflectableAsClass T>
     class Class;
 
-    template <ReflectableEnum E>
+    template <ReflectableAsEnum E>
     class Enum;
 
-    template <ReflectableUnion U>
+    template <ReflectableAsUnion U>
     class Union;
 
     /**
@@ -215,150 +212,152 @@ export namespace stdx::meta::reflect {
          * "structural type" rule (required for define_static_array(),
          * NTTPs, etc.).
          */
-        const Info info{};
+        const Info _info = {};
 
         consteval Mirror() noexcept = default;
 
         consteval explicit Mirror(Info i) noexcept:
-            info{i} {}
+            _info{i} {}
 
         [[nodiscard]]
         consteval Info value() const noexcept {
-            return info;
+            return _info;
         }
 
         [[nodiscard]]
         consteval operator Info() const noexcept {
-            return info;
+            return _info;
         }
 
         /**
          * @brief The entity's identifier, or nullopt if it is unnamed
          * (anonymous structs, unnamed bit-fields, etc.).
+         * @return The identifier, or nullopt if the entity is unnamed.
          */
         [[nodiscard]]
         consteval Optional<StringView> name() const {
-            if (!reflect::has_identifier(info)) {
+            if (!reflect::has_identifier(_info)) {
                 return nullopt;
             }
-            return reflect::identifier_of(info);
+            return reflect::identifier_of(_info);
         }
 
         /**
          * @brief UTF-8 form of name(). Returns nullopt under the same
          * conditions as name().
+         * @return The UTF-8 identifier, or nullopt if the entity is unnamed.
          */
         [[nodiscard]]
         consteval Optional<Utf8StringView> u8name() const {
-            if (!reflect::has_identifier(info)) {
+            if (!reflect::has_identifier(_info)) {
                 return nullopt;
             }
-            return reflect::u8identifier_of(info);
+            return reflect::u8identifier_of(_info);
         }
 
         [[nodiscard]]
         consteval StringView display_name() const {
-            return reflect::display_string_of(info);
+            return reflect::display_string_of(_info);
         }
 
         [[nodiscard]]
         consteval Utf8StringView u8display_name() const {
-            return reflect::u8display_string_of(info);
+            return reflect::u8display_string_of(_info);
         }
 
         [[nodiscard]]
         consteval SourceLocation location() const {
-            return reflect::source_location_of(info);
+            return reflect::source_location_of(_info);
         }
 
         [[nodiscard]]
         consteval bool is_type() const {
-            return reflect::is_type(info);
+            return reflect::is_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_namespace() const {
-            return reflect::is_namespace(info);
+            return reflect::is_namespace(_info);
         }
 
         [[nodiscard]]
         consteval bool is_function() const {
-            return reflect::is_function(info);
+            return reflect::is_function(_info);
         }
 
         [[nodiscard]]
         consteval bool is_variable() const {
-            return reflect::is_variable(info);
+            return reflect::is_variable(_info);
         }
 
         [[nodiscard]]
         consteval bool is_template() const {
-            return reflect::is_template(info);
+            return reflect::is_template(_info);
         }
 
         [[nodiscard]]
         consteval bool is_concept() const {
-            return reflect::is_concept(info);
+            return reflect::is_concept(_info);
         }
 
         [[nodiscard]]
         consteval bool is_value() const {
-            return reflect::is_value(info);
+            return reflect::is_value(_info);
         }
 
         [[nodiscard]]
         consteval bool is_object() const {
-            return reflect::is_object(info);
+            return reflect::is_object(_info);
         }
 
         [[nodiscard]]
         consteval bool is_type_alias() const {
-            return reflect::is_type_alias(info);
+            return reflect::is_type_alias(_info);
         }
 
         [[nodiscard]]
         consteval bool is_namespace_alias() const {
-            return reflect::is_namespace_alias(info);
+            return reflect::is_namespace_alias(_info);
         }
 
         [[nodiscard]]
         consteval bool is_annotation() const {
-            return reflect::is_annotation(info);
+            return reflect::is_annotation(_info);
         }
 
         [[nodiscard]]
         consteval bool is_enumerator() const {
-            return reflect::is_enumerator(info);
+            return reflect::is_enumerator(_info);
         }
 
         [[nodiscard]]
         consteval bool is_structured_binding() const {
-            return reflect::is_structured_binding(info);
+            return reflect::is_structured_binding(_info);
         }
 
         [[nodiscard]]
         consteval bool is_class_member() const {
-            return reflect::is_class_member(info);
+            return reflect::is_class_member(_info);
         }
 
         [[nodiscard]]
         consteval bool is_namespace_member() const {
-            return reflect::is_namespace_member(info);
+            return reflect::is_namespace_member(_info);
         }
 
         [[nodiscard]]
         consteval bool is_static_member() const {
-            return reflect::is_static_member(info);
+            return reflect::is_static_member(_info);
         }
 
         [[nodiscard]]
         consteval bool is_nonstatic_data_member() const {
-            return reflect::is_nonstatic_data_member(info);
+            return reflect::is_nonstatic_data_member(_info);
         }
 
         [[nodiscard]]
         consteval bool is_base() const {
-            return reflect::is_base(info);
+            return reflect::is_base(_info);
         }
 
         /**
@@ -368,10 +367,10 @@ export namespace stdx::meta::reflect {
          */
         [[nodiscard]]
         consteval Optional<Mirror> parent() const {
-            if (!reflect::has_parent(info)) {
+            if (!reflect::has_parent(_info)) {
                 return nullopt;
             }
-            return Mirror(reflect::parent_of(info));
+            return Mirror(reflect::parent_of(_info));
         }
 
         /**
@@ -379,7 +378,7 @@ export namespace stdx::meta::reflect {
          */
         [[nodiscard]]
         consteval bool is_global_namespace() const {
-            return reflect::is_namespace(info) && !reflect::has_parent(info);
+            return reflect::is_namespace(_info) && !reflect::has_parent(_info);
         }
 
         /**
@@ -388,10 +387,10 @@ export namespace stdx::meta::reflect {
          */
         [[nodiscard]]
         consteval bool is_in_global_namespace() const {
-            if (!reflect::has_parent(info)) {
+            if (!reflect::has_parent(_info)) {
                 return false;
             }
-            const Info p = reflect::parent_of(info);
+            const Info p = reflect::parent_of(_info);
             return reflect::is_namespace(p) && !reflect::has_parent(p);
         }
 
@@ -405,7 +404,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval usize scope_depth() const {
             usize d = 0;
-            Info cur = info;
+            Info cur = _info;
             while (reflect::has_parent(cur)) {
                 cur = reflect::parent_of(cur);
                 ++d;
@@ -422,7 +421,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval usize namespace_depth() const {
             usize d = 0;
-            Info cur = info;
+            Info cur = _info;
             while (reflect::has_parent(cur)) {
                 cur = reflect::parent_of(cur);
                 if (reflect::is_namespace(cur)) {
@@ -440,7 +439,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> scope_chain() const {
             Vector<Mirror> tmp;
-            Info cur = info;
+            Info cur = _info;
             while (reflect::has_parent(cur)) {
                 cur = reflect::parent_of(cur);
                 tmp.emplace_back(cur);
@@ -448,7 +447,7 @@ export namespace stdx::meta::reflect {
             Vector<Mirror> result;
             result.reserve(tmp.size());
             for (usize i = tmp.size(); i > 0; --i) {
-                result.emplace_back(tmp[i - 1].info);
+                result.emplace_back(tmp[i - 1]._info);
             }
             return result;
         }
@@ -470,10 +469,10 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval AccessFlag access() const {
-            if (reflect::is_protected(info)) {
+            if (reflect::is_protected(_info)) {
                 return AccessFlag::PROTECTED;
             }
-            if (reflect::is_private(info)) {
+            if (reflect::is_private(_info)) {
                 return AccessFlag::PRIVATE;
             }
             return AccessFlag::PUBLIC;
@@ -481,71 +480,71 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval EnumSet<ReflectionOf> kinds() const {
-            if (info == Info{}) {
+            if (_info == Info{}) {
                 return EnumSet<ReflectionOf>::of(ReflectionOf::NONE);
             }
             EnumSet<ReflectionOf> result;
-            if (reflect::is_value(info)) {
+            if (reflect::is_value(_info)) {
                 result.insert(ReflectionOf::SCALAR);
             }
-            if (reflect::is_object(info)) {
+            if (reflect::is_object(_info)) {
                 result.insert(ReflectionOf::STATIC_OBJECT);
             }
-            if (reflect::is_variable(info)) {
+            if (reflect::is_variable(_info)) {
                 result.insert(ReflectionOf::VARIABLE);
             }
-            if (reflect::is_structured_binding(info)) {
+            if (reflect::is_structured_binding(_info)) {
                 result.insert(ReflectionOf::STRUCTURED_BINDING);
             }
-            if (reflect::is_function(info)) {
+            if (reflect::is_function(_info)) {
                 result.insert(ReflectionOf::FUNCTION);
             }
-            if (reflect::is_function_parameter(info)) {
+            if (reflect::is_function_parameter(_info)) {
                 result.insert(ReflectionOf::FUNCTION_PARAMETER);
             }
-            if (reflect::is_enumerator(info)) {
+            if (reflect::is_enumerator(_info)) {
                 result.insert(ReflectionOf::ENUM);
             }
-            if (reflect::is_annotation(info)) {
+            if (reflect::is_annotation(_info)) {
                 result.insert(ReflectionOf::ANNOTATION);
             }
-            if (reflect::is_type_alias(info)) {
+            if (reflect::is_type_alias(_info)) {
                 result.insert(ReflectionOf::TYPE_ALIAS);
             }
-            if (reflect::is_type(info)) {
+            if (reflect::is_type(_info)) {
                 result.insert(ReflectionOf::TYPE);
             }
-            if (reflect::is_class_member(info)) {
+            if (reflect::is_class_member(_info)) {
                 result.insert(ReflectionOf::MEMBER);
             }
-            if (reflect::is_bit_field(info) && !reflect::has_identifier(info)) {
+            if (reflect::is_bit_field(_info) && !reflect::has_identifier(_info)) {
                 result.insert(ReflectionOf::UNNAMED_BIT_FIELD);
             }
-            if (reflect::is_class_template(info)) {
+            if (reflect::is_class_template(_info)) {
                 result.insert(ReflectionOf::CLASS_TEMPLATE);
             }
-            if (reflect::is_function_template(info)) {
+            if (reflect::is_function_template(_info)) {
                 result.insert(ReflectionOf::FUNCTION_TEMPLATE);
             }
-            if (reflect::is_variable_template(info)) {
+            if (reflect::is_variable_template(_info)) {
                 result.insert(ReflectionOf::VARIABLE_TEMPLATE);
             }
-            if (reflect::is_alias_template(info)) {
+            if (reflect::is_alias_template(_info)) {
                 result.insert(ReflectionOf::ALIAS_TEMPLATE);
             }
-            if (reflect::is_concept(info)) {
+            if (reflect::is_concept(_info)) {
                 result.insert(ReflectionOf::CONCEPT);
             }
-            if (reflect::is_namespace_alias(info)) {
+            if (reflect::is_namespace_alias(_info)) {
                 result.insert(ReflectionOf::NAMESPACE_ALIAS);
             }
-            if (reflect::is_namespace(info)) {
+            if (reflect::is_namespace(_info)) {
                 result.insert(ReflectionOf::NAMESPACE);
             }
-            if (reflect::is_base(info)) {
+            if (reflect::is_base(_info)) {
                 result.insert(ReflectionOf::BASE_CLASS);
             }
-            if (reflect::is_data_member_spec(info)) {
+            if (reflect::is_data_member_spec(_info)) {
                 result.insert(ReflectionOf::DATA_MEMBER_DESCRIPTION);
             }
             return result;
@@ -565,12 +564,12 @@ export namespace stdx::meta::reflect {
     /**
      * @class Type
      * @brief Wraps the reflection of a type.
+     * @extends Mirror
      *
      * Exposes the full battery of type traits (size, alignment, category
      * tests, qualifier removal/addition, relations). Subclassed by
      * Class<T>, Enum<E>, and Union<U> for entities whose type is
      * known statically.
-     * @extends Mirror
      */
     class Type: public Mirror {
     public:
@@ -586,478 +585,478 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval usize size() const {
-            return reflect::size_of(info);
+            return reflect::size_of(_info);
         }
 
         [[nodiscard]]
         consteval usize alignment() const {
-            return reflect::alignment_of(info);
+            return reflect::alignment_of(_info);
         }
 
         [[nodiscard]]
         consteval usize bit_size() const {
-            return reflect::bit_size_of(info);
+            return reflect::bit_size_of(_info);
         }
 
         [[nodiscard]]
         consteval bool is_void() const {
-            return reflect::is_void_type(info);
+            return reflect::is_void_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_null_pointer() const {
-            return reflect::is_null_pointer_type(info);
+            return reflect::is_null_pointer_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_integral() const {
-            return reflect::is_integral_type(info);
+            return reflect::is_integral_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_floating_point() const {
-            return reflect::is_floating_point_type(info);
+            return reflect::is_floating_point_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_array() const {
-            return reflect::is_array_type(info);
+            return reflect::is_array_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_pointer() const {
-            return reflect::is_pointer_type(info);
+            return reflect::is_pointer_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_reference() const {
-            return reflect::is_reference_type(info);
+            return reflect::is_reference_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_lvalue_reference() const {
-            return reflect::is_lvalue_reference_type(info);
+            return reflect::is_lvalue_reference_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_rvalue_reference() const {
-            return reflect::is_rvalue_reference_type(info);
+            return reflect::is_rvalue_reference_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_enum() const {
-            return reflect::is_enum_type(info);
+            return reflect::is_enum_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_union() const {
-            return reflect::is_union_type(info);
+            return reflect::is_union_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_class() const {
-            return reflect::is_class_type(info) && !reflect::is_union_type(info);
+            return reflect::is_class_type(_info) && !reflect::is_union_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_record() const {
-            return reflect::is_class_type(info);
+            return reflect::is_class_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_function_type() const {
-            return reflect::is_function_type(info);
+            return reflect::is_function_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_member_pointer() const {
-            return reflect::is_member_pointer_type(info);
+            return reflect::is_member_pointer_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_member_object_pointer() const {
-            return reflect::is_member_object_pointer_type(info);
+            return reflect::is_member_object_pointer_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_member_function_pointer() const {
-            return reflect::is_member_function_pointer_type(info);
+            return reflect::is_member_function_pointer_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_reflection() const {
-            return reflect::is_reflection_type(info);
+            return reflect::is_reflection_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_arithmetic() const {
-            return reflect::is_arithmetic_type(info);
+            return reflect::is_arithmetic_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_fundamental() const {
-            return reflect::is_fundamental_type(info);
+            return reflect::is_fundamental_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_scalar() const {
-            return reflect::is_scalar_type(info);
+            return reflect::is_scalar_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_object_type() const {
-            return reflect::is_object_type(info);
+            return reflect::is_object_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_compound() const {
-            return reflect::is_compound_type(info);
+            return reflect::is_compound_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_const() const {
-            return reflect::is_const_type(info);
+            return reflect::is_const_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_volatile() const {
-            return reflect::is_volatile_type(info);
+            return reflect::is_volatile_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_trivially_copyable() const {
-            return reflect::is_trivially_copyable_type(info);
+            return reflect::is_trivially_copyable_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_standard_layout() const {
-            return reflect::is_standard_layout_type(info);
+            return reflect::is_standard_layout_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_empty() const {
-            return reflect::is_empty_type(info);
+            return reflect::is_empty_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_polymorphic() const {
-            return reflect::is_polymorphic_type(info);
+            return reflect::is_polymorphic_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_abstract() const {
-            return reflect::is_abstract_type(info);
+            return reflect::is_abstract_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_final() const {
-            return reflect::is_final_type(info);
+            return reflect::is_final_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_aggregate() const {
-            return reflect::is_aggregate_type(info);
+            return reflect::is_aggregate_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_signed() const {
-            return reflect::is_signed_type(info);
+            return reflect::is_signed_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_unsigned() const {
-            return reflect::is_unsigned_type(info);
+            return reflect::is_unsigned_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_bounded_array() const {
-            return reflect::is_bounded_array_type(info);
+            return reflect::is_bounded_array_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_unbounded_array() const {
-            return reflect::is_unbounded_array_type(info);
+            return reflect::is_unbounded_array_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_scoped_enum() const {
-            return reflect::is_scoped_enum_type(info);
+            return reflect::is_scoped_enum_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_complete() const {
-            return reflect::is_complete_type(info);
+            return reflect::is_complete_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_enumerable() const {
-            return reflect::is_enumerable_type(info);
+            return reflect::is_enumerable_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_implicit_lifetime() const {
-            return reflect::is_implicit_lifetime_type(info);
+            return reflect::is_implicit_lifetime_type(_info);
         }
 
         [[nodiscard]]
         consteval bool has_virtual_destructor() const {
-            return reflect::has_virtual_destructor(info);
+            return reflect::has_virtual_destructor(_info);
         }
 
         [[nodiscard]]
         consteval bool has_unique_object_representations() const {
-            return reflect::has_unique_object_representations(info);
+            return reflect::has_unique_object_representations(_info);
         }
 
         [[nodiscard]]
         consteval bool is_default_constructible() const {
-            return reflect::is_default_constructible_type(info);
+            return reflect::is_default_constructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_copy_constructible() const {
-            return reflect::is_copy_constructible_type(info);
+            return reflect::is_copy_constructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_move_constructible() const {
-            return reflect::is_move_constructible_type(info);
+            return reflect::is_move_constructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_copy_assignable() const {
-            return reflect::is_copy_assignable_type(info);
+            return reflect::is_copy_assignable_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_move_assignable() const {
-            return reflect::is_move_assignable_type(info);
+            return reflect::is_move_assignable_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_destructible() const {
-            return reflect::is_destructible_type(info);
+            return reflect::is_destructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_swappable() const {
-            return reflect::is_swappable_type(info);
+            return reflect::is_swappable_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_trivially_default_constructible() const {
-            return reflect::is_trivially_default_constructible_type(info);
+            return reflect::is_trivially_default_constructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_trivially_copy_constructible() const {
-            return reflect::is_trivially_copy_constructible_type(info);
+            return reflect::is_trivially_copy_constructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_trivially_move_constructible() const {
-            return reflect::is_trivially_move_constructible_type(info);
+            return reflect::is_trivially_move_constructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_trivially_copy_assignable() const {
-            return reflect::is_trivially_copy_assignable_type(info);
+            return reflect::is_trivially_copy_assignable_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_trivially_move_assignable() const {
-            return reflect::is_trivially_move_assignable_type(info);
+            return reflect::is_trivially_move_assignable_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_trivially_destructible() const {
-            return reflect::is_trivially_destructible_type(info);
+            return reflect::is_trivially_destructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_nothrow_default_constructible() const {
-            return reflect::is_nothrow_default_constructible_type(info);
+            return reflect::is_nothrow_default_constructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_nothrow_copy_constructible() const {
-            return reflect::is_nothrow_copy_constructible_type(info);
+            return reflect::is_nothrow_copy_constructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_nothrow_move_constructible() const {
-            return reflect::is_nothrow_move_constructible_type(info);
+            return reflect::is_nothrow_move_constructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_nothrow_copy_assignable() const {
-            return reflect::is_nothrow_copy_assignable_type(info);
+            return reflect::is_nothrow_copy_assignable_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_nothrow_move_assignable() const {
-            return reflect::is_nothrow_move_assignable_type(info);
+            return reflect::is_nothrow_move_assignable_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_nothrow_destructible() const {
-            return reflect::is_nothrow_destructible_type(info);
+            return reflect::is_nothrow_destructible_type(_info);
         }
 
         [[nodiscard]]
         consteval bool is_nothrow_swappable() const {
-            return reflect::is_nothrow_swappable_type(info);
+            return reflect::is_nothrow_swappable_type(_info);
         }
 
         [[nodiscard]]
         consteval usize rank() const {
-            return reflect::rank(info);
+            return reflect::rank(_info);
         }
 
         [[nodiscard]]
         consteval usize extent(usize dim = 0uz) const {
-            return reflect::extent(info, dim);
+            return reflect::extent(_info, dim);
         }
 
         [[nodiscard]]
         consteval Type remove_const() const {
-            return Type(reflect::remove_const(info));
+            return Type(reflect::remove_const(_info));
         }
 
         [[nodiscard]]
         consteval Type remove_volatile() const {
-            return Type(reflect::remove_volatile(info));
+            return Type(reflect::remove_volatile(_info));
         }
 
         [[nodiscard]]
         consteval Type remove_cv() const {
-            return Type(reflect::remove_cv(info));
+            return Type(reflect::remove_cv(_info));
         }
 
         [[nodiscard]]
         consteval Type add_const() const {
-            return Type(reflect::add_const(info));
+            return Type(reflect::add_const(_info));
         }
 
         [[nodiscard]]
         consteval Type add_volatile() const {
-            return Type(reflect::add_volatile(info));
+            return Type(reflect::add_volatile(_info));
         }
 
         [[nodiscard]]
         consteval Type add_cv() const {
-            return Type(reflect::add_cv(info));
+            return Type(reflect::add_cv(_info));
         }
 
         [[nodiscard]]
         consteval Type remove_reference() const {
-            return Type(reflect::remove_reference(info));
+            return Type(reflect::remove_reference(_info));
         }
 
         [[nodiscard]]
         consteval Type add_lvalue_reference() const {
-            return Type(reflect::add_lvalue_reference(info));
+            return Type(reflect::add_lvalue_reference(_info));
         }
 
         [[nodiscard]]
         consteval Type add_rvalue_reference() const {
-            return Type(reflect::add_rvalue_reference(info));
+            return Type(reflect::add_rvalue_reference(_info));
         }
 
         [[nodiscard]]
         consteval Type remove_pointer() const {
-            return Type(reflect::remove_pointer(info));
+            return Type(reflect::remove_pointer(_info));
         }
 
         [[nodiscard]]
         consteval Type add_pointer() const {
-            return Type(reflect::add_pointer(info));
+            return Type(reflect::add_pointer(_info));
         }
 
         [[nodiscard]]
         consteval Type remove_cvref() const {
-            return Type(reflect::remove_cvref(info));
+            return Type(reflect::remove_cvref(_info));
         }
 
         [[nodiscard]]
         consteval Type decay() const {
-            return Type(reflect::decay(info));
+            return Type(reflect::decay(_info));
         }
 
         [[nodiscard]]
         consteval Type remove_extent() const {
-            return Type(reflect::remove_extent(info));
+            return Type(reflect::remove_extent(_info));
         }
 
         [[nodiscard]]
         consteval Type remove_all_extents() const {
-            return Type(reflect::remove_all_extents(info));
+            return Type(reflect::remove_all_extents(_info));
         }
 
         [[nodiscard]]
         consteval Type make_signed() const {
-            return Type(reflect::make_signed(info));
+            return Type(reflect::make_signed(_info));
         }
 
         [[nodiscard]]
         consteval Type make_unsigned() const {
-            return Type(reflect::make_unsigned(info));
+            return Type(reflect::make_unsigned(_info));
         }
 
         [[nodiscard]]
         consteval Type underlying() const {
-            return Type(reflect::underlying_type(info));
+            return Type(reflect::underlying_type(_info));
         }
 
         [[nodiscard]]
         consteval Type dealias() const {
-            return Type(reflect::dealias(info));
+            return Type(reflect::dealias(_info));
         }
 
         [[nodiscard]]
         consteval bool same_as(Type other) const {
-            return reflect::is_same_type(info, other.info);
+            return reflect::is_same_type(_info, other._info);
         }
 
         [[nodiscard]]
         consteval bool base_of(Type other) const {
-            return reflect::is_base_of_type(info, other.info);
+            return reflect::is_base_of_type(_info, other._info);
         }
 
         [[nodiscard]]
         consteval bool virtual_base_of(Type other) const {
-            return reflect::is_virtual_base_of_type(info, other.info);
+            return reflect::is_virtual_base_of_type(_info, other._info);
         }
 
         [[nodiscard]]
         consteval bool convertible_to(Type other) const {
-            return reflect::is_convertible_type(info, other.info);
+            return reflect::is_convertible_type(_info, other._info);
         }
 
         [[nodiscard]]
         consteval bool nothrow_convertible_to(Type other) const {
-            return reflect::is_nothrow_convertible_type(info, other.info);
+            return reflect::is_nothrow_convertible_type(_info, other._info);
         }
 
         [[nodiscard]]
         consteval bool layout_compatible_with(Type other) const {
-            return reflect::is_layout_compatible_type(info, other.info);
+            return reflect::is_layout_compatible_type(_info, other._info);
         }
 
         [[nodiscard]]
         consteval bool pointer_interconvertible_base_of(Type other) const {
-            return reflect::is_pointer_interconvertible_base_of_type(info, other.info);
+            return reflect::is_pointer_interconvertible_base_of_type(_info, other._info);
         }
 
         [[nodiscard]]
         consteval bool has_template_arguments() const {
-            return reflect::has_template_arguments(info);
+            return reflect::has_template_arguments(_info);
         }
 
         [[nodiscard]]
         consteval Vector<Mirror> template_arguments() const {
             Vector<Mirror> result;
-            for (Info a : reflect::template_arguments_of(info)) {
+            for (Info a : reflect::template_arguments_of(_info)) {
                 result.emplace_back(a);
             }
             return result;
@@ -1066,10 +1065,10 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval EnumSet<CvQualifier> cv_qualifiers() const {
             EnumSet<CvQualifier> result;
-            if (reflect::is_const_type(info)) {
+            if (reflect::is_const_type(_info)) {
                 result.insert(CvQualifier::CONST);
             }
-            if (reflect::is_volatile_type(info)) {
+            if (reflect::is_volatile_type(_info)) {
                 result.insert(CvQualifier::VOLATILE);
             }
             return result;
@@ -1082,7 +1081,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Parameter
      * @brief A parameter of a function.
-     *
      * @extends Mirror
      */
     class Parameter: public Mirror {
@@ -1099,22 +1097,22 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type type() const {
-            return Type(reflect::type_of(info));
+            return Type(reflect::type_of(_info));
         }
 
         [[nodiscard]]
         consteval bool has_default() const {
-            return reflect::has_default_argument(info);
+            return reflect::has_default_argument(_info);
         }
 
         [[nodiscard]]
         consteval bool is_explicit_object() const {
-            return reflect::is_explicit_object_parameter(info);
+            return reflect::is_explicit_object_parameter(_info);
         }
 
         [[nodiscard]]
         consteval bool is_function_parameter() const {
-            return reflect::is_function_parameter(info);
+            return reflect::is_function_parameter(_info);
         }
     };
 
@@ -1123,7 +1121,6 @@ export namespace stdx::meta::reflect {
      * @brief A free or unspecified function. Member functions are
      * represented by Method, constructors/destructors by their
      * own wrappers.
-     *
      * @extends Mirror
      */
     class Callback: public Mirror {
@@ -1140,13 +1137,13 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type return_type() const {
-            return Type(reflect::return_type_of(info));
+            return Type(reflect::return_type_of(_info));
         }
 
         [[nodiscard]]
         consteval Vector<Parameter> parameters() const {
             Vector<Parameter> result;
-            for (Info p : reflect::parameters_of(info)) {
+            for (Info p : reflect::parameters_of(_info)) {
                 result.emplace_back(p);
             }
             return result;
@@ -1154,69 +1151,68 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval bool is_noexcept() const {
-            return reflect::is_noexcept(info);
+            return reflect::is_noexcept(_info);
         }
 
         [[nodiscard]]
         consteval bool is_deleted() const {
-            return reflect::is_deleted(info);
+            return reflect::is_deleted(_info);
         }
 
         [[nodiscard]]
         consteval bool is_defaulted() const {
-            return reflect::is_defaulted(info);
+            return reflect::is_defaulted(_info);
         }
 
         [[nodiscard]]
         consteval bool is_explicit() const {
-            return reflect::is_explicit(info);
+            return reflect::is_explicit(_info);
         }
 
         [[nodiscard]]
         consteval bool is_user_provided() const {
-            return reflect::is_user_provided(info);
+            return reflect::is_user_provided(_info);
         }
 
         [[nodiscard]]
         consteval bool is_user_declared() const {
-            return reflect::is_user_declared(info);
+            return reflect::is_user_declared(_info);
         }
 
         [[nodiscard]]
         consteval bool is_vararg() const {
-            return reflect::is_vararg_function(info);
+            return reflect::is_vararg_function(_info);
         }
 
         [[nodiscard]]
         consteval bool is_conversion() const {
-            return reflect::is_conversion_function(info);
+            return reflect::is_conversion_function(_info);
         }
 
         [[nodiscard]]
         consteval bool is_operator() const {
-            return reflect::is_operator_function(info);
+            return reflect::is_operator_function(_info);
         }
 
         [[nodiscard]]
         consteval bool is_literal_operator() const {
-            return reflect::is_literal_operator(info);
+            return reflect::is_literal_operator(_info);
         }
 
         [[nodiscard]]
         consteval StringView operator_symbol() const {
-            return reflect::symbol_of(reflect::operator_of(info));
+            return reflect::symbol_of(reflect::operator_of(_info));
         }
 
         [[nodiscard]]
         consteval Utf8StringView u8operator_symbol() const {
-            return reflect::u8symbol_of(reflect::operator_of(info));
+            return reflect::u8symbol_of(reflect::operator_of(_info));
         }
     };
 
     /**
      * @class Method
      * @brief A method of a class.
-     *
      * @extends Callback
      */
     class Method: public Callback {
@@ -1236,96 +1232,96 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type declaring_class() const {
-            return Type(reflect::parent_of(info));
+            return Type(reflect::parent_of(_info));
         }
 
         [[nodiscard]]
         consteval bool is_public() const {
-            return reflect::is_public(info);
+            return reflect::is_public(_info);
         }
 
         [[nodiscard]]
         consteval bool is_protected() const {
-            return reflect::is_protected(info);
+            return reflect::is_protected(_info);
         }
 
         [[nodiscard]]
         consteval bool is_private() const {
-            return reflect::is_private(info);
+            return reflect::is_private(_info);
         }
 
         [[nodiscard]]
         consteval bool is_virtual() const {
-            return reflect::is_virtual(info);
+            return reflect::is_virtual(_info);
         }
 
         [[nodiscard]]
         consteval bool is_pure_virtual() const {
-            return reflect::is_pure_virtual(info);
+            return reflect::is_pure_virtual(_info);
         }
 
         [[nodiscard]]
         consteval bool is_override() const {
-            return reflect::is_override(info);
+            return reflect::is_override(_info);
         }
 
         [[nodiscard]]
         consteval bool is_final() const {
-            return reflect::is_final(info);
+            return reflect::is_final(_info);
         }
 
         [[nodiscard]]
         consteval bool is_static() const {
-            return reflect::is_static_member(info);
+            return reflect::is_static_member(_info);
         }
 
         [[nodiscard]]
         consteval bool is_const() const {
-            return reflect::is_const(info);
+            return reflect::is_const(_info);
         }
 
         [[nodiscard]]
         consteval bool is_volatile() const {
-            return reflect::is_volatile(info);
+            return reflect::is_volatile(_info);
         }
 
         [[nodiscard]]
         consteval bool is_lvalue_ref_qualified() const {
-            return reflect::is_lvalue_reference_qualified(info);
+            return reflect::is_lvalue_reference_qualified(_info);
         }
 
         [[nodiscard]]
         consteval bool is_rvalue_ref_qualified() const {
-            return reflect::is_rvalue_reference_qualified(info);
+            return reflect::is_rvalue_reference_qualified(_info);
         }
 
         [[nodiscard]]
         consteval bool is_special_member() const {
-            return reflect::is_special_member_function(info);
+            return reflect::is_special_member_function(_info);
         }
 
         [[nodiscard]]
         consteval bool is_assignment() const {
-            return reflect::is_assignment(info);
+            return reflect::is_assignment(_info);
         }
 
         [[nodiscard]]
         consteval bool is_copy_assignment() const {
-            return reflect::is_copy_assignment(info);
+            return reflect::is_copy_assignment(_info);
         }
 
         [[nodiscard]]
         consteval bool is_move_assignment() const {
-            return reflect::is_move_assignment(info);
+            return reflect::is_move_assignment(_info);
         }
 
         [[nodiscard]]
         consteval EnumSet<CvQualifier> cv_qualifiers() const {
             EnumSet<CvQualifier> result;
-            if (reflect::is_const(info)) {
+            if (reflect::is_const(_info)) {
                 result.insert(CvQualifier::CONST);
             }
-            if (reflect::is_volatile(info)) {
+            if (reflect::is_volatile(_info)) {
                 result.insert(CvQualifier::VOLATILE);
             }
             return result;
@@ -1333,10 +1329,10 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval RefQualifier ref_qualifier() const {
-            if (reflect::is_lvalue_reference_qualified(info)) {
+            if (reflect::is_lvalue_reference_qualified(_info)) {
                 return RefQualifier::LVALUE;
             }
-            if (reflect::is_rvalue_reference_qualified(info)) {
+            if (reflect::is_rvalue_reference_qualified(_info)) {
                 return RefQualifier::RVALUE;
             }
             return RefQualifier::NONE;
@@ -1345,31 +1341,31 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval EnumSet<FunctionSpecifier> specifiers() const {
             EnumSet<FunctionSpecifier> result;
-            if (reflect::is_virtual(info)) {
+            if (reflect::is_virtual(_info)) {
                 result.insert(FunctionSpecifier::VIRTUAL);
             }
-            if (reflect::is_pure_virtual(info)) {
+            if (reflect::is_pure_virtual(_info)) {
                 result.insert(FunctionSpecifier::PURE_VIRTUAL);
             }
-            if (reflect::is_override(info)) {
+            if (reflect::is_override(_info)) {
                 result.insert(FunctionSpecifier::OVERRIDE);
             }
-            if (reflect::is_final(info)) {
+            if (reflect::is_final(_info)) {
                 result.insert(FunctionSpecifier::FINAL);
             }
-            if (reflect::is_explicit(info)) {
+            if (reflect::is_explicit(_info)) {
                 result.insert(FunctionSpecifier::EXPLICIT);
             }
-            if (reflect::is_noexcept(info)) {
+            if (reflect::is_noexcept(_info)) {
                 result.insert(FunctionSpecifier::NOEXCEPT);
             }
-            if (reflect::is_static_member(info)) {
+            if (reflect::is_static_member(_info)) {
                 result.insert(FunctionSpecifier::STATIC);
             }
-            if (reflect::is_deleted(info)) {
+            if (reflect::is_deleted(_info)) {
                 result.insert(FunctionSpecifier::DELETED);
             }
-            if (reflect::is_defaulted(info)) {
+            if (reflect::is_defaulted(_info)) {
                 result.insert(FunctionSpecifier::DEFAULTED);
             }
             return result;
@@ -1379,7 +1375,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Field
      * @brief A field of a class.
-     *
      * @extends Mirror
      */
     class Field: public Mirror {
@@ -1396,64 +1391,63 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type type() const {
-            return Type(reflect::type_of(info));
+            return Type(reflect::type_of(_info));
         }
 
         [[nodiscard]]
         consteval Type declaring_class() const {
-            return Type(reflect::parent_of(info));
+            return Type(reflect::parent_of(_info));
         }
 
         [[nodiscard]]
         consteval bool is_public() const {
-            return reflect::is_public(info);
+            return reflect::is_public(_info);
         }
 
         [[nodiscard]]
         consteval bool is_protected() const {
-            return reflect::is_protected(info);
+            return reflect::is_protected(_info);
         }
 
         [[nodiscard]]
         consteval bool is_private() const {
-            return reflect::is_private(info);
+            return reflect::is_private(_info);
         }
 
         [[nodiscard]]
         consteval bool is_mutable() const {
-            return reflect::is_mutable_member(info);
+            return reflect::is_mutable_member(_info);
         }
 
         [[nodiscard]]
         consteval bool is_bit_field() const {
-            return reflect::is_bit_field(info);
+            return reflect::is_bit_field(_info);
         }
 
         [[nodiscard]]
         consteval bool has_default_initializer() const {
-            return reflect::has_default_member_initializer(info);
+            return reflect::has_default_member_initializer(_info);
         }
 
         [[nodiscard]]
         consteval MemberOffset offset() const {
-            return reflect::offset_of(info);
+            return reflect::offset_of(_info);
         }
 
         [[nodiscard]]
         consteval usize bit_size() const {
-            return reflect::bit_size_of(info);
+            return reflect::bit_size_of(_info);
         }
 
         [[nodiscard]]
         consteval EnumSet<CvQualifier> cv_qualifiers() const {
-            return Type(reflect::type_of(info)).cv_qualifiers();
+            return Type(reflect::type_of(_info)).cv_qualifiers();
         }
     };
 
     /**
      * @class Variable
      * @brief A variable.
-     *
      * @extends Mirror
      */
     class Variable: public Mirror {
@@ -1470,88 +1464,88 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type type() const {
-            return Type(reflect::type_of(info));
+            return Type(reflect::type_of(_info));
         }
 
         [[nodiscard]]
         consteval bool is_const() const {
-            return reflect::is_const(info);
+            return reflect::is_const(_info);
         }
 
         [[nodiscard]]
         consteval bool is_volatile() const {
-            return reflect::is_volatile(info);
+            return reflect::is_volatile(_info);
         }
 
         [[nodiscard]]
         consteval bool has_static_storage() const {
-            return reflect::has_static_storage_duration(info);
+            return reflect::has_static_storage_duration(_info);
         }
 
         [[nodiscard]]
         consteval bool has_thread_storage() const {
-            return reflect::has_thread_storage_duration(info);
+            return reflect::has_thread_storage_duration(_info);
         }
 
         [[nodiscard]]
         consteval bool has_automatic_storage() const {
-            return reflect::has_automatic_storage_duration(info);
+            return reflect::has_automatic_storage_duration(_info);
         }
 
         [[nodiscard]]
         consteval bool has_internal_linkage() const {
-            return reflect::has_internal_linkage(info);
+            return reflect::has_internal_linkage(_info);
         }
 
         [[nodiscard]]
         consteval bool has_module_linkage() const {
-            return reflect::has_module_linkage(info);
+            return reflect::has_module_linkage(_info);
         }
 
         [[nodiscard]]
         consteval bool has_external_linkage() const {
-            return reflect::has_external_linkage(info);
+            return reflect::has_external_linkage(_info);
         }
 
         [[nodiscard]]
         consteval bool has_c_language_linkage() const {
-            return reflect::has_c_language_linkage(info);
+            return reflect::has_c_language_linkage(_info);
         }
 
         [[nodiscard]]
         consteval bool has_linkage() const {
-            return reflect::has_linkage(info);
+            return reflect::has_linkage(_info);
         }
 
         [[nodiscard]]
         consteval bool is_public() const {
-            return reflect::is_public(info);
+            return reflect::is_public(_info);
         }
 
         [[nodiscard]]
         consteval bool is_protected() const {
-            return reflect::is_protected(info);
+            return reflect::is_protected(_info);
         }
 
         [[nodiscard]]
         consteval bool is_private() const {
-            return reflect::is_private(info);
+            return reflect::is_private(_info);
         }
 
         [[nodiscard]]
         consteval EnumSet<CvQualifier> cv_qualifiers() const {
-            return Type(reflect::type_of(info)).cv_qualifiers();
+            return Type(reflect::type_of(_info)).cv_qualifiers();
         }
 
         [[nodiscard]]
         consteval StorageClass storage_class() const {
-            if (reflect::has_thread_storage_duration(info)) {
+            if (reflect::has_thread_storage_duration(_info)) {
                 return StorageClass::THREAD_LOCAL;
             }
-            if (reflect::has_static_storage_duration(info)) {
+            if (reflect::has_static_storage_duration(_info)) {
                 return StorageClass::STATIC;
             }
-            if (reflect::has_automatic_storage_duration(info)) {
+            if (reflect::has_automatic_storage_duration(_info)) {
                 return StorageClass::AUTOMATIC;
             }
             return StorageClass::NONE;
@@ -1559,16 +1553,16 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Linkage linkage() const {
-            if (reflect::has_c_language_linkage(info)) {
+            if (reflect::has_c_language_linkage(_info)) {
                 return Linkage::EXTERN_C;
             }
-            if (reflect::has_external_linkage(info)) {
+            if (reflect::has_external_linkage(_info)) {
                 return Linkage::EXTERNAL;
             }
-            if (reflect::has_module_linkage(info)) {
+            if (reflect::has_module_linkage(_info)) {
                 return Linkage::MODULE;
             }
-            if (reflect::has_internal_linkage(info)) {
+            if (reflect::has_internal_linkage(_info)) {
                 return Linkage::INTERNAL;
             }
             return Linkage::NONE;
@@ -1578,7 +1572,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Constructor
      * @brief Represents a constructor in the reflection system.
-     *
      * @extends Mirror
      */
     class Constructor: public Mirror {
@@ -1595,13 +1588,13 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type declaring_class() const {
-            return Type(reflect::parent_of(info));
+            return Type(reflect::parent_of(_info));
         }
 
         [[nodiscard]]
         consteval Vector<Parameter> parameters() const {
             Vector<Parameter> result;
-            for (Info p : reflect::parameters_of(info)) {
+            for (Info p : reflect::parameters_of(_info)) {
                 result.emplace_back(p);
             }
             return result;
@@ -1609,67 +1602,67 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval bool is_default() const {
-            return reflect::is_default_constructor(info);
+            return reflect::is_default_constructor(_info);
         }
 
         [[nodiscard]]
         consteval bool is_copy() const {
-            return reflect::is_copy_constructor(info);
+            return reflect::is_copy_constructor(_info);
         }
 
         [[nodiscard]]
         consteval bool is_move() const {
-            return reflect::is_move_constructor(info);
+            return reflect::is_move_constructor(_info);
         }
 
         [[nodiscard]]
         consteval bool is_explicit() const {
-            return reflect::is_explicit(info);
+            return reflect::is_explicit(_info);
         }
 
         [[nodiscard]]
         consteval bool is_deleted() const {
-            return reflect::is_deleted(info);
+            return reflect::is_deleted(_info);
         }
 
         [[nodiscard]]
         consteval bool is_defaulted() const {
-            return reflect::is_defaulted(info);
+            return reflect::is_defaulted(_info);
         }
 
         [[nodiscard]]
         consteval bool is_noexcept() const {
-            return reflect::is_noexcept(info);
+            return reflect::is_noexcept(_info);
         }
 
         [[nodiscard]]
         consteval bool is_public() const {
-            return reflect::is_public(info);
+            return reflect::is_public(_info);
         }
 
         [[nodiscard]]
         consteval bool is_protected() const {
-            return reflect::is_protected(info);
+            return reflect::is_protected(_info);
         }
 
         [[nodiscard]]
         consteval bool is_private() const {
-            return reflect::is_private(info);
+            return reflect::is_private(_info);
         }
 
         [[nodiscard]]
         consteval EnumSet<FunctionSpecifier> specifiers() const {
             EnumSet<FunctionSpecifier> result;
-            if (reflect::is_explicit(info)) {
+            if (reflect::is_explicit(_info)) {
                 result.insert(FunctionSpecifier::EXPLICIT);
             }
-            if (reflect::is_noexcept(info)) {
+            if (reflect::is_noexcept(_info)) {
                 result.insert(FunctionSpecifier::NOEXCEPT);
             }
-            if (reflect::is_deleted(info)) {
+            if (reflect::is_deleted(_info)) {
                 result.insert(FunctionSpecifier::DELETED);
             }
-            if (reflect::is_defaulted(info)) {
+            if (reflect::is_defaulted(_info)) {
                 result.insert(FunctionSpecifier::DEFAULTED);
             }
             return result;
@@ -1679,7 +1672,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Destructor
      * @brief Represents a destructor in the reflection system.
-     *
      * @extends Mirror
      */
     class Destructor: public Mirror {
@@ -1696,65 +1688,65 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type declaring_class() const {
-            return Type(reflect::parent_of(info));
+            return Type(reflect::parent_of(_info));
         }
 
         [[nodiscard]]
         consteval bool is_virtual() const {
-            return reflect::is_virtual(info);
+            return reflect::is_virtual(_info);
         }
 
         [[nodiscard]]
         consteval bool is_pure_virtual() const {
-            return reflect::is_pure_virtual(info);
+            return reflect::is_pure_virtual(_info);
         }
 
         [[nodiscard]]
         consteval bool is_deleted() const {
-            return reflect::is_deleted(info);
+            return reflect::is_deleted(_info);
         }
 
         [[nodiscard]]
         consteval bool is_defaulted() const {
-            return reflect::is_defaulted(info);
+            return reflect::is_defaulted(_info);
         }
 
         [[nodiscard]]
         consteval bool is_noexcept() const {
-            return reflect::is_noexcept(info);
+            return reflect::is_noexcept(_info);
         }
 
         [[nodiscard]]
         consteval bool is_public() const {
-            return reflect::is_public(info);
+            return reflect::is_public(_info);
         }
 
         [[nodiscard]]
         consteval bool is_protected() const {
-            return reflect::is_protected(info);
+            return reflect::is_protected(_info);
         }
 
         [[nodiscard]]
         consteval bool is_private() const {
-            return reflect::is_private(info);
+            return reflect::is_private(_info);
         }
 
         [[nodiscard]]
         consteval EnumSet<FunctionSpecifier> specifiers() const {
             EnumSet<FunctionSpecifier> result;
-            if (reflect::is_virtual(info)) {
+            if (reflect::is_virtual(_info)) {
                 result.insert(FunctionSpecifier::VIRTUAL);
             }
-            if (reflect::is_pure_virtual(info)) {
+            if (reflect::is_pure_virtual(_info)) {
                 result.insert(FunctionSpecifier::PURE_VIRTUAL);
             }
-            if (reflect::is_noexcept(info)) {
+            if (reflect::is_noexcept(_info)) {
                 result.insert(FunctionSpecifier::NOEXCEPT);
             }
-            if (reflect::is_deleted(info)) {
+            if (reflect::is_deleted(_info)) {
                 result.insert(FunctionSpecifier::DELETED);
             }
-            if (reflect::is_defaulted(info)) {
+            if (reflect::is_defaulted(_info)) {
                 result.insert(FunctionSpecifier::DEFAULTED);
             }
             return result;
@@ -1764,7 +1756,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Base
      * @brief Represents a base class in the reflection system.
-     *
      * @extends Mirror
      */
     class Base: public Mirror {
@@ -1781,34 +1772,33 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type type() const {
-            return Type(reflect::type_of(info));
+            return Type(reflect::type_of(_info));
         }
 
         [[nodiscard]]
         consteval bool is_virtual() const {
-            return reflect::is_virtual(info);
+            return reflect::is_virtual(_info);
         }
 
         [[nodiscard]]
         consteval bool is_public() const {
-            return reflect::is_public(info);
+            return reflect::is_public(_info);
         }
 
         [[nodiscard]]
         consteval bool is_protected() const {
-            return reflect::is_protected(info);
+            return reflect::is_protected(_info);
         }
 
         [[nodiscard]]
         consteval bool is_private() const {
-            return reflect::is_private(info);
+            return reflect::is_private(_info);
         }
     };
 
     /**
      * @class Enumerator
      * @brief Represents an enumerator in the reflection system.
-     *
      * @extends Mirror
      */
     class Enumerator: public Mirror {
@@ -1825,20 +1815,19 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type type() const {
-            return Type(reflect::type_of(info));
+            return Type(reflect::type_of(_info));
         }
 
         template <typename T>
         [[nodiscard]]
         consteval T as() const {
-            return reflect::extract<T>(info);
+            return reflect::extract<T>(_info);
         }
     };
 
     /**
      * @class Namespace
      * @brief Represents a namespace in the reflection system.
-     *
      * @extends Mirror
      */
     class Namespace: public Mirror {
@@ -1868,7 +1857,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> members(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Mirror> result;
-            for (Info m : reflect::members_of(info, ctx)) {
+            for (Info m : reflect::members_of(_info, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -1878,7 +1867,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class NamespaceAlias
      * @brief Represents a namespace alias in the reflection system.
-     *
      * @extends Mirror
      */
     class NamespaceAlias: public Mirror {
@@ -1895,14 +1883,13 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Namespace target() const {
-            return Namespace(reflect::dealias(info));
+            return Namespace(reflect::dealias(_info));
         }
     };
 
     /**
      * @class TypeAlias
      * @brief Represents a type alias in the reflection system.
-     *
      * @extends Mirror
      */
     class TypeAlias: public Mirror {
@@ -1919,19 +1906,18 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type target() const {
-            return Type(reflect::dealias(info));
+            return Type(reflect::dealias(_info));
         }
 
         [[nodiscard]]
         consteval Type type() const {
-            return Type(reflect::dealias(info));
+            return Type(reflect::dealias(_info));
         }
     };
 
     /**
      * @class Concept
      * @brief Represents a concept in the reflection system.
-     *
      * @extends Mirror
      */
     class Concept: public Mirror {
@@ -1949,20 +1935,19 @@ export namespace stdx::meta::reflect {
         template <typename... Args>
         [[nodiscard]]
         consteval bool can_substitute() const {
-            return reflect::can_substitute(info, Vector<Info>{^^Args...});
+            return reflect::can_substitute(_info, Vector<Info>{^^Args...});
         }
 
         template <typename... Args>
         [[nodiscard]]
         consteval Info substitute() const {
-            return reflect::substitute(info, Vector<Info>{^^Args...});
+            return reflect::substitute(_info, Vector<Info>{^^Args...});
         }
     };
 
     /**
      * @class Template
      * @brief Represents a template in the reflection system.
-     *
      * @extends Mirror
      */
     class Template: public Mirror {
@@ -1979,61 +1964,60 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval bool is_class_template() const {
-            return reflect::is_class_template(info);
+            return reflect::is_class_template(_info);
         }
 
         [[nodiscard]]
         consteval bool is_function_template() const {
-            return reflect::is_function_template(info);
+            return reflect::is_function_template(_info);
         }
 
         [[nodiscard]]
         consteval bool is_variable_template() const {
-            return reflect::is_variable_template(info);
+            return reflect::is_variable_template(_info);
         }
 
         [[nodiscard]]
         consteval bool is_alias_template() const {
-            return reflect::is_alias_template(info);
+            return reflect::is_alias_template(_info);
         }
 
         [[nodiscard]]
         consteval bool is_constructor_template() const {
-            return reflect::is_constructor_template(info);
+            return reflect::is_constructor_template(_info);
         }
 
         [[nodiscard]]
         consteval bool is_conversion_function_template() const {
-            return reflect::is_conversion_function_template(info);
+            return reflect::is_conversion_function_template(_info);
         }
 
         [[nodiscard]]
         consteval bool is_operator_function_template() const {
-            return reflect::is_operator_function_template(info);
+            return reflect::is_operator_function_template(_info);
         }
 
         [[nodiscard]]
         consteval bool is_literal_operator_template() const {
-            return reflect::is_literal_operator_template(info);
+            return reflect::is_literal_operator_template(_info);
         }
 
         template <typename... Args>
         [[nodiscard]]
         consteval bool can_substitute() const {
-            return reflect::can_substitute(info, Vector<Info>{^^Args...});
+            return reflect::can_substitute(_info, Vector<Info>{^^Args...});
         }
 
         template <typename... Args>
         [[nodiscard]]
         consteval Info substitute() const {
-            return reflect::substitute(info, Vector<Info>{^^Args...});
+            return reflect::substitute(_info, Vector<Info>{^^Args...});
         }
     };
 
     /**
      * @class Annotation
      * @brief Represents an annotation in the reflection system.
-     *
      * @extends Mirror
      */
     class Annotation: public Mirror {
@@ -2050,20 +2034,19 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type type() const {
-            return Type(reflect::type_of(info));
+            return Type(reflect::type_of(_info));
         }
 
         template <typename T>
         [[nodiscard]]
         consteval T as() const {
-            return reflect::extract<T>(info);
+            return reflect::extract<T>(_info);
         }
     };
 
     /**
      * @class StructuredBinding
      * @brief Represents a structured binding in the reflection system.
-     *
      * @extends Mirror
      */
     class StructuredBinding: public Mirror {
@@ -2080,18 +2063,17 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Type type() const {
-            return Type(reflect::type_of(info));
+            return Type(reflect::type_of(_info));
         }
     };
 
     /**
      * @class Class
      * @brief Statically-typed wrapper for class (non-union) types.
-     *
-     * @tparam T The class type being reflected.
      * @extends Type
+     * @tparam T The class type being reflected.
      */
-    template <ReflectableClass T>
+    template <ReflectableAsClass T>
     class Class: public Type {
     public:
         using Of = T;
@@ -2200,10 +2182,10 @@ export namespace stdx::meta::reflect {
     /**
      * @class Enum
      * @brief Represents an enum in the reflection system.
-     * @tparam E The enum type being reflected.
      * @extends Type
+     * @tparam E The enum type being reflected.
      */
-    template <ReflectableEnum E>
+    template <ReflectableAsEnum E>
     class Enum: public Type {
     public:
         using Of = E;
@@ -2235,10 +2217,10 @@ export namespace stdx::meta::reflect {
     /**
      * @class Union
      * @brief Represents a union in the reflection system.
-     * @tparam U The union type being reflected.
      * @extends Type
+     * @tparam U The union type being reflected.
      */
-    template <ReflectableUnion U>
+    template <ReflectableAsUnion U>
     class Union: public Type {
     public:
         using Of = U;
@@ -2268,7 +2250,7 @@ export namespace stdx::meta::reflect {
 
     consteval Vector<Annotation> Mirror::annotations() const {
         Vector<Annotation> result;
-        for (Info a : reflect::annotations_of(info)) {
+        for (Info a : reflect::annotations_of(_info)) {
             result.emplace_back(a);
         }
         return result;
@@ -2277,18 +2259,18 @@ export namespace stdx::meta::reflect {
     template <typename T>
     consteval Vector<Annotation> Mirror::annotations_with_type() const {
         Vector<Annotation> result;
-        for (Info a : reflect::annotations_of_with_type(info, ^^T)) {
+        for (Info a : reflect::annotations_of_with_type(_info, ^^T)) {
             result.emplace_back(a);
         }
         return result;
     }
 
     consteval Template Type::template_of() const {
-        return Template(reflect::template_of(info));
+        return Template(reflect::template_of(_info));
     }
 
     consteval Optional<Type> Mirror::enclosing_class() const {
-        Info cur = info;
+        Info cur = _info;
         while (reflect::has_parent(cur)) {
             cur = reflect::parent_of(cur);
             if (reflect::is_class_type(cur) && !reflect::is_union_type(cur)) {
@@ -2299,17 +2281,17 @@ export namespace stdx::meta::reflect {
     }
 
     consteval Namespace Mirror::enclosing_namespace() const {
-        if (reflect::is_namespace(info) && !reflect::has_parent(info)) {
-            return Namespace(info);
+        if (reflect::is_namespace(_info) && !reflect::has_parent(_info)) {
+            return Namespace(_info);
         }
-        Info cur = info;
+        Info cur = _info;
         while (reflect::has_parent(cur)) {
             cur = reflect::parent_of(cur);
             if (reflect::is_namespace(cur)) {
                 return Namespace(cur);
             }
         }
-        return Namespace(info);
+        return Namespace(_info);
     }
     #endif
 }

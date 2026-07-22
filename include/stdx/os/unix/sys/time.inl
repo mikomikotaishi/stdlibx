@@ -8,6 +8,8 @@ export namespace stdx::os::unix::sys {
     #if defined(__unix__) && __has_include(<sys/time.h>)
     using TimeZone = struct timezone;
 
+    using TimeValue = ::timeval;
+
     using ::gettimeofday;
     using ::settimeofday;
     using ::adjtime;

@@ -1,23 +1,6 @@
 #pragma once
 
 /**
- * @brief Chinese lunisolar calendar implementation.
- *
- * A faithful port of ICU's ChineseCalendar astronomical algorithm.
- * All astronomical computations use UTC+8 (Asia/Shanghai) and a longitude
- * of 120°E, matching the modern convention used by ICU.
- *
- * Solar longitude uses Jean Meeus' "Astronomical Algorithms" (Ch. 25).
- * New moon times use Meeus Ch. 49 with full correction terms.
- *
- * @see ICU4J com.ibm.icu.util.ChineseCalendar
- * @see Jean Meeus, "Astronomical Algorithms", 2nd ed.
- */
-namespace stdx::time::chrono {
-
-}
-
-/**
  * @namespace stdx::time::chrono
  * @brief Calendar system support.
  */
@@ -59,7 +42,7 @@ export namespace stdx::time::chrono {
      *
      * @see ICU4J com.ibm.icu.util.ChineseCalendar
      */
-    class [[nodiscard]] ChineseChronology final {
+    class ChineseChronology final {
     private:
         static constexpr f64 SYNODIC_MONTH = 29.530588853; ///< Mean synodic month in days.
         static constexpr f64 EPOCH_JD = 2440587.5; ///< Julian Day of 1970-01-01 00:00 UTC.
@@ -76,7 +59,7 @@ export namespace stdx::time::chrono {
         /**
          * @internal
          * @brief Convert local days (UTC+8) to Julian Day Number at local midnight.
-         * @returns JD corresponding to local midnight of the given local days.
+         * @return JD corresponding to local midnight of the given local days.
          */
         [[nodiscard]]
         static constexpr f64 local_days_to_jd(i32 days) noexcept {
@@ -89,7 +72,7 @@ export namespace stdx::time::chrono {
         /**
          * @internal
          * @brief Convert a Julian Day Number to local days (UTC+8).
-         * @returns Local days (UTC+8) corresponding to the given JD, rounded down to the nearest whole day.
+         * @return Local days (UTC+8) corresponding to the given JD, rounded down to the nearest whole day.
          */
         [[nodiscard]]
         static constexpr i32 jd_to_local_days(f64 jd) noexcept {
@@ -103,7 +86,7 @@ export namespace stdx::time::chrono {
          * @internal
          * @brief Compute the sun's apparent ecliptic longitude in degrees [0, 360).
          * @param jd Julian Day Number (dynamical time ≈ UTC for calendar purposes).
-         * @returns Solar longitude in degrees.
+         * @return Solar longitude in degrees.
          *
          * Accuracy is approximately 0.01°, sufficient for calendar solar-term
          * determination.
@@ -147,7 +130,7 @@ export namespace stdx::time::chrono {
          * @brief Compute the Julian Ephemeris Day of the new moon for lunation number @p k.
          * @param k Lunation number (k = 0 corresponds to the new moon of 2000-01-06).
          * Must be an integer for new-moon phase.
-         * @returns JDE of the new moon.
+         * @return JDE of the new moon.
          * @see Meeus, Ch. 49
          */
         [[nodiscard]]
@@ -279,7 +262,7 @@ export namespace stdx::time::chrono {
          * @param days  Local days (UTC+8) since epoch.
          * @param after If true, returns the new moon on or after @p days;
          * otherwise, returns the new moon strictly before @p days.
-         * @returns Local days (UTC+8) of the nearest qualifying new moon.
+         * @return Local days (UTC+8) of the nearest qualifying new moon.
          */
         [[nodiscard]]
         static constexpr i32 find_new_moon_near(i32 days, bool after) noexcept {
@@ -311,7 +294,7 @@ export namespace stdx::time::chrono {
          * @brief Return the nearest integer number of synodic months between two dates.
          * @param day1 Local days (UTC+8).
          * @param day2 Local days (UTC+8).
-         * @returns Approximate integer month count.
+         * @return Approximate integer month count.
          */
         [[nodiscard]]
         static constexpr i32 synodic_months_between(i32 day1, i32 day2) noexcept {
@@ -325,7 +308,7 @@ export namespace stdx::time::chrono {
          * @brief Return the winter solstice (solar longitude = 270°) for the given
          * Gregorian year, as local days (UTC+8).
          * @param gyear Gregorian year.
-         * @returns Local days of the winter solstice (Dōngzhì, 冬至).
+         * @return Local days of the winter solstice (Dōngzhì, 冬至).
          *
          * Starts the search from December 15 and iterates until the solar longitude
          * converges to 270° within 0.0001° (~0.4 arc-seconds).
@@ -368,13 +351,13 @@ export namespace stdx::time::chrono {
          * the vernal equinox):
          * - Term 1 corresponds to 330° (Yǔshuǐ, 雨水)
          * - Term 2 corresponds to 0° (Chūnfēn, 春分)
-         * - Term 3 corresponds to 30° (Gǔyǔ, 谷雨)
+         * - Term 3 corresponds to 30° (Gǔyǔ, 穀雨)
          * - ...
          * - Term 11 corresponds to 270° (Dōngzhì, 冬至)
          * - Term 12 corresponds to 300° (Dàhán, 大寒)
          *
          * @param days Local days (UTC+8).
-         * @returns Major solar term number (1–12).
+         * @return Major solar term number (1–12).
          */
         [[nodiscard]]
         static constexpr i32 major_solar_term(i32 days) noexcept {
@@ -445,7 +428,7 @@ export namespace stdx::time::chrono {
          * @internal
          * @brief Return the Chinese New Year for a given Gregorian year.
          * @param gyear Gregorian year.
-         * @returns Local days (UTC+8) of the Chinese New Year (a new moon in
+         * @return Local days (UTC+8) of the Chinese New Year (a new moon in
          * late January or February).
          *
          * The Chinese New Year is the second new moon after the winter solstice
@@ -476,7 +459,7 @@ export namespace stdx::time::chrono {
          * @brief Compute the Chinese month information for a given local day.
          * @param days Local days (UTC+8).
          * @param gyear Gregorian year of @p days.
-         * @returns Month information including month number, leap status, and new moon.
+         * @return Month information including month number, leap status, and new moon.
          *
          * @see ICU4J ChineseCalendar.computeMonthInfo
          */
@@ -565,18 +548,18 @@ export namespace stdx::time::chrono {
          * intercalary month.
          */
         enum class EarthlyBranch: u8 {
-            YIN = 1, ///< 寅 (yín), the first month
-            MAO = 2, ///< 卯 (mǎo), the second month
-            CHEN = 3, ///< 辰 (chén), the third month
-            SI = 4, ///< 巳 (sì), the fourth month
-            WU = 5, ///< 午 (wǔ), the fifth month
-            WEI = 6, ///< 未 (wèi), the sixth month
-            SHEN = 7, ///< 申 (shēn), the seventh month
-            YOU = 8, ///< 酉 (yǒu), the eighth month
-            XU = 9, ///< 戌 (xū), the ninth month
-            HAI = 10, ///< 亥 (hài), the tenth month
-            ZI = 11, ///< 子 (zǐ), the eleventh month (contains the winter solstice)
-            CHOU = 12, ///< 丑 (chǒu), the twelfth month
+            YIN = 1, ///< Yín (寅) the first month
+            MAO = 2, ///< Mǎo (卯), the second month
+            CHEN = 3, ///< Chén (辰), the third month
+            SI = 4, ///< Sì (巳), the fourth month
+            WU = 5, ///< Wǔ (午), the fifth month
+            WEI = 6, ///< Wèi (未), the sixth month
+            SHEN = 7, ///< Shēn (申), the seventh month
+            YOU = 8, ///< Yǒu (酉), the eighth month
+            XU = 9, ///< Xū (戌), the ninth month
+            HAI = 10, ///< Hài (亥), the tenth month
+            ZI = 11, ///< Zǐ (子), the eleventh month (contains the winter solstice)
+            CHOU = 12, ///< Chǒu (丑), the twelfth month
         };
 
         /**
@@ -590,30 +573,30 @@ export namespace stdx::time::chrono {
          * solar term is a position in the solar year, not a month.
          */
         enum class SolarTerm: u8 {
-            LICHUN = 1, ///< 立春 (Lìchūn, Start of Spring), solar longitude 315°
-            YUSHUI = 2, ///< 雨水 (Yǔshuǐ, Rain Water), 330°
-            JINGZHE = 3, ///< 驚蟄 (Jīngzhé, Awakening of Insects), 345°
-            CHUNFEN = 4, ///< 春分 (Chūnfēn, Spring Equinox), 0°
-            QINGMING = 5, ///< 清明 (Qīngmíng, Pure Brightness), 15°
-            GUYU = 6, ///< 穀雨 (Gǔyǔ, Grain Rain), 30°
-            LIXIA = 7, ///< 立夏 (Lìxià, Start of Summer), 45°
-            XIAOMAN = 8, ///< 小滿 (Xiǎomǎn, Grain Full), 60°
-            MANGZHONG = 9, ///< 芒種 (Mángzhòng, Grain in Ear), 75°
-            XIAZHI = 10, ///< 夏至 (Xiàzhì, Summer Solstice), 90°
-            XIAOSHU = 11, ///< 小暑 (Xiǎoshǔ, Minor Heat), 105°
-            DASHU = 12, ///< 大暑 (Dàshǔ, Major Heat), 120°
-            LIQIU = 13, ///< 立秋 (Lìqiū, Start of Autumn), 135°
-            CHUSHU = 14, ///< 處暑 (Chǔshǔ, End of Heat), 150°
-            BAILU = 15, ///< 白露 (Báilù, White Dew), 165°
-            QIUFEN = 16, ///< 秋分 (Qiūfēn, Autumn Equinox), 180°
-            HANLU = 17, ///< 寒露 (Hánlù, Cold Dew), 195°
-            SHUANGJIANG = 18, ///< 霜降 (Shuāngjiàng, Frost Descent), 210°
-            LIDONG = 19, ///< 立冬 (Lìdōng, Start of Winter), 225°
-            XIAOXUE = 20, ///< 小雪 (Xiǎoxuě, Minor Snow), 240°
-            DAXUE = 21, ///< 大雪 (Dàxuě, Major Snow), 255°
-            DONGZHI = 22, ///< 冬至 (Dōngzhì, Winter Solstice), 270°
-            XIAOHAN = 23, ///< 小寒 (Xiǎohán, Minor Cold), 285°
-            DAHAN = 24, ///< 大寒 (Dàhán, Major Cold), 300°
+            LICHUN = 1, ///< Lìchūn (立春, Start of Spring), solar longitude 315°
+            YUSHUI = 2, ///< Yǔshuǐ (雨水, Rain Water), 330°
+            JINGZHE = 3, ///< Jīngzhé (驚蟄, Awakening of Insects), 345°
+            CHUNFEN = 4, ///< Chūnfēn (春分, Spring Equinox), 0°
+            QINGMING = 5, ///< Qīngmíng (清明, Pure Brightness), 15°
+            GUYU = 6, ///< Gǔyǔ (穀雨, Grain Rain), 30°
+            LIXIA = 7, ///< Lìxià (立夏, Start of Summer), 45°
+            XIAOMAN = 8, ///< Xiǎomǎn (小滿, Grain Full), 60°
+            MANGZHONG = 9, ///< Mángzhòng (芒種, Grain in Ear), 75°
+            XIAZHI = 10, ///< Xiàzhì (夏至, Summer Solstice), 90°
+            XIAOSHU = 11, ///< Xiǎoshǔ (小暑, Minor Heat), 105°
+            DASHU = 12, ///< Dàshǔ (大暑, Major Heat), 120°
+            LIQIU = 13, ///< Lìqiū (立秋, Start of Autumn), 135°
+            CHUSHU = 14, ///< Chǔshǔ (處暑, End of Heat), 150°
+            BAILU = 15, ///< Báilù (白露, White Dew), 165°
+            QIUFEN = 16, ///< Qiūfēn (秋分, Autumn Equinox), 180°
+            HANLU = 17, ///< Hánlù (寒露, Cold Dew), 195°
+            SHUANGJIANG = 18, ///< Shuāngjiàng (霜降, Frost Descent), 210°
+            LIDONG = 19, ///< Lìdōng (立冬, Start of Winter), 225°
+            XIAOXUE = 20, ///< Xiǎoxuě (小雪, Minor Snow), 240°
+            DAXUE = 21, ///< Dàxuě (大雪, Major Snow), 255°
+            DONGZHI = 22, ///< Dōngzhì (冬至, Winter Solstice), 270°
+            XIAOHAN = 23, ///< Xiǎohán (小寒, Minor Cold), 285°
+            DAHAN = 24, ///< Dàhán (大寒, Major Cold), 300°
         };
 
         using enum EarthlyBranch;
@@ -632,7 +615,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Determine the era for a given proleptic year.
          * @param proleptic_year The proleptic Chinese year.
-         * @returns Era::HUANGDI if proleptic_year >= 1, Era::BEFORE_HUANGDI otherwise.
+         * @return Era::HUANGDI if proleptic_year >= 1, Era::BEFORE_HUANGDI otherwise.
          */
         [[nodiscard]]
         static constexpr Era era_of(i32 proleptic_year) noexcept {
@@ -642,7 +625,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the year-of-era from a proleptic year.
          * @param proleptic_year The proleptic Chinese year.
-         * @returns The positive year-of-era value.
+         * @return The positive year-of-era value.
          */
         [[nodiscard]]
         static constexpr i32 year_of_era(i32 proleptic_year) noexcept {
@@ -651,7 +634,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the chronology identifier.
-         * @returns "Chinese"
+         * @return "Chinese"
          */
         [[nodiscard]]
         static constexpr StringView id() noexcept {
@@ -660,7 +643,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the calendar type.
-         * @returns "chinese"
+         * @return "chinese"
          */
         [[nodiscard]]
         static constexpr StringView calendar_type() noexcept {
@@ -670,7 +653,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Check if a Chinese year is a leap year (has 13 months).
          * @param proleptic_year The proleptic Chinese year.
-         * @returns true if the year contains a leap (intercalary) month.
+         * @return true if the year contains a leap (intercalary) month.
          */
         [[nodiscard]]
         static constexpr bool is_leap_year(i32 proleptic_year) noexcept {
@@ -683,7 +666,7 @@ export namespace stdx::time::chrono {
          * @brief Get the number of days in a month (non-leap variant).
          * @param proleptic_year The proleptic Chinese year.
          * @param m The month (1–12). Refers to the non-leap month.
-         * @returns 29 or 30.
+         * @return 29 or 30.
          */
         [[nodiscard]]
         static constexpr u32 days_in_month(i32 proleptic_year, u32 m) noexcept {
@@ -697,7 +680,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of days in a Chinese year.
          * @param proleptic_year The proleptic Chinese year.
-         * @returns Total days from this New Year to the next (353–385).
+         * @return Total days from this New Year to the next (353–385).
          */
         [[nodiscard]]
         static constexpr i32 days_in_year(i32 proleptic_year) noexcept {
@@ -709,7 +692,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of months in a Chinese year.
          * @param proleptic_year The proleptic Chinese year.
-         * @returns 12 in a normal year, 13 in a leap year.
+         * @return 12 in a normal year, 13 in a leap year.
          */
         [[nodiscard]]
         static constexpr u32 months_in_year(i32 proleptic_year) noexcept {
@@ -721,7 +704,7 @@ export namespace stdx::time::chrono {
          * @param proleptic_year The proleptic Chinese year.
          * @param m The month (1–12).
          * @param d The day of the month.
-         * @returns Days since 1970-01-01 (Gregorian).
+         * @return Days since 1970-01-01 (Gregorian).
          *
          * The month is treated as a non-leap month. For leap months, use
          * the four-parameter overload.
@@ -737,7 +720,7 @@ export namespace stdx::time::chrono {
          * @param m The month (1–12).
          * @param d The day of the month.
          * @param is_leap_month true if @p m refers to the leap variant.
-         * @returns Days since 1970-01-01 (Gregorian).
+         * @return Days since 1970-01-01 (Gregorian).
          *
          * @see ICU4J ChineseCalendar.handleComputeMonthStart
          */
@@ -764,7 +747,7 @@ export namespace stdx::time::chrono {
          * @brief Convert an epoch day count to full Chinese date components,
          * including sexagenary cycle and leap-month information.
          * @param e Days since 1970-01-01 (Gregorian).
-         * @returns Full decomposed Chinese date.
+         * @return Full decomposed Chinese date.
          *
          * @see ICU4J ChineseCalendar.handleComputeFields
          */
@@ -807,7 +790,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Convert an epoch day count to basic date components.
          * @param e Days since 1970-01-01 (Gregorian).
-         * @returns Decomposed date components (proleptic_year, month, day).
+         * @return Decomposed date components (proleptic_year, month, day).
          *
          * Returns a @ref DateComponents with month (1–12) and day, but no
          * leap-month information. For full decomposition use @ref
@@ -822,7 +805,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the 60-year cycle number for a proleptic year.
          * @param proleptic_year The proleptic Chinese year.
-         * @returns Cycle number (1-based).
+         * @return Cycle number (1-based).
          */
         [[nodiscard]]
         static constexpr i32 cycle_of(i32 proleptic_year) noexcept {
@@ -837,7 +820,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the year within the 60-year cycle for a proleptic year.
          * @param proleptic_year The proleptic Chinese year.
-         * @returns Year of cycle (1–60).
+         * @return Year of cycle (1–60).
          */
         [[nodiscard]]
         static constexpr i32 year_of_cycle(i32 proleptic_year) noexcept {
@@ -853,7 +836,7 @@ export namespace stdx::time::chrono {
          * @brief Convert a cycle and year-of-cycle to a proleptic year.
          * @param cycle The cycle number (1-based).
          * @param year_of_cycle The year within the cycle (1–60).
-         * @returns The proleptic Chinese year.
+         * @return The proleptic Chinese year.
          */
         [[nodiscard]]
         static constexpr i32 proleptic_year(i32 cycle, i32 year_of_cycle) noexcept {
@@ -864,7 +847,7 @@ export namespace stdx::time::chrono {
          * @brief Convert an era and year-of-era to a proleptic year.
          * @param era The calendar era (BEFORE_HUANGDI or HUANGDI).
          * @param year_of_era The positive year-of-era value.
-         * @returns The proleptic Chinese year.
+         * @return The proleptic Chinese year.
          */
         [[nodiscard]]
         static constexpr i32 proleptic_year(Era era, i32 year_of_era) noexcept {
@@ -933,7 +916,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Chinese year.
          * @param m The month (1–12, non-leap).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<ChineseChronology> of(i32 y, u32 m, u32 d) noexcept;
@@ -943,7 +926,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Chinese year.
          * @param m The month, named by its Earthly Branch (月建).
          * @param d The day of the month.
-         * @returns The date in this chronology (an ordinary, non-leap month).
+         * @return The date in this chronology (an ordinary, non-leap month).
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<ChineseChronology> of(i32 y, EarthlyBranch m, u32 d) noexcept;
@@ -953,15 +936,15 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Chinese year.
          * @param m A leap-month tag, e.g. leap_month(EarthlyBranch::YIN).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<ChineseChronology> of(i32 y, LeapMonth m, u32 d) noexcept;
 
         /**
-         * @brief The solar term (节气) in effect on a date.
+         * @brief The solar term (節氣) in effect on a date.
          * @param date A date in this chronology.
-         * @returns The solar term the sun's longitude falls in on that day.
+         * @return The solar term the sun's longitude falls in on that day.
          *
          * A solar term is a position in the solar year, not a month. Because
          * solar terms are calendar-independent, any date's epoch day yields
@@ -975,7 +958,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Chinese year.
          * @param m The month (1–12, non-leap).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<ChineseChronology> of(Year y, Month m, Day d) noexcept;
@@ -986,7 +969,7 @@ export namespace stdx::time::chrono {
          * @param year_of_era The positive year-of-era value.
          * @param m The month (1–12, non-leap).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<ChineseChronology> of(Era era, i32 year_of_era, u32 m, u32 d) noexcept;
@@ -994,14 +977,14 @@ export namespace stdx::time::chrono {
         /**
          * @brief Create a date from an epoch day count.
          * @param e Days since 1970-01-01 (Gregorian).
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<ChineseChronology> date_epoch_day(i64 e) noexcept;
 
         /**
          * @brief Create a date for today according to the system clock.
-         * @returns Today's date in this chronology.
+         * @return Today's date in this chronology.
          */
         [[nodiscard]]
         static ChronoLocalDate<ChineseChronology> date_now() noexcept;
@@ -1013,11 +996,11 @@ export namespace stdx::time::chrono {
     /**
      * @brief Tag an Earthly Branch as the leap (intercalary) month for ChineseChronology::of.
      * @param branch The branch whose leap variant is wanted.
-     * @returns A tag usable as the month argument of ChineseChronology::of.
+     * @return A tag usable as the month argument of ChineseChronology::of.
      */
     [[nodiscard]]
     constexpr ChineseChronology::LeapMonth leap_month(ChineseChronology::EarthlyBranch branch) noexcept {
-        return {branch};
+        return ChineseChronology::LeapMonth { .branch = branch };
     }
 
     constexpr ChineseDate ChineseChronology::of(i32 y, u32 m, u32 d) noexcept {

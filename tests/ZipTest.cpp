@@ -13,14 +13,6 @@ using stdx::zip::GZIPInflater;
 using stdx::zip::Inflater;
 
 using namespace stdx::test;
-#endif
-
-#ifdef __GNUC__
-using namespace stdx::core;
-using namespace stdx::literals;
-#endif
-
-#ifdef STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY
 
 [[nodiscard]]
 bool bytes_equal(Span<const u8> a, Span<const u8> b) noexcept {
@@ -145,7 +137,7 @@ void test_roundtrip_large() {
         "repeating pattern compresses to under 2 KB"
     );
 
-    Inflater inf{};
+    Inflater inf;
     inf.set_input(Span<const u8>{compressed.data(), compressed.size()});
     ByteBuffer expanded = inf.inflate_all();
 
@@ -181,7 +173,7 @@ void test_gzip_roundtrip() {
         "GZIP magic 0x1F 0x8B at offset 0"
     );
 
-    GZIPInflater inf{};
+    GZIPInflater inf;
     inf.set_input(Span<const u8>{compressed.data(), compressed.size()});
     ByteBuffer expanded = inf.inflate_all();
     expect(
@@ -203,7 +195,7 @@ void test_invalid_input() {
     static constexpr Array<u8, 8> GARBAGE = {
         0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
     };
-    Inflater inf{};
+    Inflater inf;
     inf.set_input(Span<const u8>(GARBAGE));
     bool threw = false;
     try {

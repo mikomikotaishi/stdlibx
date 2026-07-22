@@ -25,11 +25,11 @@ using stdx::util::logging::Level;
 namespace stdx::fmt {
     template <>
     struct Formatter<Level> {
-        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
             return ctx.begin();
         }
 
-        static FormatContext::iterator format(Level lvl, FormatContext& ctx) {
+        auto format(Level lvl, FormatContext& ctx) const {
             StringView name;
             switch (lvl) {
                 case Level::TRACE:

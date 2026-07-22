@@ -7,17 +7,11 @@ import stdx;
 #ifdef STDLIBX_EXECUTION_AVAILABLE
 using stdx::exec::Flow;
 using stdx::exec::Just;
-using stdx::exec::SyncWait;
 using stdx::exec::Task;
+using stdx::thread::Thread;
 
 using namespace stdx::test;
-#endif
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
-#ifdef STDLIBX_EXECUTION_AVAILABLE
 // A coroutine task that awaits a Flow's raw sender via unwrap() - the
 // co_await-in-Task-safe endpoint.
 Task<i32> via_unwrap() {
@@ -25,6 +19,20 @@ Task<i32> via_unwrap() {
         .then([](i32 x) -> i32 { return x * 2; })
         .unwrap();
     co_return v + 1;
+}
+
+// A Task<void> has no value channel: it co_returns nothing and is co_awaited
+// purely for its side effects.
+Task<void> bump(i32& counter) {
+    counter += 1;
+    co_return;
+}
+
+// A driver task that just co_awaits two void tasks in sequence - awaiting a
+// Task<void> yields nothing, so there is no value to bind.
+Task<void> bump_twice(i32& counter) {
+    co_await bump(counter);
+    co_await bump(counter);
 }
 
 void test_then_value() {
@@ -46,7 +54,7 @@ void test_chained_then() {
 
 void test_on_schedule() {
     Optional<i32> result = Flow<>::on_schedule()
-        .then([]() -> i32 { return 40; })
+        .then([] -> i32 { return 40; })
         .then([](i32 x) -> i32 { return x + 2; })
         .value();
     require(result.has_value(), "offloaded pipeline completes");
@@ -86,17 +94,26 @@ void test_as_task() {
     Task<i32> task = Flow(Just(20))
         .then([](i32 x) -> i32 { return x + 1; })
         .as_task();
-    Optional<Tuple<i32>> result = SyncWait(Ops::move(task));
+    Optional<Tuple<i32>> result = Thread::sync_wait(Ops::move(task));
     require(result.has_value(), "as_task materializes a runnable Task");
     auto [v] = *result;
     expect_eq(v, 21, "the Task completed with the pipeline's value");
 }
 
 void test_unwrap_in_task() {
-    Optional<Tuple<i32>> result = SyncWait(via_unwrap());
+    Optional<Tuple<i32>> result = Thread::sync_wait(via_unwrap());
     require(result.has_value(), "a Task awaiting an unwrapped Flow completes");
     auto [v] = *result;
     expect_eq(v, 21, "co_await flow.unwrap() then + 1 == 21");
+}
+
+void test_void_task() {
+    // A void pipeline: sync_wait of a Task<void> yields an empty Tuple, so a
+    // present result just means "completed" - there is no value to unpack.
+    i32 counter = 0;
+    Optional<Tuple<>> done = Thread::sync_wait(bump_twice(counter));
+    require(done.has_value(), "a Task<void> completes under sync_wait()");
+    expect_eq(counter, 2, "co_await of a Task<void> ran each step's side effect");
 }
 #endif
 
@@ -111,6 +128,7 @@ int main(int argc, char* argv[]) {
         {"Flow.catch_error", test_catch_error},
         {"Flow.as_task", test_as_task},
         {"Flow.unwrap_in_task", test_unwrap_in_task},
+        {"Flow.void_task", test_void_task},
     });
     #else
     System::out.println("[test] Test disabled (enable with STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY).");

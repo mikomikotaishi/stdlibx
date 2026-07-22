@@ -19,10 +19,6 @@ using stdx::thread::Thread;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 /**
  * @struct BasicOptions
  * @brief Example struct for command-line argument parsing.
@@ -140,9 +136,9 @@ int main(int argc, char* argv[]) {
             .to<Vector>()
     );
 
-    Vector<Path> cpp_sources = stdx::fs::glob_recursive("tests/**/*.cpp");
+    Vector<Path> cpp_sources = stdx::fs::glob("examples/**/*.cpp", true);
     System::out.println(
-        "\nFound {} .cpp file(s) under tests/ (recursive):",
+        "\nFound {} .cpp file(s) under examples/ (recursive):",
         cpp_sources.size()
     );
     for (const Path& src: cpp_sources) {
@@ -152,7 +148,7 @@ int main(int argc, char* argv[]) {
     System::out.println(
         "The current time is {}, or {}",
         System::current_time_millis(),
-        System::current_time_formatted()
+        System::local_timestamp()
     );
 
     System::out.println(StackTrace::current());

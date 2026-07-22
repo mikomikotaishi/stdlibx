@@ -113,4 +113,113 @@ export namespace stdx::os::win32 {
     constexpr u64 WAIT_OBJECT_0 = 0x00000000l;
     constexpr u64 WAIT_TIMEOUT = 0x00000102l;
     constexpr u64 WAIT_FAILED = 0xFFFFFFFFl;
+
+    /**
+     * <winsock2.h> and <ws2tcpip.h> constants
+     *
+     * Winsock deliberately disagrees with POSIX on several of these values
+     * (AF_INET6, SOL_SOCKET, the SO_* options, IPV6_V6ONLY), so they are kept in
+     * this namespace rather than shared with the Unix constants.
+     */
+
+    constexpr i32 SOCKET_ERROR = -1; ///< Returned by a Winsock call that failed.
+
+    constexpr i32 WINSOCK_VERSION_2_2 = 0x0202; ///< MAKEWORD(2, 2), for WSAStartup.
+
+    constexpr i32 AF_UNSPEC = 0; ///< Unspecified address family.
+    constexpr i32 AF_INET = 2; ///< IPv4.
+    constexpr i32 AF_INET6 = 23; ///< IPv6 (not POSIX's 10).
+
+    constexpr i32 SOCK_STREAM = 1; ///< Sequenced, reliable, connection-based byte stream.
+    constexpr i32 SOCK_DGRAM = 2; ///< Connectionless, unreliable datagrams of fixed length.
+
+    constexpr i32 IPPROTO_TCP = 6; ///< Transmission Control Protocol.
+    constexpr i32 IPPROTO_UDP = 17; ///< User Datagram Protocol.
+    constexpr i32 IPPROTO_IPV6 = 41; ///< Options for the IPv6 header itself.
+
+    constexpr i32 SOL_SOCKET = 0xffff; ///< Options at the socket API level.
+
+    constexpr i32 SO_REUSEADDR = 0x0004; ///< Allow reuse of a local address.
+    constexpr i32 SO_KEEPALIVE = 0x0008; ///< Send keepalive probes on an idle connection.
+    constexpr i32 SO_BROADCAST = 0x0020; ///< Permit sending to a broadcast address.
+    constexpr i32 SO_LINGER = 0x0080; ///< Block on close until queued data is sent.
+    constexpr i32 SO_SNDBUF = 0x1001; ///< Send-buffer size.
+    constexpr i32 SO_RCVBUF = 0x1002; ///< Receive-buffer size.
+    constexpr i32 SO_SNDTIMEO = 0x1005; ///< Send timeout, in milliseconds.
+    constexpr i32 SO_RCVTIMEO = 0x1006; ///< Receive timeout, in milliseconds.
+    constexpr i32 SO_ERROR = 0x1007; ///< Fetch and clear the pending error (read-only).
+    constexpr i32 SO_TYPE = 0x1008; ///< The socket's type (read-only).
+
+    constexpr i32 TCP_NODELAY = 0x0001; ///< Send segments as soon as possible (disable Nagle).
+
+    constexpr i32 IPV6_V6ONLY = 27; ///< Refuse IPv4-mapped peers on an AF_INET6 socket (not POSIX's 26).
+
+    constexpr i32 MSG_PEEK = 0x2; ///< Read without consuming.
+
+    constexpr i32 SD_RECEIVE = 0; ///< Shut the receive half down.
+    constexpr i32 SD_SEND = 1; ///< Shut the send half down.
+    constexpr i32 SD_BOTH = 2; ///< Shut both halves down.
+
+    constexpr i32 SOMAXCONN_HINT = 0x7fffffff; ///< Backlog ceiling accepted by listen().
+
+    constexpr u32 FIONBIO = 0x8004667e; ///< ioctlsocket command that sets non-blocking mode.
+
+    /**
+     * WSAPoll event flags.
+     *
+     * Winsock disagrees with POSIX on every one of these too, and they live in a
+     * SHORT rather than an int, so they are i16 here. POLLERR, POLLHUP and
+     * POLLNVAL are reported in revents whether or not they were requested;
+     * asking for them in events is an error.
+     */
+
+    constexpr i16 POLLRDNORM = 0x0100; ///< Normal data may be read.
+    constexpr i16 POLLRDBAND = 0x0200; ///< Priority data may be read.
+    constexpr i16 POLLIN = 0x0300; ///< POLLRDNORM | POLLRDBAND (not POSIX's 0x001).
+    constexpr i16 POLLPRI = 0x0400; ///< Accepted and ignored by WSAPoll.
+    constexpr i16 POLLWRNORM = 0x0010; ///< Writing now will not block.
+    constexpr i16 POLLOUT = 0x0010; ///< POLLWRNORM (not POSIX's 0x004).
+    constexpr i16 POLLWRBAND = 0x0020; ///< Priority data may be written.
+    constexpr i16 POLLERR = 0x0001; ///< Error condition. Output only.
+    constexpr i16 POLLHUP = 0x0002; ///< The connection has been closed. Output only.
+    constexpr i16 POLLNVAL = 0x0004; ///< The socket is not valid. Output only.
+
+    constexpr i32 AI_PASSIVE = 0x01; ///< Address is intended for bind().
+    constexpr i32 AI_CANONNAME = 0x02; ///< Request the canonical name.
+    constexpr i32 AI_NUMERICHOST = 0x04; ///< Reject host names; the node is a literal.
+    constexpr i32 AI_NUMERICSERV = 0x08; ///< Reject service names; the service is a port number.
+    constexpr i32 AI_ALL = 0x0100; ///< Return both IPv4-mapped and IPv6 addresses.
+    constexpr i32 AI_ADDRCONFIG = 0x0400; ///< Only return families the host is configured for.
+    constexpr i32 AI_V4MAPPED = 0x0800; ///< Map IPv4 results into IPv6 when no IPv6 exists.
+
+    constexpr i32 NI_NOFQDN = 0x01; ///< Return only the hostname part of an FQDN.
+    constexpr i32 NI_NUMERICHOST = 0x02; ///< Return the address in numeric form.
+    constexpr i32 NI_NAMEREQD = 0x04; ///< Fail rather than fall back to a numeric form.
+    constexpr i32 NI_NUMERICSERV = 0x08; ///< Return the service as a port number.
+    constexpr i32 NI_DGRAM = 0x10; ///< Look the service up for a datagram, not a stream.
+
+    constexpr usize NI_MAXHOST = 1025; ///< Buffer size that always holds a host name.
+    constexpr usize NI_MAXSERV = 32; ///< Buffer size that always holds a service name.
+
+    constexpr i32 WSAEINTR = 10004; ///< Interrupted call.
+    constexpr i32 WSAEWOULDBLOCK = 10035; ///< Operation would block.
+    constexpr i32 WSAEINPROGRESS = 10036; ///< Operation now in progress.
+    constexpr i32 WSAEALREADY = 10037; ///< Operation already in progress.
+    constexpr i32 WSAENOTSOCK = 10038; ///< The descriptor is not a socket.
+    constexpr i32 WSAEMSGSIZE = 10040; ///< Message too long.
+    constexpr i32 WSAEADDRINUSE = 10048; ///< Address already in use.
+    constexpr i32 WSAEADDRNOTAVAIL = 10049; ///< Cannot assign requested address.
+    constexpr i32 WSAENETUNREACH = 10051; ///< Network is unreachable.
+    constexpr i32 WSAECONNABORTED = 10053; ///< Connection aborted locally.
+    constexpr i32 WSAECONNRESET = 10054; ///< Connection reset by peer.
+    constexpr i32 WSAEISCONN = 10056; ///< Socket is already connected.
+    constexpr i32 WSAENOTCONN = 10057; ///< Socket is not connected.
+    constexpr i32 WSAETIMEDOUT = 10060; ///< Connection timed out.
+    constexpr i32 WSAECONNREFUSED = 10061; ///< Connection refused.
+    constexpr i32 WSAEHOSTUNREACH = 10065; ///< No route to host.
+    constexpr i32 WSATYPE_NOT_FOUND = 10109; ///< The service is unknown for this socket type.
+    constexpr i32 WSAHOST_NOT_FOUND = 11001; ///< The host name resolves to nothing.
+    constexpr i32 WSATRY_AGAIN = 11002; ///< Temporary resolution failure.
+    constexpr i32 WSANO_RECOVERY = 11003; ///< Non-recoverable resolution failure.
+    constexpr i32 WSANO_DATA = 11004; ///< The host name is valid but has no address.
 }
