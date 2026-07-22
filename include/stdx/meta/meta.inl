@@ -381,18 +381,42 @@ export namespace stdx::meta::reflect {
 
     using std::meta::annotations_of;
     using std::meta::annotations_of_with_type;
+
+    /**
+     * @concept ReflectableAsClass
+     * @brief A class type that can be reflected on. Excludes unions.
+     * @tparam T A type to test for reflectability as a class.
+     */
+    template <typename T>
+    concept ReflectableAsClass = is_class_type(^^T) && !is_union_type(^^T);
+
+    /**
+     * @concept ReflectableAsEnum
+     * @brief An enumeration type that can be reflected on.
+     * @tparam T A type to test for reflectability as an enum.
+     */
+    template <typename T>
+    concept ReflectableAsEnum = is_enum_type(^^T);
+
+    /**
+     * @concept ReflectableAsUnion
+     * @brief A union type that can be reflected on.
+     * @tparam T A type to test for reflectability as a union.
+     */
+    template <typename T>
+    concept ReflectableAsUnion = is_union_type(^^T);
     #endif
 }
 
 namespace stdx::meta::reflect {
     #ifdef __cpp_lib_reflection
-    template <typename E>
+    template <ReflectableAsEnum E>
     [[nodiscard]]
     consteval usize count() {
         return stdx::meta::reflect::enumerators_of(^^E).size();
     }
 
-    template <typename E>
+    template <ReflectableAsEnum E>
     [[nodiscard]]
     consteval Array<E, count<E>()> values_impl() {
         Array<E, count<E>()> result;
@@ -403,10 +427,10 @@ namespace stdx::meta::reflect {
         return result;
     }
 
-    template <typename E>
+    template <ReflectableAsEnum E>
     inline constexpr Array<E, count<E>()> ValuesPer = values_impl<E>();
 
-    template <typename E>
+    template <ReflectableAsEnum E>
     [[nodiscard]]
     consteval Array<StringView, count<E>()> names_impl() {
         Array<StringView, count<E>()> result;
@@ -417,7 +441,7 @@ namespace stdx::meta::reflect {
         return result;
     }
 
-    template <typename E>
+    template <ReflectableAsEnum E>
     inline constexpr Array<StringView, count<E>()> NamesPer = names_impl<E>();
     #endif
 }

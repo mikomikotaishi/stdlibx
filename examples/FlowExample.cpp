@@ -7,15 +7,25 @@ import stdx;
 #ifdef STDLIBX_EXECUTION_AVAILABLE
 using stdx::exec::Flow;
 using stdx::exec::Just;
-using stdx::exec::SyncWait;
 using stdx::exec::Task;
+using stdx::thread::Thread;
+
+// A Task<void> has no value channel: it co_returns nothing and is co_awaited
+// purely for its side effects.
+Task<void> announce(StringView label) {
+    System::out.println("[flow]   void step: {}", label);
+    co_return;
+}
+
+// A driver task that just co_awaits two void tasks in sequence. Awaiting a
+// Task<void> yields nothing - there is no value to bind.
+Task<void> run_steps() {
+    co_await announce("first");
+    co_await announce("second");
+}
 #endif
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
-int main() {
+int main(int argc, char* argv[]) {
     #ifdef STDLIBX_EXECUTION_AVAILABLE
     // A simple value pipeline: wrap a value sender, map it, unwrap the result.
     // value() yields the lone value directly instead of a Tuple.
@@ -45,7 +55,7 @@ int main() {
     Task<i32> task = Flow(Just(20))
         .then([](i32 x) -> i32 { return x + 1; })
         .as_task();
-    auto [t] = *SyncWait(Ops::move(task));
+    auto [t] = *Thread::sync_wait(Ops::move(task));
     System::out.println("[flow] as_task -> {}", t);
 
     // Recover from an error raised on the value channel.
@@ -54,6 +64,10 @@ int main() {
         .catch_error([](ExceptionPointer _) -> i32 { return -1; })
         .value();
     System::out.println("[flow] recovered from error -> {}", *recovered);
+
+    // co_await is legal only inside a coroutine, which main() cannot be
+    Optional<Tuple<>> _ = Thread::sync_wait(run_steps());
+    System::out.println("[flow] void task sequence complete");
     #else
     System::out.println(
         "[flow] execution backend not available "

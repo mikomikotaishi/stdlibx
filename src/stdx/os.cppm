@@ -72,6 +72,10 @@ export module stdx:os;
 #include "stdx/os/unix/sys/utsname.inl"
 #include "stdx/os/unix/sys/wait.inl"
 
+#include "stdx/os/darwin/netinet/tcp.inl"
+#include "stdx/os/darwin/sys/event.inl"
+#include "stdx/os/darwin/sys/socket.inl"
+
 #include "stdx/os/darwin/coreaudio.inl"
 #include "stdx/os/darwin/audiounit.inl"
 #include "stdx/os/darwin/audiotoolbox.inl"
@@ -179,7 +183,9 @@ export module stdx:os;
 #include "stdx/os/win32/mmsystem.inl"
 #include "stdx/os/win32/process.inl"
 #include "stdx/os/win32/shellapi.inl"
+#include "stdx/os/win32/stdlib.inl"
 #include "stdx/os/win32/synchapi.inl"
+#include "stdx/os/win32/sysinfoapi.inl"
 #include "stdx/os/win32/wincrypt.inl"
 #include "stdx/os/win32/wincodec.inl"
 #include "stdx/os/win32/winsock.inl"

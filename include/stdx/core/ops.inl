@@ -1,5 +1,9 @@
 #pragma once
 
+using stdx::fmt::FormatArgs;
+using stdx::fmt::FormatString;
+using stdx::fmt::WideFormatArgs;
+using stdx::fmt::WideFormatString;
 using stdx::future::Future;
 using stdx::future::LaunchPolicy;
 using stdx::meta::AddConstType;
@@ -31,9 +35,9 @@ using stdx::exec::Then;
 using stdx::meta::reflect::Class;
 using stdx::meta::reflect::Enum;
 using stdx::meta::reflect::Info;
-using stdx::meta::reflect::ReflectableClass;
-using stdx::meta::reflect::ReflectableEnum;
-using stdx::meta::reflect::ReflectableUnion;
+using stdx::meta::reflect::ReflectableAsClass;
+using stdx::meta::reflect::ReflectableAsEnum;
+using stdx::meta::reflect::ReflectableAsUnion;
 using stdx::meta::reflect::ThrownExceptions;
 using stdx::meta::reflect::Type;
 using stdx::meta::reflect::Union;
@@ -301,7 +305,7 @@ export namespace stdx::core {
 
         [[nodiscard]]
         static const ErrorCategory& future_category() noexcept {
-            return ::stdx::future::future_category();
+            return std::future_category();
         }
 
         [[nodiscard]]
@@ -316,7 +320,7 @@ export namespace stdx::core {
 
         [[nodiscard]]
         static ErrorCode error_code(FutureErrc e) noexcept {
-            return ::stdx::future::make_error_code(e);
+            return std::make_error_code(e);
         }
 
         [[nodiscard]]
@@ -425,6 +429,50 @@ export namespace stdx::core {
             return std::make_pair(forward<T>(x), forward<U>(y));
         }
 
+        template <typename... Args>
+        [[nodiscard]]
+        static String fmt(FormatString<Args...> fmt, Args&&... args) {
+            return std::format(fmt, forward<Args>(args)...);
+        }
+
+        template <typename... Args>
+        [[nodiscard]]
+        static WideString fmt(WideFormatString<Args...> fmt, Args&&... args) {
+            return std::format(fmt, forward<Args>(args)...);
+        }
+
+        template <typename... Args>
+        [[nodiscard]]
+        static String fmt(const Locale& loc, FormatString<Args...> fmt, Args&&... args) {
+            return std::format(loc, fmt, forward<Args>(args)...);
+        }
+
+        template <typename... Args>
+        [[nodiscard]]
+        static WideString fmt(const Locale& loc, WideFormatString<Args...> fmt, Args&&... args) {
+            return std::format(loc, fmt, forward<Args>(args)...);
+        }
+
+        [[nodiscard]]
+        static String vfmt(StringView fmt, FormatArgs args) {
+            return std::vformat(fmt, args);
+        }
+
+        [[nodiscard]]
+        static WideString vfmt(WideStringView fmt, WideFormatArgs args) {
+            return std::vformat(fmt, args);
+        }
+
+        [[nodiscard]]
+        static String vfmt(const Locale& loc, StringView fmt, FormatArgs args) {
+            return std::vformat(loc, fmt, args);
+        }
+
+        [[nodiscard]]
+        static WideString vfmt(const Locale& loc, WideStringView fmt, WideFormatArgs args) {
+            return std::vformat(loc, fmt, args);
+        }
+
         #ifdef __cpp_lib_reflection
         template <typename T>
         [[nodiscard]]
@@ -474,19 +522,38 @@ export namespace stdx::core {
             return std::meta::reflect_constant_array(forward<R>(r));
         }
 
-        template <ReflectableClass T>
+        template <ReflectableAsClass T>
         [[nodiscard]]
         static consteval Class<T> class_of() noexcept {
             return Class<T>();
         }
 
-        template <ReflectableEnum E>
+        /**
+         * @brief The Class wrapper for an already-erased reflection of a class
+         * type: turns a Base's type(), a Field's type(), or any other Info back
+         * into a statically-typed Class. @p I has to be a constant expression,
+         * so this works on a constexpr Base or Field inside a template for.
+         * @tparam I The reflection of a class (non-union) type.
+         * @return The Class wrapper for the type @p I reflects.
+         *
+         * This hands back the wrapper, not the type. Splice with
+         * typename [:I:] when the type itself is what is wanted (a
+         * static_cast, a declaration, a non-reflective template argument).
+         */
+        template <Info I>
+            requires (reflect::is_type(I) && reflect::is_class_type(I) && !reflect::is_union_type(I))
+        [[nodiscard]]
+        static consteval Class<typename [:I:]> class_of() noexcept {
+            return Class<typename [:I:]>();
+        }
+
+        template <ReflectableAsEnum E>
         [[nodiscard]]
         static consteval Enum<E> enum_of() noexcept {
             return Enum<E>();
         }
 
-        template <ReflectableUnion U>
+        template <ReflectableAsUnion U>
         [[nodiscard]]
         static consteval Union<U> union_of() noexcept {
             return Union<U>();
@@ -511,84 +578,6 @@ export namespace stdx::core {
         [[nodiscard]]
         static consteval ThrownExceptions<Fn> thrown_exceptions() {
             return build_thrown_exceptions<Fn>(IndexSequenceOf<ThrownInfos<Fn>.size()>{});
-        }
-        #endif
-    };
-
-    /**
-     * @class Async
-     * @brief Utility class providing static wrappers for standard library operations.
-     */
-    class Async final {
-    public:
-        Async() = delete("Async is a static utility class and cannot be instantiated.");
-
-        /**
-         * @brief Defers or spawns a callable on a new thread by calling std::async.
-         * @tparam F A callable type.
-         * @tparam Args The argument types for the callable.
-         * @param f The callable to invoke.
-         * @param args The arguments to pass to the callable.
-         * @return A Future representing the result of the callable.
-         */
-        template <typename F, typename... Args>
-        static Future<InvokeResultType<DecayType<F>, DecayType<Args>...>> defer_or_spawn(F&& f, Args&&... args) {
-            return std::async(forward<F>(f), forward<Args>(args)...);
-        }
-
-        /**
-         * @brief Defers or spawns a callable on a new thread by calling std::async with a launch policy.
-         * @tparam F A callable type.
-         * @tparam Args The argument types for the callable.
-         * @param policy The launch policy (e.g., std::launch::async or std::launch::deferred).
-         * @param f The callable to invoke.
-         * @param args The arguments to pass to the callable.
-         * @return A Future representing the result of the callable.
-         */
-        template <typename F, typename... Args>
-        static Future<InvokeResultType<DecayType<F>, DecayType<Args>...>> defer_or_spawn(LaunchPolicy policy, F&& f, Args&&... args) {
-            return std::async(policy, forward<F>(f), forward<Args>(args)...);
-        }
-
-        #ifdef STDLIBX_EXECUTION_AVAILABLE
-        [[nodiscard]]
-        static ParallelScheduler parallel_scheduler() {
-            return stdx::exec::get_parallel_scheduler();
-        }
-
-        /**
-         * @brief Offloads a blocking callable onto the system thread pool.
-         * @tparam F A nullary callable.
-         * @param f The blocking work to run off the calling thread.
-         * @return A sender completing with the result of f() (or set_error if it
-         * throws; the exception is re-raised at the await / sync_wait site).
-         *
-         * @warning Do not compose two of these senders under WhenAll.
-         * To overlap two offloads, use the Task-based `Ops::offload` and
-         * `WhenAll(offload(f), offload(g))` instead. Likewise a `void` callable
-         *  under `SyncWait` trips the same move miscompile — use `offload` there.
-         */
-        template <Invocable F>
-        [[nodiscard]]
-        static Sender auto offload_sender(F f) {
-            return Then(Schedule(parallel_scheduler()), Ops::move(f));
-        }
-
-        /**
-         * @brief Coroutine bridge: run a blocking callable on the parallel scheduler.
-         * @tparam F A nullary callable.
-         * @param f The blocking work to run off the calling thread.
-         * @return A Task completing with the result of f() (or set_error if it throws;
-         * the exception is re-raised at the await / sync_wait site).
-         *
-         * @warning Do not `co_await offload(...)` inside another Task.
-         * To co_await an offload from inside a Task, use the
-         * sender-based `Ops::offload_sender`.
-         */
-        template <Invocable F>
-        static Task<InvokeResultType<F&>> offload(F f) {
-            co_await Schedule(parallel_scheduler());
-            co_return f();
         }
         #endif
     };

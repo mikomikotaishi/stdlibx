@@ -56,25 +56,25 @@ export namespace stdx::sys {
      * @brief Builder for configuring and spawning a child process.
      *
      * @code
-     *   Expected<Output, ErrorCode> result = Builder::from("ls")
+     *   Expected<Output, ErrorCode> result = Process::Builder("ls")
      *       .arg("-la")
      *       .current_dir("/tmp")
-     *       .stdout(Stdio::Piped)
+     *       .stdout(Stdio::PIPED)
      *       .output();
      * @endcode
      */
-    class Process::Builder {
+    class [[nodiscard]] Process::Builder {
     private:
-        Vector<String> prog_args; /// The program and its arguments (first element is the program).
-        Vector<Pair<String, String>> env_set; ///< Environment variables to set (key-value pairs).
-        Vector<String> env_rem; ///< Environment variable keys to remove.
-        String prog; ///< The program to execute.
-        Optional<Path> cwd; ///< Optional working directory for the child process.
-        Stdio stdin_cfg = Stdio::INHERIT; ///< Configuration for the child's standard input stream.
-        Stdio stdout_cfg = Stdio::INHERIT; ///< Configuration for the child's standard output stream.
-        Stdio stderr_cfg = Stdio::INHERIT; ///< Configuration for the child's standard error stream.
-        bool env_clr = false; ///< If true, start with an empty environment instead of inheriting the parent's.
-        bool kill_with_parent = false; ///< If true, ask the OS to kill the child when this process dies (Linux: PR_SET_PDEATHSIG).
+        Vector<String> _prog_args; /// The program and its arguments (first element is the program).
+        Vector<Pair<String, String>> _env_set; ///< Environment variables to set (key-value pairs).
+        Vector<String> _env_rem; ///< Environment variable keys to remove.
+        String _prog; ///< The program to execute.
+        Optional<Path> _cwd; ///< Optional working directory for the child process.
+        Stdio _stdin_cfg = Stdio::INHERIT; ///< Configuration for the child's standard input stream.
+        Stdio _stdout_cfg = Stdio::INHERIT; ///< Configuration for the child's standard output stream.
+        Stdio _stderr_cfg = Stdio::INHERIT; ///< Configuration for the child's standard error stream.
+        bool _env_clr = false; ///< If true, start with an empty environment instead of inheriting the parent's.
+        bool _kill_with_parent = false; ///< If true, ask the OS to kill the child when this process dies (Linux: PR_SET_PDEATHSIG).
 
         #ifdef __unix__
         [[nodiscard]]
@@ -104,19 +104,20 @@ export namespace stdx::sys {
                 return true;
             };
 
-            if (stdin_cfg == Stdio::PIPED && !make_pipe(in_r,  in_w)) {
+            if (_stdin_cfg == Stdio::PIPED && !make_pipe(in_r,  in_w)) {
                 cleanup();
                 return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
-            if (stdout_cfg == Stdio::PIPED && !make_pipe(out_r, out_w)) {
+            if (_stdout_cfg == Stdio::PIPED && !make_pipe(out_r, out_w)) {
                 cleanup();
                 return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
-            if (stderr_cfg == Stdio::PIPED && !make_pipe(err_r, err_w)) {
-                cleanup(); return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
+            if (_stderr_cfg == Stdio::PIPED && !make_pipe(err_r, err_w)) {
+                cleanup();
+                return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
 
-            if (stdin_cfg == Stdio::NULL_DEV || stdout_cfg == Stdio::NULL_DEV || stderr_cfg == Stdio::NULL_DEV) {
+            if (_stdin_cfg == Stdio::NULL_DEV || _stdout_cfg == Stdio::NULL_DEV || _stderr_cfg == Stdio::NULL_DEV) {
                 null = static_cast<i32>(unix::open("/dev/null", unix::O_RDWR));
                 if (null == -1) {
                     cleanup();
@@ -137,11 +138,7 @@ export namespace stdx::sys {
 
             if (raw_pid == 0) {
                 #ifdef __linux__
-                if (kill_with_parent) {
-                    // Ask the kernel to SIGKILL us when our parent dies - this
-                    // survives the parent's own SIGKILL/crash, which no parent-side
-                    // destructor can. Then close the fork->prctl race: if the parent
-                    // already exited, the signal won't fire, so bail out now.
+                if (_kill_with_parent) {
                     linux::sys::prctl(
                         linux::sys::PR_SET_PDEATHSIG_OPTION,
                         static_cast<unsigned long>(Signal::KILL)
@@ -158,7 +155,7 @@ export namespace stdx::sys {
                     }
                 };
 
-                switch (stdin_cfg) {
+                switch (_stdin_cfg) {
                     case Stdio::PIPED:
                         dup_or_die(in_r, unix::STDIN_FILENO);
                         break;
@@ -168,7 +165,7 @@ export namespace stdx::sys {
                     case Stdio::INHERIT:
                         break;
                 }
-                switch (stdout_cfg) {
+                switch (_stdout_cfg) {
                     case Stdio::PIPED:
                         dup_or_die(out_w, unix::STDOUT_FILENO);
                         break;
@@ -178,7 +175,7 @@ export namespace stdx::sys {
                     case Stdio::INHERIT:
                         break;
                 }
-                switch (stderr_cfg) {
+                switch (_stderr_cfg) {
                     case Stdio::PIPED:
                         dup_or_die(err_w, unix::STDERR_FILENO);
                         break;
@@ -194,29 +191,29 @@ export namespace stdx::sys {
                     }
                 }
 
-                if (cwd && unix::chdir(cwd->c_str()) == -1) {
+                if (_cwd && unix::chdir(_cwd->c_str()) == -1) {
                     unix::_exit(127);
                 }
 
-                if (env_clr) {
+                if (_env_clr) {
                     unix::clearenv();
                 }
-                for (const String& key: env_rem) {
+                for (const String& key: _env_rem) {
                     unix::unsetenv(key.c_str());
                 }
-                for (auto& [key, val]: env_set) {
+                for (auto& [key, val]: _env_set) {
                     unix::setenv(key.c_str(), val.c_str(), 1);
                 }
 
                 Vector<const char*> argv;
-                argv.reserve(prog_args.size() + 2);
-                argv.push_back(prog.c_str());
-                for (const String& a: prog_args) {
+                argv.reserve(_prog_args.size() + 2);
+                argv.push_back(_prog.c_str());
+                for (const String& a: _prog_args) {
                     argv.push_back(a.c_str());
                 }
                 argv.push_back(nullptr);
 
-                unix::execvp(prog.c_str(), const_cast<char* const*>(argv.data()));
+                unix::execvp(_prog.c_str(), const_cast<char* const*>(argv.data()));
                 unix::_exit(127);
             }
 
@@ -261,20 +258,20 @@ export namespace stdx::sys {
                 return true;
             };
 
-            if (stdin_cfg == Stdio::PIPED && !make_pipe(in_r, in_w, false)) {
+            if (_stdin_cfg == Stdio::PIPED && !make_pipe(in_r, in_w, false)) {
                 cleanup();
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
-            if (stdout_cfg == Stdio::PIPED && !make_pipe(out_r, out_w, true)) {
+            if (_stdout_cfg == Stdio::PIPED && !make_pipe(out_r, out_w, true)) {
                 cleanup();
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
-            if (stderr_cfg == Stdio::PIPED && !make_pipe(err_r, err_w, true)) {
+            if (_stderr_cfg == Stdio::PIPED && !make_pipe(err_r, err_w, true)) {
                 cleanup();
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
 
-            if (stdin_cfg == Stdio::NULL_DEV || stdout_cfg == Stdio::NULL_DEV || stderr_cfg == Stdio::NULL_DEV) {
+            if (_stdin_cfg == Stdio::NULL_DEV || _stdout_cfg == Stdio::NULL_DEV || _stderr_cfg == Stdio::NULL_DEV) {
                 null = win32::CreateFileW(L"NUL", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, OPEN_EXISTING, 0, nullptr);
                 if (null == INVALID_HANDLE_VALUE) {
                     cleanup();
@@ -285,37 +282,37 @@ export namespace stdx::sys {
             StartupInfoW si {
                 .cb = sizeof(StartupInfoW),
                 .dwFlags = STARTF_USESTDHANDLES,
-                .hStdInput = (stdin_cfg == Stdio::PIPED)
-                    ? in_r : (stdin_cfg == Stdio::NULL_DEV)
+                .hStdInput = (_stdin_cfg == Stdio::PIPED)
+                    ? in_r : (_stdin_cfg == Stdio::NULL_DEV)
                     ? null : win32::GetStdHandle(STD_INPUT_HANDLE),
-                .hStdOutput = (stdout_cfg == Stdio::PIPED)
-                    ? out_w : (stdout_cfg == Stdio::NULL_DEV)
+                .hStdOutput = (_stdout_cfg == Stdio::PIPED)
+                    ? out_w : (_stdout_cfg == Stdio::NULL_DEV)
                     ? null : win32::GetStdHandle(STD_OUTPUT_HANDLE),
-                .hStdError = (stderr_cfg == Stdio::PIPED)
-                    ? err_w : (stderr_cfg == Stdio::NULL_DEV)
+                .hStdError = (_stderr_cfg == Stdio::PIPED)
+                    ? err_w : (_stderr_cfg == Stdio::NULL_DEV)
                     ? null : win32::GetStdHandle(STD_ERROR_HANDLE)
             };
 
             WideString cmdline;
             cmdline += L'"';
-            cmdline.append(prog.begin(), prog.end());
+            cmdline.append(_prog.begin(), _prog.end());
             cmdline += L'"';
-            for (const String& a: prog_args) {
+            for (const String& a: _prog_args) {
                 cmdline += L" \"";
                 cmdline.append(a.begin(), a.end());
                 cmdline += L'"';
             }
 
             WideString wcwd;
-            if (cwd) {
-                wcwd = cwd->wstring();
+            if (_cwd) {
+                wcwd = _cwd->wstring();
             }
 
             ProcessInformation pi;
             // When linking the child to our lifetime, start it suspended so it can
             // be placed in the kill-on-close job before it (or any of its own
             // children) runs - closing the create/assign race.
-            const unsigned long flags = kill_with_parent ? win32::CREATE_SUSPENDED_FLAG : 0ul;
+            const unsigned long flags = _kill_with_parent ? win32::CREATE_SUSPENDED_FLAG : 0ul;
             if (!win32::CreateProcessW(
                 nullptr,
                 cmdline.data(),
@@ -324,7 +321,7 @@ export namespace stdx::sys {
                 true,
                 flags,
                 nullptr,
-                cwd ? wcwd.c_str() : nullptr,
+                _cwd ? wcwd.c_str() : nullptr,
                 &si,
                 &pi
             )) {
@@ -332,7 +329,7 @@ export namespace stdx::sys {
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
 
-            if (kill_with_parent) {
+            if (_kill_with_parent) {
                 if (win32::Handle job = parent_death_job(); job != nullptr) {
                     win32::AssignProcessToJobObject(job, pi.hProcess);
                 }
@@ -353,25 +350,25 @@ export namespace stdx::sys {
          * @param program The name of the program to execute.
          */
         explicit Builder(StringView program):
-            prog{program} {}
+            _prog{program} {}
 
         Builder& arg(StringView a) {
-            prog_args.emplace_back(a);
+            _prog_args.emplace_back(a);
             return *this;
         }
 
         Builder& env(StringView k, StringView v) {
-            env_set.emplace_back(k, v);
+            _env_set.emplace_back(k, v);
             return *this;
         }
 
         Builder& env_remove(StringView k) {
-            env_rem.emplace_back(k);
+            _env_rem.emplace_back(k);
             return *this;
         }
 
         Builder& env_clear() noexcept {
-            env_clr = true;
+            _env_clr = true;
             return *this;
         }
 
@@ -392,27 +389,27 @@ export namespace stdx::sys {
          * Other platforms (e.g. macOS/BSD): no effect - no equivalent primitive.
          */
         Builder& terminate_on_parent_exit() noexcept {
-            kill_with_parent = true;
+            _kill_with_parent = true;
             return *this;
         }
 
         Builder& current_dir(const Path& path) noexcept {
-            cwd = path;
+            _cwd = path;
             return *this;
         }
 
         Builder& stdin(Stdio s) noexcept {
-            stdin_cfg = s;
+            _stdin_cfg = s;
             return *this;
         }
 
         Builder& stdout(Stdio s) noexcept {
-            stdout_cfg = s;
+            _stdout_cfg = s;
             return *this;
         }
 
         Builder& stderr(Stdio s) noexcept {
-            stderr_cfg = s;
+            _stderr_cfg = s;
             return *this;
         }
 
@@ -426,19 +423,19 @@ export namespace stdx::sys {
             requires ConvertibleTo<RangeValue<R>, StringView>
         Builder& args(R&& range) {
             for (ConvertibleTo<StringView> auto&& a: range) {
-                prog_args.emplace_back(StringView(a));
+                _prog_args.emplace_back(StringView(a));
             }
             return *this;
         }
 
         [[nodiscard]]
         StringView program() const noexcept {
-            return prog;
+            return _prog;
         }
 
         [[nodiscard]]
         const Vector<String>& args() const noexcept {
-            return prog_args;
+            return _prog_args;
         }
 
         /**

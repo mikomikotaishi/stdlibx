@@ -5,32 +5,22 @@ using stdx::mem::UniquePointer;
 using stdx::sync::Atomic;
 using stdx::time::TimeSpecification;
 using stdx::thread::Thread;
-using stdx::os::linux::alsa::SoundControl;
-using stdx::os::linux::alsa::SoundPcm;
-using stdx::os::linux::alsa::SoundPcmAccess;
-using stdx::os::linux::alsa::SoundPcmFormat;
-using stdx::os::linux::alsa::SoundPcmInfo;
-using stdx::os::linux::alsa::SoundPcmHwParams;
-using stdx::os::linux::alsa::SoundPcmSFrames;
-using stdx::os::linux::alsa::SoundPcmStream;
-using stdx::os::linux::alsa::SoundPcmSwParams;
-using stdx::os::linux::alsa::SoundPcmUFrames;
 
 using namespace stdx::os;
 
 namespace stdx::audio::sampled {
     [[nodiscard]]
-    inline SoundPcmFormat to_alsa_format(SampleFormat fmt) noexcept {
+    inline linux::alsa::SoundPcmFormat to_alsa_format(SampleFormat fmt) noexcept {
         switch (fmt) {
             case SampleFormat::FLOAT:
             case SampleFormat::FLOAT_PLANAR:
-                return SoundPcmFormat::FLOAT_LE;
+                return linux::alsa::SoundPcmFormat::FLOAT_LE;
             case SampleFormat::SHORT:
-                return SoundPcmFormat::S16_LE;
+                return linux::alsa::SoundPcmFormat::S16_LE;
             case SampleFormat::MEDIUM:
-                return SoundPcmFormat::S24_3LE;
+                return linux::alsa::SoundPcmFormat::S24_3LE;
             case SampleFormat::INT:
-                return SoundPcmFormat::S32_LE;
+                return linux::alsa::SoundPcmFormat::S32_LE;
         }
         Ops::unreachable();
     }
@@ -58,8 +48,8 @@ namespace stdx::audio::sampled {
      * supported by the device.
      */
     THROWS(UnsupportedAudioFormatException)
-    inline void configure_pcm(SoundPcm* pcm, AudioFormat& fmt, SoundPcmUFrames& period_frames, SoundPcmUFrames& buffer_frames) {
-        SoundPcmHwParams* hw = nullptr;
+    inline void configure_pcm(linux::alsa::SoundPcm* pcm, AudioFormat& fmt, linux::alsa::SoundPcmUFrames& period_frames, linux::alsa::SoundPcmUFrames& buffer_frames) {
+        linux::alsa::SoundPcmHwParams* hw = nullptr;
         linux::alsa::snd_pcm_hw_params_malloc(&hw);
 
         try {
@@ -68,7 +58,7 @@ namespace stdx::audio::sampled {
                 throw UnsupportedAudioFormatException(linux::alsa::snd_strerror(r));
             }
 
-            r = linux::alsa::snd_pcm_hw_params_set_access(pcm, hw, SoundPcmAccess::RW_INTERLEAVED);
+            r = linux::alsa::snd_pcm_hw_params_set_access(pcm, hw, linux::alsa::SoundPcmAccess::RW_INTERLEAVED);
             if (r < 0) {
                 throw UnsupportedAudioFormatException(linux::alsa::snd_strerror(r));
             }
@@ -115,7 +105,7 @@ namespace stdx::audio::sampled {
         }
         linux::alsa::snd_pcm_hw_params_free(hw);
 
-        SoundPcmSwParams* sw = nullptr;
+        linux::alsa::SoundPcmSwParams* sw = nullptr;
         linux::alsa::snd_pcm_sw_params_malloc(&sw);
         try {
             i32 r = linux::alsa::snd_pcm_sw_params_current(pcm, sw);
@@ -149,26 +139,26 @@ namespace stdx::audio::sampled {
      */
     class AlsaOutputLine final: public OutputLine {
     private:
-        SoundPcm* pcm;
-        AudioFormat fmt;
-        u32 period;
-        u32 buffer;
-        RenderCallback callback;
-        Vector<f32> mix;
-        Thread worker;
-        Atomic<bool> running{false};
-        Atomic<u64> underruns{0};
+        linux::alsa::SoundPcm* _pcm;
+        AudioFormat _fmt;
+        RenderCallback _callback;
+        Vector<f32> _mix;
+        Thread _worker;
+        Atomic<bool> _running{false};
+        Atomic<u64> _underruns{0};
+        u32 _period;
+        u32 _buffer;
 
         void render_loop() noexcept {
             u64 frames_done = 0;
-            while (running.load()) {
+            while (_running.load()) {
                 const AudioTime t{frames_done, monotonic_ns()};
-                callback(Span<f32>(mix.data(), mix.size()), t);
-                SoundPcmSFrames r = linux::alsa::snd_pcm_writei(pcm, mix.data(), period);
+                _callback(Span<f32>(_mix.data(), _mix.size()), t);
+                linux::alsa::SoundPcmSFrames r = linux::alsa::snd_pcm_writei(_pcm, _mix.data(), _period);
                 if (r < 0) {
-                    underruns.fetch_add(1);
-                    if (linux::alsa::snd_pcm_recover(pcm, static_cast<i32>(r), 1) < 0) {
-                        running.store(false);
+                    _underruns.fetch_add(1);
+                    if (linux::alsa::snd_pcm_recover(_pcm, static_cast<i32>(r), 1) < 0) {
+                        _running.store(false);
                         break;
                     }
                 } else {
@@ -178,15 +168,15 @@ namespace stdx::audio::sampled {
         }
     public:
         AlsaOutputLine(
-            SoundPcm* pcm,
+            linux::alsa::SoundPcm* pcm,
             AudioFormat fmt,
             u32 period_frames,
             u32 buffer_frames,
             RenderCallback cb
         ):
-            pcm{pcm}, fmt{fmt}, period{period_frames}, buffer{buffer_frames},
-            callback{Ops::move(cb)} {
-            mix.resize(static_cast<usize>(period) * fmt.channels);
+            _pcm{pcm}, _fmt{fmt}, _callback{Ops::move(cb)},
+            _period{period_frames}, _buffer{buffer_frames} {
+            _mix.resize(static_cast<usize>(_period) * fmt.channels);
         }
 
         ~AlsaOutputLine() override {
@@ -195,60 +185,60 @@ namespace stdx::audio::sampled {
 
         THROWS(LineUnavailableException)
         void start() override {
-            if (running.load()) {
+            if (_running.load()) {
                 return;
             }
-            if (!pcm) {
+            if (!_pcm) {
                 throw LineUnavailableException("line closed");
             }
-            if (i32 r = linux::alsa::snd_pcm_prepare(pcm); r < 0) {
+            if (i32 r = linux::alsa::snd_pcm_prepare(_pcm); r < 0) {
                 throw LineUnavailableException(linux::alsa::snd_strerror(r));
             }
-            running.store(true);
-            worker = Thread([this] -> void { render_loop(); });
+            _running.store(true);
+            _worker = Thread([this] -> void { render_loop(); });
         }
 
         THROWS(LineUnavailableException)
         void stop() override {
-            if (!running.exchange(false)) {
+            if (!_running.exchange(false)) {
                 return;
             }
-            if (worker.joinable()) {
-                worker.join();
+            if (_worker.joinable()) {
+                _worker.join();
             }
-            if (pcm) {
-                linux::alsa::snd_pcm_drain(pcm);
+            if (_pcm) {
+                linux::alsa::snd_pcm_drain(_pcm);
             }
         }
 
         void close() noexcept override {
-            running.store(false);
-            if (worker.joinable()) {
-                worker.join();
+            _running.store(false);
+            if (_worker.joinable()) {
+                _worker.join();
             }
-            if (pcm) {
-                linux::alsa::snd_pcm_close(pcm);
-                pcm = nullptr;
+            if (_pcm) {
+                linux::alsa::snd_pcm_close(_pcm);
+                _pcm = nullptr;
             }
         }
 
         [[nodiscard]]
         const AudioFormat& format() const noexcept override {
-            return fmt;
+            return _fmt;
         }
 
         [[nodiscard]]
         u32 latency_frames() const noexcept override {
-            return buffer;
+            return _buffer;
         }
         [[nodiscard]]
         u64 underrun_count() const noexcept override {
-            return underruns.load();
+            return _underruns.load();
         }
 
         [[nodiscard]]
         bool is_running() const noexcept override {
-            return running.load();
+            return _running.load();
         }
     };
 
@@ -259,45 +249,45 @@ namespace stdx::audio::sampled {
      */
     class AlsaInputLine final: public InputLine {
     private:
-        SoundPcm* pcm;
-        AudioFormat fmt;
-        u32 period;
-        u32 buffer;
-        CaptureCallback callback;
-        Vector<f32> mix;
-        Thread worker;
-        Atomic<bool> running{false};
-        Atomic<u64> overruns{0};
+        linux::alsa::SoundPcm* _pcm;
+        AudioFormat _fmt;
+        CaptureCallback _callback;
+        Vector<f32> _mix;
+        Thread _worker;
+        Atomic<bool> _running{false};
+        Atomic<u64> _overruns{0};
+        u32 _period;
+        u32 _buffer;
 
         void capture_loop() noexcept {
             u64 frames_done = 0;
-            while (running.load()) {
-                SoundPcmSFrames r = linux::alsa::snd_pcm_readi(pcm, mix.data(), period);
+            while (_running.load()) {
+                linux::alsa::SoundPcmSFrames r = linux::alsa::snd_pcm_readi(_pcm, _mix.data(), _period);
                 if (r < 0) {
-                    overruns.fetch_add(1);
-                    if (linux::alsa::snd_pcm_recover(pcm, static_cast<i32>(r), 1) < 0) {
-                        running.store(false);
+                    _overruns.fetch_add(1);
+                    if (linux::alsa::snd_pcm_recover(_pcm, static_cast<i32>(r), 1) < 0) {
+                        _running.store(false);
                         break;
                     }
                     continue;
                 }
                 frames_done += static_cast<u64>(r);
                 const AudioTime t{frames_done, monotonic_ns()};
-                const usize samples = static_cast<usize>(r) * fmt.channels;
-                callback(Span<const f32>(mix.data(), samples), t);
+                const usize samples = static_cast<usize>(r) * _fmt.channels;
+                _callback(Span<const f32>(_mix.data(), samples), t);
             }
         }
     public:
         AlsaInputLine(
-            SoundPcm* pcm,
+            linux::alsa::SoundPcm* pcm,
             AudioFormat fmt,
             u32 period_frames,
             u32 buffer_frames,
             CaptureCallback cb
         ):
-            pcm{pcm}, fmt{fmt}, period{period_frames}, buffer{buffer_frames},
-            callback{Ops::move(cb)} {
-            mix.resize(static_cast<usize>(period) * fmt.channels);
+            _pcm{pcm}, _fmt{fmt}, _callback{Ops::move(cb)},
+            _period{period_frames}, _buffer{buffer_frames} {
+            _mix.resize(static_cast<usize>(_period) * fmt.channels);
         }
 
         ~AlsaInputLine() override {
@@ -306,64 +296,64 @@ namespace stdx::audio::sampled {
 
         THROWS(LineUnavailableException)
         void start() override {
-            if (running.load()) {
+            if (_running.load()) {
                 return;
             }
-            if (!pcm) {
+            if (!_pcm) {
                 throw LineUnavailableException("line closed");
             }
-            if (i32 r = linux::alsa::snd_pcm_prepare(pcm); r < 0) {
+            if (i32 r = linux::alsa::snd_pcm_prepare(_pcm); r < 0) {
                 throw LineUnavailableException(linux::alsa::snd_strerror(r));
             }
-            if (i32 r = linux::alsa::snd_pcm_start(pcm); r < 0) {
+            if (i32 r = linux::alsa::snd_pcm_start(_pcm); r < 0) {
                 throw LineUnavailableException(linux::alsa::snd_strerror(r));
             }
-            running.store(true);
-            worker = Thread([this] -> void { capture_loop(); });
+            _running.store(true);
+            _worker = Thread([this] -> void { capture_loop(); });
         }
 
         THROWS(LineUnavailableException)
         void stop() override {
-            if (!running.exchange(false)) {
+            if (!_running.exchange(false)) {
                 return;
             }
-            if (worker.joinable()) {
-                worker.join();
+            if (_worker.joinable()) {
+                _worker.join();
             }
-            if (pcm) {
-                linux::alsa::snd_pcm_drop(pcm);
+            if (_pcm) {
+                linux::alsa::snd_pcm_drop(_pcm);
             }
         }
 
         void close() noexcept override {
-            running.store(false);
-            if (worker.joinable()) {
-                worker.join();
+            _running.store(false);
+            if (_worker.joinable()) {
+                _worker.join();
             }
-            if (pcm) {
-                linux::alsa::snd_pcm_close(pcm);
-                pcm = nullptr;
+            if (_pcm) {
+                linux::alsa::snd_pcm_close(_pcm);
+                _pcm = nullptr;
             }
         }
 
         [[nodiscard]]
         const AudioFormat& format() const noexcept override {
-            return fmt;
+            return _fmt;
         }
 
         [[nodiscard]]
         u32 latency_frames() const noexcept override {
-            return buffer;
+            return _buffer;
         }
 
         [[nodiscard]]
         u64 overrun_count() const noexcept override {
-            return overruns.load();
+            return _overruns.load();
         }
 
         [[nodiscard]]
         bool is_running() const noexcept override {
-            return running.load();
+            return _running.load();
         }
     };
 
@@ -380,24 +370,24 @@ namespace stdx::audio::sampled {
             true
         );
 
-        const SoundPcmStream stream =
+        const linux::alsa::SoundPcmStream stream =
             (dir == StreamDirection::OUTPUT)
-                ? SoundPcmStream::PLAYBACK
-                : SoundPcmStream::CAPTURE;
+                ? linux::alsa::SoundPcmStream::PLAYBACK
+                : linux::alsa::SoundPcmStream::CAPTURE;
 
         i32 card = -1;
         while (linux::alsa::snd_card_next(&card) >= 0 && card >= 0) {
             char hw[32];
             stdx::io::cstdio::snprintf(hw, sizeof(hw), "hw:%d", card);
 
-            SoundControl* ctl = nullptr;
+            linux::alsa::SoundControl* ctl = nullptr;
             if (linux::alsa::snd_ctl_open(&ctl, hw, 0) < 0) {
                 continue;
             }
 
             i32 dev = -1;
             while (linux::alsa::snd_ctl_pcm_next_device(ctl, &dev) >= 0 && dev >= 0) {
-                SoundPcmInfo* info = nullptr;
+                linux::alsa::SoundPcmInfo* info = nullptr;
                 linux::alsa::snd_pcm_info_malloc(&info);
                 linux::alsa::snd_pcm_info_set_device(info, static_cast<u32>(dev));
                 linux::alsa::snd_pcm_info_set_subdevice(info, 0);
@@ -449,10 +439,10 @@ namespace stdx::audio::sampled {
             ) {
                 return *env;
             }
-            SoundPcm* probe = nullptr;
+            linux::alsa::SoundPcm* probe = nullptr;
             const i32 r = linux::alsa::snd_pcm_open(
                 &probe, "pulse",
-                SoundPcmStream::PLAYBACK,
+                linux::alsa::SoundPcmStream::PLAYBACK,
                 0
             );
             if (r >= 0 && probe) {
@@ -500,16 +490,16 @@ export namespace stdx::audio::sampled {
                 "ALSA backend currently supports only SampleFormat::FLOAT"
             );
         }
-        SoundPcm* pcm = nullptr;
+        linux::alsa::SoundPcm* pcm = nullptr;
         const char* name = device.id.empty() ? "default" : device.id.c_str();
-        i32 r = linux::alsa::snd_pcm_open(&pcm, name, SoundPcmStream::PLAYBACK, 0);
+        i32 r = linux::alsa::snd_pcm_open(&pcm, name, linux::alsa::SoundPcmStream::PLAYBACK, 0);
         if (r < 0) {
             throw LineUnavailableException(linux::alsa::snd_strerror(r));
         }
 
         AudioFormat actual = fmt;
-        SoundPcmUFrames period = 0;
-        SoundPcmUFrames buffer = 0;
+        linux::alsa::SoundPcmUFrames period = 0;
+        linux::alsa::SoundPcmUFrames buffer = 0;
         try {
             configure_pcm(pcm, actual, period, buffer);
         } catch (...) {
@@ -530,16 +520,16 @@ export namespace stdx::audio::sampled {
                 "ALSA backend currently supports only SampleFormat::FLOAT"
             );
         }
-        SoundPcm* pcm = nullptr;
+        linux::alsa::SoundPcm* pcm = nullptr;
         const char* name = device.id.empty() ? "default" : device.id.c_str();
-        i32 r = linux::alsa::snd_pcm_open(&pcm, name, SoundPcmStream::CAPTURE, 0);
+        i32 r = linux::alsa::snd_pcm_open(&pcm, name, linux::alsa::SoundPcmStream::CAPTURE, 0);
         if (r < 0) {
             throw LineUnavailableException(linux::alsa::snd_strerror(r));
         }
 
         AudioFormat actual = fmt;
-        SoundPcmUFrames period = 0;
-        SoundPcmUFrames buffer = 0;
+        linux::alsa::SoundPcmUFrames period = 0;
+        linux::alsa::SoundPcmUFrames buffer = 0;
         try {
             configure_pcm(pcm, actual, period, buffer);
         } catch (...) {

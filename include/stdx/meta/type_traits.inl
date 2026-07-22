@@ -232,23 +232,23 @@ export namespace stdx::meta {
     template <typename T>
     constexpr bool IsUnboundedArrayValue = std::is_unbounded_array_v<T>;
 
-    template <typename T>
-    using IsConstructible = std::is_constructible<T>;
+    template <typename T, typename... Args>
+    using IsConstructible = std::is_constructible<T, Args...>;
 
-    template <typename T>
-    constexpr bool IsConstructibleValue = std::is_constructible_v<T>;
+    template <typename T, typename... Args>
+    constexpr bool IsConstructibleValue = std::is_constructible_v<T, Args...>;
 
-    template <typename T>
-    using IsTriviallyConstructible = std::is_trivially_constructible<T>;
+    template <typename T, typename... Args>
+    using IsTriviallyConstructible = std::is_trivially_constructible<T, Args...>;
 
-    template <typename T>
-    constexpr bool IsTriviallyConstructibleValue = std::is_trivially_constructible_v<T>;
+    template <typename T, typename... Args>
+    constexpr bool IsTriviallyConstructibleValue = std::is_trivially_constructible_v<T, Args...>;
 
-    template <typename T>
-    using IsNothrowConstructible = std::is_nothrow_constructible<T>;
+    template <typename T, typename... Args>
+    using IsNothrowConstructible = std::is_nothrow_constructible<T, Args...>;
 
-    template <typename T>
-    constexpr bool IsNothrowConstructibleValue = std::is_nothrow_constructible_v<T>;
+    template <typename T, typename... Args>
+    constexpr bool IsNothrowConstructibleValue = std::is_nothrow_constructible_v<T, Args...>;
 
     template <typename T>
     using IsDefaultConstructible = std::is_default_constructible<T>;
@@ -478,29 +478,29 @@ export namespace stdx::meta {
     constexpr bool IsPointerInterconvertibleBaseOfValue = std::is_pointer_interconvertible_base_of_v<Base, Derived>;
     #endif
 
-    template <typename Fn, typename... ArgTypes>
-    using IsInvocable = std::is_invocable<Fn, ArgTypes...>;
+    template <typename Fn, typename... ArgTs>
+    using IsInvocable = std::is_invocable<Fn, ArgTs...>;
 
-    template <typename Fn, typename... ArgTypes>
-    constexpr bool IsInvocableValue = std::is_invocable_v<Fn, ArgTypes...>;
+    template <typename Fn, typename... ArgTs>
+    constexpr bool IsInvocableValue = std::is_invocable_v<Fn, ArgTs...>;
 
-    template <typename R, typename Fn, typename... ArgTypes>
-    using IsInvocableReturn = std::is_invocable_r<R, Fn, ArgTypes...>;
+    template <typename R, typename Fn, typename... ArgTs>
+    using IsInvocableReturn = std::is_invocable_r<R, Fn, ArgTs...>;
 
-    template <typename R, typename Fn, typename... ArgTypes>
-    constexpr bool IsInvocableReturnValue = std::is_invocable_r_v<R, Fn, ArgTypes...>;
+    template <typename R, typename Fn, typename... ArgTs>
+    constexpr bool IsInvocableReturnValue = std::is_invocable_r_v<R, Fn, ArgTs...>;
 
-    template <typename Fn, typename... ArgTypes>
-    using IsNothrowInvocable = std::is_nothrow_invocable<Fn, ArgTypes...>;
+    template <typename Fn, typename... ArgTs>
+    using IsNothrowInvocable = std::is_nothrow_invocable<Fn, ArgTs...>;
 
-    template <typename Fn, typename... ArgTypes>
-    constexpr bool IsNothrowInvocableValue = std::is_nothrow_invocable_v<Fn, ArgTypes...>;
+    template <typename Fn, typename... ArgTs>
+    constexpr bool IsNothrowInvocableValue = std::is_nothrow_invocable_v<Fn, ArgTs...>;
 
-    template <typename R, typename Fn, typename... ArgTypes>
-    using IsNothrowInvocableReturn = std::is_nothrow_invocable_r<R, Fn, ArgTypes...>;
+    template <typename R, typename Fn, typename... ArgTs>
+    using IsNothrowInvocableReturn = std::is_nothrow_invocable_r<R, Fn, ArgTs...>;
 
-    template <typename R, typename Fn, typename... ArgTypes>
-    constexpr bool IsNothrowInvocableReturnValue = std::is_nothrow_invocable_r_v<R, Fn, ArgTypes...>;
+    template <typename R, typename Fn, typename... ArgTs>
+    constexpr bool IsNothrowInvocableReturnValue = std::is_nothrow_invocable_r_v<R, Fn, ArgTs...>;
 
     template <typename T>
     using RemoveConstVolatile = std::remove_cv<T>;
@@ -637,11 +637,11 @@ export namespace stdx::meta {
     template <typename T, typename U, template <typename> class TQual, template <typename> class UQual>
     using BasicCommonReference = std::basic_common_reference<T, U, TQual, UQual>;
 
-    template <typename Functor, typename... ArgTypes>
-    using InvokeResult = std::invoke_result<Functor, ArgTypes...>;
+    template <typename Functor, typename... ArgTs>
+    using InvokeResult = std::invoke_result<Functor, ArgTs...>;
 
-    template <typename Functor, typename... ArgTypes>
-    using InvokeResultType = std::invoke_result_t<Functor, ArgTypes...>;
+    template <typename Functor, typename... ArgTs>
+    using InvokeResultType = std::invoke_result_t<Functor, ArgTs...>;
 
     using VoidType = std::void_t<>;
 

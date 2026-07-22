@@ -2,10 +2,6 @@ import stdx;
 
 using namespace stdx::test;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 constexpr u64 MSB = 0x0123456789ABCDEFull;
 constexpr u64 LSB = 0xFEDCBA9876543210ull;
 
@@ -114,7 +110,7 @@ void test_hash() {
 
 void test_bytes() {
     Uuid u(MSB, LSB);
-    Span<const ByteUnit, 16> raw = u.bytes();
+    Span<const byte, 16> raw = u.bytes();
 
     expect_eq(raw.size(), 16uz, "bytes() exposes all 16 bytes");
     expect(Byte::to_integer<u8>(raw[0]) == 0x01, "first byte is the msb high byte");

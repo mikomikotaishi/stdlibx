@@ -11,7 +11,7 @@ export namespace stdx::text::regex {
     using RegexTraits = std::regex_traits<T>;
 
     template <typename Char, typename RxTraits = RegexTraits<Char>>
-        requires IsSameValue<Char, typename RxTraits::char_type>
+        requires SameAs<Char, typename RxTraits::char_type>
     using BasicRegex = std::basic_regex<Char, RxTraits>;
 
     using Regex = std::regex;
@@ -30,7 +30,6 @@ export namespace stdx::text::regex {
     using MatchResults = std::match_results<BidirIt, Alloc>;
 
     using CMatch = std::cmatch;
-
 
     using WideCMatch = std::wcmatch;
     using StringMatch = std::smatch;

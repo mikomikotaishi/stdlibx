@@ -31,7 +31,7 @@ export namespace stdx::audio::sampled {
      */
     struct AudioFileFormat {
         AudioFileType type = AudioFileType::UNKNOWN;
-        AudioFormat format{}; ///< Channels / sample rate / sample encoding.
+        AudioFormat format = {}; ///< Channels / sample rate / sample encoding.
         u64 total_frames = 0; ///< Total frame count, 0 if not knowable from the header.
     };
 
@@ -53,15 +53,15 @@ export namespace stdx::audio::sampled {
         /**
          * @brief Decode up to @c out.size()/channels frames into @p out, return
          * the number of frames actually filled.
+         * @param out Interleaved f32 output buffer. The number of frames requested is
+         * @c out.size() / channels.
+         * @return The number of frames decoded into @p out, or 0 if the
+         * stream is exhausted.
          *
          * The buffer is written contiguously starting at @c out[0]; on a short
          * read (end-of-stream, short physical read) the tail of @p out is left
          * untouched - the caller is responsible for zero-filling if it wants
          * silence. Returns 0 at EOF; subsequent calls keep returning 0.
-         * @param out Interleaved f32 output buffer. The number of frames requested is
-         * @c out.size() / channels.
-         * @return The number of frames decoded into @p out, or 0 if the
-         * stream is exhausted.
          */
         virtual usize read(Span<f32> out) noexcept = 0;
 

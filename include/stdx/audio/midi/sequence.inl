@@ -40,38 +40,28 @@ export namespace stdx::audio::midi {
      * @brief Ordered (by tick) list of MidiEvent. A Track owns its events.
      */
     class Track final {
-        Vector<MidiEvent> events;
+        Vector<MidiEvent> _events;
     public:
         Track() = default;
 
         [[nodiscard]]
         usize size() const noexcept {
-            return events.size();
+            return _events.size();
         }
 
         [[nodiscard]]
         bool empty() const noexcept {
-            return events.empty();
+            return _events.empty();
         }
 
         [[nodiscard]]
-        const MidiEvent& at(usize i) const {
-            return events.at(i);
+        auto& at(this auto&& self, usize i) {
+            return self._events.at(i);
         }
 
         [[nodiscard]]
-        MidiEvent& at(usize i) {
-            return events.at(i);
-        }
-
-        [[nodiscard]]
-        const MidiEvent& operator[](usize i) const {
-            return events[i];
-        }
-
-        [[nodiscard]]
-        MidiEvent& operator[](usize i) {
-            return events[i];
+        auto& operator[](this auto&& self, usize i) {
+            return self._events[i];
         }
 
         /**
@@ -79,29 +69,29 @@ export namespace stdx::audio::midi {
          * @param e Event to insert. The track takes ownership of the message.
          */
         void add(MidiEvent e) {
-            auto pos = stdx::ranges::upper_bound(events, e.tick, Less<>(), &MidiEvent::tick);
-            events.insert(pos, Ops::move(e));
+            auto pos = stdx::ranges::upper_bound(_events, e.tick, Less<>(), &MidiEvent::tick);
+            _events.insert(pos, Ops::move(e));
         }
 
         void remove(usize i) {
-            if (i < events.size()) {
-                events.erase(events.begin() + i);
+            if (i < _events.size()) {
+                _events.erase(_events.begin() + i);
             }
         }
 
         [[nodiscard]]
         i64 last_tick() const noexcept {
-            return events.empty() ? 0 : events.back().tick;
+            return _events.empty() ? 0 : _events.back().tick;
         }
 
         [[nodiscard]]
         auto begin() const noexcept {
-            return events.begin();
+            return _events.begin();
         }
 
         [[nodiscard]]
         auto end() const noexcept {
-            return events.end();
+            return _events.end();
         }
     };
 
@@ -109,21 +99,21 @@ export namespace stdx::audio::midi {
      * @brief A sequence of tracks plus a timing-division descriptor.
      */
     class Sequence final {
-        TimingType type;
-        i32 division_val; ///< PPQ value, or encoded SMPTE division.
-        Vector<UniquePointer<Track>> tracks;
+        TimingType _type;
+        i32 _division; ///< PPQ value, or encoded SMPTE division.
+        Vector<UniquePointer<Track>> _tracks;
     public:
-        explicit Sequence(TimingType t = TimingType::PPQ, i32 division = 480):
-            type{t}, division_val{division} {}
+        explicit Sequence(TimingType type = TimingType::PPQ, i32 division = 480):
+            _type{type}, _division{division} {}
 
         [[nodiscard]]
-        TimingType timing_type() const noexcept {
-            return type;
+        TimingType type() const noexcept {
+            return _type;
         }
 
         [[nodiscard]]
         i32 division() const noexcept {
-            return division_val;
+            return _division;
         }
 
         /**
@@ -135,11 +125,11 @@ export namespace stdx::audio::midi {
          */
         [[nodiscard]]
         i32 smpte_format() const noexcept {
-            if (type != TimingType::SMPTE) {
+            if (_type != TimingType::SMPTE) {
                 return 0;
             }
             // The high byte of the i16 division is the negative frame format.
-            return -static_cast<i32>(static_cast<i8>((division_val >> 8) & 0xFF));
+            return -static_cast<i32>(static_cast<i8>((_division >> 8) & 0xFF));
         }
 
         /**
@@ -148,10 +138,10 @@ export namespace stdx::audio::midi {
          */
         [[nodiscard]]
         u8 smpte_ticks_per_frame() const noexcept {
-            if (type != TimingType::SMPTE) {
+            if (_type != TimingType::SMPTE) {
                 return 0;
             }
-            return static_cast<u8>(division_val & 0xFF);
+            return static_cast<u8>(_division & 0xFF);
         }
 
         /**
@@ -174,14 +164,14 @@ export namespace stdx::audio::midi {
         }
 
         Track& create_track() {
-            tracks.push_back(Pointers::unique<Track>());
-            return *tracks.back();
+            _tracks.push_back(Pointers::unique<Track>());
+            return *_tracks.back();
         }
 
         bool delete_track(Track& t) {
-            for (auto it = tracks.begin(); it != tracks.end(); ++it) {
+            for (auto it = _tracks.begin(); it != _tracks.end(); ++it) {
                 if (it->get() == &t) {
-                    tracks.erase(it); return true;
+                    _tracks.erase(it); return true;
                 }
             }
             return false;
@@ -189,34 +179,23 @@ export namespace stdx::audio::midi {
 
         [[nodiscard]]
         usize track_count() const noexcept {
-            return tracks.size();
+            return _tracks.size();
         }
 
         [[nodiscard]]
-        const Track& track(usize i) const {
-            return *tracks.at(i);
+        auto& track(this auto&& self, usize i) {
+            return *self._tracks.at(i);
         }
 
         [[nodiscard]]
-        Track& track(usize i) {
-            return *tracks.at(i);
-        }
-
-        [[nodiscard]]
-        const Track& operator[](usize i) const {
-            return *tracks[i];
-        }
-
-
-        [[nodiscard]]
-        Track& operator[](usize i) {
-            return *tracks[i];
+        auto& operator[](this auto&& self, usize i) {
+            return *self._tracks[i];
         }
 
         [[nodiscard]]
         i64 last_tick() const noexcept {
             i64 last = 0;
-            for (const UniquePointer<Track>& t: tracks) {
+            for (const UniquePointer<Track>& t: _tracks) {
                 last = Math::max(last, t->last_tick());
             }
             return last;

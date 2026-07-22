@@ -15,6 +15,9 @@ export namespace stdx::fmt {
     template <typename T, typename Char = char>
     struct Formatter: std::formatter<T, Char> {};
 
+    template <typename T, typename Char = char>
+    using RangeFormatter = std::range_formatter<T, Char>;
+
     template <typename Char>
     using BasicFormatParseContext = std::basic_format_parse_context<Char>;
 
@@ -39,14 +42,37 @@ export namespace stdx::fmt {
 
     using WideFormatArgs = std::wformat_args;
 
-    template <typename CharT, typename... Args>
-    using BasicFormatString = std::basic_format_string<CharT, Args...>;
+    template <typename Char, typename... Args>
+    using BasicFormatString = std::basic_format_string<Char, Args...>;
 
     template <typename... Args>
     using FormatString = std::format_string<Args...>;
 
     template <typename... Args>
     using WideFormatString = std::wformat_string<Args...>;
+
+    class [[nodiscard]] RangeFormat final {
+    public:
+        using Self = std::range_format;
+
+        static constexpr Self DISABLED = std::range_format::disabled;
+        static constexpr Self MAP = std::range_format::map;
+        static constexpr Self SET = std::range_format::set;
+        static constexpr Self SEQUENCE = std::range_format::sequence;
+        static constexpr Self STRING = std::range_format::string;
+        static constexpr Self DEBUG_STRING = std::range_format::debug_string;
+    private:
+        const Self value = DISABLED;
+    public:
+        constexpr RangeFormat() noexcept = default;
+
+        constexpr RangeFormat(Self value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+    };
 
     using std::format;
     using std::format_to;
@@ -56,4 +82,16 @@ export namespace stdx::fmt {
     using std::vformat_to;
     using std::make_format_args;
     using std::make_wformat_args;
+
+    using std::format_kind;
+
+    template <typename T>
+    constexpr bool EnableNonlockingFormatterOptimization = std::enable_nonlocking_formatter_optimization<T>;
+
+    template <typename R>
+    constexpr auto FormatKind = std::format_kind<R>;
+
+    #if defined(__cpp_lib_format) && __cpp_lib_format >= 202603L
+    using std::dynamic_format;
+    #endif
 }

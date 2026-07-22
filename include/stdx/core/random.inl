@@ -25,16 +25,16 @@ export namespace stdx::core {
     template <UniformRandomBitGenerator Engine = MersenneTwister>
     class [[nodiscard]] Random {
     private:
-        Engine engine;
+        Engine _engine;
     public:
         using Seed = typename Engine::result_type;
         using ResultType = typename Engine::result_type;
 
         explicit Random(Seed seed = RandomDevice{}()) noexcept:
-            engine{seed} {}
+            _engine{seed} {}
 
         explicit Random(SeedSequence seq) noexcept:
-            engine{seq} {}
+            _engine{seq} {}
 
         ~Random() = default;
 
@@ -49,10 +49,10 @@ export namespace stdx::core {
 
             if constexpr (Integral<T>) {
                 UniformIntegerDistribution<T> dist(min, max - 1);
-                return dist(engine);
+                return dist(_engine);
             } else if constexpr (FloatingPoint<T>) {
                 UniformRealDistribution<T> dist(min, max);
-                return dist(engine);
+                return dist(_engine);
             }
         }
 
@@ -92,12 +92,12 @@ export namespace stdx::core {
         [[nodiscard]]
         Flt next_unit() noexcept {
             if constexpr (SameAs<Flt, f32>) {
-                return (engine() >> 8) * (1.0f / (1u << 24));
+                return (_engine() >> 8) * (1.0f / (1u << 24));
             } else if constexpr (SameAs<Flt, f64>) {
-                return (((engine() >> 5) << 26) + (engine() >> 6)) * (1.0 / (1ull << 53));
+                return (((_engine() >> 5) << 26) + (_engine() >> 6)) * (1.0 / (1ull << 53));
             } else {
                 UniformRealDistribution<Flt> dist(0.0, 1.0);
-                return dist(engine);
+                return dist(_engine);
             }
         }
 
@@ -115,26 +115,26 @@ export namespace stdx::core {
         [[nodiscard]]
         Flt next_gaussian(Flt mean = 0.0, Flt stddev = 1.0) noexcept {
             static thread_local NormalDistribution<Flt> dist(0.0, 1.0);
-            return dist(engine) * stddev + mean;
+            return dist(_engine) * stddev + mean;
         }
 
         template <RandomAccessIterator Iter, SentinelFor<Iter> S>
             requires Permutable<Iter>
         Iter shuffle(Iter first, S last) {
-            return stdx::ranges::shuffle(first, last, engine);
+            return stdx::ranges::shuffle(first, last, _engine);
         }
 
         template <typename Ran>
             requires Permutable<RangeIterator<Ran>>
         BorrowedIteratorType<Ran> shuffle(Ran&& r) {
-            return stdx::ranges::shuffle(stdx::util::forward<Ran>(r), engine);
+            return stdx::ranges::shuffle(stdx::util::forward<Ran>(r), _engine);
         }
 
         #ifdef __cpp_lib_ranges_generate_random
         template <typename Ran>
             requires OutputRange<Ran, InvokeResultType<Engine&>>
         constexpr BorrowedIteratorType<Ran> generate_random(Ran&& r) {
-            return stdx::ranges::generate_random(stdx::util::forward<Ran>(r), engine);
+            return stdx::ranges::generate_random(stdx::util::forward<Ran>(r), _engine);
         }
         #endif
 
@@ -145,7 +145,7 @@ export namespace stdx::core {
         void next_bytes(Span<u8> out) {
             usize i = 0;
             while (i < out.size()) {
-                const ResultType word = engine();
+                const ResultType word = _engine();
                 const u8* bytes = reinterpret_cast<const u8*>(&word);
                 for (usize j = 0; j < sizeof(word) && i < out.size(); ++j, ++i) {
                     out[i] = bytes[j];
@@ -166,21 +166,21 @@ export namespace stdx::core {
         }
 
         void seed(Seed s = RandomDevice{}()) noexcept {
-            engine.seed(s);
+            _engine.seed(s);
         }
 
         void seed(SeedSequence seq) noexcept {
-            engine.seed(seq);
+            _engine.seed(seq);
         }
 
         [[nodiscard]]
         Engine& state() noexcept {
-            return engine;
+            return _engine;
         }
 
         [[nodiscard]]
         const Engine& state() const noexcept {
-            return engine;
+            return _engine;
         }
     };
 }

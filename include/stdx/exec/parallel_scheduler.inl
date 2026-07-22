@@ -8,7 +8,7 @@ export namespace stdx::exec {
     #if defined(__cpp_lib_parallel_scheduler) && !defined(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY)
     using ParallelScheduler = std::execution::parallel_scheduler;
 
-    using std::execution::Async::parallel_scheduler;
+    using std::execution::parallel_scheduler;
 
     namespace replaceability {
         using ReceiverProxy = std::execution::system_context_replaceability::receiver_proxy;

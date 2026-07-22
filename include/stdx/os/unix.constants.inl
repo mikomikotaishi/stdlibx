@@ -1,6 +1,27 @@
 #pragma once
 
 /**
+ * @file unix.constants.inl
+ * @brief Numeric values of the POSIX macros, spelled out so they cross a module boundary.
+ *
+ * @warning Every value in this file is the **Linux** one. The names are POSIX
+ * but the numbers are not portable, and there are no platform guards: Darwin
+ * and the BSDs disagree on almost all of them - SOL_SOCKET is 0xffff rather
+ * than 1, SO_REUSEADDR is 4 rather than 2, AF_INET6 is 30 rather than 10,
+ * EAGAIN is 35 rather than 11, O_NONBLOCK is 0x0004 rather than 0o4000. Code
+ * built against these on such a host would not fail to compile; it would call
+ * the kernel with the wrong option numbers.
+ *
+ * The values are literals rather than `= SOL_SOCKET` because a macro does not
+ * cross `import :os`, and this file is included on the stdx:main side where the
+ * system headers are not visible. The portable fix is to define them on the
+ * stdx:os side instead - os.cppm already includes <sys/socket.h> in its global
+ * module fragment, so a `constexpr` initialized from the real macro there is
+ * exported as a variable and is correct on every platform by construction.
+ * Until that is done, treat the whole file as Linux-only.
+ */
+
+/**
  * @namespace stdx::os::unix
  * @brief Unix operations.
  */
@@ -9,213 +30,244 @@ export namespace stdx::os::unix {
      * <errno.h> constants
      */
 
-    inline constexpr i32 EPERM = 1; ///< Operation not permitted
-    inline constexpr i32 ENOENT = 2; ///< No such file or directory
-    inline constexpr i32 ESRCH = 3; ///< No such process
-    inline constexpr i32 EINTR = 4; ///< Interrupted system call
-    inline constexpr i32 EIO = 5; ///< Input/output error
-    inline constexpr i32 ENXIO = 6; ///< No such device or address
-    inline constexpr i32 E2BIG = 7; ///< Argument list too long
-    inline constexpr i32 ENOEXEC = 8; ///< Exec format error
-    inline constexpr i32 EBADF = 9; ///< Bad file descriptor
-    inline constexpr i32 ECHILD = 10; ///< No child processes
-    inline constexpr i32 EAGAIN = 11; ///< Resource temporarily unavailable
-    inline constexpr i32 ENOMEM = 12; ///< Cannot allocate memory
-    inline constexpr i32 EACCES = 13; ///< Permission denied
-    inline constexpr i32 EFAULT = 14; ///< Bad address
-    inline constexpr i32 ENOTBLK = 15; ///< Block device required
-    inline constexpr i32 EBUSY = 16; ///< Device or resource busy
-    inline constexpr i32 EEXIST = 17; ///< File exists
-    inline constexpr i32 EXDEV = 18; ///< Invalid cross-device link
-    inline constexpr i32 ENODEV = 19; ///< No such device
-    inline constexpr i32 ENOTDIR = 20; ///< Not a directory
-    inline constexpr i32 EISDIR = 21; ///< Is a directory
-    inline constexpr i32 EINVAL = 22; ///< Invalid argument
-    inline constexpr i32 ENFILE = 23; ///< Too many open files in system
-    inline constexpr i32 EMFILE = 24; ///< Too many open files
-    inline constexpr i32 ENOTTY = 25; ///< Inappropriate ioctl for device
-    inline constexpr i32 ETXTBSY = 26; ///< Text file busy
-    inline constexpr i32 EFBIG = 27; ///< File too large
-    inline constexpr i32 ENOSPC = 28; ///< No space left on device
-    inline constexpr i32 ESPIPE = 29; ///< Illegal seek
-    inline constexpr i32 EROFS = 30; ///< Read-only file system
-    inline constexpr i32 EMLINK = 31; ///< Too many links
-    inline constexpr i32 EPIPE = 32; ///< Broken pipe
-    inline constexpr i32 EDOM = 33; ///< Numerical argument out of domain
-    inline constexpr i32 ERANGE = 34; ///< Numerical result out of range
-    inline constexpr i32 EDEADLK = 35; ///< Resource deadlock avoided
-    inline constexpr i32 ENAMETOOLONG = 36; ///< File name too long
-    inline constexpr i32 ENOLCK = 37; ///< No locks available
-    inline constexpr i32 ENOSYS = 38; ///< Function not implemented
-    inline constexpr i32 ENOTEMPTY = 39; ///< Directory not empty
-    inline constexpr i32 ELOOP = 40; ///< Too many levels of symbolic links
-    inline constexpr i32 ENOMSG = 42; ///< No message of desired type
-    inline constexpr i32 EIDRM = 43; ///< Identifier removed
-    inline constexpr i32 ECHRNG = 44; ///< Channel number out of range
-    inline constexpr i32 EL2NSYNC = 45; ///< Level 2 not synchronized
-    inline constexpr i32 EL3HLT = 46; ///< Level 3 halted
-    inline constexpr i32 EL3RST = 47; ///< Level 3 reset
-    inline constexpr i32 ELNRNG = 48; ///< Link number out of range
-    inline constexpr i32 EUNATCH = 49; ///< Protocol driver not attached
-    inline constexpr i32 ENOCSI = 50; ///< No CSI structure available
-    inline constexpr i32 EL2HLT = 51; ///< Level 2 halted
-    inline constexpr i32 EBADE = 52; ///< Invalid exchange
-    inline constexpr i32 EBADR = 53; ///< Invalid request descriptor
-    inline constexpr i32 EXFULL = 54; ///< Exchange full
-    inline constexpr i32 ENOANO = 55; ///< No anode
-    inline constexpr i32 EBADRQC = 56; ///< Invalid request code
-    inline constexpr i32 EBADSLT = 57; ///< Invalid slot
-    inline constexpr i32 EBFONT = 59; ///< Bad font file format
-    inline constexpr i32 ENOSTR = 60; ///< Device not a stream
-    inline constexpr i32 ENODATA = 61; ///< No data available
-    inline constexpr i32 ETIME = 62; ///< Timer expired
-    inline constexpr i32 ENOSR = 63; ///< Out of streams resources
-    inline constexpr i32 ENONET = 64; ///< Machine is not on the network
-    inline constexpr i32 ENOPKG = 65; ///< Package not installed
-    inline constexpr i32 EREMOTE = 66; ///< Object is remote
-    inline constexpr i32 ENOLINK = 67; ///< Link has been severed
-    inline constexpr i32 EADV = 68; ///< Advertise error
-    inline constexpr i32 ESRMNT = 69; ///< Srmount error
-    inline constexpr i32 ECOMM = 70; ///< Communication error on send
-    inline constexpr i32 EPROTO = 71; ///< Protocol error
-    inline constexpr i32 EMULTIHOP = 72; ///< Multihop attempted
-    inline constexpr i32 EDOTDOT = 73; ///< RFS specific error
-    inline constexpr i32 EBADMSG = 74; ///< Bad message
-    inline constexpr i32 EOVERFLOW = 75; ///< Value too large for defined data type
-    inline constexpr i32 ENOTUNIQ = 76; ///< Name not unique on network
-    inline constexpr i32 EBADFD = 77; ///< File descriptor in bad state
-    inline constexpr i32 EREMCHG = 78; ///< Remote address changed
-    inline constexpr i32 ELIBACC = 79; ///< Can not access a needed shared library
-    inline constexpr i32 ELIBBAD = 80; ///< Accessing a corrupted shared library
-    inline constexpr i32 ELIBSCN = 81; ///< .lib section in a.out corrupted
-    inline constexpr i32 ELIBMAX = 82; ///< Attempting to link in too many shared libraries
-    inline constexpr i32 ELIBEXEC = 83; ///< Cannot exec a shared library directly
-    inline constexpr i32 EILSEQ = 84; ///< Invalid or incomplete multibyte or wide character
-    inline constexpr i32 ERESTART = 85; ///< Interrupted system call should be restarted
-    inline constexpr i32 ESTRPIPE = 86; ///< Streams pipe error
-    inline constexpr i32 EUSERS = 87; ///< Too many users
-    inline constexpr i32 ENOTSOCK = 88; ///< Socket operation on non-socket
-    inline constexpr i32 EDESTADDRREQ = 89; ///< Destination address required
-    inline constexpr i32 EMSGSIZE = 90; ///< Message too long
-    inline constexpr i32 EPROTOTYPE = 91; ///< Protocol wrong type for socket
-    inline constexpr i32 ENOPROTOOPT = 92; ///< Protocol not available
-    inline constexpr i32 EPROTONOSUPPORT = 93; ///< Protocol not supported
-    inline constexpr i32 ESOCKTNOSUPPORT = 94; ///< Socket type not supported
-    inline constexpr i32 EOPNOTSUPP = 95; ///< Operation not supported
-    inline constexpr i32 EPFNOSUPPORT = 96; ///< Protocol family not supported
-    inline constexpr i32 EAFNOSUPPORT = 97; ///< Address family not supported by protocol
-    inline constexpr i32 EADDRINUSE = 98; ///< Address already in use
-    inline constexpr i32 EADDRNOTAVAIL = 99; ///< Cannot assign requested address
-    inline constexpr i32 ENETDOWN = 100; ///< Network is down
-    inline constexpr i32 ENETUNREACH = 101; ///< Network is unreachable
-    inline constexpr i32 ENETRESET = 102; ///< Network dropped connection on reset
-    inline constexpr i32 ECONNABORTED = 103; ///< Software caused connection abort
-    inline constexpr i32 ECONNRESET = 104; ///< Connection reset by peer
-    inline constexpr i32 ENOBUFS = 105; ///< No buffer space available
-    inline constexpr i32 EISCONN = 106; ///< Transport endpoint is already connected
-    inline constexpr i32 ENOTCONN = 107; ///< Transport endpoint is not connected
-    inline constexpr i32 ESHUTDOWN = 108; ///< Cannot send after transport endpoint shutdown
-    inline constexpr i32 ETOOMANYREFS = 109; ///< Too many references: cannot splice
-    inline constexpr i32 ETIMEDOUT = 110; ///< Connection timed out
-    inline constexpr i32 ECONNREFUSED = 111; ///< Connection refused
-    inline constexpr i32 EHOSTDOWN = 112; ///< Host is down
-    inline constexpr i32 EHOSTUNREACH = 113; ///< No route to host
-    inline constexpr i32 EALREADY = 114; ///< Operation already in progress
-    inline constexpr i32 EINPROGRESS = 115; ///< Operation now in progress
-    inline constexpr i32 ESTALE = 116; ///< Stale file handle
-    inline constexpr i32 EUCLEAN = 117; ///< Structure needs cleaning
-    inline constexpr i32 ENOTNAM = 118; ///< Not a Xenix named type file
-    inline constexpr i32 ENAVAIL = 119; ///< No Xenix semaphores available
-    inline constexpr i32 EISNAM = 120; ///< Is a named type file
-    inline constexpr i32 EREMOTEIO = 121; ///< Remote I/O error
-    inline constexpr i32 EDQUOT = 122; ///< Disk quota exceeded
-    inline constexpr i32 ENOMEDIUM = 123; ///< No medium found
-    inline constexpr i32 EMEDIUMTYPE = 124; ///< Wrong medium type
-    inline constexpr i32 ECANCELED = 125; ///< Operation canceled
-    inline constexpr i32 ENOKEY = 126; ///< Required key not available
-    inline constexpr i32 EKEYEXPIRED = 127; ///< Key has expired
-    inline constexpr i32 EKEYREVOKED = 128; ///< Key has been revoked
-    inline constexpr i32 EKEYREJECTED = 129; ///< Key was rejected by service
-    inline constexpr i32 EOWNERDEAD = 130; ///< Owner died
-    inline constexpr i32 ENOTRECOVERABLE = 131; ///< State not recoverable
-    inline constexpr i32 ERFKILL = 132; ///< Operation not possible due to RF-kill
-    inline constexpr i32 EHWPOISON = 133; ///< Memory page has hardware error
-    inline constexpr i32 ENOTSUP = 134; ///< Not supported parameter or option
-    inline constexpr i32 ENOMEDIUM_ALT = 135; ///< Missing media
-    inline constexpr i32 EILSEQ_ALT = 138; ///< Invalid multibyte sequence
-    inline constexpr i32 EOVERFLOW_ALT = 139; ///< Value too large
-    inline constexpr i32 ECANCELED_ALT = 140; ///< Asynchronous operation stopped before normal completion
-    inline constexpr i32 ENOTRECOVERABLE_ALT = 141; ///< State not recoverable
-    inline constexpr i32 EOWNERDEAD_ALT = 142; ///< Previous owner died
-    inline constexpr i32 ESTRPIPE_ALT = 143; ///< Streams pipe error
+    inline constexpr i32 EPERM = captured::EPERM_VALUE; ///< Operation not permitted
+    inline constexpr i32 ENOENT = captured::ENOENT_VALUE; ///< No such file or directory
+    inline constexpr i32 ESRCH = captured::ESRCH_VALUE; ///< No such process
+    inline constexpr i32 EINTR = captured::EINTR_VALUE; ///< Interrupted system call
+    inline constexpr i32 EIO = captured::EIO_VALUE; ///< Input/output error
+    inline constexpr i32 ENXIO = captured::ENXIO_VALUE; ///< No such device or address
+    inline constexpr i32 E2BIG = captured::E2BIG_VALUE; ///< Argument list too long
+    inline constexpr i32 ENOEXEC = captured::ENOEXEC_VALUE; ///< Exec format error
+    inline constexpr i32 EBADF = captured::EBADF_VALUE; ///< Bad file descriptor
+    inline constexpr i32 ECHILD = captured::ECHILD_VALUE; ///< No child processes
+    inline constexpr i32 EAGAIN = captured::EAGAIN_VALUE; ///< Resource temporarily unavailable
+    inline constexpr i32 EWOULDBLOCK = captured::EWOULDBLOCK_VALUE; ///< Operation would block (the same value as EAGAIN on Linux)
+    inline constexpr i32 ENOMEM = captured::ENOMEM_VALUE; ///< Cannot allocate memory
+    inline constexpr i32 EACCES = captured::EACCES_VALUE; ///< Permission denied
+    inline constexpr i32 EFAULT = captured::EFAULT_VALUE; ///< Bad address
+    inline constexpr i32 ENOTBLK = captured::ENOTBLK_VALUE; ///< Block device required
+    inline constexpr i32 EBUSY = captured::EBUSY_VALUE; ///< Device or resource busy
+    inline constexpr i32 EEXIST = captured::EEXIST_VALUE; ///< File exists
+    inline constexpr i32 EXDEV = captured::EXDEV_VALUE; ///< Invalid cross-device link
+    inline constexpr i32 ENODEV = captured::ENODEV_VALUE; ///< No such device
+    inline constexpr i32 ENOTDIR = captured::ENOTDIR_VALUE; ///< Not a directory
+    inline constexpr i32 EISDIR = captured::EISDIR_VALUE; ///< Is a directory
+    inline constexpr i32 EINVAL = captured::EINVAL_VALUE; ///< Invalid argument
+    inline constexpr i32 ENFILE = captured::ENFILE_VALUE; ///< Too many open files in system
+    inline constexpr i32 EMFILE = captured::EMFILE_VALUE; ///< Too many open files
+    inline constexpr i32 ENOTTY = captured::ENOTTY_VALUE; ///< Inappropriate ioctl for device
+    inline constexpr i32 ETXTBSY = captured::ETXTBSY_VALUE; ///< Text file busy
+    inline constexpr i32 EFBIG = captured::EFBIG_VALUE; ///< File too large
+    inline constexpr i32 ENOSPC = captured::ENOSPC_VALUE; ///< No space left on device
+    inline constexpr i32 ESPIPE = captured::ESPIPE_VALUE; ///< Illegal seek
+    inline constexpr i32 EROFS = captured::EROFS_VALUE; ///< Read-only file system
+    inline constexpr i32 EMLINK = captured::EMLINK_VALUE; ///< Too many links
+    inline constexpr i32 EPIPE = captured::EPIPE_VALUE; ///< Broken pipe
+    inline constexpr i32 EDOM = captured::EDOM_VALUE; ///< Numerical argument out of domain
+    inline constexpr i32 ERANGE = captured::ERANGE_VALUE; ///< Numerical result out of range
+    inline constexpr i32 EDEADLK = captured::EDEADLK_VALUE; ///< Resource deadlock avoided
+    inline constexpr i32 ENAMETOOLONG = captured::ENAMETOOLONG_VALUE; ///< File name too long
+    inline constexpr i32 ENOLCK = captured::ENOLCK_VALUE; ///< No locks available
+    inline constexpr i32 ENOSYS = captured::ENOSYS_VALUE; ///< Function not implemented
+    inline constexpr i32 ENOTEMPTY = captured::ENOTEMPTY_VALUE; ///< Directory not empty
+    inline constexpr i32 ELOOP = captured::ELOOP_VALUE; ///< Too many levels of symbolic links
+    inline constexpr i32 ENOMSG = captured::ENOMSG_VALUE; ///< No message of desired type
+    inline constexpr i32 EIDRM = captured::EIDRM_VALUE; ///< Identifier removed
+    inline constexpr i32 ENOSTR = captured::ENOSTR_VALUE; ///< Device not a stream
+    inline constexpr i32 ENODATA = captured::ENODATA_VALUE; ///< No data available
+    inline constexpr i32 ETIME = captured::ETIME_VALUE; ///< Timer expired
+    inline constexpr i32 ENOSR = captured::ENOSR_VALUE; ///< Out of streams resources
+    inline constexpr i32 EREMOTE = captured::EREMOTE_VALUE; ///< Object is remote
+    inline constexpr i32 ENOLINK = captured::ENOLINK_VALUE; ///< Link has been severed
+    inline constexpr i32 EPROTO = captured::EPROTO_VALUE; ///< Protocol error
+    inline constexpr i32 EMULTIHOP = captured::EMULTIHOP_VALUE; ///< Multihop attempted
+    inline constexpr i32 EBADMSG = captured::EBADMSG_VALUE; ///< Bad message
+    inline constexpr i32 EOVERFLOW = captured::EOVERFLOW_VALUE; ///< Value too large for defined data type
+    inline constexpr i32 EILSEQ = captured::EILSEQ_VALUE; ///< Invalid or incomplete multibyte or wide character
+    inline constexpr i32 EUSERS = captured::EUSERS_VALUE; ///< Too many users
+    inline constexpr i32 ENOTSOCK = captured::ENOTSOCK_VALUE; ///< Socket operation on non-socket
+    inline constexpr i32 EDESTADDRREQ = captured::EDESTADDRREQ_VALUE; ///< Destination address required
+    inline constexpr i32 EMSGSIZE = captured::EMSGSIZE_VALUE; ///< Message too long
+    inline constexpr i32 EPROTOTYPE = captured::EPROTOTYPE_VALUE; ///< Protocol wrong type for socket
+    inline constexpr i32 ENOPROTOOPT = captured::ENOPROTOOPT_VALUE; ///< Protocol not available
+    inline constexpr i32 EPROTONOSUPPORT = captured::EPROTONOSUPPORT_VALUE; ///< Protocol not supported
+    inline constexpr i32 ESOCKTNOSUPPORT = captured::ESOCKTNOSUPPORT_VALUE; ///< Socket type not supported
+    inline constexpr i32 EOPNOTSUPP = captured::EOPNOTSUPP_VALUE; ///< Operation not supported
+    inline constexpr i32 EPFNOSUPPORT = captured::EPFNOSUPPORT_VALUE; ///< Protocol family not supported
+    inline constexpr i32 EAFNOSUPPORT = captured::EAFNOSUPPORT_VALUE; ///< Address family not supported by protocol
+    inline constexpr i32 EADDRINUSE = captured::EADDRINUSE_VALUE; ///< Address already in use
+    inline constexpr i32 EADDRNOTAVAIL = captured::EADDRNOTAVAIL_VALUE; ///< Cannot assign requested address
+    inline constexpr i32 ENETDOWN = captured::ENETDOWN_VALUE; ///< Network is down
+    inline constexpr i32 ENETUNREACH = captured::ENETUNREACH_VALUE; ///< Network is unreachable
+    inline constexpr i32 ENETRESET = captured::ENETRESET_VALUE; ///< Network dropped connection on reset
+    inline constexpr i32 ECONNABORTED = captured::ECONNABORTED_VALUE; ///< Software caused connection abort
+    inline constexpr i32 ECONNRESET = captured::ECONNRESET_VALUE; ///< Connection reset by peer
+    inline constexpr i32 ENOBUFS = captured::ENOBUFS_VALUE; ///< No buffer space available
+    inline constexpr i32 EISCONN = captured::EISCONN_VALUE; ///< Transport endpoint is already connected
+    inline constexpr i32 ENOTCONN = captured::ENOTCONN_VALUE; ///< Transport endpoint is not connected
+    inline constexpr i32 ESHUTDOWN = captured::ESHUTDOWN_VALUE; ///< Cannot send after transport endpoint shutdown
+    inline constexpr i32 ETOOMANYREFS = captured::ETOOMANYREFS_VALUE; ///< Too many references: cannot splice
+    inline constexpr i32 ETIMEDOUT = captured::ETIMEDOUT_VALUE; ///< Connection timed out
+    inline constexpr i32 ECONNREFUSED = captured::ECONNREFUSED_VALUE; ///< Connection refused
+    inline constexpr i32 EHOSTDOWN = captured::EHOSTDOWN_VALUE; ///< Host is down
+    inline constexpr i32 EHOSTUNREACH = captured::EHOSTUNREACH_VALUE; ///< No route to host
+    inline constexpr i32 EALREADY = captured::EALREADY_VALUE; ///< Operation already in progress
+    inline constexpr i32 EINPROGRESS = captured::EINPROGRESS_VALUE; ///< Operation now in progress
+    inline constexpr i32 ESTALE = captured::ESTALE_VALUE; ///< Stale file handle
+    inline constexpr i32 EDQUOT = captured::EDQUOT_VALUE; ///< Disk quota exceeded
+    inline constexpr i32 ECANCELED = captured::ECANCELED_VALUE; ///< Operation canceled
+    inline constexpr i32 EOWNERDEAD = captured::EOWNERDEAD_VALUE; ///< Owner died
+    inline constexpr i32 ENOTRECOVERABLE = captured::ENOTRECOVERABLE_VALUE; ///< State not recoverable
+    inline constexpr i32 ENOTSUP = captured::ENOTSUP_VALUE; ///< Not supported parameter or option
+
+    /**
+     * @brief Linux's own additions to errno.
+     *
+     * Guarded to match stdx::os::unix::captured, where the values are read.
+     * Darwin defines none of these; it has its own set instead (EBADMACHO,
+     * ESHLIBVERS, EAUTH and friends), which would belong in darwin.constants.inl
+     * if anything needed them.
+     */
+    #ifdef __linux__
+    inline constexpr i32 ECHRNG = captured::ECHRNG_VALUE; ///< Channel number out of range
+    inline constexpr i32 EL2NSYNC = captured::EL2NSYNC_VALUE; ///< Level 2 not synchronized
+    inline constexpr i32 EL3HLT = captured::EL3HLT_VALUE; ///< Level 3 halted
+    inline constexpr i32 EL3RST = captured::EL3RST_VALUE; ///< Level 3 reset
+    inline constexpr i32 ELNRNG = captured::ELNRNG_VALUE; ///< Link number out of range
+    inline constexpr i32 EUNATCH = captured::EUNATCH_VALUE; ///< Protocol driver not attached
+    inline constexpr i32 ENOCSI = captured::ENOCSI_VALUE; ///< No CSI structure available
+    inline constexpr i32 EL2HLT = captured::EL2HLT_VALUE; ///< Level 2 halted
+    inline constexpr i32 EBADE = captured::EBADE_VALUE; ///< Invalid exchange
+    inline constexpr i32 EBADR = captured::EBADR_VALUE; ///< Invalid request descriptor
+    inline constexpr i32 EXFULL = captured::EXFULL_VALUE; ///< Exchange full
+    inline constexpr i32 ENOANO = captured::ENOANO_VALUE; ///< No anode
+    inline constexpr i32 EBADRQC = captured::EBADRQC_VALUE; ///< Invalid request code
+    inline constexpr i32 EBADSLT = captured::EBADSLT_VALUE; ///< Invalid slot
+    inline constexpr i32 EBFONT = captured::EBFONT_VALUE; ///< Bad font file format
+    inline constexpr i32 ENONET = captured::ENONET_VALUE; ///< Machine is not on the network
+    inline constexpr i32 ENOPKG = captured::ENOPKG_VALUE; ///< Package not installed
+    inline constexpr i32 EADV = captured::EADV_VALUE; ///< Advertise error
+    inline constexpr i32 ESRMNT = captured::ESRMNT_VALUE; ///< Srmount error
+    inline constexpr i32 ECOMM = captured::ECOMM_VALUE; ///< Communication error on send
+    inline constexpr i32 EDOTDOT = captured::EDOTDOT_VALUE; ///< RFS specific error
+    inline constexpr i32 ENOTUNIQ = captured::ENOTUNIQ_VALUE; ///< Name not unique on network
+    inline constexpr i32 EBADFD = captured::EBADFD_VALUE; ///< File descriptor in bad state
+    inline constexpr i32 EREMCHG = captured::EREMCHG_VALUE; ///< Remote address changed
+    inline constexpr i32 ELIBACC = captured::ELIBACC_VALUE; ///< Can not access a needed shared library
+    inline constexpr i32 ELIBBAD = captured::ELIBBAD_VALUE; ///< Accessing a corrupted shared library
+    inline constexpr i32 ELIBSCN = captured::ELIBSCN_VALUE; ///< .lib section in a.out corrupted
+    inline constexpr i32 ELIBMAX = captured::ELIBMAX_VALUE; ///< Attempting to link in too many shared libraries
+    inline constexpr i32 ELIBEXEC = captured::ELIBEXEC_VALUE; ///< Cannot exec a shared library directly
+    inline constexpr i32 ERESTART = captured::ERESTART_VALUE; ///< Interrupted system call should be restarted
+    inline constexpr i32 ESTRPIPE = captured::ESTRPIPE_VALUE; ///< Streams pipe error
+    inline constexpr i32 EUCLEAN = captured::EUCLEAN_VALUE; ///< Structure needs cleaning
+    inline constexpr i32 ENOTNAM = captured::ENOTNAM_VALUE; ///< Not a Xenix named type file
+    inline constexpr i32 ENAVAIL = captured::ENAVAIL_VALUE; ///< No Xenix semaphores available
+    inline constexpr i32 EISNAM = captured::EISNAM_VALUE; ///< Is a named type file
+    inline constexpr i32 EREMOTEIO = captured::EREMOTEIO_VALUE; ///< Remote I/O error
+    inline constexpr i32 ENOMEDIUM = captured::ENOMEDIUM_VALUE; ///< No medium found
+    inline constexpr i32 EMEDIUMTYPE = captured::EMEDIUMTYPE_VALUE; ///< Wrong medium type
+    inline constexpr i32 ENOKEY = captured::ENOKEY_VALUE; ///< Required key not available
+    inline constexpr i32 EKEYEXPIRED = captured::EKEYEXPIRED_VALUE; ///< Key has expired
+    inline constexpr i32 EKEYREVOKED = captured::EKEYREVOKED_VALUE; ///< Key has been revoked
+    inline constexpr i32 EKEYREJECTED = captured::EKEYREJECTED_VALUE; ///< Key was rejected by service
+    inline constexpr i32 ERFKILL = captured::ERFKILL_VALUE; ///< Operation not possible due to RF-kill
+    inline constexpr i32 EHWPOISON = captured::EHWPOISON_VALUE; ///< Memory page has hardware error
+    #endif
 
     /**
         * <fcntl.h> constants
         */
 
-    inline constexpr i32 F_DUPFD = 0; ///< Duplicate file descriptor
-    inline constexpr i32 F_GETFD = 1; ///< Get file descriptor flags
-    inline constexpr i32 F_SETFD = 2; ///< Set file descriptor flags
-    inline constexpr i32 F_GETFL = 3; ///< Get file status flags
-    inline constexpr i32 F_SETFL = 4; ///< Set file status flags
-    inline constexpr i32 F_GETLK = 5; ///< Get record locking information
-    inline constexpr i32 F_SETLK = 6; ///< Set record locking information
-    inline constexpr i32 F_SETLKW = 7; ///< Set record locking information; wait if blocked
-    inline constexpr i32 F_SETOWN = 8; ///< Set owner (process receiving SIGIO)
-    inline constexpr i32 F_GETOWN = 9; ///< Get owner (process receiving
-    inline constexpr i32 F_SETSIG = 10; ///< Set number of signal to be sent on SIGIO
-    inline constexpr i32 F_GETSIG = 11; ///< Get number of signal to be sent on SIGIO
-    inline constexpr i32 F_GETLK64 = 12; ///< Get record locking information (using 64-bit file sizes)
-    inline constexpr i32 F_SETLK64 = 13; ///< Set record locking information (using 64-bit file sizes)
-    inline constexpr i32 F_SETLKW64 = 14; ///< Set record locking information; wait if blocked (using 64-bit file sizes)
-    inline constexpr i32 F_SETOWN_EX = 15; ///< Set owner, using pidfd (instead of process id)
-    inline constexpr i32 F_GETOWN_EX = 16; ///< Get owner, using pidfd (instead of process id)
-    inline constexpr i32 F_DUPFD_CLOEXEC = 1030; ///< Duplicate descriptor with close-on-exec set
+    inline constexpr i32 F_DUPFD = captured::F_DUPFD_VALUE; ///< Duplicate file descriptor
+    inline constexpr i32 F_GETFD = captured::F_GETFD_VALUE; ///< Get file descriptor flags
+    inline constexpr i32 F_SETFD = captured::F_SETFD_VALUE; ///< Set file descriptor flags
+    inline constexpr i32 F_GETFL = captured::F_GETFL_VALUE; ///< Get file status flags
+    inline constexpr i32 F_SETFL = captured::F_SETFL_VALUE; ///< Set file status flags
+    inline constexpr i32 F_GETLK = captured::F_GETLK_VALUE; ///< Get record locking information
+    inline constexpr i32 F_SETLK = captured::F_SETLK_VALUE; ///< Set record locking information
+    inline constexpr i32 F_SETLKW = captured::F_SETLKW_VALUE; ///< Set record locking information; wait if blocked
+    inline constexpr i32 F_SETOWN = captured::F_SETOWN_VALUE; ///< Set owner (process receiving SIGIO)
+    inline constexpr i32 F_GETOWN = captured::F_GETOWN_VALUE; ///< Get owner (process receiving
+    inline constexpr i32 F_DUPFD_CLOEXEC = captured::F_DUPFD_CLOEXEC_VALUE; ///< Duplicate descriptor with close-on-exec set
 
-    inline constexpr i32 FD_CLOEXEC = 1; ///< Close descriptor on exec
+    inline constexpr i32 FD_CLOEXEC = captured::FD_CLOEXEC_VALUE; ///< Close descriptor on exec
 
-    inline constexpr i32 F_RDLCK = 0; ///< Shared/read lock
-    inline constexpr i32 F_WRLCK = 1; ///< Exclusive/write lock
-    inline constexpr i32 F_UNLCK = 2; ///< Unlock
+    inline constexpr i32 F_RDLCK = captured::F_RDLCK_VALUE; ///< Shared/read lock
+    inline constexpr i32 F_WRLCK = captured::F_WRLCK_VALUE; ///< Exclusive/write lock
+    inline constexpr i32 F_UNLCK = captured::F_UNLCK_VALUE; ///< Unlock
 
-    inline constexpr i32 SEEK_SET = 0; ///< Seek from beginning
-    inline constexpr i32 SEEK_CUR = 1; ///< Seek from current position
-    inline constexpr i32 SEEK_END = 2; ///< Seek from end
+    inline constexpr i32 SEEK_SET = captured::SEEK_SET_VALUE; ///< Seek from beginning
+    inline constexpr i32 SEEK_CUR = captured::SEEK_CUR_VALUE; ///< Seek from current position
+    inline constexpr i32 SEEK_END = captured::SEEK_END_VALUE; ///< Seek from end
 
-    inline constexpr i32 O_ACCMODE = 0003;
-    inline constexpr i32 O_RDONLY = 00;
-    inline constexpr i32 O_WRONLY = 01;
-    inline constexpr i32 O_RDWR = 02;
-    inline constexpr i32 O_CREAT = 0100;
-    inline constexpr i32 O_DIRECTORY = 0200000;
-    inline constexpr i32 O_EXCL = 0200;
-    inline constexpr i32 O_NOCTTY = 0400;
-    inline constexpr i32 O_NOFOLLOW = 0400000;
-    inline constexpr i32 O_TRUNC = 01000;
-    inline constexpr i32 O_TTY_INIT = 0;
-    inline constexpr i32 O_APPEND = 02000;
-    inline constexpr i32 O_DSYNC = 010000;
-    inline constexpr i32 O_NONBLOCK = 04000;
-    inline constexpr i32 O_NDELAY = O_NONBLOCK;
-    inline constexpr i32 O_SYNC = 04010000;
-    inline constexpr i32 O_RSYNC = O_SYNC;
-    inline constexpr i32 O_FSYNC = O_SYNC;
+    inline constexpr i32 O_ACCMODE = captured::O_ACCMODE_VALUE;
+    inline constexpr i32 O_RDONLY = captured::O_RDONLY_VALUE;
+    inline constexpr i32 O_WRONLY = captured::O_WRONLY_VALUE;
+    inline constexpr i32 O_RDWR = captured::O_RDWR_VALUE;
+    inline constexpr i32 O_CREAT = captured::O_CREAT_VALUE;
+    inline constexpr i32 O_DIRECTORY = captured::O_DIRECTORY_VALUE;
+    inline constexpr i32 O_EXCL = captured::O_EXCL_VALUE;
+    inline constexpr i32 O_NOCTTY = captured::O_NOCTTY_VALUE;
+    inline constexpr i32 O_NOFOLLOW = captured::O_NOFOLLOW_VALUE;
+    inline constexpr i32 O_TRUNC = captured::O_TRUNC_VALUE;
+    inline constexpr i32 O_APPEND = captured::O_APPEND_VALUE;
+    inline constexpr i32 O_DSYNC = captured::O_DSYNC_VALUE;
+    inline constexpr i32 O_NONBLOCK = captured::O_NONBLOCK_VALUE;
+    inline constexpr i32 O_NDELAY = captured::O_NDELAY_VALUE;
+    inline constexpr i32 O_SYNC = captured::O_SYNC_VALUE;
+    inline constexpr i32 O_FSYNC = captured::O_FSYNC_VALUE;
+    /**
+     * @brief Open for execute only, and open a directory for search only.
+     *
+     * Darwin implements both; glibc defines neither macro, so on Linux they fall
+     * back to O_RDONLY - which is what this file has always done, though as a bare
+     * literal it read as a real value rather than as a substitute. POSIX allows
+     * the fallback: a plain read-only open is permitted to serve where the mode is
+     * unsupported.
+     */
+    #ifdef __APPLE__
+    inline constexpr i32 O_EXEC = captured::O_EXEC_VALUE;
+    inline constexpr i32 O_SEARCH = captured::O_SEARCH_VALUE;
+    #else
     inline constexpr i32 O_EXEC = O_RDONLY;
     inline constexpr i32 O_SEARCH = O_RDONLY;
+    #endif
     inline constexpr i32 O_CLOEXEC  = 02000000;
 
-    inline constexpr i32 AT_FDCWD = -100;
-    inline constexpr i32 AT_EACCESS = 0x200;
-    inline constexpr i32 AT_SYMLINK_NOFOLLOW = 0x100;
-    inline constexpr i32 AT_SYMLINK_FOLLOW = 0x400;
-    inline constexpr i32 AT_REMOVEDIR = 0x200;
+    inline constexpr i32 AT_FDCWD = captured::AT_FDCWD_VALUE;
+    inline constexpr i32 AT_EACCESS = captured::AT_EACCESS_VALUE;
+    inline constexpr i32 AT_SYMLINK_NOFOLLOW = captured::AT_SYMLINK_NOFOLLOW_VALUE;
+    inline constexpr i32 AT_SYMLINK_FOLLOW = captured::AT_SYMLINK_FOLLOW_VALUE;
+    inline constexpr i32 AT_REMOVEDIR = captured::AT_REMOVEDIR_VALUE;
 
-    inline constexpr i32 POSIX_FADV_NORMAL = 0;
-    inline constexpr i32 POSIX_FADV_RANDOM = 1;
-    inline constexpr i32 POSIX_FADV_SEQUENTIAL = 2;
-    inline constexpr i32 POSIX_FADV_WILLNEED = 3;
-    inline constexpr i32 POSIX_FADV_DONTNEED = 4;
-    inline constexpr i32 POSIX_FADV_NOREUSE = 5;
+    /// glibc and Linux additions; Darwin defines none of these.
+    #ifdef __linux__
+    inline constexpr i32 F_SETSIG = captured::F_SETSIG_VALUE; ///< Set number of signal to be sent on SIGIO
+    inline constexpr i32 F_GETSIG = captured::F_GETSIG_VALUE; ///< Get number of signal to be sent on SIGIO
+    inline constexpr i32 F_GETLK64 = captured::F_GETLK64_VALUE; ///< Get record locking information (using 64-bit file sizes)
+    inline constexpr i32 F_SETLK64 = captured::F_SETLK64_VALUE; ///< Set record locking information (using 64-bit file sizes)
+    inline constexpr i32 F_SETLKW64 = captured::F_SETLKW64_VALUE; ///< Set record locking information; wait if blocked (using 64-bit file sizes)
+    inline constexpr i32 F_SETOWN_EX = captured::F_SETOWN_EX_VALUE; ///< Set owner, using pidfd (instead of process id)
+    inline constexpr i32 F_GETOWN_EX = captured::F_GETOWN_EX_VALUE; ///< Get owner, using pidfd (instead of process id)
+    /**
+     * @brief Leave a newly opened terminal in a standard state.
+     *
+     * The one constant in this file that cannot be derived, because neither Linux
+     * nor Darwin defines the macro. POSIX permits it to be zero where opening a
+     * terminal already yields a usable state, which is the case on both, so zero
+     * is the correct value rather than a placeholder.
+     */
+    inline constexpr i32 O_TTY_INIT = 0;
+    inline constexpr i32 O_RSYNC = captured::O_RSYNC_VALUE;
+    inline constexpr i32 POSIX_FADV_NORMAL = captured::POSIX_FADV_NORMAL_VALUE;
+    inline constexpr i32 POSIX_FADV_RANDOM = captured::POSIX_FADV_RANDOM_VALUE;
+    inline constexpr i32 POSIX_FADV_SEQUENTIAL = captured::POSIX_FADV_SEQUENTIAL_VALUE;
+    inline constexpr i32 POSIX_FADV_WILLNEED = captured::POSIX_FADV_WILLNEED_VALUE;
+    inline constexpr i32 POSIX_FADV_DONTNEED = captured::POSIX_FADV_DONTNEED_VALUE;
+    inline constexpr i32 POSIX_FADV_NOREUSE = captured::POSIX_FADV_NOREUSE_VALUE;
+    #endif
+
 
     /**
      * <glob.h> constants
@@ -522,13 +574,80 @@ export namespace stdx::os::unix {
     inline constexpr u32 STDERR_FILENO = 2;
 
     /**
+     * <netdb.h> constants
+     */
+
+    inline constexpr i32 AI_PASSIVE = captured::AI_PASSIVE_VALUE; ///< Address is intended for bind().
+    inline constexpr i32 AI_CANONNAME = captured::AI_CANONNAME_VALUE; ///< Request the canonical name.
+    inline constexpr i32 AI_NUMERICHOST = captured::AI_NUMERICHOST_VALUE; ///< Reject host names; the node is a literal.
+    inline constexpr i32 AI_V4MAPPED = captured::AI_V4MAPPED_VALUE; ///< Map IPv4 results into IPv6 when no IPv6 exists.
+    inline constexpr i32 AI_ALL = captured::AI_ALL_VALUE; ///< Return both IPv4-mapped and IPv6 addresses.
+    inline constexpr i32 AI_ADDRCONFIG = captured::AI_ADDRCONFIG_VALUE; ///< Only return families the host is configured for.
+    inline constexpr i32 AI_NUMERICSERV = captured::AI_NUMERICSERV_VALUE; ///< Reject service names; the service is a port number.
+
+    inline constexpr i32 NI_NUMERICHOST = captured::NI_NUMERICHOST_VALUE; ///< Return the address in numeric form.
+    inline constexpr i32 NI_NUMERICSERV = captured::NI_NUMERICSERV_VALUE; ///< Return the service as a port number.
+    inline constexpr i32 NI_NOFQDN = captured::NI_NOFQDN_VALUE; ///< Return only the hostname part of an FQDN.
+    inline constexpr i32 NI_NAMEREQD = captured::NI_NAMEREQD_VALUE; ///< Fail rather than fall back to a numeric form.
+    inline constexpr i32 NI_DGRAM = captured::NI_DGRAM_VALUE; ///< Look the service up for a datagram, not a stream.
+
+    inline constexpr usize NI_MAXHOST = captured::NI_MAXHOST_VALUE; ///< Buffer size that always holds a host name.
+    inline constexpr usize NI_MAXSERV = captured::NI_MAXSERV_VALUE; ///< Buffer size that always holds a service name.
+
+    inline constexpr i32 EAI_BADFLAGS = captured::EAI_BADFLAGS_VALUE; ///< An unsupported flag was given.
+    inline constexpr i32 EAI_NONAME = captured::EAI_NONAME_VALUE; ///< The name resolves to nothing.
+    inline constexpr i32 EAI_AGAIN = captured::EAI_AGAIN_VALUE; ///< Temporary failure; the lookup may succeed later.
+    inline constexpr i32 EAI_FAIL = captured::EAI_FAIL_VALUE; ///< Non-recoverable failure.
+    inline constexpr i32 EAI_NODATA = captured::EAI_NODATA_VALUE; ///< The name is valid but has no address.
+    inline constexpr i32 EAI_FAMILY = captured::EAI_FAMILY_VALUE; ///< The address family is not supported.
+    inline constexpr i32 EAI_SOCKTYPE = captured::EAI_SOCKTYPE_VALUE; ///< The socket type is not supported.
+    inline constexpr i32 EAI_SERVICE = captured::EAI_SERVICE_VALUE; ///< The service is not available for this socket type.
+    inline constexpr i32 EAI_MEMORY = captured::EAI_MEMORY_VALUE; ///< Out of memory.
+    inline constexpr i32 EAI_SYSTEM = captured::EAI_SYSTEM_VALUE; ///< A system error; consult errno.
+    inline constexpr i32 EAI_OVERFLOW = captured::EAI_OVERFLOW_VALUE; ///< An argument buffer was too small.
+
+    /**
      * @namespace netinet
      * @brief Unix Internet protocol operations.
      */
     namespace netinet {
         /**
+         * <netinet/in.h> constants
+         */
+
+        inline constexpr i32 IPPROTO_IP = captured::IPPROTO_IP_VALUE; ///< Dummy protocol for the IP level itself.
+        inline constexpr i32 IPPROTO_ICMP = captured::IPPROTO_ICMP_VALUE; ///< Internet Control Message Protocol.
+        inline constexpr i32 IPPROTO_TCP = captured::IPPROTO_TCP_VALUE; ///< Transmission Control Protocol.
+        inline constexpr i32 IPPROTO_UDP = captured::IPPROTO_UDP_VALUE; ///< User Datagram Protocol.
+        inline constexpr i32 IPPROTO_IPV6 = captured::IPPROTO_IPV6_VALUE; ///< Options for the IPv6 header itself.
+
+        inline constexpr u32 INADDR_ANY = captured::INADDR_ANY_VALUE; ///< The IPv4 wildcard address 0.0.0.0.
+        inline constexpr u32 INADDR_LOOPBACK = captured::INADDR_LOOPBACK_VALUE; ///< The IPv4 loopback address 127.0.0.1.
+        inline constexpr u32 INADDR_BROADCAST = captured::INADDR_BROADCAST_VALUE; ///< The IPv4 limited broadcast address.
+
+        inline constexpr i32 IPV6_V6ONLY = captured::IPV6_V6ONLY_VALUE; ///< Refuse IPv4-mapped peers on an AF_INET6 socket.
+        inline constexpr i32 IPV6_JOIN_GROUP = captured::IPV6_JOIN_GROUP_VALUE; ///< Join an IPv6 multicast group.
+        inline constexpr i32 IPV6_LEAVE_GROUP = captured::IPV6_LEAVE_GROUP_VALUE; ///< Leave an IPv6 multicast group.
+        inline constexpr i32 IPV6_MULTICAST_HOPS = captured::IPV6_MULTICAST_HOPS_VALUE; ///< Hop limit for outgoing multicast.
+        inline constexpr i32 IPV6_MULTICAST_IF = captured::IPV6_MULTICAST_IF_VALUE; ///< Interface for outgoing multicast.
+        inline constexpr i32 IPV6_UNICAST_HOPS = captured::IPV6_UNICAST_HOPS_VALUE; ///< Hop limit for outgoing unicast.
+
+        /**
          * <netinet/tcp.h> constants
          */
+
+        inline constexpr i32 TCP_NODELAY = captured::TCP_NODELAY_VALUE; ///< Send segments as soon as possible (disable Nagle).
+        inline constexpr i32 TCP_MAXSEG = captured::TCP_MAXSEG_VALUE; ///< Maximum segment size.
+        inline constexpr i32 TCP_KEEPINTVL = captured::TCP_KEEPINTVL_VALUE; ///< Seconds between keepalive probes.
+        inline constexpr i32 TCP_KEEPCNT = captured::TCP_KEEPCNT_VALUE; ///< Unanswered probes before the peer is declared dead.
+        inline constexpr i32 TCP_FASTOPEN = captured::TCP_FASTOPEN_VALUE; ///< Accept data in the opening SYN.
+
+        /// Linux-only knobs; the guard matches captured. TCP_CORK's nearest Darwin equivalent is TCP_NOPUSH, and Darwin's idle-time option is stdx::os::darwin::netinet::TCP_KEEPALIVE.
+        #ifdef __linux__
+        inline constexpr i32 TCP_CORK = captured::TCP_CORK_VALUE; ///< Hold back partial segments.
+        inline constexpr i32 TCP_KEEPIDLE = captured::TCP_KEEPIDLE_VALUE; ///< Idle seconds before the first keepalive probe.
+        inline constexpr i32 TCP_QUICKACK = captured::TCP_QUICKACK_VALUE; ///< Leave delayed-ack mode.
+        #endif
 
         enum class TcpCongestionAlgorithmState: u8 {
             OPEN = 0,
@@ -544,6 +663,105 @@ export namespace stdx::os::unix {
      * @brief Unix system operations.
      */
     namespace sys {
+        /**
+         * <sys/socket.h> constants
+         *
+         * Read from the real header rather than written out here; see
+         * stdx::os::unix::sys::captured in os/unix/sys/socket.inl for how and
+         * why. The Linux numbers these used to be are in the git history, and
+         * every one of them was correct - on Linux.
+         */
+
+        inline constexpr i32 AF_UNSPEC = captured::AF_UNSPEC_VALUE; ///< Unspecified address family.
+        inline constexpr i32 AF_UNIX = captured::AF_UNIX_VALUE; ///< Local communication.
+        inline constexpr i32 AF_INET = captured::AF_INET_VALUE; ///< IPv4.
+        inline constexpr i32 AF_INET6 = captured::AF_INET6_VALUE; ///< IPv6.
+
+        inline constexpr i32 PF_UNSPEC = AF_UNSPEC; ///< Unspecified protocol family.
+        inline constexpr i32 PF_INET = AF_INET; ///< IPv4 protocol family.
+        inline constexpr i32 PF_INET6 = AF_INET6; ///< IPv6 protocol family.
+
+        inline constexpr i32 SOCK_STREAM = captured::SOCK_STREAM_VALUE; ///< Sequenced, reliable, connection-based byte stream.
+        inline constexpr i32 SOCK_DGRAM = captured::SOCK_DGRAM_VALUE; ///< Connectionless, unreliable datagrams of fixed length.
+        inline constexpr i32 SOCK_RAW = captured::SOCK_RAW_VALUE; ///< Raw protocol interface.
+        inline constexpr i32 SOCK_SEQPACKET = captured::SOCK_SEQPACKET_VALUE; ///< Sequenced, reliable, connection-based datagrams.
+
+        inline constexpr i32 SOL_SOCKET = captured::SOL_SOCKET_VALUE; ///< Options at the socket API level.
+
+        inline constexpr i32 SO_DEBUG = captured::SO_DEBUG_VALUE; ///< Record debugging information.
+        inline constexpr i32 SO_REUSEADDR = captured::SO_REUSEADDR_VALUE; ///< Allow reuse of a local address in TIME_WAIT.
+        inline constexpr i32 SO_TYPE = captured::SO_TYPE_VALUE; ///< The socket's type (read-only).
+        inline constexpr i32 SO_ERROR = captured::SO_ERROR_VALUE; ///< Fetch and clear the pending error (read-only).
+        inline constexpr i32 SO_DONTROUTE = captured::SO_DONTROUTE_VALUE; ///< Bypass the routing table.
+        inline constexpr i32 SO_BROADCAST = captured::SO_BROADCAST_VALUE; ///< Permit sending to a broadcast address.
+        inline constexpr i32 SO_SNDBUF = captured::SO_SNDBUF_VALUE; ///< Send-buffer size.
+        inline constexpr i32 SO_RCVBUF = captured::SO_RCVBUF_VALUE; ///< Receive-buffer size.
+        inline constexpr i32 SO_KEEPALIVE = captured::SO_KEEPALIVE_VALUE; ///< Send keepalive probes on an idle connection.
+        inline constexpr i32 SO_OOBINLINE = captured::SO_OOBINLINE_VALUE; ///< Deliver out-of-band data in the normal stream.
+        inline constexpr i32 SO_REUSEPORT = captured::SO_REUSEPORT_VALUE; ///< Permit several sockets to bind the same port.
+        inline constexpr i32 SO_RCVLOWAT = captured::SO_RCVLOWAT_VALUE; ///< Minimum bytes before a receive completes.
+        inline constexpr i32 SO_SNDLOWAT = captured::SO_SNDLOWAT_VALUE; ///< Minimum bytes before a send completes.
+        inline constexpr i32 SO_RCVTIMEO = captured::SO_RCVTIMEO_VALUE; ///< Receive timeout.
+        inline constexpr i32 SO_SNDTIMEO = captured::SO_SNDTIMEO_VALUE; ///< Send timeout.
+        inline constexpr i32 SO_ACCEPTCONN = captured::SO_ACCEPTCONN_VALUE; ///< Whether the socket is listening (read-only).
+
+        /**
+         * @brief Block on close until queued data is sent.
+         *
+         * Deliberately not a fixed number: Darwin defines this as 0x0080 or
+         * 0x1080 depending on whether the consumer defined _POSIX_C_SOURCE, the
+         * two meaning ticks and seconds respectively. No table could be right
+         * about it; only reading the header can.
+         */
+        inline constexpr i32 SO_LINGER = captured::SO_LINGER_VALUE;
+
+        inline constexpr i32 MSG_OOB = captured::MSG_OOB_VALUE; ///< Process out-of-band data.
+        inline constexpr i32 MSG_PEEK = captured::MSG_PEEK_VALUE; ///< Read without consuming.
+        inline constexpr i32 MSG_DONTROUTE = captured::MSG_DONTROUTE_VALUE; ///< Bypass the routing table for this call.
+        inline constexpr i32 MSG_TRUNC = captured::MSG_TRUNC_VALUE; ///< Report the untruncated datagram length.
+        inline constexpr i32 MSG_DONTWAIT = captured::MSG_DONTWAIT_VALUE; ///< Make this call non-blocking.
+        inline constexpr i32 MSG_EOR = captured::MSG_EOR_VALUE; ///< End of record.
+        inline constexpr i32 MSG_WAITALL = captured::MSG_WAITALL_VALUE; ///< Do not return until the whole request is met.
+
+        /**
+         * @brief Report EPIPE from a send to a closed peer instead of raising SIGPIPE.
+         *
+         * 0x4000 on Linux and 0x80000 on Darwin, and Linux's value is Darwin's
+         * MSG_RCVMORE, so the two cannot be interchanged and getting it wrong
+         * does not fail loudly - it kills the process on the next write to a
+         * closed peer. The guard matches the one on captured::MSG_NOSIGNAL_VALUE.
+         */
+        #if defined(__linux__) || defined(__APPLE__)
+        inline constexpr i32 MSG_NOSIGNAL = captured::MSG_NOSIGNAL_VALUE;
+        #endif
+
+        /**
+         * @brief Suppresses SIGPIPE for the socket's whole lifetime rather than per send.
+         *
+         * Darwin-only, and the fallback if the kernel there turns out to ignore
+         * MSG_NOSIGNAL. Unlike the send flag it has to be set on every
+         * descriptor, including each accepted peer, since it is not inherited
+         * from the listener.
+         */
+        #ifdef __APPLE__
+        inline constexpr i32 SO_NOSIGPIPE = captured::SO_NOSIGPIPE_VALUE;
+        #endif
+
+        /// Linux extensions; the guards match those on the captured values.
+        #ifdef __linux__
+        inline constexpr i32 AF_PACKET = captured::AF_PACKET_VALUE; ///< Low-level packet interface.
+        inline constexpr i32 SOCK_NONBLOCK = captured::SOCK_NONBLOCK_VALUE; ///< Open the socket non-blocking.
+        inline constexpr i32 SOCK_CLOEXEC = captured::SOCK_CLOEXEC_VALUE; ///< Close the socket on exec.
+        inline constexpr i32 SO_PROTOCOL = captured::SO_PROTOCOL_VALUE; ///< The socket's protocol (read-only).
+        inline constexpr i32 SO_DOMAIN = captured::SO_DOMAIN_VALUE; ///< The socket's address family (read-only).
+        #endif
+
+        inline constexpr i32 SHUT_RD = captured::SHUT_RD_VALUE; ///< Shut the receive half down.
+        inline constexpr i32 SHUT_WR = captured::SHUT_WR_VALUE; ///< Shut the send half down.
+        inline constexpr i32 SHUT_RDWR = captured::SHUT_RDWR_VALUE; ///< Shut both halves down.
+
+        inline constexpr i32 SOMAXCONN = captured::SOMAXCONN_VALUE; ///< Backlog ceiling; listen() clamps to the sysctl anyway.
+
         /**
          * <sys/ioctl.h> constants
          */

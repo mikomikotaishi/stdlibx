@@ -6,6 +6,22 @@ using stdx::random::MersenneTwister;
 using stdx::random::RandomDevice;
 using stdx::random::UniformRealDistribution;
 
+namespace stdx::core {
+    /**
+     * @concept CompatibleNumeric
+     * @brief Two arithmetic types safe to combine under CommonTypeType.
+     *
+     * Both must be arithmetic, and they must not pair a signed integer with an
+     * unsigned one: std::common_type makes that combination unsigned, so a
+     * negative result would silently wrap. Any pairing that involves a
+     * floating-point type, or two integers of the same signedness, is allowed.
+     */
+    template <typename T, typename U>
+    concept CompatibleNumeric = Numeric<T> && Numeric<U>
+        && !(SignedIntegral<T> && UnsignedIntegral<U>)
+        && !(UnsignedIntegral<T> && SignedIntegral<U>);
+}
+
 /**
  * @namespace stdx::core
  * @brief The core objects of the standard library.
@@ -221,14 +237,24 @@ export namespace stdx::core {
 
         template <typename T>
         [[nodiscard]]
-        static constexpr const T& max(const T& a, const T& b) noexcept {
+        static constexpr const T& max(const T& a, const T& b) noexcept(noexcept(a < b)) {
             using std::max;
             return max(a, b);
         }
 
+        template <typename T, typename U>
+            requires (!SameAs<T, U>) && CompatibleNumeric<T, U>
+        [[nodiscard]]
+        static constexpr CommonTypeType<T, U> max(T a, U b) noexcept {
+            using Common = CommonTypeType<T, U>;
+            return static_cast<Common>(a) < static_cast<Common>(b)
+                ? static_cast<Common>(b)
+                : static_cast<Common>(a);
+        }
+
         template <typename T, typename Compare>
         [[nodiscard]]
-        static constexpr const T& max(const T& a, const T& b, Compare c) noexcept {
+        static constexpr const T& max(const T& a, const T& b, Compare c) noexcept(noexcept(c(a, b))) {
             using std::max;
             return max(a, b, c);
         }
@@ -249,14 +275,24 @@ export namespace stdx::core {
 
         template <typename T>
         [[nodiscard]]
-        static constexpr const T& min(const T& a, const T& b) noexcept {
+        static constexpr const T& min(const T& a, const T& b) noexcept(noexcept(a < b)) {
             using std::min;
             return min(a, b);
         }
 
+        template <typename T, typename U>
+            requires (!SameAs<T, U>) && CompatibleNumeric<T, U>
+        [[nodiscard]]
+        static constexpr CommonTypeType<T, U> min(T a, U b) noexcept {
+            using Common = CommonTypeType<T, U>;
+            return static_cast<Common>(b) < static_cast<Common>(a)
+                ? static_cast<Common>(b)
+                : static_cast<Common>(a);
+        }
+
         template <typename T, typename Compare>
         [[nodiscard]]
-        static constexpr const T& min(const T& a, const T& b, Compare c) noexcept {
+        static constexpr const T& min(const T& a, const T& b, Compare c) noexcept(noexcept(c(a, b))) {
             using std::min;
             return min(a, b, c);
         }
@@ -277,14 +313,26 @@ export namespace stdx::core {
 
         template <typename T>
         [[nodiscard]]
-        static constexpr Pair<const T&, const T&> minmax(const T& a, const T& b) noexcept {
+        static constexpr Pair<const T&, const T&> minmax(const T& a, const T& b) noexcept(noexcept(a < b)) {
             using std::minmax;
             return minmax(a, b);
         }
 
+        template <typename T, typename U>
+            requires (!SameAs<T, U>) && CompatibleNumeric<T, U>
+        [[nodiscard]]
+        static constexpr Pair<CommonTypeType<T, U>, CommonTypeType<T, U>> minmax(T a, U b) noexcept {
+            using Common = CommonTypeType<T, U>;
+            const Common first = static_cast<Common>(a);
+            const Common second = static_cast<Common>(b);
+            return second < first
+                ? Pair<Common, Common>{second, first}
+                : Pair<Common, Common>{first, second};
+        }
+
         template <typename T, typename Compare>
         [[nodiscard]]
-        static constexpr Pair<const T&, const T&> minmax(const T& a, const T& b, Compare c) noexcept {
+        static constexpr Pair<const T&, const T&> minmax(const T& a, const T& b, Compare c) noexcept(noexcept(c(a, b))) {
             using std::minmax;
             return minmax(a, b, c);
         }
@@ -305,14 +353,28 @@ export namespace stdx::core {
 
         template <typename T>
         [[nodiscard]]
-        static constexpr const T& clamp(const T& x, const T& low, const T& high) noexcept {
+        static constexpr const T& clamp(const T& x, const T& low, const T& high)
+            noexcept(noexcept(x < low) && noexcept(high < x)) {
             using std::clamp;
             return clamp(x, low, high);
         }
 
+        template <typename X, typename L, typename H>
+            requires (!(SameAs<X, L> && SameAs<L, H>))
+                && CompatibleNumeric<X, L> && CompatibleNumeric<L, H> && CompatibleNumeric<X, H>
+        [[nodiscard]]
+        static constexpr CommonTypeType<X, L, H> clamp(X x, L low, H high) noexcept {
+            using Common = CommonTypeType<X, L, H>;
+            const Common value = static_cast<Common>(x);
+            const Common lo = static_cast<Common>(low);
+            const Common hi = static_cast<Common>(high);
+            return value < lo ? lo : hi < value ? hi : value;
+        }
+
         template <typename T, typename Compare>
         [[nodiscard]]
-        static constexpr const T& clamp(const T& x, const T& low, const T& high, Compare c) noexcept {
+        static constexpr const T& clamp(const T& x, const T& low, const T& high, Compare c)
+            noexcept(noexcept(c(x, low)) && noexcept(c(high, x))) {
             using std::clamp;
             return clamp(x, low, high, c);
         }

@@ -7,10 +7,6 @@ using stdx::linq::Query;
 
 using namespace stdx::test;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 void test_basic_operations() {
     Vector<i32> numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
@@ -169,7 +165,7 @@ void test_with_strings() {
         .to<Vector<usize>>();
     expect_eq(lengths, Vector<usize>{5, 6, 7, 9, 7}, "word lengths");
 
-    expect(Query(words).contains(String("banana")), "contains 'banana'");
+    expect(Query(words).contains("banana"s), "contains 'banana'");
 }
 
 void test_skip_take_while() {
@@ -315,7 +311,7 @@ void test_zip() {
         .zip(scores)
         .select([](auto pair) -> String {
             auto [name, score] = pair;
-            return stdx::fmt::format("{}: {}", name, score);
+            return Ops::fmt("{}: {}", name, score);
         })
         .to<Vector<String>>();
     expect_eq(
@@ -400,7 +396,7 @@ void test_split() {
     expect_eq(infos, Vector<String>{"load", "ready"}, "split + filter");
 
     // Empty fields are preserved.
-    Vector<String> empties = Query(StringView("x,,y"))
+    Vector<String> empties = Query("x,,y"sv)
         .split<String>(',')
         .to<Vector>();
     expect_eq(empties, Vector<String>{"x", "", "y"}, "split keeps empty fields");

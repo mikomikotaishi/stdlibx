@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef __cpp_lib_reflection
-using stdx::meta::IsEnumValue;
 using stdx::meta::UnderlyingTypeType;
 using stdx::meta::reflect::NamesPer;
+using stdx::meta::reflect::ReflectableAsEnum;
 using stdx::meta::reflect::ValuesPer;
 #endif
 
@@ -21,9 +21,8 @@ export namespace stdx::collections {
      * @tparam K An enumeration type used as the key.
      * @tparam V The mapped value type.
      */
-    template <typename K, typename V>
-        requires (IsEnumValue<K>)
-    class EnumMap {
+    template <ReflectableAsEnum K, typename V>
+    class [[nodiscard]] EnumMap {
     public:
         using KeyType = K;
         using MappedType = V;
@@ -34,8 +33,8 @@ export namespace stdx::collections {
         static constexpr const Array<K, stdx::meta::reflect::count<K>()>& KEYS = ValuesPer<K>; ///< All enumerator values of K, in declaration order.
         static constexpr usize CAPACITY = KEYS.size(); ///< Number of enumerators of K (the maximum number of entries).
     private:
-        Array<Optional<V>, CAPACITY> slots{}; ///< Per-enumerator value storage; an empty Optional means the key is absent.
-        usize occupied = 0; ///< Number of present entries.
+        Array<Optional<V>, CAPACITY> _slots; ///< Per-enumerator value storage; an empty Optional means the key is absent.
+        usize _occupied = 0; ///< Number of present entries.
 
         [[nodiscard]]
         static constexpr usize index_of(K k) noexcept {
@@ -49,20 +48,44 @@ export namespace stdx::collections {
     public:
         constexpr EnumMap() noexcept = default;
 
+        /**
+         * @brief Constructs an EnumMap with the given entries.
+         * @param entries The initial entries for the map.
+         */
         constexpr EnumMap(InitializerList<Pair<K, V>> entries) {
             for (const auto& [key, value]: entries) {
                 insert_or_assign(key, value);
             }
         }
 
+        /**
+         * @brief Builds a map from entries given as separate arguments.
+         * @param entries The entries to insert, in order, each a Pair<K, V> of
+         * either value category. A later entry repeating a key overwrites the
+         * earlier one, as with the InitializerList form.
+         * @return The populated map.
+         *
+         * Each entry is forwarded rather than copied, so unlike the
+         * InitializerList constructor this works when V is move-only, and avoids
+         * a copy per entry when V is expensive. An entry has to be spelled as a
+         * Pair - a braced {key, value} cannot deduce against a forwarding
+         * reference - so prefer the InitializerList constructor when V is cheap.
+         */
+        [[nodiscard]]
+        static constexpr EnumMap of(DecaysTo<Pair<K, V>> auto&&... entries) {
+            EnumMap map;
+            (map.insert_or_assign(entries.first, std::forward<decltype(entries)>(entries).second), ...);
+            return map;
+        }
+
         [[nodiscard]]
         constexpr usize size() const noexcept {
-            return occupied;
+            return _occupied;
         }
 
         [[nodiscard]]
         constexpr bool empty() const noexcept {
-            return occupied == 0;
+            return _occupied == 0;
         }
 
         [[nodiscard]]
@@ -73,13 +96,13 @@ export namespace stdx::collections {
         [[nodiscard]]
         constexpr bool contains(K key) const noexcept {
             usize i = index_of(key);
-            return i < CAPACITY && slots[i].has_value();
+            return i < CAPACITY && _slots[i].has_value();
         }
 
         [[nodiscard]]
         constexpr bool contains_value(const V& value) const {
             for (usize i = 0; i < CAPACITY; ++i) {
-                if (slots[i].has_value() && *slots[i] == value) {
+                if (_slots[i].has_value() && *_slots[i] == value) {
                     return true;
                 }
             }
@@ -94,19 +117,19 @@ export namespace stdx::collections {
         [[nodiscard]]
         constexpr V* find(K key) noexcept {
             usize i = index_of(key);
-            if (i >= CAPACITY || !slots[i].has_value()) {
+            if (i >= CAPACITY || !_slots[i].has_value()) {
                 return nullptr;
             }
-            return &*slots[i];
+            return &*_slots[i];
         }
 
         [[nodiscard]]
         constexpr const V* find(K key) const noexcept {
             usize i = index_of(key);
-            if (i >= CAPACITY || !slots[i].has_value()) {
+            if (i >= CAPACITY || !_slots[i].has_value()) {
                 return nullptr;
             }
-            return &*slots[i];
+            return &*_slots[i];
         }
 
         /**
@@ -119,20 +142,20 @@ export namespace stdx::collections {
         [[=Throws<OutOfRangeException>()]]
         constexpr V& at(K key) {
             usize i = index_of(key);
-            if (i >= CAPACITY || !slots[i].has_value()) {
+            if (i >= CAPACITY || !_slots[i].has_value()) {
                 throw OutOfRangeException("no mapping for key");
             }
-            return *slots[i];
+            return *_slots[i];
         }
 
         [[nodiscard]]
         [[=Throws<OutOfRangeException>()]]
         constexpr const V& at(K key) const {
             usize i = index_of(key);
-            if (i >= CAPACITY || !slots[i].has_value()) {
+            if (i >= CAPACITY || !_slots[i].has_value()) {
                 throw OutOfRangeException("no mapping for key");
             }
-            return *slots[i];
+            return *_slots[i];
         }
 
         /**
@@ -146,11 +169,11 @@ export namespace stdx::collections {
             if (i >= CAPACITY) {
                 return nullopt;
             }
-            Optional<V> previous = std::move(slots[i]);
+            Optional<V> previous = std::move(_slots[i]);
             if (!previous.has_value()) {
-                ++occupied;
+                ++_occupied;
             }
-            slots[i] = std::move(value);
+            _slots[i] = std::move(value);
             return previous;
         }
 
@@ -161,12 +184,12 @@ export namespace stdx::collections {
          */
         constexpr Optional<V> erase(K key) {
             usize i = index_of(key);
-            if (i >= CAPACITY || !slots[i].has_value()) {
+            if (i >= CAPACITY || !_slots[i].has_value()) {
                 return nullopt;
             }
-            Optional<V> previous = std::move(slots[i]);
-            slots[i].reset();
-            --occupied;
+            Optional<V> previous = std::move(_slots[i]);
+            _slots[i].reset();
+            --_occupied;
             return previous;
         }
 
@@ -176,20 +199,20 @@ export namespace stdx::collections {
          */
         constexpr void put_all(const EnumMap& other) {
             for (usize i = 0; i < CAPACITY; ++i) {
-                if (other.slots[i].has_value()) {
-                    if (!slots[i].has_value()) {
-                        ++occupied;
+                if (other._slots[i].has_value()) {
+                    if (!_slots[i].has_value()) {
+                        ++_occupied;
                     }
-                    slots[i] = other.slots[i];
+                    _slots[i] = other._slots[i];
                 }
             }
         }
 
         constexpr void clear() noexcept {
-            for (Optional<V>& slot: slots) {
+            for (Optional<V>& slot: _slots) {
                 slot.reset();
             }
-            occupied = 0;
+            _occupied = 0;
         }
 
         /**
@@ -203,11 +226,11 @@ export namespace stdx::collections {
         [[nodiscard]]
         constexpr V& operator[](K key) {
             usize i = index_of(key);
-            if (!slots[i].has_value()) {
-                slots[i].emplace();
-                ++occupied;
+            if (!_slots[i].has_value()) {
+                _slots[i].emplace();
+                ++_occupied;
             }
-            return *slots[i];
+            return *_slots[i];
         }
 
         /**
@@ -218,7 +241,7 @@ export namespace stdx::collections {
         constexpr EnumSet<K> key_set() const noexcept {
             EnumSet<K> keys;
             for (usize i = 0; i < CAPACITY; ++i) {
-                if (slots[i].has_value()) {
+                if (_slots[i].has_value()) {
                     keys.insert(KEYS[i]);
                 }
             }
@@ -233,8 +256,8 @@ export namespace stdx::collections {
         constexpr Vector<V> values() const {
             Vector<V> result;
             for (usize i = 0; i < CAPACITY; ++i) {
-                if (slots[i].has_value()) {
-                    result.push_back(*slots[i]);
+                if (_slots[i].has_value()) {
+                    result.push_back(*_slots[i]);
                 }
             }
             return result;
@@ -246,17 +269,17 @@ export namespace stdx::collections {
         class Iterator {
         private:
             friend class EnumMap;
-            const EnumMap* map{};
-            usize idx = 0;
+            const EnumMap* _map;
+            usize _idx = 0;
 
             constexpr Iterator(const EnumMap* m, usize i) noexcept:
-                map{m}, idx{i} {
+                _map{m}, _idx{i} {
                 advance();
             }
 
             constexpr void advance() noexcept {
-                while (idx < CAPACITY && !map->slots[idx].has_value()) {
-                    ++idx;
+                while (_idx < CAPACITY && !_map->_slots[_idx].has_value()) {
+                    ++_idx;
                 }
             }
         public:
@@ -270,11 +293,11 @@ export namespace stdx::collections {
 
             [[nodiscard]]
             constexpr Pair<K, const V&> operator*() const noexcept {
-                return Pair<K, const V&>(KEYS[idx], *map->slots[idx]);
+                return Pair<K, const V&>(KEYS[_idx], *_map->_slots[_idx]);
             }
 
             constexpr Iterator& operator++() noexcept {
-                ++idx;
+                ++_idx;
                 advance();
                 return *this;
             }
@@ -287,7 +310,7 @@ export namespace stdx::collections {
 
             [[nodiscard]]
             constexpr bool operator==(const Iterator& other) const noexcept {
-                return map == other.map && idx == other.idx;
+                return _map == other._map && _idx == other._idx;
             }
 
             using value_type = ValueType;
@@ -334,11 +357,11 @@ using stdx::collections::EnumMap;
 namespace stdx::fmt {
     template <typename K, typename V, typename Char>
     struct Formatter<EnumMap<K, V>, Char> {
-        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
             return ctx.begin();
         }
 
-        static FormatContext::iterator format(const EnumMap<K, V>& m, FormatContext& ctx) {
+        auto format(const EnumMap<K, V>& m, FormatContext& ctx) const {
             auto out = ctx.out();
             out = format_to(out, "{{");
             bool first = true;

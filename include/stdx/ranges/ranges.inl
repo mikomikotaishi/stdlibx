@@ -152,7 +152,7 @@ export namespace stdx::ranges {
     template <typename T>
     using EmptyView = std::ranges::empty_view<T>;
 
-    template <Range R, typename Alloc = Allocator<ByteUnit>>
+    template <Range R, typename Alloc = Allocator<byte>>
     using ElementsOf = std::ranges::elements_of<R, Alloc>;
 
     template <CopyConstructible T>

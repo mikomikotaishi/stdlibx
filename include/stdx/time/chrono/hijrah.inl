@@ -14,7 +14,7 @@ export namespace stdx::time::chrono {
      * (16 July 622 CE Gregorian). Months alternate between 30 and 29 days;
      * in leap years the 12th month (Dhu al-Hijjah) has 30 days.
      */
-    class [[nodiscard]] HijrahChronology final {
+    class HijrahChronology final {
     private:
         static constexpr i64 HIJRAH_EPOCH = gregorian_to_epoch_day(622, 7, 19); ///< The epoch day of the Hijrah calendar (corresponding to 622-07-19 in the Gregorian calendar).
 
@@ -42,7 +42,7 @@ export namespace stdx::time::chrono {
          * @internal
          * @brief Check if a Hijrah year is a leap year.
          * @param y The proleptic year.
-         * @returns true if the year is a leap year, false otherwise.
+         * @return true if the year is a leap year, false otherwise.
          */
         [[nodiscard]]
         static constexpr bool is_hijrah_leap(i32 y) noexcept {
@@ -54,7 +54,7 @@ export namespace stdx::time::chrono {
          * @brief Get the number of days in a month for a given Hijrah year and month.
          * @param y The proleptic year.
          * @param m The month (1-12).
-         * @returns The number of days in the month.
+         * @return The number of days in the month.
          */
         [[nodiscard]]
         static constexpr u32 hijrah_days_in_month(i32 y, u32 m) noexcept {
@@ -70,7 +70,7 @@ export namespace stdx::time::chrono {
          * @internal
          * @brief Get the number of days in a given Hijrah year.
          * @param y The proleptic year.
-         * @returns The number of days in the year.
+         * @return The number of days in the year.
          */
         [[nodiscard]]
         static constexpr i32 hijrah_days_in_year(i32 y) noexcept {
@@ -146,7 +146,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the chronology identifier.
-         * @returns "Hijrah-umalqura"
+         * @return "Hijrah-umalqura"
          */
         [[nodiscard]]
         static constexpr StringView id() noexcept {
@@ -155,7 +155,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the calendar type.
-         * @returns "islamic-umalqura"
+         * @return "islamic-umalqura"
          */
         [[nodiscard]]
         static constexpr StringView calendar_type() noexcept {
@@ -165,7 +165,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Check if a year is a leap year in the Hijrah calendar.
          * @param y The proleptic Hijrah year.
-         * @returns true if the year is a leap year.
+         * @return true if the year is a leap year.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -181,7 +181,7 @@ export namespace stdx::time::chrono {
          * @brief Get the number of days in a month.
          * @param y The proleptic Hijrah year.
          * @param m The month (1-12).
-         * @returns The number of days in the month (29 or 30).
+         * @return The number of days in the month (29 or 30).
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -196,7 +196,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of days in a year.
          * @param y The proleptic Hijrah year.
-         * @returns 355 if the year is a leap year, 354 otherwise.
+         * @return 355 if the year is a leap year, 354 otherwise.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -211,7 +211,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of months in a year.
          * @param y The proleptic Hijrah year.
-         * @returns 12
+         * @return 12
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -228,7 +228,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hijrah year.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The number of days since 1970-01-01 (Gregorian).
+         * @return The number of days since 1970-01-01 (Gregorian).
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -243,7 +243,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Convert an epoch day count to Hijrah date components.
          * @param e The number of days since 1970-01-01 (Gregorian).
-         * @returns The decomposed Hijrah date components.
+         * @return The decomposed Hijrah date components.
          * @throws DateTimeException if e < HIJRAH_EPOCH.
          */
         [[nodiscard]]
@@ -258,7 +258,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Determine the era for a given proleptic year.
          * @param proleptic_year The proleptic Hijrah year.
-         * @returns Era::AH
+         * @return Era::AH
          * @throws DateTimeException if proleptic_year < 1.
          */
         [[nodiscard]]
@@ -273,7 +273,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the year-of-era from a proleptic year.
          * @param proleptic_year The proleptic Hijrah year.
-         * @returns The year-of-era (equal to the proleptic year for Hijrah).
+         * @return The year-of-era (equal to the proleptic year for Hijrah).
          * @throws DateTimeException if proleptic_year < 1.
          */
         [[nodiscard]]
@@ -289,7 +289,7 @@ export namespace stdx::time::chrono {
          * @brief Convert an era and year-of-era to a proleptic year.
          * @param era The calendar era (always AH).
          * @param year_of_era The year within the era.
-         * @returns The proleptic year (equal to year_of_era for Hijrah).
+         * @return The proleptic year (equal to year_of_era for Hijrah).
          * @throws DateTimeException if year_of_era < 1.
          */
         [[nodiscard]]
@@ -361,7 +361,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hijrah year.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -373,7 +373,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hijrah year.
          * @param m The month.
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -385,7 +385,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hijrah year.
          * @param m The month.
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -395,7 +395,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Create a date from an epoch day count.
          * @param e The number of days since 1970-01-01 (Gregorian).
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if e < HIJRAH_EPOCH.
          */
         [[nodiscard]]
@@ -404,7 +404,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Create a date for today according to the system clock.
-         * @returns Today's date in this chronology.
+         * @return Today's date in this chronology.
          */
         [[nodiscard]]
         THROWS(DateTimeException)

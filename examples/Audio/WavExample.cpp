@@ -17,11 +17,6 @@ using stdx::time::SteadyClock;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-using namespace stdx::literals;
-#endif
-
 // The samples directory ships next to the source. Tests may be run from
 // either the project root, build/, or build/tests/, so probe a few common
 // prefixes before giving up. The first match wins.

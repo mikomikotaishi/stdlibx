@@ -13,7 +13,6 @@ namespace stdx::sys {
     #ifdef __unix__
     /**
      * @brief Read everything from fd into a buffer, then close it.
-     *
      * @param fd File descriptor to read from. Must be open for reading.
      * @return Vector<u8>
      */
@@ -34,7 +33,6 @@ namespace stdx::sys {
 
     /**
      * @brief Read everything from fd into the given buffer, then close it.
-     *
      * @param fd File descriptor to read from. Must be open for reading.
      * @param out Pointer to the output buffer.
      */
@@ -46,7 +44,6 @@ namespace stdx::sys {
     #ifdef _WIN32
     /**
      * @brief Read everything from a Windows HANDLE into a buffer, then close it.
-     *
      * @param h HANDLE to read from. Must be open for reading.
      * @return Vector<u8>
      */
@@ -64,7 +61,6 @@ namespace stdx::sys {
 
     /**
      * @brief Read everything from a Windows HANDLE into the given buffer, then close it.
-     *
      * @param h HANDLE to read from. Must be open for reading.
      * @param out Pointer to the output buffer.
      */
@@ -87,18 +83,18 @@ export namespace stdx::sys {
      * reap it - the caller must call wait() (or kill() then wait()) to avoid
      * zombie processes on Unix.
      */
-    class Process {
+    class [[nodiscard]] Process {
     public:
         class Builder;
     private:
         #ifdef __unix__
-        i32 pid = -1; ///< The OS process ID (from fork).
-        i32 stdin_wr = -1; ///< The write end of the child's stdin pipe (or -1 if not piped).
-        i32 stdout_rd = -1; ///< The read end of the child's stdout pipe (or -1 if not piped).
-        i32 stderr_rd = -1; ///< The read end of the child's stderr pipe (or -1 if not piped).
+        i32 _pid = -1; ///< The OS process ID (from fork).
+        i32 _stdin_wr = -1; ///< The write end of the child's stdin pipe (or -1 if not piped).
+        i32 _stdout_rd = -1; ///< The read end of the child's stdout pipe (or -1 if not piped).
+        i32 _stderr_rd = -1; ///< The read end of the child's stderr pipe (or -1 if not piped).
         #elifdef _WIN32
-        win32::Handle process = nullptr; ///< The child process HANDLE.
-        win32::Handle thread = nullptr; ///< The child thread HANDLE (for proper cleanup).
+        win32::Handle _process = nullptr; ///< The child process HANDLE.
+        win32::Handle _thread = nullptr; ///< The child thread HANDLE (for proper cleanup).
         win32::Handle stdin_wr = nullptr; ///< The write end of the child's stdin pipe (or nullptr if not piped).
         win32::Handle stdout_rd = nullptr; ///< The read end of the child's stdout pipe (or nullptr if not piped).
         win32::Handle stderr_rd = nullptr; ///< The read end of the child's stderr pipe (or nullptr if not piped).
@@ -108,10 +104,10 @@ export namespace stdx::sys {
 
         #ifdef __unix__
         Process(i32 pid, i32 stdin_wr, i32 stdout_rd, i32 stderr_rd) noexcept:
-            pid{pid}, stdin_wr{stdin_wr}, stdout_rd{stdout_rd}, stderr_rd{stderr_rd} {}
+            _pid{pid}, _stdin_wr{stdin_wr}, _stdout_rd{stdout_rd}, _stderr_rd{stderr_rd} {}
         #elifdef _WIN32
         Process(win32::Handle process, win32::Handle thread, win32::Handle stdin_wr, win32::Handle stdout_rd, win32::Handle stderr_rd) noexcept:
-            process{process}, thread{thread}, stdin_wr{stdin_wr}, stdout_rd{stdout_rd}, stderr_rd{stderr_rd} {}
+            _process{process}, _thread{thread}, _stdin_wr{stdin_wr}, _stdout_rd{stdout_rd}, _stderr_rd{stderr_rd} {}
         #endif
 
         /**
@@ -125,9 +121,9 @@ export namespace stdx::sys {
                 }
             };
 
-            close_fd(stdin_wr);
-            close_fd(stdout_rd);
-            close_fd(stderr_rd);
+            close_fd(_stdin_wr);
+            close_fd(_stdout_rd);
+            close_fd(_stderr_rd);
             #elifdef _WIN32
             auto close_h = [](win32::Handle& h) noexcept -> void {
                 if (h) {
@@ -135,11 +131,11 @@ export namespace stdx::sys {
                 }
             };
 
-            close_h(stdin_wr);
-            close_h(stdout_rd);
-            close_h(stderr_rd);
-            close_h(thread);
-            close_h(process);
+            close_h(_stdin_wr);
+            close_h(_stdout_rd);
+            close_h(_stderr_rd);
+            close_h(_thread);
+            close_h(_process);
             #endif
         }
 
@@ -149,16 +145,16 @@ export namespace stdx::sys {
 
         Process(Process&& o) noexcept:
         #ifdef __unix__
-            pid{Ops::exchange(o.pid, -1)},
-            stdin_wr{Ops::exchange(o.stdin_wr, -1)},
-            stdout_rd{Ops::exchange(o.stdout_rd, -1)},
-            stderr_rd{Ops::exchange(o.stderr_rd, -1)}
+            _pid{Ops::exchange(o._pid, -1)},
+            _stdin_wr{Ops::exchange(o._stdin_wr, -1)},
+            _stdout_rd{Ops::exchange(o._stdout_rd, -1)},
+            _stderr_rd{Ops::exchange(o._stderr_rd, -1)}
         #elifdef _WIN32
-            process{Ops::exchange(o.process, nullptr)},
-            thread{Ops::exchange(o.thread, nullptr)},
-            stdin_wr{Ops::exchange(o.stdin_wr, nullptr)},
-            stdout_rd{Ops::exchange(o.stdout_rd, nullptr)},
-            stderr_rd{Ops::exchange(o.stderr_rd, nullptr)}
+            _process{Ops::exchange(o._process, nullptr)},
+            _thread{Ops::exchange(o._thread, nullptr)},
+            _stdin_wr{Ops::exchange(o._stdin_wr, nullptr)},
+            _stdout_rd{Ops::exchange(o._stdout_rd, nullptr)},
+            _stderr_rd{Ops::exchange(o._stderr_rd, nullptr)}
         #endif
             {}
 
@@ -181,9 +177,9 @@ export namespace stdx::sys {
         [[nodiscard]]
         u32 id() const noexcept {
             #ifdef __unix__
-            return static_cast<u32>(pid);
+            return static_cast<u32>(_pid);
             #elifdef _WIN32
-            return win32::GetProcessId(static_cast<win32::Handle>(process));
+            return win32::GetProcessId(static_cast<win32::Handle>(_process));
             #else
             return 0;
             #endif
@@ -192,9 +188,9 @@ export namespace stdx::sys {
         [[nodiscard]]
         bool has_stdin()  const noexcept {
             #ifdef __unix__
-            return stdin_wr != -1;
+            return _stdin_wr != -1;
             #elifdef _WIN32
-            return stdin_wr != nullptr;
+            return _stdin_wr != nullptr;
             #else
             return false;
             #endif
@@ -203,9 +199,9 @@ export namespace stdx::sys {
         [[nodiscard]]
         bool has_stdout() const noexcept {
             #ifdef __unix__
-            return stdout_rd != -1;
+            return _stdout_rd != -1;
             #elifdef _WIN32
-            return stdout_rd != nullptr;
+            return _stdout_rd != nullptr;
             #else
             return false;
             #endif
@@ -214,9 +210,9 @@ export namespace stdx::sys {
         [[nodiscard]]
         bool has_stderr() const noexcept {
             #ifdef __unix__
-            return stderr_rd != -1;
+            return _stderr_rd != -1;
             #elifdef _WIN32
-            return stderr_rd != nullptr;
+            return _stderr_rd != nullptr;
             #else
             return false;
             #endif
@@ -225,17 +221,17 @@ export namespace stdx::sys {
         #ifdef __unix__
         [[nodiscard]]
         i32 stdin_fd() const noexcept {
-            return stdin_wr;
+            return _stdin_wr;
         }
 
         [[nodiscard]]
         i32 stdout_fd() const noexcept {
-            return stdout_rd;
+            return _stdout_rd;
         }
 
         [[nodiscard]]
         i32 stderr_fd() const noexcept {
-            return stderr_rd;
+            return _stderr_rd;
         }
         #endif
 
@@ -246,28 +242,28 @@ export namespace stdx::sys {
         [[nodiscard]]
         Expected<ExitStatus, ErrorCode> wait() {
             #ifdef __unix__
-            if (pid == -1) {
+            if (_pid == -1) {
                 return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
             i32 status = 0;
             unix::ProcessId ret;
             do {
-                ret = unix::sys::waitpid(pid, &status, 0);
+                ret = unix::sys::waitpid(_pid, &status, 0);
             } while (ret == -1 && unix::errnov() == unix::EINTR);
             if (ret == -1) {
                 return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
-            pid = -1;
+            _pid = -1;
             return ExitStatus(status);
             #elifdef _WIN32
-            if (!process) {
+            if (!_process) {
                 return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
-            if (win32::WaitForSingleObject(static_cast<win32::Handle>(process), INFINITE) == win32::WAIT_FAILED) {
+            if (win32::WaitForSingleObject(static_cast<win32::Handle>(_process), INFINITE) == win32::WAIT_FAILED) {
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
             win32::WinDWord code = 0;
-            win32::GetExitCodeProcess(static_cast<win32::Handle>(process), &code);
+            win32::GetExitCodeProcess(static_cast<win32::Handle>(_process), &code);
             return win32::ExitStatus(static_cast<i32>(code));
             #else
             return Unexpected(Ops::make_error_code(Errc::FUNCTION_NOT_SUPPORTED));
@@ -282,35 +278,35 @@ export namespace stdx::sys {
         [[nodiscard]]
         Expected<Optional<ExitStatus>, ErrorCode> try_wait() {
             #ifdef __unix__
-            if (pid == -1) {
+            if (_pid == -1) {
                 return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
             i32 status = 0;
-            unix::ProcessId ret = unix::sys::waitpid(pid, &status, unix::sys::WNOHANG);
+            unix::ProcessId ret = unix::sys::waitpid(_pid, &status, unix::sys::WNOHANG);
             if (ret == 0) {
-                return Optional<ExitStatus>{};
+                return nullopt;
             }
             if (ret == -1) {
                 return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
-            pid = -1;
-            return Optional<ExitStatus>{ExitStatus(status)};
+            _pid = -1;
+            return ExitStatus(status);
             #elifdef _WIN32
-            if (!process) {
+            if (!_process) {
                 return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
-            win32::WinDWord res = win32::WaitForSingleObject(static_cast<win32::Handle>(process), 0);
+            win32::WinDWord res = win32::WaitForSingleObject(static_cast<win32::Handle>(_process), 0);
             if (res == win32::WAIT_TIMEOUT) {
-                return Optional<ExitStatus>{};
+                return nullopt;
             }
             if (res == win32::WAIT_FAILED) {
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
             win32::WinDWord code = 0;
-            win32::GetExitCodeProcess(static_cast<Handle>(process), &code);
-            return Optional<ExitStatus>{ExitStatus(static_cast<i32>(code))};
+            win32::GetExitCodeProcess(static_cast<Handle>(_process), &code);
+            return ExitStatus(static_cast<i32>(code));
             #else
-            return Optional<ExitStatus>{};
+            return nullopt;
             #endif
         }
 
@@ -321,18 +317,18 @@ export namespace stdx::sys {
         [[nodiscard]]
         Expected<void, ErrorCode> kill() {
             #ifdef __unix__
-            if (pid == -1) {
+            if (_pid == -1) {
                 return {};
             }
-            if (unix::kill(pid, Signal::KILL) == -1) {
+            if (unix::kill(_pid, Signal::KILL) == -1) {
                 return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
             return {};
             #elifdef _WIN32
-            if (!process) {
+            if (!_process) {
                 return {};
             }
-            if (!win32::TerminateProcess(static_cast<Handle>(process), 1)) {
+            if (!win32::TerminateProcess(static_cast<Handle>(_process), 1)) {
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
             return {};
@@ -354,8 +350,8 @@ export namespace stdx::sys {
             Thread err_thread;
 
             #ifdef __unix__
-            i32 out_fd = Ops::exchange(stdout_rd, -1);
-            i32 err_fd = Ops::exchange(stderr_rd, -1);
+            i32 out_fd = Ops::exchange(_stdout_rd, -1);
+            i32 err_fd = Ops::exchange(_stderr_rd, -1);
             if (out_fd != -1) {
                 out_thread = Thread(drain_to, out_fd, &out_data);
             }
@@ -363,8 +359,8 @@ export namespace stdx::sys {
                 err_thread = Thread(drain_to, err_fd, &err_data);
             }
             #elifdef _WIN32
-            win32::Handle out_h = Ops::exchange(stdout_rd, nullptr);
-            win32::Handle err_h = Ops::exchange(stderr_rd, nullptr);
+            win32::Handle out_h = Ops::exchange(_stdout_rd, nullptr);
+            win32::Handle err_h = Ops::exchange(_stderr_rd, nullptr);
             if (out_h) {
                 out_thread = Thread(drain_handle_to, out_h, &out_data);
             }

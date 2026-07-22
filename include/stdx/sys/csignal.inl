@@ -12,7 +12,7 @@ export namespace stdx::sys {
      * @class Signal
      * @brief Represents a system signal that can be raised and handled.
      */
-    class Signal {
+    class [[nodiscard]] Signal {
     public:
         using Handler = void (*)(i32);
         using AtomicStatus = std::sig_atomic_t;
@@ -57,14 +57,14 @@ export namespace stdx::sys {
         static constexpr i32 IO = SIGIO; ///< I/O now possible (4.2 BSD).
         static constexpr i32 IOT = SIGIOT; ///< IOT instruction, abort() on a PDP-11.
     private:
-        i32 sig;
+        i32 _sig;
     public:
         /**
          * @brief Constructs a Signal object for the specified signal number.
          * @param sig The signal number.
          */
         explicit Signal(i32 sig) noexcept:
-            sig{sig} {}
+            _sig{sig} {}
 
         /**
          * @brief Gets the signal number.
@@ -72,7 +72,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         i32 number() const noexcept {
-            return sig;
+            return _sig;
         }
 
         /**
@@ -81,7 +81,7 @@ export namespace stdx::sys {
          * @return The previous signal handler, or SIG_ERR on error.
          */
         Handler set_handler(Handler handler) const noexcept {
-            return std::signal(sig, handler);
+            return std::signal(_sig, handler);
         }
 
         /**
@@ -89,7 +89,7 @@ export namespace stdx::sys {
          * @return 0 on success, non-zero on failure.
          */
         i32 raise() const noexcept {
-            return std::raise(sig);
+            return std::raise(_sig);
         }
 
         /**
@@ -97,7 +97,7 @@ export namespace stdx::sys {
          * @return The previous signal handler, or SIG_ERR on error.
          */
         Handler ignore() const noexcept {
-            return std::signal(sig, IGNORE);
+            return std::signal(_sig, IGNORE);
         }
 
         /**
@@ -105,7 +105,7 @@ export namespace stdx::sys {
          * @return The previous signal handler, or SIG_ERR on error.
          */
         Handler reset() const noexcept {
-            return std::signal(sig, DEFAULT);
+            return std::signal(_sig, DEFAULT);
         }
 
         // Static methods for direct access

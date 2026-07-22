@@ -9,10 +9,6 @@ using stdx::util::logging::Level;
 using stdx::util::logging::Logger;
 using stdx::util::logging::LoggerFactory;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
-
 void simple_logging(LoggerFactory& logging) {
     SharedPointer<Logger> logger = logging.of("TestLogger");
 

@@ -13,14 +13,14 @@ export namespace stdx::inject {
      */
     class InjectionException: public Exception {
     private:
-        String msg; ///< Human-readable error message.
+        String _msg; ///< Human-readable error message.
     public:
         explicit InjectionException(const String& msg = ""):
-            Exception(), msg{msg} {}
+            Exception(), _msg{msg} {}
 
         [[nodiscard]]
         const char* what() const noexcept override {
-            return msg.c_str();
+            return _msg.c_str();
         }
     };
 
@@ -115,7 +115,7 @@ namespace stdx::core {
     struct Hash<Named> {
         [[nodiscard]]
         usize operator()(const Named& named) const noexcept {
-            return Hash<StringView>{}(named.value);
+            return Hash<StringView>()(named.value);
         }
     };
 }

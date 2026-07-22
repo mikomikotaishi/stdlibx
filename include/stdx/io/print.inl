@@ -13,7 +13,7 @@ using namespace stdx::os::win32;
 namespace stdx::io {
     [[nodiscard]]
     bool should_use_color() noexcept {
-        #if defined(_WIN32)
+        #ifdef _WIN32
         if (!win32::_isatty(win32::_fileno(stdout))) {
             return false;
         }
@@ -464,7 +464,7 @@ export namespace stdx::io {
             if (fore.type == ColorType::RGB_COLOR) {
                 RGB c = fore.as_rgb();
                 sep();
-                s += stdx::fmt::format("38;2;{};{};{}", c.r, c.g, c.b);
+                s += Ops::fmt("38;2;{};{};{}", c.r, c.g, c.b);
             } else if (fore.type == ColorType::TERMINAL_COLOR) {
                 sep();
                 s += Byte::to_string(fore.as_terminal_code());
@@ -473,7 +473,7 @@ export namespace stdx::io {
             if (back.type == ColorType::RGB_COLOR) {
                 RGB c = back.as_rgb();
                 sep();
-                s += stdx::fmt::format("48;2;{};{};{}", c.r, c.g, c.b);
+                s += Ops::fmt("48;2;{};{};{}", c.r, c.g, c.b);
             } else if (back.type == ColorType::TERMINAL_COLOR) {
                 sep();
                 s += Byte::to_string(static_cast<u32>(back.as_terminal_code()) + 10u);
@@ -601,13 +601,12 @@ export namespace stdx::io {
         print("{}", converted);
     }
 
-    template <typename T>
-        requires (!IsConvertibleValue<T, StringView>)
+    template <NotConvertibleTo<StringView> T>
     void printf(T&& x) {
         print("{}", Ops::forward<T>(x));
     }
 
-    template <typename T>
+    template <NotConvertibleTo<File::Handle*> T>
     void println(T&& x) {
         println("{}", Ops::forward<T>(x));
     }
@@ -627,8 +626,7 @@ export namespace stdx::io {
         print(stream, "{}", converted);
     }
 
-    template <typename T>
-        requires (!IsConvertibleValue<T, StringView>)
+    template <NotConvertibleTo<StringView> T>
     void printf(File::Handle* stream, T&& x) {
         print(stream, "{}", Ops::forward<T>(x));
     }
@@ -638,8 +636,7 @@ export namespace stdx::io {
         print(stream, "{}", converted);
     }
 
-    template <typename T>
-        requires (!IsConvertibleValue<T, StringView>)
+    template <NotConvertibleTo<StringView> T>
     void printf(OutputStream& stream, T&& x) {
         print(stream, "{}", Ops::forward<T>(x));
     }
@@ -661,11 +658,11 @@ using stdx::io::TextStyle;
 namespace stdx::fmt {
     template <>
     struct Formatter<TextStyle> {
-        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
             return ctx.begin();
         }
 
-        static FormatContext::iterator format(const TextStyle& ts, FormatContext& ctx) {
+        auto format(const TextStyle& ts, FormatContext& ctx) const {
             String seq = stdx::io::should_use_color() ? ts.ansi_open() : ""s;
             return format_to(ctx.out(), "{}", seq);
         }

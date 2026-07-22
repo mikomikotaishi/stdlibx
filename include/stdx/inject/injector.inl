@@ -61,20 +61,23 @@ namespace stdx::inject {
             SharedPointer<void> instance; ///< The cached singleton instance, if created.
         };
     private:
-        HashMap<BindingKey, Binding, BindingKeyHash> bindings;
+        HashMap<BindingKey, Binding, BindingKeyHash> _bindings;
 
         /**
         * @brief Finds the best binding for a type: exact annotation match first,
         * then a TYPE_ONLY fallback for the annotation's type, then unannotated.
+        * @param type The type being resolved.
+        * @param annotation Optional annotation to select between bindings.
+        * @return The best binding, or null if none matches.
         */
         [[nodiscard]]
         Binding* find_binding(TypeIndex type, const Optional<AnnotationKey>& annotation) {
             auto lookup = [&](const Optional<AnnotationKey>& key) -> Binding* {
-                auto it = bindings.find(BindingKey {
+                auto it = _bindings.find(BindingKey {
                     .type = type,
                     .annotation = key
                 });
-                return it != bindings.end() ? &it->second : nullptr;
+                return it != _bindings.end() ? &it->second : nullptr;
             };
 
             Binding* binding = lookup(annotation);
@@ -89,16 +92,15 @@ namespace stdx::inject {
     public:
         /**
          * @brief Resolves an instance of {@code T}.
-         *
-         * Singleton class bindings must be requested as {@code T&} or
-         * {@code SharedPointer<T>}; non-singleton value bindings are returned
-         * by value.
-         *
          * @tparam T The requested type: a value, lvalue reference, or SharedPointer.
          * @param annotation Optional annotation to select between bindings.
          * @return The resolved instance.
          * @throws NoBindingException if no binding matches.
          * @throws SingletonAccessException if a singleton is requested by value.
+         *
+         * Singleton class bindings must be requested as {@code T&} or
+         * {@code SharedPointer<T>}; non-singleton value bindings are returned
+         * by value.
          */
         template <typename T>
         [[nodiscard]]
@@ -114,7 +116,7 @@ namespace stdx::inject {
 
                 Binding* binding = find_binding(TypeIndex(typeid(T)), annotation);
                 if (!binding) {
-                    throw NoBindingException(stdx::fmt::format("No binding for type {}", typeid(T).name()));
+                    throw NoBindingException(Ops::fmt("No binding for type {}", typeid(T).name()));
                 }
 
                 if (binding->singleton) {
@@ -127,7 +129,7 @@ namespace stdx::inject {
                         return *static_cast<Plain*>(binding->instance.get());
                     } else {
                         throw SingletonAccessException(
-                            stdx::fmt::format("Singleton {} must be requested by reference or SharedPointer", typeid(T).name())
+                            Ops::fmt("Singleton {} must be requested by reference or SharedPointer", typeid(T).name())
                         );
                     }
                 }
@@ -150,13 +152,13 @@ namespace stdx::inject {
 
         /**
          * @brief Registers a binding for {@code T}.
-         *
-         * Prefer configuring bindings through a {@code Configuration}; this is the
-         * low-level registration used by the binding builders.
-         *
+         * @tparam T The type being bound.
          * @param factory Produces the instance.
          * @param annotation Optional annotation distinguishing this binding.
          * @param singleton Whether the produced instance is cached and shared.
+         *
+         * Prefer configuring bindings through a {@code Configuration}; this is the
+         * low-level registration used by the binding builders.
          */
         template <typename T>
         void bind(Factory factory, Optional<AnnotationKey> annotation = nullopt, bool singleton = true) {
@@ -164,7 +166,7 @@ namespace stdx::inject {
                 .type = TypeIndex(typeid(T)),
                 .annotation = Ops::move(annotation)
             };
-            bindings[Ops::move(key)] = Binding {
+            _bindings[Ops::move(key)] = Binding {
                 .factory = Ops::move(factory),
                 .singleton = singleton,
                 .instance = nullptr
@@ -183,6 +185,7 @@ namespace stdx::inject {
     /**
      * @class Provider
      * @brief Lazily resolves a fresh {@code T} from the injector on each {@code get()}.
+     * @tparam T The type to resolve.
      *
      * Request a {@code Provider<T>} (at an injection site or via
      * {@code Injector::get<Provider<T>>()}) instead of {@code T} to defer
@@ -194,32 +197,33 @@ namespace stdx::inject {
     export template <typename T>
     class Provider {
     private:
-        Injector* injector; ///< The injector to resolve from.
-        Optional<AnnotationKey> annotation; ///< Captured injection-site qualifier.
+        Injector* _injector; ///< The injector to resolve from.
+        Optional<AnnotationKey> _annotation; ///< Captured injection-site qualifier.
     public:
         explicit Provider(Injector& injector, Optional<AnnotationKey> annotation = nullopt):
-            injector{&injector}, annotation{Ops::move(annotation)} {}
+            _injector{&injector}, _annotation{Ops::move(annotation)} {}
 
         /**
          * @brief Resolves and returns an instance of {@code T}.
+         * @return The resolved instance.
          * @throws NoBindingException if no binding matches.
          * @throws SingletonAccessException if a singleton is requested by value.
          */
         [[nodiscard]]
         [[=Throws<NoBindingException, SingletonAccessException>()]]
         T get() const {
-            return injector->get<T>(annotation);
+            return _injector->get<T>(_annotation);
         }
     };
 
     /**
      * @internal
      * @brief The qualifier annotation on {@code parameter}, if any.
+     * @return The qualifier annotation, or nullopt if none.
+     * @throws ReflectiveOperationException if more than one qualifier is present.
      *
      * Only annotations whose type is marked {@code [[=Qualifier()]]} are
      * considered; all other annotations on the parameter are ignored.
-     *
-     * @throws ReflectiveOperationException if more than one qualifier is present.
      */
     consteval Optional<Annotation> find_qualifier(const Parameter& parameter) {
         Optional<Annotation> found;
@@ -239,12 +243,12 @@ namespace stdx::inject {
     /**
      * @internal
      * @brief Whether {@code T} is singleton-scoped.
+     * @return True if {@code T} has a [[=Scope()]] annotation of type [[=Singleton()]].
+     * @throws ReflectiveOperationException on multiple or unsupported scopes.
      *
      * Inspects {@code T}'s annotations for one whose type is marked
      * {@code [[=Scope()]]}. {@code Singleton} is the only scope the injector
      * implements; any other scope-marked annotation is rejected.
-     *
-     * @throws ReflectiveOperationException on multiple or unsupported scopes.
      */
     template <typename T>
     consteval bool is_singleton_scoped() {
@@ -268,8 +272,11 @@ namespace stdx::inject {
      * @internal
      * @brief Finds the constructor of {@code T} marked {@code [[=Inject()]]},
      * falling back to the default constructor.
+     * @return The constructor to use for injection.
+     * @throws ReflectiveOperationException if no [[=Inject()]] or default constructor is
      */
     template <typename T>
+    [[nodiscard]]
     consteval Constructor find_inject_constructor() {
         for (Constructor ctor: Class<T>().constructors()) {
             if (!ctor.annotations_with_type<Inject>().empty()) {
@@ -290,6 +297,8 @@ namespace stdx::inject {
      * @internal
      * @brief Resolves each constructor parameter from the injector and
      * constructs a {@code T}, type-erased as {@code SharedPointer<void>}.
+     * @tparam T The type to construct.
+     * @tparam Deps The parameter types of the constructor.
      */
     template <typename T, typename... Deps>
     struct ConstructorHelper {
@@ -297,7 +306,7 @@ namespace stdx::inject {
         static Any make_impl(
             Injector& injector,
             const Optional<AnnotationKey>* annotations,
-            IndexSequence<Is...>
+            [[maybe_unused]] IndexSequence<Is...> inds
         ) {
             return Any(Pointers::static_pointer_cast<void>(
                 Pointers::shared<T>(injector.get<Deps...[Is]>(annotations[Is])...)
@@ -312,20 +321,22 @@ namespace stdx::inject {
     /**
      * @internal
      * @brief Builds a factory for {@code T} using constructor {@code Ctor}:
-     * captures each parameter's annotation (if any) and specialises
+     * captures each parameter's annotation (if any) and specializes
      * {@code ConstructorHelper} on the parameter types.
+     * @tparam T The type to construct.
+     * @tparam Ctor The constructor to use for injection.
      */
     template <typename T, Constructor Ctor>
     [[nodiscard]]
     Injector::Factory make_factory_for() {
-        constexpr Info helper_specialised = [] consteval -> Info {
+        constexpr Info helper_specialized = [] consteval -> Info {
             Vector<Info> args = { ^^T };
             for (Parameter p: Ctor.parameters()) {
                 args.push_back(p.type());
             }
             return reflect::substitute(^^ConstructorHelper, args);
         }();
-        using Helper = [:helper_specialised:];
+        using Helper = [:helper_specialized:];
 
         constexpr usize N = [] consteval -> usize {
             return Ctor.parameters().size();
@@ -354,27 +365,29 @@ namespace stdx::inject {
     /**
      * @class AnnotatedBindingBuilder
      * @brief Completes a binding that is qualified by an annotation.
+     * @tparam T The type being bound.
+     * @tparam A The annotation type qualifying the binding.
      */
     export template <typename T, Annotatable A>
     class AnnotatedBindingBuilder {
     private:
-        Injector& injector;
-        AnnotationKey annotation;
+        Injector& _injector;
+        AnnotationKey _annotation;
 
         void finalize(Injector::Factory factory, bool singleton) {
-            injector.bind<T>(Ops::move(factory), Ops::move(annotation), singleton);
+            _injector.bind<T>(Ops::move(factory), Ops::move(_annotation), singleton);
         }
     public:
         explicit AnnotatedBindingBuilder(Injector& injector, AnnotationKey annotation):
-            injector{injector}, annotation{Ops::move(annotation)} {}
+            _injector{injector}, _annotation{Ops::move(annotation)} {}
 
         AnnotatedBindingBuilder(const AnnotatedBindingBuilder&) = delete("AnnotatedBindingBuilder is not copyable.");
         AnnotatedBindingBuilder(AnnotatedBindingBuilder&&) = default;
 
         /**
-        * @brief Binds to a fixed value.
-        * @param value The instance to return for every resolution.
-        */
+         * @brief Binds to a fixed value.
+         * @param value The instance to return for every resolution.
+         */
         void to_instance(T value) {
             finalize([value = Ops::move(value)](Injector&, const Optional<AnnotationKey>&) -> Any {
                 return Any(value);
@@ -382,13 +395,15 @@ namespace stdx::inject {
         }
 
         /**
-        * @brief Binds to a provider callable invoked on each resolution.
-        *
-        * Accepts {@code () -> T}, {@code (const A&) -> T}, {@code (Injector&) -> T},
-        * or {@code (Injector&, const A&) -> T}; providers taking the annotation
-        * receive the value the resolution site was annotated with, enabling one
-        * provider to serve all values of an annotation type.
-        */
+         * @brief Binds to a provider callable invoked on each resolution.
+         * @tparam F The provider callable type.
+         * @param f The provider callable.
+         *
+         * Accepts {@code () -> T}, {@code (const A&) -> T}, {@code (Injector&) -> T},
+         * or {@code (Injector&, const A&) -> T}; providers taking the annotation
+         * receive the value the resolution site was annotated with, enabling one
+         * provider to serve all values of an annotation type.
+         */
         template <typename F>
         void to_provider(F&& f) {
             if constexpr (Invocable<F, const A&>) {
@@ -418,45 +433,48 @@ namespace stdx::inject {
     /**
      * @class BindingBuilder
      * @brief Fluent builder for registering a binding of type {@code T}.
+     * @tparam T The type being bound.
      */
     export template <typename T>
     class BindingBuilder {
     private:
-        Injector& injector;
+        Injector& _injector;
 
         void finalize(Injector::Factory factory, bool singleton) {
-            injector.bind<T>(Ops::move(factory), nullopt, singleton);
+            _injector.bind<T>(Ops::move(factory), nullopt, singleton);
         }
     public:
         explicit BindingBuilder(Injector& injector):
-            injector{injector} {}
+            _injector{injector} {}
 
         BindingBuilder(const BindingBuilder&) = delete("BindingBuilder is not copyable.");
         BindingBuilder(BindingBuilder&&) = default;
 
         /**
-        * @brief Qualifies the binding to serve any value of annotation type {@code A}.
-        */
+         * @brief Qualifies the binding to serve any value of annotation type {@code A}.
+         * @tparam A The annotation type qualifying the binding.
+         * @return An {@code AnnotatedBindingBuilder<T, A>} to complete the binding.
+         */
         template <Annotatable A>
         [[nodiscard]]
         AnnotatedBindingBuilder<T, A> annotated_with_type() {
-            return AnnotatedBindingBuilder<T, A>(injector, AnnotationKey::type_only<A>());
+            return AnnotatedBindingBuilder<T, A>(_injector, AnnotationKey::type_only<A>());
         }
 
         /**
-        * @brief Qualifies the binding with a specific annotation value.
-        * @param annotation The annotation value (e.g. {@code Named("db")}).
-        */
+         * @brief Qualifies the binding with a specific annotation value.
+         * @param annotation The annotation value (e.g. {@code Named("db")}).
+         */
         template <Annotatable A>
         [[nodiscard]]
         AnnotatedBindingBuilder<T, A> annotated_with(A annotation) {
-            return AnnotatedBindingBuilder<T, A>(injector, AnnotationKey(Ops::move(annotation)));
+            return AnnotatedBindingBuilder<T, A>(_injector, AnnotationKey(Ops::move(annotation)));
         }
 
         /**
-        * @brief Binds to a fixed value.
-        * @param value The instance to return for every resolution.
-        */
+         * @brief Binds to a fixed value.
+         * @param value The instance to return for every resolution.
+         */
         void to_instance(T value) {
             finalize([value = Ops::move(value)](Injector&, const Optional<AnnotationKey>&) -> Any {
                 return Any(value);
@@ -464,10 +482,12 @@ namespace stdx::inject {
         }
 
         /**
-        * @brief Binds to a provider callable invoked on each resolution.
-        *
-        * Accepts {@code () -> T} or {@code (Injector&) -> T}.
-        */
+         * @brief Binds to a provider callable invoked on each resolution.
+         * @tparam F The provider callable type.
+         * @param f The provider callable.
+         *
+         * Accepts {@code () -> T} or {@code (Injector&) -> T}.
+         */
         template <typename F>
         void to_provider(F&& f) {
             if constexpr (Invocable<F, Injector&>) {
@@ -489,38 +509,41 @@ namespace stdx::inject {
      */
     export class Binder {
     private:
-        Injector& injector;
+        Injector& _injector;
     public:
         explicit Binder(Injector& injector):
-            injector{injector} {}
+            _injector{injector} {}
 
         /**
-        * @brief Starts a fluent binding for type {@code T}.
-        */
+         * @brief Starts a fluent binding for type {@code T}.
+         * @tparam T The type being bound.
+         * @return A {@code BindingBuilder<T>} to complete the binding.
+         */
         template <typename T>
         [[nodiscard]]
         BindingBuilder<T> bind() {
-            return BindingBuilder<T>(injector);
+            return BindingBuilder<T>(_injector);
         }
 
         /**
-        * @brief Registers {@code T} for constructor injection.
-        *
-        * Reflects over {@code T}'s {@code [[=Inject()]]} constructor (or default
-        * constructor) and registers a factory that resolves each parameter.
-        * If {@code T} is marked {@code [[=Singleton()]]}, one shared instance is
-        * created and cached.
-        */
+         * @brief Registers {@code T} for constructor injection.
+         * @tparam T The type to construct and bind.
+         *
+         * Reflects over {@code T}'s {@code [[=Inject()]]} constructor (or default
+         * constructor) and registers a factory that resolves each parameter.
+         * If {@code T} is marked {@code [[=Singleton()]]}, one shared instance is
+         * created and cached.
+         */
         template <typename T>
         void add_binding() {
             constexpr Constructor ctor = find_inject_constructor<T>();
             constexpr bool singleton = is_singleton_scoped<T>();
-            injector.bind<T>(make_factory_for<T, ctor>(), nullopt, singleton);
+            _injector.bind<T>(make_factory_for<T, ctor>(), nullopt, singleton);
         }
     };
 
     /**
-     * @class Configuration
+     * @interface Configuration
      * @brief Base class for binding configuration.
      *
      * Override {@code configure()} to register bindings, then create an
@@ -544,7 +567,6 @@ namespace stdx::inject {
         config.configure(binder);
         return injector;
     }
-
 }
 
 #endif

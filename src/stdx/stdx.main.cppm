@@ -11,30 +11,6 @@ module;
 // Needed for feature testing macros
 #include <version>
 
-#if __has_include(<experimental/buffer>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
-#include <experimental/buffer>
-#endif
-
-#if __has_include(<experimental/executor>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
-#include <experimental/executor>
-#endif
-
-#if __has_include(<experimental/internet>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
-#include <experimental/internet>
-#endif
-
-#if __has_include(<experimental/io_context>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
-#include <experimental/io_context>
-#endif
-
-#if __has_include(<experimental/socket>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
-#include <experimental/socket>
-#endif
-
-#if __has_include(<experimental/timer>) && STDLIBX_COMPILE_EXPERIMENTAL_HEADERS
-#include <experimental/timer>
-#endif
-
 #include "Macros.hpp"
 
 export module stdx:main;
@@ -67,8 +43,12 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/meta/typeindex.inl"
 #include "stdx/meta/typeinfo.inl"
 
+#include "stdx/text/text_encoding.inl"
+
+#include "stdx/core/annotations.inl"
 #include "stdx/core/any.inl"
 #include "stdx/core/array.inl"
+#include "stdx/core/bit.inl"
 #include "stdx/core/clocale.inl"
 #include "stdx/core/compare.inl"
 #include "stdx/core/concepts.inl"
@@ -79,6 +59,7 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/core/initializer_list.inl"
 #include "stdx/core/iterator.inl"
 #include "stdx/core/limits.inl"
+#include "stdx/core/locale.inl"
 #include "stdx/core/mdspan.inl"
 #include "stdx/core/optional.inl"
 #include "stdx/core/sequence.inl"
@@ -87,8 +68,6 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/core/tags.inl"
 #include "stdx/core/tuple.inl"
 #include "stdx/core/variant.inl"
-
-#include "stdx/core/annotations.inl"
 
 #include "stdx/sys/csetjmp.inl"
 #include "stdx/sys/csignal.inl"
@@ -143,9 +122,19 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/core/throws.inl"
 #include "stdx/core/ops.inl"
 
+#include "stdx/math/ratio.inl"
+
+#include "stdx/time/ctime.inl"
+#include "stdx/time/time.inl"
+
+#include "stdx/thread/hazard_pointer.inl"
+#include "stdx/thread/stop_token.inl"
+#include "stdx/thread/thread.inl"
+
 #include "stdx/exec/flow.inl"
 
 #include "stdx/os/unix.constants.inl"
+#include "stdx/os/darwin.constants.inl"
 #include "stdx/os/linux.constants.inl"
 #include "stdx/os/win32.constants.inl"
 
@@ -159,6 +148,9 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/alloc/new.inl"
 #include "stdx/alloc/scoped_allocator.inl"
 
+#include "stdx/core/character.unicode_block.inl"
+#include "stdx/core/character.unicode_names.inl"
+#include "stdx/core/character.unicode_script.inl"
 #include "stdx/core/numbers.inl"
 
 #include "stdx/fmt/printf_format.inl"
@@ -172,7 +164,6 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/text/cwchar.inl"
 #include "stdx/text/cwctype.inl"
 #include "stdx/text/regex.inl"
-#include "stdx/text/text_encoding.inl"
 #include "stdx/text/string/cstring.inl"
 #include "stdx/text/string/string.inl"
 
@@ -195,23 +186,16 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/io/string.inl"
 #include "stdx/io/syncstream.inl"
 
-#include "stdx/math/ratio.inl"
-
-#include "stdx/time/ctime.inl"
-#include "stdx/time/time.inl"
-
-#include "stdx/thread/hazard_pointer.inl"
-#include "stdx/thread/stop_token.inl"
-#include "stdx/thread/thread.inl"
+#include "stdx/time/time.outputstream.inl"
 
 #include "stdx/core/environment.inl"
 
-#include "stdx/core/locale.inl"
+#include "stdx/core/locale_pieces.inl"
 
 #include "stdx/random/random.inl"
 
 #include "stdx/math/algorithm.inl"
-#include "stdx/math/bits.inl"
+#include "stdx/math/bit.inl"
 #include "stdx/math/cfenv.inl"
 #include "stdx/math/cmath.inl"
 #include "stdx/math/complex.inl"
@@ -226,15 +210,9 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/math/biginteger.inl"
 #include "stdx/math/bigdecimal.inl"
 
+#include "stdx/io/byte_buffer.inl"
 #include "stdx/io/cstdio.inl"
 #include "stdx/io/print.inl"
-
-#include "stdx/net/buffer.inl"
-#include "stdx/net/executor.inl"
-#include "stdx/net/internet.inl"
-#include "stdx/net/io_context.inl"
-#include "stdx/net/socket.inl"
-#include "stdx/net/timer.inl"
 
 #include "stdx/pmr/collections.inl"
 #include "stdx/pmr/generator.inl"
@@ -280,6 +258,16 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/inject/key.inl"
 #include "stdx/inject/injector.inl"
 
+#include "stdx/net/address.inl"
+#include "stdx/net/exceptions.inl"
+#include "stdx/net/socket.inl"
+#include "stdx/net/uri.inl"
+#include "stdx/net/resolver.inl"
+#include "stdx/net/poller.inl"
+#include "stdx/net/stream.inl"
+#include "stdx/net/tcp.inl"
+#include "stdx/net/udp.inl"
+
 #include "stdx/util/argparse.inl"
 #include "stdx/util/argparse.annotations.inl"
 #include "stdx/util/logging/level.inl"
@@ -288,6 +276,8 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 
 #include "stdx/test/assertions.inl"
 #include "stdx/test/runner.inl"
+#include "stdx/test/annotations.inl"
+#include "stdx/test/discovery.inl"
 
 #include "stdx/audio/exceptions.inl"
 

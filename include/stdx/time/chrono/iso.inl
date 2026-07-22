@@ -11,7 +11,7 @@ export namespace stdx::time::chrono {
      *
      * This is the default calendar system used by std::chrono.
      */
-    class [[nodiscard]] IsoChronology final {
+    class IsoChronology final {
     public:
         IsoChronology() = delete("IsoChronology is a static utility class and cannot be instantiated.");
 
@@ -28,7 +28,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the chronology identifier.
-         * @returns "ISO"
+         * @return "ISO"
          */
         [[nodiscard]]
         static constexpr StringView id() noexcept {
@@ -37,7 +37,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the calendar type.
-         * @returns "iso8601"
+         * @return "iso8601"
          */
         [[nodiscard]]
         static constexpr StringView calendar_type() noexcept {
@@ -47,7 +47,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Check if a year is a leap year.
          * @param y The proleptic year.
-         * @returns true if the year is a leap year.
+         * @return true if the year is a leap year.
          */
         [[nodiscard]]
         static constexpr bool is_leap_year(i32 y) noexcept {
@@ -58,7 +58,7 @@ export namespace stdx::time::chrono {
          * @brief Get the number of days in a month.
          * @param y The proleptic year.
          * @param m The month (1-12).
-         * @returns The number of days in the month.
+         * @return The number of days in the month.
          */
         [[nodiscard]]
         static constexpr u32 days_in_month(i32 y, u32 m) noexcept {
@@ -72,7 +72,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of days in a year.
          * @param y The proleptic year.
-         * @returns 366 if the year is a leap year, 365 otherwise.
+         * @return 366 if the year is a leap year, 365 otherwise.
          */
         [[nodiscard]]
         static constexpr i32 days_in_year(i32 y) noexcept {
@@ -82,7 +82,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of months in a year.
          * @param y The proleptic year.
-         * @returns 12
+         * @return 12
          */
         [[nodiscard]]
         static constexpr u32 months_in_year([[maybe_unused]] i32 y) noexcept {
@@ -94,7 +94,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic year.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The number of days since 1970-01-01.
+         * @return The number of days since 1970-01-01.
          * @throws DateTimeException if @p m is not in [1, 12] or @p d is not a
          * valid day of that month.
          */
@@ -113,7 +113,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Convert an epoch day count to date components.
          * @param e The number of days since 1970-01-01.
-         * @returns The decomposed date components.
+         * @return The decomposed date components.
          */
         [[nodiscard]]
         static constexpr DateComponents from_epoch_day(i64 e) noexcept {
@@ -123,7 +123,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Determine the era for a given proleptic year.
          * @param proleptic_year The proleptic year.
-         * @returns Era::CE if proleptic_year >= 1, Era::BCE otherwise.
+         * @return Era::CE if proleptic_year >= 1, Era::BCE otherwise.
          */
         [[nodiscard]]
         static constexpr Era era_of(i32 proleptic_year) noexcept {
@@ -133,7 +133,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the year-of-era from a proleptic year.
          * @param proleptic_year The proleptic year.
-         * @returns The positive year-of-era value.
+         * @return The positive year-of-era value.
          */
         [[nodiscard]]
         static constexpr i32 year_of_era(i32 proleptic_year) noexcept {
@@ -144,7 +144,7 @@ export namespace stdx::time::chrono {
          * @brief Convert an era and year-of-era to a proleptic year.
          * @param era The calendar era.
          * @param year_of_era The year within the era.
-         * @returns The proleptic year.
+         * @return The proleptic year.
          * @throws DateTimeException if @p year_of_era is less than 1.
          */
         [[nodiscard]]
@@ -208,7 +208,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Determine the era for a given epoch day.
          * @param epoch_day The number of days since 1970-01-01.
-         * @returns Era::CE if the corresponding proleptic year is >= 1, Era::BCE otherwise.
+         * @return Era::CE if the corresponding proleptic year is >= 1, Era::BCE otherwise.
          *
          * Overload required by ChronologyTextLike so DateTimeFormatter
          * can determine the era from a date's epoch_day uniformly across
@@ -222,7 +222,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the year-of-era from a proleptic year and epoch day.
          * @param proleptic_year The proleptic year.
-         * @returns The positive year-of-era value.
+         * @return The positive year-of-era value.
          *
          * Overload required by ChronologyTextLike. The epoch_day argument
          * is unused for ISO since the era is fully determined by the
@@ -237,7 +237,7 @@ export namespace stdx::time::chrono {
          * @brief English name of an era.
          * @param era The era.
          * @param style The desired textual style.
-         * @returns "CE"/"Common Era"/"C" or "BCE"/"Before Common Era"/"B".
+         * @return "CE"/"Common Era"/"C" or "BCE"/"Before Common Era"/"B".
          */
         [[nodiscard]]
         static constexpr StringView era_name(Era era, DateTextLength style) noexcept {
@@ -257,7 +257,7 @@ export namespace stdx::time::chrono {
          * @param year Unused for ISO (no leap-year-dependent month names).
          * @param month The month (1-12).
          * @param style The desired textual style.
-         * @returns The month name in the requested style.
+         * @return The month name in the requested style.
          * @throws DateTimeException if @p month is not in [1, 12].
          */
         [[nodiscard]]
@@ -297,7 +297,7 @@ export namespace stdx::time::chrono {
          * @brief Parse an era name back into an Era value.
          * @param text The text to match.
          * @param style The style the text is expected to be in.
-         * @returns The matched era, or empty Optional if @p text does
+         * @return The matched era, or empty Optional if @p text does
          * not match any era name in the requested style.
          */
         [[nodiscard]]
@@ -316,7 +316,7 @@ export namespace stdx::time::chrono {
          * @param text The text to match.
          * @param year Unused for ISO.
          * @param style The style the text is expected to be in.
-         * @returns The 1-based month, or empty Optional if no match.
+         * @return The 1-based month, or empty Optional if no match.
          *
          * Narrow style is ambiguous (e.g. "J" matches January / June /
          * July) and currently returns the first match.
@@ -340,7 +340,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic year.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if @p m or @p d is out of range.
          */
         [[nodiscard]]
@@ -352,7 +352,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic year.
          * @param m The month.
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if @p d is out of range for the month.
          */
         [[nodiscard]]
@@ -364,7 +364,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic year.
          * @param m The month.
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if @p m or @p d is out of range.
          */
         [[nodiscard]]
@@ -377,7 +377,7 @@ export namespace stdx::time::chrono {
          * @param year_of_era The positive year-of-era value.
          * @param m The month (1-12).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if @p year_of_era is less than 1, or if
          * @p m or @p d is out of range.
          */
@@ -388,14 +388,14 @@ export namespace stdx::time::chrono {
         /**
          * @brief Create a date from an epoch day count.
          * @param e The number of days since 1970-01-01.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          */
         [[nodiscard]]
         static constexpr ChronoLocalDate<IsoChronology> date_epoch_day(i64 e) noexcept;
 
         /**
          * @brief Create a date for today according to the system clock.
-         * @returns Today's date in this chronology.
+         * @return Today's date in this chronology.
          */
         [[nodiscard]]
         static ChronoLocalDate<IsoChronology> date_now() noexcept;

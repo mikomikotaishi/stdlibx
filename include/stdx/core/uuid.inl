@@ -20,10 +20,10 @@ export namespace stdx::core {
         static const Uuid NIL; ///< The nil UUID (all zeros).
         static const Uuid MAX; ///< The max UUID (all ones).
     private:
-        Array<ByteUnit, 16> data{};
+        Array<byte, 16> _data = {};
 
-        explicit constexpr Uuid(Array<ByteUnit, 16> bytes) noexcept:
-            data{bytes} {}
+        explicit constexpr Uuid(Array<byte, 16> bytes) noexcept:
+            _data{bytes} {}
 
         static constexpr StringView HEX_DIGITS = "0123456789abcdef";
 
@@ -39,9 +39,9 @@ export namespace stdx::core {
             return 0xFF;
         }
 
-        static void set_version_and_variant(Array<ByteUnit, 16>& bytes, u8 version) noexcept {
-            bytes[6] = static_cast<ByteUnit>((Byte::to_integer<u8>(bytes[6]) & 0x0F) | (version << 4));
-            bytes[8] = static_cast<ByteUnit>((Byte::to_integer<u8>(bytes[8]) & 0x3F) | 0x80);
+        static void set_version_and_variant(Array<byte, 16>& bytes, u8 version) noexcept {
+            bytes[6] = static_cast<byte>((Byte::to_integer<u8>(bytes[6]) & 0x0F) | (version << 4));
+            bytes[8] = static_cast<byte>((Byte::to_integer<u8>(bytes[8]) & 0x3F) | 0x80);
         }
     public:
         Uuid() noexcept = default;
@@ -52,23 +52,23 @@ export namespace stdx::core {
          * @param least_significant_bits The lower 64 bits.
          */
         constexpr Uuid(u64 most_significant_bits, u64 least_significant_bits) noexcept:
-            data{
-                static_cast<ByteUnit>(most_significant_bits >> 56),
-                static_cast<ByteUnit>(most_significant_bits >> 48),
-                static_cast<ByteUnit>(most_significant_bits >> 40),
-                static_cast<ByteUnit>(most_significant_bits >> 32),
-                static_cast<ByteUnit>(most_significant_bits >> 24),
-                static_cast<ByteUnit>(most_significant_bits >> 16),
-                static_cast<ByteUnit>(most_significant_bits >> 8),
-                static_cast<ByteUnit>(most_significant_bits),
-                static_cast<ByteUnit>(least_significant_bits >> 56),
-                static_cast<ByteUnit>(least_significant_bits >> 48),
-                static_cast<ByteUnit>(least_significant_bits >> 40),
-                static_cast<ByteUnit>(least_significant_bits >> 32),
-                static_cast<ByteUnit>(least_significant_bits >> 24),
-                static_cast<ByteUnit>(least_significant_bits >> 16),
-                static_cast<ByteUnit>(least_significant_bits >> 8),
-                static_cast<ByteUnit>(least_significant_bits)
+            _data{
+                static_cast<byte>(most_significant_bits >> 56),
+                static_cast<byte>(most_significant_bits >> 48),
+                static_cast<byte>(most_significant_bits >> 40),
+                static_cast<byte>(most_significant_bits >> 32),
+                static_cast<byte>(most_significant_bits >> 24),
+                static_cast<byte>(most_significant_bits >> 16),
+                static_cast<byte>(most_significant_bits >> 8),
+                static_cast<byte>(most_significant_bits),
+                static_cast<byte>(least_significant_bits >> 56),
+                static_cast<byte>(least_significant_bits >> 48),
+                static_cast<byte>(least_significant_bits >> 40),
+                static_cast<byte>(least_significant_bits >> 32),
+                static_cast<byte>(least_significant_bits >> 24),
+                static_cast<byte>(least_significant_bits >> 16),
+                static_cast<byte>(least_significant_bits >> 8),
+                static_cast<byte>(least_significant_bits)
             } {}
 
         /**
@@ -77,13 +77,13 @@ export namespace stdx::core {
         [[nodiscard]]
         static Uuid random_uuid() {
             static thread_local MersenneTwister64 engine{RandomDevice{}()};
-            Array<ByteUnit, 16> bytes{};
+            Array<byte, 16> bytes{};
 
             u64 high = engine();
             u64 low = engine();
             for (usize i = 0; i < 8; ++i) {
-                bytes[i] = static_cast<ByteUnit>(high >> (56 - i * 8));
-                bytes[i + 8] = static_cast<ByteUnit>(low >> (56 - i * 8));
+                bytes[i] = static_cast<byte>(high >> (56 - i * 8));
+                bytes[i + 8] = static_cast<byte>(low >> (56 - i * 8));
             }
 
             set_version_and_variant(bytes, 4);
@@ -102,29 +102,29 @@ export namespace stdx::core {
 
             const u64 timestamp = System::current_time_millis();
 
-            Array<ByteUnit, 16> bytes{};
+            Array<byte, 16> bytes{};
 
             // 48-bit big-endian timestamp
-            bytes[0] = static_cast<ByteUnit>(timestamp >> 40);
-            bytes[1] = static_cast<ByteUnit>(timestamp >> 32);
-            bytes[2] = static_cast<ByteUnit>(timestamp >> 24);
-            bytes[3] = static_cast<ByteUnit>(timestamp >> 16);
-            bytes[4] = static_cast<ByteUnit>(timestamp >> 8);
-            bytes[5] = static_cast<ByteUnit>(timestamp);
+            bytes[0] = static_cast<byte>(timestamp >> 40);
+            bytes[1] = static_cast<byte>(timestamp >> 32);
+            bytes[2] = static_cast<byte>(timestamp >> 24);
+            bytes[3] = static_cast<byte>(timestamp >> 16);
+            bytes[4] = static_cast<byte>(timestamp >> 8);
+            bytes[5] = static_cast<byte>(timestamp);
 
             // Random fill for remaining bytes
             u64 rand_a = engine();
             u64 rand_b = engine();
-            bytes[6] = static_cast<ByteUnit>(rand_a >> 56);
-            bytes[7] = static_cast<ByteUnit>(rand_a >> 48);
-            bytes[8] = static_cast<ByteUnit>(rand_a >> 40);
-            bytes[9] = static_cast<ByteUnit>(rand_a >> 32);
-            bytes[10] = static_cast<ByteUnit>(rand_b >> 56);
-            bytes[11] = static_cast<ByteUnit>(rand_b >> 48);
-            bytes[12] = static_cast<ByteUnit>(rand_b >> 40);
-            bytes[13] = static_cast<ByteUnit>(rand_b >> 32);
-            bytes[14] = static_cast<ByteUnit>(rand_b >> 24);
-            bytes[15] = static_cast<ByteUnit>(rand_b >> 16);
+            bytes[6] = static_cast<byte>(rand_a >> 56);
+            bytes[7] = static_cast<byte>(rand_a >> 48);
+            bytes[8] = static_cast<byte>(rand_a >> 40);
+            bytes[9] = static_cast<byte>(rand_a >> 32);
+            bytes[10] = static_cast<byte>(rand_b >> 56);
+            bytes[11] = static_cast<byte>(rand_b >> 48);
+            bytes[12] = static_cast<byte>(rand_b >> 40);
+            bytes[13] = static_cast<byte>(rand_b >> 32);
+            bytes[14] = static_cast<byte>(rand_b >> 24);
+            bytes[15] = static_cast<byte>(rand_b >> 16);
 
             set_version_and_variant(bytes, 7);
             return Uuid(bytes);
@@ -144,7 +144,7 @@ export namespace stdx::core {
                 return nullopt;
             }
 
-            Array<ByteUnit, 16> bytes{};
+            Array<byte, 16> bytes{};
             usize byte_idx = 0;
 
             for (usize i = 0; i < 36 && byte_idx < 16; ++i) {
@@ -162,7 +162,7 @@ export namespace stdx::core {
                     return nullopt;
                 }
 
-                bytes[byte_idx++] = static_cast<ByteUnit>((high << 4) | low);
+                bytes[byte_idx++] = static_cast<byte>((high << 4) | low);
             }
 
             if (byte_idx != 16) {
@@ -184,7 +184,7 @@ export namespace stdx::core {
                 if (i == 4 || i == 6 || i == 8 || i == 10) {
                     result += '-';
                 }
-                u8 byte = Byte::to_integer<u8>(data[i]);
+                u8 byte = Byte::to_integer<u8>(_data[i]);
                 result += HEX_DIGITS[byte >> 4];
                 result += HEX_DIGITS[byte & 0x0F];
             }
@@ -197,7 +197,7 @@ export namespace stdx::core {
          */
         [[nodiscard]]
         constexpr u8 version() const noexcept {
-            return static_cast<u8>((Byte::to_integer<u8>(data[6]) >> 4) & 0x0F);
+            return static_cast<u8>((Byte::to_integer<u8>(_data[6]) >> 4) & 0x0F);
         }
 
         /**
@@ -205,7 +205,7 @@ export namespace stdx::core {
          */
         [[nodiscard]]
         constexpr u8 variant() const noexcept {
-            return static_cast<u8>((Byte::to_integer<u8>(data[8]) >> 6) & 0x03);
+            return static_cast<u8>((Byte::to_integer<u8>(_data[8]) >> 6) & 0x03);
         }
 
         /**
@@ -215,7 +215,7 @@ export namespace stdx::core {
         constexpr u64 most_significant_bits() const noexcept {
             u64 result = 0;
             for (usize i = 0; i < 8; ++i) {
-                result = (result << 8) | Byte::to_integer<u64>(data[i]);
+                result = (result << 8) | Byte::to_integer<u64>(_data[i]);
             }
             return result;
         }
@@ -227,7 +227,7 @@ export namespace stdx::core {
         constexpr u64 least_significant_bits() const noexcept {
             u64 result = 0;
             for (usize i = 8; i < 16; ++i) {
-                result = (result << 8) | Byte::to_integer<u64>(data[i]);
+                result = (result << 8) | Byte::to_integer<u64>(_data[i]);
             }
             return result;
         }
@@ -239,7 +239,7 @@ export namespace stdx::core {
         constexpr u64 timestamp() const noexcept {
             u64 result = 0;
             for (usize i = 0; i < 6; ++i) {
-                result = (result << 8) | Byte::to_integer<u64>(data[i]);
+                result = (result << 8) | Byte::to_integer<u64>(_data[i]);
             }
             return result;
         }
@@ -249,8 +249,8 @@ export namespace stdx::core {
          */
         [[nodiscard]]
         constexpr bool is_nil() const noexcept {
-            for (ByteUnit byte: data) {
-                if (byte != ByteUnit{0}) {
+            for (byte value: _data) {
+                if (value != byte{0}) {
                     return false;
                 }
             }
@@ -261,8 +261,8 @@ export namespace stdx::core {
          * @brief Returns a view of the raw 16 bytes.
          */
         [[nodiscard]]
-        constexpr Span<const ByteUnit, 16> bytes() const noexcept {
-            return Span<const ByteUnit, 16>{data};
+        constexpr Span<const byte, 16> bytes() const noexcept {
+            return Span<const byte, 16>{_data};
         }
 
         [[nodiscard]]
@@ -273,11 +273,11 @@ export namespace stdx::core {
     };
 
     inline constexpr Uuid Uuid::NIL = Uuid();
-    inline constexpr Uuid Uuid::MAX = Uuid(Array<ByteUnit, 16>{
-        ByteUnit{0xFF}, ByteUnit{0xFF}, ByteUnit{0xFF}, ByteUnit{0xFF},
-        ByteUnit{0xFF}, ByteUnit{0xFF}, ByteUnit{0xFF}, ByteUnit{0xFF},
-        ByteUnit{0xFF}, ByteUnit{0xFF}, ByteUnit{0xFF}, ByteUnit{0xFF},
-        ByteUnit{0xFF}, ByteUnit{0xFF}, ByteUnit{0xFF}, ByteUnit{0xFF}
+    inline constexpr Uuid Uuid::MAX = Uuid(Array<byte, 16>{
+        byte{0xFF}, byte{0xFF}, byte{0xFF}, byte{0xFF},
+        byte{0xFF}, byte{0xFF}, byte{0xFF}, byte{0xFF},
+        byte{0xFF}, byte{0xFF}, byte{0xFF}, byte{0xFF},
+        byte{0xFF}, byte{0xFF}, byte{0xFF}, byte{0xFF}
     });
 }
 
@@ -287,8 +287,8 @@ namespace stdx::core {
         [[nodiscard]]
         usize operator()(const Uuid& uuid) const noexcept {
             usize h = 0;
-            for (ByteUnit byte : uuid.bytes()) {
-                h ^= Hash<u8>()(Byte::to_integer<u8>(byte)) + 0x9E3779B9 + (h << 6) + (h >> 2);
+            for (byte value : uuid.bytes()) {
+                h ^= Hash<u8>()(Byte::to_integer<u8>(value)) + 0x9E3779B9 + (h << 6) + (h >> 2);
             }
             return h;
         }

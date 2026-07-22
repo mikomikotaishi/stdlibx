@@ -277,9 +277,6 @@ if(COMPILER_GCC AND NOT STDLIBX_EXPORT_IMPORT_STD)
 endif()
 
 if(COMPILER_GCC AND STDLIBX_ENABLE_REFLECTION)
-    # SQL, Zip, and Microsoft GSL build and pass under GCC 16 + reflection
-    # (verified: SqlTest 34/34 incl. the reflection Connection::query<T>,
-    # ZipTest 15/15), so they are intentionally NOT forced off and stay ON.
     set(STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
     set(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)
     set(STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY OFF CACHE BOOL "C headers clash with import std under GCC 16 + reflection" FORCE)

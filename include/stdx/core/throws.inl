@@ -24,12 +24,12 @@ namespace stdx::core {
      */
     export class InvalidThrowsAnnotationException: public Exception {
     private:
-        String message;
-        Info about;
-        SourceLocation location;
+        String _msg; ///< The human-readable diagnostic message.
+        Info _about; ///< The reflection of the function or call operator that is decorated with a Throws.
+        SourceLocation _location; ///< The source location of the Throws annotation.
     public:
         consteval InvalidThrowsAnnotationException(StringView msg, Info about, SourceLocation location = SourceLocation::current()) noexcept:
-            message{String(msg)}, about{about}, location{location} {}
+            _msg{String(msg)}, _about{about}, _location{location} {}
 
         consteval InvalidThrowsAnnotationException(const InvalidThrowsAnnotationException&) = default;
         consteval InvalidThrowsAnnotationException(InvalidThrowsAnnotationException&&) = default;
@@ -39,17 +39,17 @@ namespace stdx::core {
 
         [[nodiscard]]
         consteval const char* what() const noexcept override {
-            return message.c_str();
+            return _msg.c_str();
         }
 
         [[nodiscard]]
         consteval Info from() const noexcept {
-            return about;
+            return _about;
         }
 
         [[nodiscard]]
         consteval SourceLocation where() const noexcept {
-            return location;
+            return _location;
         }
     };
 
@@ -61,7 +61,7 @@ namespace stdx::core {
 
     /**
      * @concept IsThrows
-     * @brief Satisfied by any Throws specialisation.
+     * @brief Satisfied by any Throws specialization.
      * @tparam T The annotation type to check.
      */
     export template <typename T>
@@ -75,7 +75,7 @@ namespace stdx::core {
     template <Extends<Exception>... Es>
     [[nodiscard]]
     consteval Vector<Info> throws_pack_infos(Throws<Es...> _) {
-        return Vector<Info>{ ^^Es... };
+        return Vector<Info>{^^Es...};
     }
 
     /**
@@ -101,11 +101,11 @@ namespace stdx::core {
     [[nodiscard]]
     consteval Vector<Info> call_operators_of(Info t) {
         Vector<Info> result;
-        const Info cls = reflect::dealias(t);
-        if (!reflect::is_class_type(cls) || reflect::is_union_type(cls)) {
+        const Info clazz = reflect::dealias(t);
+        if (!reflect::is_class_type(clazz) || reflect::is_union_type(clazz)) {
             return result;
         }
-        for (const Info m: reflect::members_of(cls, AccessContext::unchecked())) {
+        for (const Info m: reflect::members_of(clazz, AccessContext::unchecked())) {
             if (
                 reflect::is_function(m) &&
                 reflect::is_operator_function(m) &&
@@ -190,7 +190,7 @@ namespace stdx::core {
      * @tparam Fn The reflection of a function or callable type.
      */
     template <Info Fn>
-    constexpr auto ThrownInfos = reflect::define_static_array(collect_thrown_infos<Fn>());
+    constexpr Span<const Info> ThrownInfos = reflect::define_static_array(collect_thrown_infos<Fn>());
 
     /**
      * @brief Builds the Tuple<Class<E>...> for @p Fn from the indices of its

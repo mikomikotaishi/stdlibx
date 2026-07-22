@@ -18,7 +18,7 @@ export namespace stdx::time::chrono {
      * Year length is 353, 354, or 355 days in regular years and 383, 384,
      * or 385 days in leap years.
      */
-    class [[nodiscard]] HebrewChronology final {
+    class HebrewChronology final {
     private:
         static inline constexpr i64 HEBREW_EPOCH_OFFSET = 2092591; ///< Offset such that epoch_day = hebrew_elapsed_days(y) - HEBREW_EPOCH_OFFSET gives 1 Tishri of year y.
 
@@ -33,27 +33,27 @@ export namespace stdx::time::chrono {
          * common years; ADAR_I and ADAR_II only in leap years.
          */
         enum class HebrewMonth: u8 {
-            TISHRI = 1, ///< Tishri, the first month of the civil year
-            CHESHVAN = 2, ///< Cheshvan, the second month of the civil year
-            KISLEV = 3, ///< Kislev, the third month of the civil year
-            TEVET = 4, ///< Tevet, the fourth month of the civil year
-            SHEVAT = 5, ///< Shevat, the fifth month of the civil year
-            ADAR = 6, ///< Adar (common years only)
-            ADAR_I = 7, ///< Adar I / Adar Rishon (leap years only)
-            ADAR_II = 8, ///< Adar II / Adar Sheni (leap years only)
-            NISAN = 9, ///< Nisan
-            IYYAR = 10, ///< Iyyar
-            SIVAN = 11, ///< Sivan
-            TAMMUZ = 12, ///< Tammuz
-            AV = 13, ///< Av
-            ELUL = 14, ///< Elul, the last month of the civil year
+            TISHRI = 1, ///< Tishri, the first month of the Hebrew common year
+            CHESHVAN = 2, ///< Cheshvan, the second month of the Hebrew common year
+            KISLEV = 3, ///< Kislev, the third month of the Hebrew common year
+            TEVET = 4, ///< Tevet, the fourth month of the Hebrew common year
+            SHEVAT = 5, ///< Shevat, the fifth month of the Hebrew common year
+            ADAR = 6, ///< Adar (common years only), the sixth month of the Hebrew common year
+            ADAR_I = 7, ///< Adar I / Adar Rishon (leap years only), the sixth month of the Hebrew leap year
+            ADAR_II = 8, ///< Adar II / Adar Sheni (leap years only), the seventh month of the Hebrew leap year
+            NISAN = 9, ///< Nisan, the seventh month of the Hebrew common year (eighth in leap years)
+            IYYAR = 10, ///< Iyyar, the eighth month of the Hebrew common year (ninth in leap years)
+            SIVAN = 11, ///< Sivan, the ninth month of the Hebrew common year (tenth in leap years)
+            TAMMUZ = 12, ///< Tammuz, the tenth month of the Hebrew common year (eleventh in leap years)
+            AV = 13, ///< Av, the eleventh month of the Hebrew common year (twelfth in leap years)
+            ELUL = 14, ///< Elul, the twelfth month of the Hebrew common year (thirteenth in leap years)
         };
 
         /**
          * @internal
          * @brief Check if a Hebrew year is a leap year (i.e., contains 13 months).
          * @param y The proleptic Hebrew year.
-         * @returns true if the year is a leap year, false otherwise.
+         * @return true if the year is a leap year, false otherwise.
          *
          * Leap years in the Metonic 19-year cycle occupy positions
          * 3, 6, 8, 11, 14, 17, and 19.
@@ -68,7 +68,7 @@ export namespace stdx::time::chrono {
          * @brief Compute elapsed days from the calendar's reference origin to
          * the start of Rosh Hashanah of Hebrew year @p y.
          * @param y The proleptic Hebrew year.
-         * @returns Days since the molad-tohu reference (1-based).
+         * @return Days since the molad-tohu reference (1-based).
          *
          * Applies the four dehiyyot (postponement) rules:
          *  - Molad Zaken: postpone if the molad falls at or after noon.
@@ -104,7 +104,7 @@ export namespace stdx::time::chrono {
          * @internal
          * @brief Compute the epoch day of 1 Tishri of Hebrew year @p y.
          * @param y The proleptic Hebrew year.
-         * @returns Days since 1970-01-01 (Gregorian).
+         * @return Days since 1970-01-01 (Gregorian).
          */
         [[nodiscard]]
         static constexpr i64 hebrew_new_year_epoch_day(i32 y) noexcept {
@@ -115,7 +115,7 @@ export namespace stdx::time::chrono {
          * @internal
          * @brief Get the length of a Hebrew year in days.
          * @param y The proleptic Hebrew year.
-         * @returns 353, 354, or 355 in a regular year; 383, 384, or 385 in a leap year.
+         * @return 353, 354, or 355 in a regular year; 383, 384, or 385 in a leap year.
          */
         [[nodiscard]]
         static constexpr i32 hebrew_year_length(i32 y) noexcept {
@@ -127,7 +127,7 @@ export namespace stdx::time::chrono {
          * @brief Get the number of days in a Hebrew month.
          * @param y The proleptic Hebrew year.
          * @param m The month (1-12 in regular years, 1-13 in leap years).
-         * @returns 29 or 30.
+         * @return 29 or 30.
          */
         [[nodiscard]]
         static constexpr u32 hebrew_days_in_month(i32 y, u32 m) noexcept {
@@ -170,7 +170,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hebrew year.
          * @param m The month (civil numbering, 1-12 or 1-13).
          * @param d The day of the month.
-         * @returns Days since 1970-01-01 (Gregorian).
+         * @return Days since 1970-01-01 (Gregorian).
          */
         [[nodiscard]]
         static constexpr i64 hebrew_to_epoch_day(i32 y, u32 m, u32 d) noexcept {
@@ -185,7 +185,7 @@ export namespace stdx::time::chrono {
          * @internal
          * @brief Convert an epoch day to Hebrew date components.
          * @param e Days since 1970-01-01 (Gregorian).
-         * @returns The decomposed Hebrew date components.
+         * @return The decomposed Hebrew date components.
          */
         [[nodiscard]]
         static constexpr DateComponents epoch_day_to_hebrew(i64 e) noexcept {
@@ -224,7 +224,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the chronology identifier.
-         * @returns "Hebrew"
+         * @return "Hebrew"
          */
         [[nodiscard]]
         static constexpr StringView id() noexcept {
@@ -233,7 +233,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Returns the calendar type.
-         * @returns "hebrew"
+         * @return "hebrew"
          */
         [[nodiscard]]
         static constexpr StringView calendar_type() noexcept {
@@ -243,7 +243,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Check if a Hebrew year is a leap year.
          * @param y The proleptic Hebrew year.
-         * @returns true if the year contains 13 months.
+         * @return true if the year contains 13 months.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -259,7 +259,7 @@ export namespace stdx::time::chrono {
          * @brief Get the number of days in a month.
          * @param y The proleptic Hebrew year.
          * @param m The month (1-12 regular, 1-13 leap).
-         * @returns The number of days in the month (29 or 30).
+         * @return The number of days in the month (29 or 30).
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -274,7 +274,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of days in a year.
          * @param y The proleptic Hebrew year.
-         * @returns 353/354/355 for regular years, 383/384/385 for leap years.
+         * @return 353/354/355 for regular years, 383/384/385 for leap years.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -289,7 +289,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the number of months in a year.
          * @param y The proleptic Hebrew year.
-         * @returns 12 in a regular year, 13 in a leap year.
+         * @return 12 in a regular year, 13 in a leap year.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -306,7 +306,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hebrew year.
          * @param m The month (1-12 regular, 1-13 leap).
          * @param d The day of the month.
-         * @returns The number of days since 1970-01-01 (Gregorian).
+         * @return The number of days since 1970-01-01 (Gregorian).
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -321,7 +321,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Convert an epoch day count to Hebrew date components.
          * @param e The number of days since 1970-01-01 (Gregorian).
-         * @returns The decomposed Hebrew date components.
+         * @return The decomposed Hebrew date components.
          * @throws DateTimeException if e is before 1 Tishri 1 AM.
          */
         [[nodiscard]]
@@ -336,7 +336,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Determine the era for a given proleptic year.
          * @param proleptic_year The proleptic Hebrew year.
-         * @returns Era::AM.
+         * @return Era::AM.
          * @throws DateTimeException if proleptic_year < 1.
          */
         [[nodiscard]]
@@ -351,7 +351,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Get the year-of-era from a proleptic year.
          * @param proleptic_year The proleptic Hebrew year.
-         * @returns The year-of-era (equal to the proleptic year for Hebrew).
+         * @return The year-of-era (equal to the proleptic year for Hebrew).
          * @throws DateTimeException if proleptic_year < 1.
          */
         [[nodiscard]]
@@ -367,7 +367,7 @@ export namespace stdx::time::chrono {
          * @brief Convert an era and year-of-era to a proleptic year.
          * @param era The calendar era (always AM).
          * @param year_of_era The year within the era.
-         * @returns The proleptic year (equal to year_of_era for Hebrew).
+         * @return The proleptic year (equal to year_of_era for Hebrew).
          * @throws DateTimeException if year_of_era < 1.
          */
         [[nodiscard]]
@@ -439,7 +439,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hebrew year.
          * @param m The month (1-12 regular, 1-13 leap).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -451,7 +451,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hebrew year.
          * @param m The month; its civil index is resolved from the year's leap status.
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if y < 1, if @p m is ADAR in a leap year
          * (ambiguous - use ADAR_I or ADAR_II), or if @p m is ADAR_I / ADAR_II
          * in a common year (they do not exist).
@@ -465,7 +465,7 @@ export namespace stdx::time::chrono {
          * @param y The proleptic Hebrew year.
          * @param m The month (1-12 regular, 1-13 leap).
          * @param d The day of the month.
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if y < 1.
          */
         [[nodiscard]]
@@ -475,7 +475,7 @@ export namespace stdx::time::chrono {
         /**
          * @brief Create a date from an epoch day count.
          * @param e The number of days since 1970-01-01 (Gregorian).
-         * @returns The date in this chronology.
+         * @return The date in this chronology.
          * @throws DateTimeException if e is before 1 Tishri 1 AM.
          */
         [[nodiscard]]
@@ -484,7 +484,7 @@ export namespace stdx::time::chrono {
 
         /**
          * @brief Create a date for today according to the system clock.
-         * @returns Today's date in this chronology.
+         * @return Today's date in this chronology.
          */
         [[nodiscard]]
         THROWS(DateTimeException)

@@ -85,7 +85,7 @@ export namespace stdx::io {
     class [[nodiscard]] File {
     public:
         using Handle = std::FILE;
-
+    private:
         /**
          * @struct FileDeleter
          * @brief Custom deleter for std::FILE* that ensures proper resource management.
@@ -97,7 +97,7 @@ export namespace stdx::io {
                 }
             }
         };
-    private:
+
         UniquePointer<Handle, FileDeleter> handle; ///< Unique pointer managing the file handle with a custom deleter.
         Optional<Path> file_path; ///< Path of the file, if not constructed from FILE*.
     public:
@@ -442,7 +442,7 @@ export namespace stdx::io {
         static File open(const Path& path, StringView mode) {
             File file(path, mode);
             if (!file) {
-                throw IOException(stdx::fmt::format("Failed to open file: {}", path));
+                throw IOException(Ops::fmt("Failed to open file: {}", path));
             }
             return file;
         }
@@ -475,7 +475,7 @@ export namespace stdx::io {
         THROWS(IOException)
         static File create(const Path& path) {
             if (stdx::fs::exists(path)) {
-                throw IOException(stdx::fmt::format("File already exists: {}", path));
+                throw IOException(Ops::fmt("File already exists: {}", path));
             }
             return open(path, "w");
         }
@@ -521,23 +521,32 @@ export namespace stdx::io {
             return try_open(path, "a");
         }
     };
-
-    File::Handle* const Stdin = ::stdin;
-    File::Handle* const Stdout = ::stdout;
-    File::Handle* const Stderr = ::stderr;
-
-    [[nodiscard]]
-    File::Handle* stdin() noexcept {
-        return File::stdin();
-    }
-
-    [[nodiscard]]
-    File::Handle* stdout() noexcept {
-        return File::stdout();
-    }
-
-    [[nodiscard]]
-    File::Handle* stderr() noexcept {
-        return File::stderr();
-    }
 }
+
+
+#ifdef __cpp_lib_reflection
+using stdx::io::File;
+
+namespace stdx::fmt {
+    template <>
+    struct Formatter<File> {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
+            return ctx.begin();
+        }
+
+        auto format(const File& f, FormatContext& ctx) const {
+            auto out = ctx.out();
+            if (f.path()) {
+                out = format_to(out, "{}", *f.path());
+            } else {
+                out = format_to(out, "File({})", static_cast<const void*>(f.get()));
+            }
+            return out;
+        }
+    };
+}
+
+template <>
+struct stdx::fmt::formatter<File> : public Formatter<File> {};
+#endif
+

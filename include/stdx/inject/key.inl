@@ -25,7 +25,7 @@ namespace stdx::inject {
      * @brief A type usable as a binding annotation: hashable via {@code std::hash}.
      */
     export template <typename T>
-    concept Annotatable = requires(T t) { Hash<T>{}(t); };
+    concept Annotatable = requires (T t) { Hash<T>()(t); };
 
     /**
      * @class AnnotationKey
@@ -42,10 +42,10 @@ namespace stdx::inject {
             TYPE_ONLY, ///< Matches any annotation of the type.
         };
     private:
-        TypeIndex annotation_type; ///< The annotation's C++ type.
-        Kind kind; ///< Whether this key matches by value or by type.
-        Any annotation_value; ///< The annotation value (EXACT only).
-        usize value_hash = 0; ///< Hash of the annotation value (EXACT only).
+        TypeIndex _type; ///< The annotation's C++ type.
+        Kind _kind; ///< Whether this key matches by value or by type.
+        Any _value; ///< The annotation value (EXACT only).
+        usize _hash = 0; ///< Hash of the annotation value (EXACT only).
     public:
         /**
          * @brief Constructs an EXACT key for a specific annotation value.
@@ -53,33 +53,33 @@ namespace stdx::inject {
          */
         template <Annotatable T>
         explicit AnnotationKey(T value):
-            annotation_type{typeid(T)}, kind{Kind::EXACT},
-            annotation_value{value}, value_hash{Hash<T>{}(value)} {}
+            _type{typeid(T)}, _kind{Kind::EXACT},
+            _value{value}, _hash{Hash<T>()(value)} {}
 
         /**
          * @brief Constructs a TYPE_ONLY key for an annotation type.
          * @param type The annotation type's index.
          */
         explicit AnnotationKey(TypeIndex type):
-            annotation_type{type}, kind{Kind::TYPE_ONLY} {}
+            _type{type}, _kind{Kind::TYPE_ONLY} {}
 
         [[nodiscard]]
         bool operator==(const AnnotationKey& other) const {
-            if (annotation_type != other.annotation_type || kind != other.kind) {
+            if (_type != other._type || _kind != other._kind) {
                 return false;
             }
-            if (kind == Kind::TYPE_ONLY) {
+            if (_kind == Kind::TYPE_ONLY) {
                 return true;
             }
-            return value_hash == other.value_hash;
+            return _hash == other._hash;
         }
 
         [[nodiscard]]
         usize hash() const {
-            usize hash = Hash<TypeIndex>{}(annotation_type);
-            hash ^= Hash<i32>{}(static_cast<i32>(kind)) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
-            if (kind == Kind::EXACT) {
-                hash ^= value_hash + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+            usize hash = Hash<TypeIndex>()(_type);
+            hash ^= Hash<i32>()(static_cast<i32>(_kind)) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+            if (_kind == Kind::EXACT) {
+                hash ^= _hash + 0x9e3779b9 + (hash << 6) + (hash >> 2);
             }
             return hash;
         }
@@ -89,7 +89,7 @@ namespace stdx::inject {
          */
         [[nodiscard]]
         const Any& value() const noexcept {
-            return annotation_value;
+            return _value;
         }
 
         /**
@@ -97,7 +97,7 @@ namespace stdx::inject {
          */
         [[nodiscard]]
         TypeIndex type() const noexcept {
-            return annotation_type;
+            return _type;
         }
 
         /**
@@ -128,7 +128,7 @@ namespace stdx::inject {
     export struct BindingKeyHash {
         [[nodiscard]]
         usize operator()(const BindingKey& key) const {
-            usize hash = Hash<TypeIndex>{}(key.type);
+            usize hash = Hash<TypeIndex>()(key.type);
             if (key.annotation.has_value()) {
                 hash ^= key.annotation->hash();
             }

@@ -6,9 +6,7 @@ using stdx::fmt::Formatter;
 using stdx::time::Duration;
 using stdx::time::Instant;
 
-#ifdef STDLIBX_EXECUTION_AVAILABLE
-using stdx::exec::SyncWait;
-#endif
+using namespace stdx::os;
 
 /**
  * @namespace stdx::core
@@ -30,6 +28,18 @@ export namespace stdx::core {
             DARWIN, ///< Apple operating systems (macOS, iOS, ...).
         };
 
+        /**
+         * @struct SystemInfo
+         * @brief The running system's identity, as reported by the OS at runtime.
+         */
+        struct SystemInfo {
+            String name; ///< OS name: "Linux", "Darwin", "Windows". Always present.
+            String release; ///< Unix: kernel release. Windows: OS build (major.minor.build).
+            String version; ///< Unix: kernel build string. Windows: display version (may be empty).
+            String machine; ///< CPU architecture: "x86_64", "aarch64", ... Empty if unknown.
+            String node; ///< Network host (node) name.
+        };
+
         Environment() = delete("Environment is a static utility class and cannot be instantiated.");
 
         #if defined(__GNUC__) && !defined(__clang__)
@@ -49,9 +59,9 @@ export namespace stdx::core {
         [[nodiscard]]
         static u32 pid() noexcept {
             #ifdef __unix__
-            return static_cast<u32>(stdx::os::unix::getpid());
+            return static_cast<u32>(unix::getpid());
             #elifdef _WIN32
-            return stdx::os::win32::GetCurrentProcessId();
+            return static_cast<u32>(win32::GetCurrentProcessId());
             #else
             return 0;
             #endif
@@ -81,18 +91,6 @@ export namespace stdx::core {
             return std::system(command.data());
         }
 
-        #ifdef STDLIBX_EXECUTION_AVAILABLE
-        [[nodiscard]]
-        static auto sync_wait(Sender auto sender) {
-            return SyncWait(Ops::move(sender));
-        }
-
-        [[nodiscard]]
-        static auto sync_wait_with_variant(Sender auto sender) {
-            return SyncWaitWithVariant(Ops::move(sender));
-        }
-        #endif
-
         [[nodiscard]]
         static OperatingSystem operating_system() noexcept {
             #ifdef __linux__
@@ -111,17 +109,89 @@ export namespace stdx::core {
         }
 
         /**
-         * @brief All environment variables as a name -> value map.
+         * @brief The running system's identity (name, kernel/build version, arch, host).
+         * @return The system info, or nullopt if the OS query itself failed.
+         * Individual fields are empty where the platform cannot supply them.
          *
+         * Reads the live system via uname(2) on Unix and RtlGetVersion +
+         * GetNativeSystemInfo on Windows - information that, unlike @ref
+         * operating_system, cannot be resolved at compile time.
+         */
+        [[nodiscard]]
+        static Optional<SystemInfo> system_info() {
+            #ifdef __unix__
+            unix::sys::UnixTimeSystemName uts{};
+            if (unix::sys::uname(&uts) != 0) {
+                return nullopt;
+            }
+            return SystemInfo {
+                .name = uts.sysname,
+                .release = uts.release,
+                .version = uts.version,
+                .machine = uts.machine,
+                .node = uts.nodename,
+            };
+            #elifdef _WIN32
+            SystemInfo info;
+            info.name = "Windows";
+
+            // CPU architecture from the native system info.
+            win32::SystemInformation sysinfo{};
+            win32::GetNativeSystemInfo(&sysinfo);
+            switch (sysinfo.wProcessorArchitecture) {
+                case win32::ProcessorArchitecture::AMD64:
+                    info.machine = "x86_64";
+                    break;
+                case win32::ProcessorArchitecture::ARM64:
+                    info.machine = "aarch64";
+                    break;
+                case win32::ProcessorArchitecture::ARM:
+                    info.machine = "arm";
+                    break;
+                case win32::ProcessorArchitecture::INTEL:
+                    info.machine = "x86";
+                    break;
+                default:
+                    break; // leave empty: unknown architecture
+            }
+
+            // Host name (physical DNS host name), ANSI to avoid a wide->UTF-8 hop.
+            char host[256];
+            win32::WinDWord host_len = sizeof(host);
+            if (win32::GetComputerNameExA(win32::ComputerNamePhysicalDnsHostname, host, &host_len)) {
+                info.node = StringView(host, host_len);
+            }
+
+            // True OS version via ntdll!RtlGetVersion: unlike GetVersionEx it is
+            // not capped by the process's compatibility manifest.
+            win32::OsVersionInfoW osvi{};
+            if (win32::RtlGetVersion(osvi)) {
+                info.release = std::format(
+                    "{}.{}.{}",
+                    osvi.dwMajorVersion,
+                    osvi.dwMinorVersion,
+                    osvi.dwBuildNumber
+                );
+            }
+            // version left empty: the friendly display version ("23H2") lives in
+            // the registry, not in RtlGetVersion - empty means "unavailable here".
+            return info;
+            #else
+            return nullopt;
+            #endif
+        }
+
+        /**
+         * @brief All environment variables as a name -> value map.
          * @return A HashMap of the current environment.
          */
         [[nodiscard]]
         static HashMap<String, StringView> variables() {
             HashMap<String, StringView> map;
             #ifdef __unix__
-            char** env_list = ::environ;
+            char** env_list = unix::environ;
             #elifdef _WIN32
-            char** env_list = ::_environ;
+            char** env_list = win32::_environ;
             #endif
             for (char** env = env_list; *env != nullptr; ++env) {
                 StringView entry(*env);
@@ -134,7 +204,6 @@ export namespace stdx::core {
 
         /**
          * @brief The value of a single environment variable.
-         *
          * @param name The variable name.
          * @return The value, or nullopt if the variable is unset.
          */
@@ -150,7 +219,6 @@ export namespace stdx::core {
 
         /**
          * @brief Sets an environment variable.
-         *
          * @param name The variable name.
          * @param value The value to assign.
          * @param overwrite If false and the variable already exists, leave it
@@ -170,7 +238,7 @@ export namespace stdx::core {
             const String name_str(name);
             const String value_str(value);
             #ifdef __unix__
-            return stdx::os::unix::setenv(name_str.c_str(), value_str.c_str(), overwrite ? 1 : 0) == 0;
+            return unix::setenv(name_str.c_str(), value_str.c_str(), overwrite ? 1 : 0) == 0;
             #elifdef _WIN32
             // _putenv_s keeps the CRT environment (what get() reads) in
             // sync, unlike SetEnvironmentVariable. It always overwrites, so
@@ -178,7 +246,7 @@ export namespace stdx::core {
             if (!overwrite && get(name_str.c_str()).has_value()) {
                 return true;
             }
-            return ::_putenv_s(name_str.c_str(), value_str.c_str()) == 0;
+            return win32::_putenv_s(name_str.c_str(), value_str.c_str()) == 0;
             #else
             return false;
             #endif
@@ -186,7 +254,6 @@ export namespace stdx::core {
 
         /**
          * @brief Removes an environment variable. Succeeds if it is already unset.
-         *
          * @param name The variable name.
          * @return true on success, false on failure (e.g. an invalid name).
          *
@@ -195,10 +262,10 @@ export namespace stdx::core {
         static bool unset(StringView name) noexcept {
             const String name_str(name);
             #ifdef __unix__
-            return stdx::os::unix::unsetenv(name_str.c_str()) == 0;
+            return unix::unsetenv(name_str.c_str()) == 0;
             #elifdef _WIN32
             // On the MSVC CRT, assigning an empty value removes the variable.
-            return ::_putenv_s(name_str.c_str(), "") == 0;
+            return win32::_putenv_s(name_str.c_str(), "") == 0;
             #else
             return false;
             #endif
@@ -209,11 +276,11 @@ export namespace stdx::core {
 namespace stdx::fmt {
     template <>
     struct Formatter<Environment::OperatingSystem> {
-        static constexpr const char* parse(FormatParseContext& ctx) noexcept {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
             return ctx.begin();
         }
 
-        static FormatContext::iterator format(Environment::OperatingSystem os, FormatContext& ctx) {
+        auto format(Environment::OperatingSystem os, FormatContext& ctx) const {
             StringView os_name;
             switch (os) {
                 case Environment::OperatingSystem::UNKNOWN:
@@ -238,7 +305,31 @@ namespace stdx::fmt {
             return format_to(ctx.out(), "{}", os_name);
         }
     };
+
+    template <>
+    struct Formatter<Environment::SystemInfo> {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
+            return ctx.begin();
+        }
+
+        auto format(const Environment::SystemInfo& info, FormatContext& ctx) const {
+            auto out = format_to(ctx.out(), "{}", info.name);
+            if (!info.release.empty()) {
+                out = format_to(out, " {}", info.release);
+            }
+            if (!info.machine.empty()) {
+                out = format_to(out, " ({})", info.machine);
+            }
+            if (!info.node.empty()) {
+                out = format_to(out, " on {}", info.node);
+            }
+            return out;
+        }
+    };
 }
 
 template <>
 struct stdx::fmt::formatter<Environment::OperatingSystem> : public Formatter<Environment::OperatingSystem> {};
+
+template <>
+struct stdx::fmt::formatter<Environment::SystemInfo> : public Formatter<Environment::SystemInfo> {};

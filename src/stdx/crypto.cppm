@@ -37,14 +37,14 @@ export namespace stdx::crypto {
  */
 class CryptoException : public Exception {
 private:
-	String msg; ///< Human-readable error message.
+	String _msg; ///< Human-readable error message.
 public:
 	explicit CryptoException(const String& msg = ""):
-		Exception(), msg{msg} {}
+		Exception(), _msg{msg} {}
 
 	[[nodiscard]]
 	const char* what() const noexcept override {
-		return msg.c_str();
+		return _msg.c_str();
 	}
 };
 
@@ -247,8 +247,8 @@ public:
  */
 class SecretKey: public Key {
 private:
-	String algorithm_name; ///< Standard algorithm name (e.g. {@code "SecretBox"}).
-	ByteBuffer key_bytes; ///< Raw key material.
+	String _algorithm_name; ///< Standard algorithm name (e.g. {@code "SecretBox"}).
+	ByteBuffer _key_bytes; ///< Raw key material.
 public:
 	SecretKey() = default;
 
@@ -257,11 +257,11 @@ public:
 	 * @param key The raw key bytes to copy.
 	 */
 	SecretKey(StringView algorithm, Span<const u8> key):
-		algorithm_name{algorithm}, key_bytes(key.begin(), key.end()) {}
+		_algorithm_name{algorithm}, _key_bytes(key.begin(), key.end()) {}
 
 	[[nodiscard]]
 	const String& algorithm() const noexcept override {
-		return algorithm_name;
+		return _algorithm_name;
 	}
 
 	[[nodiscard]]
@@ -271,12 +271,12 @@ public:
 
 	[[nodiscard]]
 	Span<const u8> encoded() const noexcept override {
-		return Span<const u8>(key_bytes.data(), key_bytes.size());
+		return Span<const u8>(_key_bytes.data(), _key_bytes.size());
 	}
 
 	[[nodiscard]]
 	bool empty() const noexcept override {
-		return key_bytes.empty();
+		return _key_bytes.empty();
 	}
 };
 
@@ -287,8 +287,8 @@ public:
  */
 class PublicKey: public Key {
 private:
-	String algorithm_name; ///< Standard algorithm name (e.g. {@code "Ed25519"}).
-	ByteBuffer key_bytes; ///< Raw key material.
+	String _algorithm_name; ///< Standard algorithm name (e.g. {@code "Ed25519"}).
+	ByteBuffer _key_bytes; ///< Raw key material.
 public:
 	PublicKey() = default;
 
@@ -297,11 +297,11 @@ public:
 	 * @param key The raw key bytes to copy.
 	 */
 	PublicKey(StringView algorithm, Span<const u8> key):
-		algorithm_name{algorithm}, key_bytes(key.begin(), key.end()) {}
+		_algorithm_name{algorithm}, _key_bytes(key.begin(), key.end()) {}
 
 	[[nodiscard]]
 	const String& algorithm() const noexcept override {
-		return algorithm_name;
+		return _algorithm_name;
 	}
 
 	[[nodiscard]]
@@ -311,12 +311,12 @@ public:
 
 	[[nodiscard]]
 	Span<const u8> encoded() const noexcept override {
-		return Span<const u8>(key_bytes.data(), key_bytes.size());
+		return Span<const u8>(_key_bytes.data(), _key_bytes.size());
 	}
 
 	[[nodiscard]]
 	bool empty() const noexcept override {
-		return key_bytes.empty();
+		return _key_bytes.empty();
 	}
 };
 
@@ -327,8 +327,8 @@ public:
  */
 class PrivateKey: public Key {
 private:
-	String algorithm_name; ///< Standard algorithm name (e.g. {@code "Ed25519"}).
-	ByteBuffer key_bytes; ///< Raw key material.
+	String _algorithm_name; ///< Standard algorithm name (e.g. {@code "Ed25519"}).
+	ByteBuffer _key_bytes; ///< Raw key material.
 public:
 	PrivateKey() = default;
 
@@ -337,11 +337,11 @@ public:
 	 * @param key The raw key bytes to copy.
 	 */
 	PrivateKey(StringView algorithm, Span<const u8> key):
-		algorithm_name{algorithm}, key_bytes(key.begin(), key.end()) {}
+		_algorithm_name{algorithm}, _key_bytes(key.begin(), key.end()) {}
 
 	[[nodiscard]]
 	const String& algorithm() const noexcept override {
-		return algorithm_name;
+		return _algorithm_name;
 	}
 
 	[[nodiscard]]
@@ -351,12 +351,12 @@ public:
 
 	[[nodiscard]]
 	Span<const u8> encoded() const noexcept override {
-		return Span<const u8>(key_bytes.data(), key_bytes.size());
+		return Span<const u8>(_key_bytes.data(), _key_bytes.size());
 	}
 
 	[[nodiscard]]
 	bool empty() const noexcept override {
-		return key_bytes.empty();
+		return _key_bytes.empty();
 	}
 };
 
@@ -546,8 +546,8 @@ public:
  */
 class MessageDigest {
 private:
-	MessageDigestAlgorithm algorithm; ///< The selected hash algorithm.
-	Vector<u8> buffer; ///< Accumulates data fed via update().
+	MessageDigestAlgorithm _algorithm; ///< The selected hash algorithm.
+	Vector<u8> _buffer; ///< Accumulates data fed via update().
 
 	/**
 	 * @brief Computes the hash of {@code data} without touching {@code buffer}.
@@ -560,7 +560,7 @@ private:
 	ByteBuffer compute(Span<const u8> data) const {
 		ensure_sodium_initialized();
 
-		switch (algorithm) {
+		switch (_algorithm) {
 			case MessageDigestAlgorithm::SHA_256: {
 				ByteBuffer out(crypto_hash_sha256_BYTES, 0);
 				const i32 rc = crypto_hash_sha256(out.data(), data.data(), static_cast<u64>(data.size()));
@@ -597,7 +597,7 @@ private:
 	}
 protected:
 	explicit MessageDigest(MessageDigestAlgorithm algorithm = MessageDigestAlgorithm::SHA_256):
-		algorithm{algorithm} {}
+		_algorithm{algorithm} {}
 public:
 	/**
 	 * @brief Returns a {@code MessageDigest} for the named algorithm.
@@ -642,7 +642,7 @@ public:
 	 * @param data The bytes to add.
 	 */
 	void update(Span<const u8> data) {
-		buffer.insert(buffer.end(), data.begin(), data.end());
+		_buffer.insert(_buffer.end(), data.begin(), data.end());
 	}
 
 	/**
@@ -653,8 +653,8 @@ public:
 	[[nodiscard]]
 	THROWS(HashFailedException)
 	ByteBuffer digest() {
-		ByteBuffer result = compute(Span<const u8>(buffer.data(), buffer.size()));
-		buffer.clear();
+		ByteBuffer result = compute(Span<const u8>(_buffer.data(), _buffer.size()));
+		_buffer.clear();
 		return result;
 	}
 
@@ -709,10 +709,10 @@ public:
 		ED25519, ///< Edwards-curve Digital Signature Algorithm on Curve25519.
 	};
 private:
-	Algorithm algorithm; ///< The selected asymmetric algorithm.
+	Algorithm _algorithm; ///< The selected asymmetric algorithm.
 protected:
 	explicit KeyPairGenerator(Algorithm algorithm):
-		algorithm{algorithm} {}
+		_algorithm{algorithm} {}
 public:
 	/**
 	 * @brief Returns a {@code KeyPairGenerator} for the named algorithm.
@@ -752,7 +752,7 @@ public:
 	KeyPair generate_key_pair() const {
 		ensure_sodium_initialized();
 
-		if (algorithm != Algorithm::ED25519) {
+		if (_algorithm != Algorithm::ED25519) {
 			throw NoSuchAlgorithmException("Unsupported key pair algorithm");
 		}
 
@@ -800,13 +800,13 @@ public:
 		ED25519, ///< Edwards-curve Digital Signature Algorithm on Curve25519.
 	};
 private:
-	Algorithm algorithm; ///< The selected signature algorithm.
-	PrivateKey signing_key; ///< Populated by init_sign(); empty otherwise.
-	PublicKey verification_key; ///< Populated by init_verify(); empty otherwise.
-	Vector<u8> message_buffer; ///< Accumulates message data fed via update().
+	Algorithm _algorithm; ///< The selected signature algorithm.
+	PrivateKey _signing_key; ///< Populated by init_sign(); empty otherwise.
+	PublicKey _verification_key; ///< Populated by init_verify(); empty otherwise.
+	Vector<u8> _message_buffer; ///< Accumulates message data fed via update().
 protected:
 	explicit Signature(Algorithm algorithm):
-		algorithm{algorithm} {}
+		_algorithm{algorithm} {}
 public:
 	/**
 	 * @brief Returns a {@code Signature} for the named algorithm.
@@ -849,9 +849,9 @@ public:
 		if (key.encoded().size() != ED25519_PRIVATE_KEY_BYTES) {
 			throw InvalidKeyException("Invalid Ed25519 private key length");
 		}
-		signing_key = key;
-		verification_key = {};
-		message_buffer.clear();
+		_signing_key = key;
+		_verification_key = {};
+		_message_buffer.clear();
 	}
 
 	/**
@@ -867,9 +867,9 @@ public:
 		if (key.encoded().size() != ED25519_PUBLIC_KEY_BYTES) {
 			throw InvalidKeyException("Invalid Ed25519 public key length");
 		}
-		verification_key = key;
-		signing_key = {};
-		message_buffer.clear();
+		_verification_key = key;
+		_signing_key = {};
+		_message_buffer.clear();
 	}
 
 	/**
@@ -880,7 +880,7 @@ public:
 	 * @param data The message bytes to add.
 	 */
 	void update(Span<const u8> data) {
-		message_buffer.insert(message_buffer.end(), data.begin(), data.end());
+		_message_buffer.insert(_message_buffer.end(), data.begin(), data.end());
 	}
 
 	/**
@@ -896,10 +896,10 @@ public:
 	ByteBuffer sign() {
 		ensure_sodium_initialized();
 
-		if (algorithm != Algorithm::ED25519) {
+		if (_algorithm != Algorithm::ED25519) {
 			throw NoSuchAlgorithmException("Unsupported signature algorithm");
 		}
-		if (signing_key.empty()) {
+		if (_signing_key.empty()) {
 			throw InvalidKeyException("Signature object is not initialized for signing");
 		}
 
@@ -908,11 +908,11 @@ public:
 		const i32 rc = crypto_sign_detached(
 			signature.data(),
 			&signature_length,
-			message_buffer.data(),
-			static_cast<u64>(message_buffer.size()),
-			signing_key.encoded().data()
+			_message_buffer.data(),
+			static_cast<u64>(_message_buffer.size()),
+			_signing_key.encoded().data()
 		);
-		message_buffer.clear();
+		_message_buffer.clear();
 		if (rc != 0) {
 			throw SignatureException("Failed to generate signature");
 		}
@@ -933,10 +933,10 @@ public:
 	bool verify(Span<const u8> signature) {
 		ensure_sodium_initialized();
 
-		if (algorithm != Algorithm::ED25519) {
+		if (_algorithm != Algorithm::ED25519) {
 			throw NoSuchAlgorithmException("Unsupported signature algorithm");
 		}
-		if (verification_key.empty()) {
+		if (_verification_key.empty()) {
 			throw InvalidKeyException("Signature object is not initialized for verification");
 		}
 		if (signature.size() != ED25519_SIGNATURE_BYTES) {
@@ -945,11 +945,11 @@ public:
 
 		const bool ok = crypto_sign_verify_detached(
 			signature.data(),
-			message_buffer.data(),
-			static_cast<u64>(message_buffer.size()),
-			verification_key.encoded().data()
+			_message_buffer.data(),
+			static_cast<u64>(_message_buffer.size()),
+			_verification_key.encoded().data()
 		) == 0;
-		message_buffer.clear();
+		_message_buffer.clear();
 		return ok;
 	}
 };
@@ -987,11 +987,11 @@ public:
 		SECRETBOX, ///< XSalsa20-Poly1305 (libsodium {@code crypto_secretbox}).
 	};
 private:
-	Algorithm algorithm; ///< The selected symmetric algorithm.
-	mutable SecureRandom rng; ///< Entropy source for key material.
+	Algorithm _algorithm; ///< The selected symmetric algorithm.
+	mutable SecureRandom _rng; ///< Entropy source for key material.
 protected:
 	explicit KeyGenerator(Algorithm algorithm):
-		algorithm{algorithm} {}
+		_algorithm{algorithm} {}
 public:
 	/**
 	 * @brief Returns a {@code KeyGenerator} for the named algorithm.
@@ -1033,11 +1033,11 @@ public:
 	[[nodiscard]]
 	THROWS(NoSuchAlgorithmException)
 	SecretKey generate_key() const {
-		if (algorithm != Algorithm::SECRETBOX) {
+		if (_algorithm != Algorithm::SECRETBOX) {
 			throw NoSuchAlgorithmException("Unsupported key generation algorithm");
 		}
 
-		ByteBuffer key = rng.next_bytes(SECRETBOX_KEY_BYTES);
+		ByteBuffer key = _rng.next_bytes(SECRETBOX_KEY_BYTES);
 		return SecretKey("SecretBox", Span<const u8>(key.data(), key.size()));
 	}
 };
@@ -1064,14 +1064,14 @@ public:
  */
 class Cipher {
 private:
-	String transformation; ///< The transformation string used to construct this cipher.
-	CipherMode mode; ///< Current operating mode (set by init()).
-	SecretKey key; ///< The key to encrypt/decrypt with (set by init()).
-	bool initialized; ///< Whether init() has been called successfully.
-	mutable SecureRandom rng; ///< Entropy source for nonce generation.
+	String _transformation; ///< The transformation string used to construct this cipher.
+	CipherMode _mode; ///< Current operating mode (set by init()).
+	SecretKey _key; ///< The key to encrypt/decrypt with (set by init()).
+	bool _initialized; ///< Whether init() has been called successfully.
+	mutable SecureRandom _rng; ///< Entropy source for nonce generation.
 protected:
 	explicit Cipher(StringView transformation):
-		transformation{transformation}, mode{CipherMode::ENCRYPT_MODE}, key{}, initialized{false} {}
+		_transformation{transformation}, _mode{CipherMode::ENCRYPT_MODE}, _key{}, _initialized{false} {}
 public:
 	/**
 	 * @brief Returns a {@code Cipher} for the named transformation.
@@ -1110,9 +1110,9 @@ public:
 			throw InvalidKeyException("Invalid SecretBox key size");
 		}
 
-		this->mode = mode;
-		this->key = key;
-		initialized = true;
+		this->_mode = mode;
+		this->_key = key;
+		_initialized = true;
 	}
 
 	/**
@@ -1132,15 +1132,15 @@ public:
 	ByteBuffer do_final(Span<const u8> input) const {
 		ensure_sodium_initialized();
 
-		if (!initialized) {
+		if (!_initialized) {
 			throw IllegalStateException("Cipher is not initialized");
 		}
 
-		const Span<const u8> key_material = key.encoded();
+		const Span<const u8> key_material = _key.encoded();
 
-		if (mode == CipherMode::ENCRYPT_MODE) {
+		if (_mode == CipherMode::ENCRYPT_MODE) {
 			ByteBuffer nonce(SECRETBOX_NONCE_BYTES, 0);
-			rng.next_bytes(Span<u8>(nonce.data(), nonce.size()));
+			_rng.next_bytes(Span<u8>(nonce.data(), nonce.size()));
 
 			ByteBuffer output(SECRETBOX_NONCE_BYTES + SECRETBOX_MAC_BYTES + input.size(), 0);
 

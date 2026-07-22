@@ -6,6 +6,8 @@
  */
 export namespace stdx::os::linux::sys {
     #if defined(__linux__) && __has_include(<sys/eventfd.h>)
+    using EventFdValue = ::eventfd_t;
+
     using ::eventfd;
     using ::eventfd_read;
     using ::eventfd_write;

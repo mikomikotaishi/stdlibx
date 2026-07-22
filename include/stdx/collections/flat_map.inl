@@ -2,7 +2,6 @@
 
 using stdx::meta::IsNothrowSwappableValue;
 using stdx::meta::IsSameValue;
-using stdx::meta::RemoveConstVolatile;
 
 /**
  * @namespace stdx::collections
