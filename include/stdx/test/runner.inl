@@ -213,7 +213,7 @@ namespace stdx::test {
             // Teardown failures are ignored.
         }
         const f64 elapsed_ms = static_cast<f64>(System::nano_time() - start) / 1.0e6;
-        const String line = stdx::fmt::format(
+        const String line = Ops::format(
             "{} ({:.3f} ms, {} assertions)",
             test.name,
             elapsed_ms,
@@ -224,7 +224,7 @@ namespace stdx::test {
             report(
                 "SKIP",
                 TextStyle::Color::YELLOW,
-                skip_reason.empty() ? line : stdx::fmt::format("{} - {}", line, skip_reason),
+                skip_reason.empty() ? line : Ops::format("{} - {}", line, skip_reason),
                 options.color
             );
         } else if (ctx.test_failures() == 0) {
@@ -281,7 +281,7 @@ namespace stdx::test {
             }
         }
         const f64 elapsed_ms = static_cast<f64>(System::nano_time() - start) / 1.0e6;
-        const String summary = stdx::fmt::format(
+        const String summary = Ops::format(
             "{} passed, {} failed, {} skipped - {} assertions, {:.3f} ms",
             tally.passed,
             tally.failed,

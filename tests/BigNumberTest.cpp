@@ -248,7 +248,7 @@ void test_biginteger_conversions() {
     expect_eq(BigInteger(-255).to_string(16), "-ff", "negative to_string radix 16");
     expect_eq(BigInteger(5).to_string(2), "101", "to_string radix 2");
     expect_eq(BigInteger(255).to_string(99), "255", "invalid radix falls back to 10");
-    expect_eq(stdx::fmt::format("{}", BigInteger("-12345678901234567890")), "-12345678901234567890", "formatter");
+    expect_eq(Ops::format("{}", BigInteger("-12345678901234567890")), "-12345678901234567890", "formatter");
 
     expect(BigInteger(42) == BigInteger("42"), "operator== across constructors");
     expect(
@@ -455,7 +455,7 @@ void test_bigdecimal_conversions() {
     expect(BigDecimal("2.5").float_value() == 2.5f, "float_value");
     expect(BigDecimal("1E+400").double_value() == Double::POSITIVE_INFINITY, "double_value overflow");
     expect(BigDecimal("1E-400").double_value() == 0.0, "double_value underflow");
-    expect_eq(stdx::fmt::format("{}", BigDecimal("3.14")), "3.14", "formatter");
+    expect_eq(Ops::format("{}", BigDecimal("3.14")), "3.14", "formatter");
 
     expect(BigDecimal(BigInteger("123")) + BigDecimal(5) == BigDecimal(128), "BigInteger interop");
     expect(BigDecimal("2.5") * BigDecimal(2) == BigDecimal(5), "integral operand promotion");

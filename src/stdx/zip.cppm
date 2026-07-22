@@ -30,9 +30,9 @@ namespace stdx::zip {
     [[nodiscard]]
     inline String build_error_message(StringView prefix, const z_stream& stream, i32 code) {
         String text(prefix);
-        text += stdx::fmt::format(" (zlib code {})", code);
+        text += Ops::format(" (zlib code {})", code);
         if (stream.msg) {
-            text += stdx::fmt::format(": {}", stream.msg);
+            text += Ops::format(": {}", stream.msg);
         }
         return text;
     }

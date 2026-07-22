@@ -312,7 +312,6 @@ export namespace stdx::time {
     /**
      * @class DateTimeException
      * @brief Exception thrown upon a problem with creating, querying or manipulating date-time objects.
-     *
      * @extends RuntimeException
      */
     class DateTimeException: public RuntimeException {

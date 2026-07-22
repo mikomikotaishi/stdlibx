@@ -15,7 +15,7 @@ using stdx::exec::Task;
 using namespace stdx::core;
 #endif
 
-int main() {
+int main(int argc, char* argv[]) {
     #ifdef STDLIBX_EXECUTION_AVAILABLE
     // A simple value pipeline: wrap a value sender, map it, unwrap the result.
     // value() yields the lone value directly instead of a Tuple.

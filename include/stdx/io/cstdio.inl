@@ -442,7 +442,7 @@ export namespace stdx::io {
         static File open(const Path& path, StringView mode) {
             File file(path, mode);
             if (!file) {
-                throw IOException(stdx::fmt::format("Failed to open file: {}", path));
+                throw IOException(Ops::format("Failed to open file: {}", path));
             }
             return file;
         }
@@ -475,7 +475,7 @@ export namespace stdx::io {
         THROWS(IOException)
         static File create(const Path& path) {
             if (stdx::fs::exists(path)) {
-                throw IOException(stdx::fmt::format("File already exists: {}", path));
+                throw IOException(Ops::format("File already exists: {}", path));
             }
             return open(path, "w");
         }

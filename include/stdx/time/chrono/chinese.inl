@@ -1,23 +1,6 @@
 #pragma once
 
 /**
- * @brief Chinese lunisolar calendar implementation.
- *
- * A faithful port of ICU's ChineseCalendar astronomical algorithm.
- * All astronomical computations use UTC+8 (Asia/Shanghai) and a longitude
- * of 120°E, matching the modern convention used by ICU.
- *
- * Solar longitude uses Jean Meeus' "Astronomical Algorithms" (Ch. 25).
- * New moon times use Meeus Ch. 49 with full correction terms.
- *
- * @see ICU4J com.ibm.icu.util.ChineseCalendar
- * @see Jean Meeus, "Astronomical Algorithms", 2nd ed.
- */
-namespace stdx::time::chrono {
-
-}
-
-/**
  * @namespace stdx::time::chrono
  * @brief Calendar system support.
  */
@@ -59,7 +42,7 @@ export namespace stdx::time::chrono {
      *
      * @see ICU4J com.ibm.icu.util.ChineseCalendar
      */
-    class [[nodiscard]] ChineseChronology final {
+    class ChineseChronology final {
     private:
         static constexpr f64 SYNODIC_MONTH = 29.530588853; ///< Mean synodic month in days.
         static constexpr f64 EPOCH_JD = 2440587.5; ///< Julian Day of 1970-01-01 00:00 UTC.
@@ -368,7 +351,7 @@ export namespace stdx::time::chrono {
          * the vernal equinox):
          * - Term 1 corresponds to 330° (Yǔshuǐ, 雨水)
          * - Term 2 corresponds to 0° (Chūnfēn, 春分)
-         * - Term 3 corresponds to 30° (Gǔyǔ, 谷雨)
+         * - Term 3 corresponds to 30° (Gǔyǔ, 穀雨)
          * - ...
          * - Term 11 corresponds to 270° (Dōngzhì, 冬至)
          * - Term 12 corresponds to 300° (Dàhán, 大寒)
@@ -565,18 +548,18 @@ export namespace stdx::time::chrono {
          * intercalary month.
          */
         enum class EarthlyBranch: u8 {
-            YIN = 1, ///< 寅 (yín), the first month
-            MAO = 2, ///< 卯 (mǎo), the second month
-            CHEN = 3, ///< 辰 (chén), the third month
-            SI = 4, ///< 巳 (sì), the fourth month
-            WU = 5, ///< 午 (wǔ), the fifth month
-            WEI = 6, ///< 未 (wèi), the sixth month
-            SHEN = 7, ///< 申 (shēn), the seventh month
-            YOU = 8, ///< 酉 (yǒu), the eighth month
-            XU = 9, ///< 戌 (xū), the ninth month
-            HAI = 10, ///< 亥 (hài), the tenth month
-            ZI = 11, ///< 子 (zǐ), the eleventh month (contains the winter solstice)
-            CHOU = 12, ///< 丑 (chǒu), the twelfth month
+            YIN = 1, ///< Yín (寅) the first month
+            MAO = 2, ///< Mǎo (卯), the second month
+            CHEN = 3, ///< Chén (辰), the third month
+            SI = 4, ///< Sì (巳), the fourth month
+            WU = 5, ///< Wǔ (午), the fifth month
+            WEI = 6, ///< Wèi (未), the sixth month
+            SHEN = 7, ///< Shēn (申), the seventh month
+            YOU = 8, ///< Yǒu (酉), the eighth month
+            XU = 9, ///< Xū (戌), the ninth month
+            HAI = 10, ///< Hài (亥), the tenth month
+            ZI = 11, ///< Zǐ (子), the eleventh month (contains the winter solstice)
+            CHOU = 12, ///< Chǒu (丑), the twelfth month
         };
 
         /**
@@ -590,30 +573,30 @@ export namespace stdx::time::chrono {
          * solar term is a position in the solar year, not a month.
          */
         enum class SolarTerm: u8 {
-            LICHUN = 1, ///< 立春 (Lìchūn, Start of Spring), solar longitude 315°
-            YUSHUI = 2, ///< 雨水 (Yǔshuǐ, Rain Water), 330°
-            JINGZHE = 3, ///< 驚蟄 (Jīngzhé, Awakening of Insects), 345°
-            CHUNFEN = 4, ///< 春分 (Chūnfēn, Spring Equinox), 0°
-            QINGMING = 5, ///< 清明 (Qīngmíng, Pure Brightness), 15°
-            GUYU = 6, ///< 穀雨 (Gǔyǔ, Grain Rain), 30°
-            LIXIA = 7, ///< 立夏 (Lìxià, Start of Summer), 45°
-            XIAOMAN = 8, ///< 小滿 (Xiǎomǎn, Grain Full), 60°
-            MANGZHONG = 9, ///< 芒種 (Mángzhòng, Grain in Ear), 75°
-            XIAZHI = 10, ///< 夏至 (Xiàzhì, Summer Solstice), 90°
-            XIAOSHU = 11, ///< 小暑 (Xiǎoshǔ, Minor Heat), 105°
-            DASHU = 12, ///< 大暑 (Dàshǔ, Major Heat), 120°
-            LIQIU = 13, ///< 立秋 (Lìqiū, Start of Autumn), 135°
-            CHUSHU = 14, ///< 處暑 (Chǔshǔ, End of Heat), 150°
-            BAILU = 15, ///< 白露 (Báilù, White Dew), 165°
-            QIUFEN = 16, ///< 秋分 (Qiūfēn, Autumn Equinox), 180°
-            HANLU = 17, ///< 寒露 (Hánlù, Cold Dew), 195°
-            SHUANGJIANG = 18, ///< 霜降 (Shuāngjiàng, Frost Descent), 210°
-            LIDONG = 19, ///< 立冬 (Lìdōng, Start of Winter), 225°
-            XIAOXUE = 20, ///< 小雪 (Xiǎoxuě, Minor Snow), 240°
-            DAXUE = 21, ///< 大雪 (Dàxuě, Major Snow), 255°
-            DONGZHI = 22, ///< 冬至 (Dōngzhì, Winter Solstice), 270°
-            XIAOHAN = 23, ///< 小寒 (Xiǎohán, Minor Cold), 285°
-            DAHAN = 24, ///< 大寒 (Dàhán, Major Cold), 300°
+            LICHUN = 1, ///< Lìchūn (立春, Start of Spring), solar longitude 315°
+            YUSHUI = 2, ///< Yǔshuǐ (雨水, Rain Water), 330°
+            JINGZHE = 3, ///< Jīngzhé (驚蟄, Awakening of Insects), 345°
+            CHUNFEN = 4, ///< Chūnfēn (春分, Spring Equinox), 0°
+            QINGMING = 5, ///< Qīngmíng (清明, Pure Brightness), 15°
+            GUYU = 6, ///< Gǔyǔ (穀雨, Grain Rain), 30°
+            LIXIA = 7, ///< Lìxià (立夏, Start of Summer), 45°
+            XIAOMAN = 8, ///< Xiǎomǎn (小滿, Grain Full), 60°
+            MANGZHONG = 9, ///< Mángzhòng (芒種, Grain in Ear), 75°
+            XIAZHI = 10, ///< Xiàzhì (夏至, Summer Solstice), 90°
+            XIAOSHU = 11, ///< Xiǎoshǔ (小暑, Minor Heat), 105°
+            DASHU = 12, ///< Dàshǔ (大暑, Major Heat), 120°
+            LIQIU = 13, ///< Lìqiū (立秋, Start of Autumn), 135°
+            CHUSHU = 14, ///< Chǔshǔ (處暑, End of Heat), 150°
+            BAILU = 15, ///< Báilù (白露, White Dew), 165°
+            QIUFEN = 16, ///< Qiūfēn (秋分, Autumn Equinox), 180°
+            HANLU = 17, ///< Hánlù (寒露, Cold Dew), 195°
+            SHUANGJIANG = 18, ///< Shuāngjiàng (霜降, Frost Descent), 210°
+            LIDONG = 19, ///< Lìdōng (立冬, Start of Winter), 225°
+            XIAOXUE = 20, ///< Xiǎoxuě (小雪, Minor Snow), 240°
+            DAXUE = 21, ///< Dàxuě (大雪, Major Snow), 255°
+            DONGZHI = 22, ///< Dōngzhì (冬至, Winter Solstice), 270°
+            XIAOHAN = 23, ///< Xiǎohán (小寒, Minor Cold), 285°
+            DAHAN = 24, ///< Dàhán (大寒, Major Cold), 300°
         };
 
         using enum EarthlyBranch;
@@ -959,7 +942,7 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<ChineseChronology> of(i32 y, LeapMonth m, u32 d) noexcept;
 
         /**
-         * @brief The solar term (节气) in effect on a date.
+         * @brief The solar term (節氣) in effect on a date.
          * @param date A date in this chronology.
          * @returns The solar term the sun's longitude falls in on that day.
          *
@@ -1017,7 +1000,7 @@ export namespace stdx::time::chrono {
      */
     [[nodiscard]]
     constexpr ChineseChronology::LeapMonth leap_month(ChineseChronology::EarthlyBranch branch) noexcept {
-        return {branch};
+        return ChineseChronology::LeapMonth { .branch = branch };
     }
 
     constexpr ChineseDate ChineseChronology::of(i32 y, u32 m, u32 d) noexcept {

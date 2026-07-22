@@ -34,9 +34,7 @@ GENERATE_DEPENDENCIES_GRAPH_IMAGE_COMMAND: list[str] = ["dot", "-Tpng", "graph.d
 class ANSI(Enum):
     """
     @enum ANSI
-
     @extends Enum
-    
     @brief ANSI escape codes for terminal text styling.
     """
     RESET: str = "\033[0m"
@@ -46,10 +44,9 @@ class ANSI(Enum):
     BLUE: str = "\033[34m"
     CLEAR_LINE: str = "\033[K"
 
-def get_console_width() -> int:
+def console_width() -> int:
     """
     @brief Gets the width of the current console window in characters.
-
     @return The number of characters that fit on the console width
     """
     try:
@@ -60,7 +57,6 @@ def get_console_width() -> int:
 def visible_length(s: str) -> int:
     """
     @brief Calculates the visible length of a string (excluding ANSI escape sequences).
-
     @param s (str): The string to calculate the visible length of.
     @return int: The visible length of the string.
     """
@@ -69,12 +65,10 @@ def visible_length(s: str) -> int:
 def run_command(command: list[str], verbose: bool, capture_output: bool = False) -> str | None:
     """
     @brief Executes a shell command.
-
     @param command (list[str]): The command to be executed as a list of arguments.
     @param verbose (bool): If True, print the command output; otherwise, suppress it.
     @param capture_output (bool): If True, captures and returns the command's output.
     @return str | None: Captured output if `capture_output` is True, otherwise None.
-
     @throws CalledProcessError: If the command returns a non-zero exit code.
     """
     if verbose:
@@ -93,7 +87,6 @@ def run_command(command: list[str], verbose: bool, capture_output: bool = False)
 def clean_build_directory(preserve_deps: bool = False) -> None:
     """
     @brief Removes the 'build' directory while optionally preserving dependencies.
-
     @param preserve_deps: If True, preserves dependencies and removes only project build files.
     """
     print(f"{ANSI.RED}Cleaning{ANSI.RESET} build files...")
@@ -130,7 +123,6 @@ def clean_build_directory(preserve_deps: bool = False) -> None:
 def configure_sanitizers(cmake_command: list[str], release: bool, sanitizers: list[str]) -> list[str]:
     """
     @brief Helper function to configure CMake command with sanitizer options.
-    
     @param cmake_command (list[str]): The base CMake command list to modify.
     @param release (bool): If True, build for release. Otherwise, debug build.
     @param sanitizers (list[str]): List of sanitizers to enable.
@@ -256,11 +248,9 @@ def configure_sanitizers(cmake_command: list[str], release: bool, sanitizers: li
 def run_cmake_init(verbose: bool, release: bool, sanitizers: list[str] = None) -> None:
     """
     @brief Runs the CMake initialization process with detailed progress reporting.
-
     @param verbose (bool): If True, prints all output. Otherwise, shows progress indicators.
     @param release (bool): If True, sets CMake to build for release. Otherwise, builds a debug build.
     @param sanitizers (list[str]): List of sanitizers to enable.
-
     @throws CalledProcessError
     """
     if sanitizers is None:
@@ -286,7 +276,7 @@ def run_cmake_init(verbose: bool, release: bool, sanitizers: list[str] = None) -
     cloning_repo: str | None = None
     downloading_library: str | None = None
 
-    def processStderr() -> None:
+    def process_stderr() -> None:
         for line in process.stderr:
             line = line.strip()
             clone_match: Match | None = re.search(r"Cloning into ['\"](.*?)['\"]", line)
@@ -297,7 +287,7 @@ def run_cmake_init(verbose: bool, release: bool, sanitizers: list[str] = None) -
             if build_stopped:
                 print(f"\r{ANSI.CLEAR_LINE}{ANSI.RED}Build stopped:{ANSI.RESET} {build_stopped}")
 
-    stderr_thread: Thread = Thread(target = processStderr, daemon = True)
+    stderr_thread: Thread = Thread(target = process_stderr, daemon = True)
     stderr_thread.start()
 
     try:
@@ -369,16 +359,14 @@ def run_cmake_init(verbose: bool, release: bool, sanitizers: list[str] = None) -
 def run_cmake_reconfigure(verbose: bool, release: bool, sanitizers: list[str] = None) -> None:
     """
     @brief Reconfigures the CMake build system without cleaning.
+    @param verbose (bool): If True, prints all output. Otherwise, shows progress indicators.
+    @param release (bool): If True, sets CMake to build for release. Otherwise, builds a debug build.
+    @param sanitizers (list[str]): List of sanitizers to enable.
+    @throws CalledProcessError
 
     This function is used to reconfigure the build system without cleaning all build files.
     Use this when new files are added to the project to update the build system
     without requiring a full rebuild of existing files.
-
-    @param verbose (bool): If True, prints all output. Otherwise, shows progress indicators.
-    @param release (bool): If True, sets CMake to build for release. Otherwise, builds a debug build.
-    @param sanitizers (list[str]): List of sanitizers to enable.
-
-    @throws CalledProcessError
     """
     if sanitizers is None:
         sanitizers = []
@@ -418,7 +406,6 @@ def run_cmake_reconfigure(verbose: bool, release: bool, sanitizers: list[str] = 
 def parse_cmake_progress(line: str) -> tuple[int, int] | None:
     """
     @brief Extracts the current step and total steps from CMake build output.
-
     @param line (str): A line of CMake output.
     @return tuple[int, int] | None: A tuple (current_step, total_steps) if found, otherwise None.
     """
@@ -428,7 +415,6 @@ def parse_cmake_progress(line: str) -> tuple[int, int] | None:
 def extract_filename(line: str) -> str | None:
     """
     @brief Extracts the filename from a compilation command.
-
     @param line (str): A line of CMake build output.
     @return str | None: The extracted filename if found, otherwise None.
     """
@@ -438,7 +424,6 @@ def extract_filename(line: str) -> str | None:
 def detect_warnings(line: str) -> str | None:
     """
     @brief Detects warnings in the compiler output.
-
     @param line (str): A line of compiler output.
     @return str | None: The filename associated with a warning, if found.
     """
@@ -448,7 +433,6 @@ def detect_warnings(line: str) -> str | None:
 def detect_errors(line: str) -> str | None:
     """
     @brief Detects compilation errors in the compiler output.
-
     @param line (str): A line of compiler output.
     @return str | None: The error message if found, otherwise None.
     """
@@ -458,7 +442,6 @@ def detect_errors(line: str) -> str | None:
 def detect_build_stopped(line: str) -> str | None:
     """
     @brief Detects build stopped messages from ninja.
-
     @param line (str): A line of compiler output.
     @return str | None: The build stopped message if found, otherwise None.
     """
@@ -468,9 +451,7 @@ def detect_build_stopped(line: str) -> str | None:
 def run_cmake_build(verbose: bool) -> None:
     """
     @brief Runs `cmake --build build` while showing a progress bar if `verbose` is False.
-
     @param verbose (bool): If True, prints build logs. Otherwise, shows a progress bar.
-
     @throws CalledProcessError
     """
     if verbose:
@@ -527,8 +508,8 @@ def run_cmake_build(verbose: bool) -> None:
             f"[{current_step:{width}d}/{total_steps or 1}] "
             f"{ANSI.GREEN}Compiling:{ANSI.RESET} {current_file or ''} "
         )
-        if visible_length(output_string) > get_console_width() - 1:
-            output_string = output_string[:get_console_width() - 1]
+        if visible_length(output_string) > console_width() - 1:
+            output_string = output_string[:console_width() - 1]
         print(output_string, end = "", flush = True)
 
     update_progress_bar()
@@ -615,11 +596,10 @@ def run_cmake_build(verbose: bool) -> None:
 def main() -> int:
     """
     @brief Main function.
-    
+    @return int: Return code (0 for success, non-zero for failure).
+
     Main function to execute the build and dependency generation steps for the stdlibx project.
     Supports various flags for different operations.
-
-    @return int: Return code (0 for success, non-zero for failure).
     """
     parser: ArgumentParser = ArgumentParser(description = "Build script for stdlib project.")
     

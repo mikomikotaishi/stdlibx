@@ -102,7 +102,7 @@ void test_iso_chronology() {
 
     // Named Gregorian months construct the same date as their 1-based index.
     expect_eq(IsoChronology::of(2024, IsoChronology::MARCH, 15), IsoChronology::of(2024, 3, 15), "IsoChronology::MARCH == month 3");
-    expect(static_cast<u32>(IsoChronology::DECEMBER) == 12, "IsoChronology::DECEMBER is the shared GregorianMonth value 12");
+    expect(Ops::to_underlying(IsoChronology::DECEMBER) == 12, "IsoChronology::DECEMBER is the shared GregorianMonth value 12");
 }
 
 void test_julian_chronology() {
@@ -168,7 +168,11 @@ void test_japanese_chronology() {
 
     // Traditional wafū month names map 1:1 onto the Gregorian months.
     expect_eq(JapaneseChronology::of(2019, JapaneseChronology::SHIWASU, 25), JapaneseChronology::of(2019, 12, 25), "JapaneseChronology::SHIWASU == December");
-    expect(static_cast<u32>(JapaneseChronology::MUTSUKI) == 1, "JapaneseChronology::MUTSUKI is January (month 1)");
+    expect(Ops::to_underlying(JapaneseChronology::MUTSUKI) == 1, "JapaneseChronology::MUTSUKI is January (month 1)");
+
+    // Gregorian month names are also accepted, and agree with the wafū ones.
+    expect_eq(JapaneseChronology::of(2019, JapaneseChronology::DECEMBER, 25), JapaneseChronology::of(2019, JapaneseChronology::SHIWASU, 25), "JapaneseChronology::DECEMBER == SHIWASU");
+    expect_eq(JapaneseChronology::of(2019, JapaneseChronology::MAY, 1), JapaneseChronology::of(2019, 5, 1), "JapaneseChronology::MAY == month 5");
 }
 
 void test_hebrew_chronology() {
@@ -186,8 +190,8 @@ void test_hebrew_chronology() {
 
     expect(HebrewChronology::is_leap_year(5784), "Hebrew year 5784 is a leap year");
     expect(!HebrewChronology::is_leap_year(5785), "Hebrew year 5785 is not a leap year");
-    expect_eq(static_cast<i32>(HebrewChronology::months_in_year(5784)), 13, "leap year 5784 has 13 months");
-    expect_eq(static_cast<i32>(HebrewChronology::months_in_year(5785)), 12, "common year 5785 has 12 months");
+    expect_eq(HebrewChronology::months_in_year(5784), 13, "leap year 5784 has 13 months");
+    expect_eq(HebrewChronology::months_in_year(5785), 12, "common year 5785 has 12 months");
 
     expect_throws<DateTimeException>(
         [] -> void { (void)HebrewChronology::of(0, 1, 1); }, "Hebrew year 0 is rejected"
@@ -249,8 +253,8 @@ void test_chinese_chronology() {
 
     expect(ChineseChronology::is_leap_year(2023), "Chinese year 2023 is a leap year");
     expect(!ChineseChronology::is_leap_year(2024), "Chinese year 2024 is not a leap year");
-    expect_eq(static_cast<i32>(ChineseChronology::months_in_year(2023)), 13, "leap year 2023 has 13 months");
-    expect_eq(static_cast<i32>(ChineseChronology::months_in_year(2024)), 12, "common year 2024 has 12 months");
+    expect_eq(ChineseChronology::months_in_year(2023), 13, "leap year 2023 has 13 months");
+    expect_eq(ChineseChronology::months_in_year(2024), 12, "common year 2024 has 12 months");
 
     // Earthly-branch month names: YIN (寅) is the first month of the year.
     expect_eq(ChineseChronology::of(2024, ChineseChronology::YIN, 1), ChineseChronology::of(2024, 1, 1), "ChineseChronology::YIN is the first month");

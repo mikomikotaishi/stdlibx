@@ -11,7 +11,7 @@ export namespace stdx::time::chrono {
      *
      * This is the default calendar system used by std::chrono.
      */
-    class [[nodiscard]] IsoChronology final {
+    class IsoChronology final {
     public:
         IsoChronology() = delete("IsoChronology is a static utility class and cannot be instantiated.");
 

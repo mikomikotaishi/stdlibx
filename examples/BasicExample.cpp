@@ -140,9 +140,9 @@ int main(int argc, char* argv[]) {
             .to<Vector>()
     );
 
-    Vector<Path> cpp_sources = stdx::fs::glob_recursive("tests/**/*.cpp");
+    Vector<Path> cpp_sources = stdx::fs::glob_recursive("examples/**/*.cpp");
     System::out.println(
-        "\nFound {} .cpp file(s) under tests/ (recursive):",
+        "\nFound {} .cpp file(s) under examples/ (recursive):",
         cpp_sources.size()
     );
     for (const Path& src: cpp_sources) {

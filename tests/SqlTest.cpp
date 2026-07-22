@@ -120,7 +120,7 @@ Optional<Connection> try_open_live(const Path& dbfile) noexcept {
     Vector<String> connection_strings;
 
     const Optional<StringView> mssql_password = Environment::get("STDX_MSSQL_PASSWORD");
-    connection_strings.push_back(stdx::fmt::format(
+    connection_strings.push_back(Ops::format(
         "Driver={{ODBC Driver 18 for SQL Server}};Server=127.0.0.1,1433;"
         "UID=sa;PWD={};Encrypt=no;TrustServerCertificate=yes;MARS_Connection=yes;",
         mssql_password.has_value() ? *mssql_password : StringView("Stdx#Passw0rd")
@@ -132,7 +132,7 @@ Optional<Connection> try_open_live(const Path& dbfile) noexcept {
         "SQLite",
     };
     for (StringView driver: SQLITE_DRIVERS) {
-        connection_strings.push_back(stdx::fmt::format(
+        connection_strings.push_back(Ops::format(
             "Driver={{{}}};Database={};", driver, dbfile
         ));
     }

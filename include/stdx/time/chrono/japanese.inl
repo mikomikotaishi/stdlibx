@@ -13,7 +13,7 @@ export namespace stdx::time::chrono {
      * Japanese Imperial era-based year numbering. Supports eras
      * from Meiji (1868) through Reiwa (2019-).
      */
-    class [[nodiscard]] JapaneseChronology final {
+    class JapaneseChronology final {
     private:
         static constexpr i64 MEIJI_START = gregorian_to_epoch_day(1868, 1, 25); ///< The epoch day of the Meiji era (corresponding to 1868-01-25 in the Gregorian calendar).
         static constexpr i64 TAISHO_START = gregorian_to_epoch_day(1912, 7, 30); ///< The epoch day of the Taisho era (corresponding to 1912-07-30 in the Gregorian calendar).
@@ -27,18 +27,18 @@ export namespace stdx::time::chrono {
          * @brief Traditional Japanese month names (和風月名, wafū getsumei).
          */
         enum class JapaneseMonth: u8 {
-            MUTSUKI = 1, ///< Mutsuki, the first month of the year (January)
-            KISARAGI = 2, ///< Kisaragi, the second month of the year (February)
-            YAYOI = 3, ///< Yayoi, the third month of the year (March)
-            UZUKI = 4, ///< Uzuki, the fourth month of the year (April)
-            SATSUKI = 5, ///< Satsuki, the fifth month of the year (May)
-            MINAZUKI = 6, ///< Minazuki, the sixth month of the year (June)
-            FUMIZUKI = 7, ///< Fumizuki, the seventh month of the year (July)
-            HAZUKI = 8, ///< Hazuki, the eighth month of the year (August)
-            NAGATSUKI = 9, ///< Nagatsuki, the ninth month of the year (September)
-            KANNAZUKI = 10, ///< Kannazuki, the tenth month of the year (October)
-            SHIMOTSUKI = 11, ///< Shimotsuki, the eleventh month of the year (November)
-            SHIWASU = 12, ///< Shiwasu, the twelfth month of the year (December)
+            MUTSUKI = 1, ///< Mutsuki (睦月), the first month of the year (January)
+            KISARAGI = 2, ///< Kisaragi (如月), the second month of the year (February)
+            YAYOI = 3, ///< Yayoi (弥生), the third month of the year (March)
+            UZUKI = 4, ///< Uzuki (卯月), the fourth month of the year (April)
+            SATSUKI = 5, ///< Satsuki (皐月), the fifth month of the year (May)
+            MINAZUKI = 6, ///< Minazuki (水無月), the sixth month of the year (June)
+            FUMIZUKI = 7, ///< Fumizuki (文月), the seventh month of the year (July)
+            HAZUKI = 8, ///< Hazuki (葉月), the eighth month of the year (August)
+            NAGATSUKI = 9, ///< Nagatsuki (長月), the ninth month of the year (September)
+            KANNAZUKI = 10, ///< Kannazuki (神無月), the tenth month of the year (October)
+            SHIMOTSUKI = 11, ///< Shimotsuki (霜月), the eleventh month of the year (November)
+            SHIWASU = 12, ///< Shiwasu (師走), the twelfth month of the year (December)
         };
     public:
         JapaneseChronology() = delete("JapaneseChronology is a static utility class and cannot be instantiated.");
@@ -56,6 +56,7 @@ export namespace stdx::time::chrono {
         };
 
         using enum JapaneseMonth;
+        using enum GregorianMonth;
 
         /**
          * @brief Returns the chronology identifier.
@@ -434,6 +435,21 @@ export namespace stdx::time::chrono {
         static constexpr ChronoLocalDate<JapaneseChronology> of(i32 y, JapaneseMonth m, u32 d);
 
         /**
+         * @brief Create a date from a Gregorian month name.
+         * @param y The ISO proleptic year.
+         * @param m The month.
+         * @param d The day of the month.
+         * @returns The date in this chronology.
+         * @throws DateTimeException if the date is before Meiji (1868-01-25).
+         *
+         * The modern Japanese calendar uses the Gregorian months, so this is
+         * an alternative to the traditional wafū names of @ref JapaneseMonth.
+         */
+        [[nodiscard]]
+        THROWS(DateTimeException)
+        static constexpr ChronoLocalDate<JapaneseChronology> of(i32 y, GregorianMonth m, u32 d);
+
+        /**
          * @brief Create a date from typed year, month, and day.
          * @param y The ISO proleptic year.
          * @param m The month.
@@ -490,6 +506,10 @@ export namespace stdx::time::chrono {
     }
 
     constexpr JapaneseDate JapaneseChronology::of(i32 y, JapaneseMonth m, u32 d) {
+        return of(y, static_cast<u32>(m), d);
+    }
+
+    constexpr JapaneseDate JapaneseChronology::of(i32 y, GregorianMonth m, u32 d) {
         return of(y, static_cast<u32>(m), d);
     }
 

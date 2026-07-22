@@ -1,5 +1,9 @@
 #pragma once
 
+using stdx::fmt::FormatArgs;
+using stdx::fmt::FormatString;
+using stdx::fmt::WideFormatArgs;
+using stdx::fmt::WideFormatString;
 using stdx::future::Future;
 using stdx::future::LaunchPolicy;
 using stdx::meta::AddConstType;
@@ -423,6 +427,50 @@ export namespace stdx::core {
         [[nodiscard]]
         static constexpr Pair<UnwrapReferenceDecayType<T>, UnwrapReferenceDecayType<U>> pair(T&& x, U&& y) noexcept {
             return std::make_pair(forward<T>(x), forward<U>(y));
+        }
+
+        template <typename... Args>
+        [[nodiscard]]
+        static String format(FormatString<Args...> fmt, Args&&... args) {
+            return std::format(fmt, forward<Args>(args)...);
+        }
+
+        template <typename... Args>
+        [[nodiscard]]
+        static WideString format(WideFormatString<Args...> fmt, Args&&... args) {
+            return std::format(fmt, forward<Args>(args)...);
+        }
+
+        template <typename... Args>
+        [[nodiscard]]
+        static String format(const Locale& loc, FormatString<Args...> fmt, Args&&... args) {
+            return std::format(loc, fmt, forward<Args>(args)...);
+        }
+
+        template <typename... Args>
+        [[nodiscard]]
+        static WideString format(const Locale& loc, WideFormatString<Args...> fmt, Args&&... args) {
+            return std::format(loc, fmt, forward<Args>(args)...);
+        }
+
+        [[nodiscard]]
+        static String vformat(StringView fmt, FormatArgs args) {
+            return std::vformat(fmt, args);
+        }
+
+        [[nodiscard]]
+        static WideString vformat(WideStringView fmt, WideFormatArgs args) {
+            return std::vformat(fmt, args);
+        }
+
+        [[nodiscard]]
+        static String vformat(const Locale& loc, StringView fmt, FormatArgs args) {
+            return std::vformat(loc, fmt, args);
+        }
+
+        [[nodiscard]]
+        static WideString vformat(const Locale& loc, WideStringView fmt, WideFormatArgs args) {
+            return std::vformat(loc, fmt, args);
         }
 
         #ifdef __cpp_lib_reflection

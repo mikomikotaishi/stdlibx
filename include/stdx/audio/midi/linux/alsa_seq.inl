@@ -366,7 +366,7 @@ namespace stdx::audio::midi {
 
     [[nodiscard]]
     inline String make_alsa_id(i32 c, i32 p) {
-        return stdx::fmt::format("{}:{}", c, p);
+        return Ops::format("{}:{}", c, p);
     }
 
     inline bool parse_alsa_id(const String& id, i32& c, i32& p) noexcept {
@@ -427,7 +427,7 @@ export namespace stdx::audio::midi {
 
                 out.push_back(Ops::move(MidiDeviceInfo {
                     .id = make_alsa_id(c, p),
-                    .name = stdx::fmt::format("{} - {}", client_name, port_name),
+                    .name = Ops::format("{} - {}", client_name, port_name),
                     .backend = MidiBackend::ALSA_SEQ,
                     .is_input = can_read,
                     .is_output = can_write,

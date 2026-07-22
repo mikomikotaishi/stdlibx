@@ -7,38 +7,38 @@
 export namespace stdx::os::win32 {
     #if defined(_WIN32) && __has_include(<winsock2.h>)
     // Core socket types
-    using Socket = ::SOCKET;
-    using SocketPointer = ::LPSOCKET;
-    using FdSet = ::fd_set;
-    using Timeval = ::TIMEVAL;
-    using TimevalPointer = ::PTIMEVAL;
+    using WinSocket = ::SOCKET;
+    using WinSocketPointer = ::LPSOCKET;
+    using WinFdSet = ::fd_set;
+    using WinTimeval = ::TIMEVAL;
+    using WinTimevalPointer = ::PTIMEVAL;
 
     // Address structures
-    using SockAddr = ::SOCKADDR;
-    using SockAddrPointer = ::PSOCKADDR;
-    using SockAddrIn = ::SOCKADDR_IN;
-    using SockAddrInPointer = ::PSOCKADDR_IN;
-    using SockAddrIn6 = ::SOCKADDR_IN6;
-    using SockAddrIn6Pointer = ::PSOCKADDR_IN6;
-    using SockAddrStorage = ::SOCKADDR_STORAGE;
-    using SockAddrStoragePointer = ::PSOCKADDR_STORAGE;
-    using InAddr = ::IN_ADDR;
-    using InAddrPointer = ::PIN_ADDR;
-    using In6Addr = ::IN6_ADDR;
-    using In6AddrPointer = ::PIN6_ADDR;
+    using WinSockAddr = ::SOCKADDR;
+    using WinSockAddrPointer = ::PSOCKADDR;
+    using WinSockAddrIn = ::SOCKADDR_IN;
+    using WinSockAddrInPointer = ::PSOCKADDR_IN;
+    using WinSockAddrIn6 = ::SOCKADDR_IN6;
+    using WinSockAddrIn6Pointer = ::PSOCKADDR_IN6;
+    using WinSockAddrStorage = ::SOCKADDR_STORAGE;
+    using WinSockAddrStoragePointer = ::PSOCKADDR_STORAGE;
+    using WinInAddr = ::IN_ADDR;
+    using WinInAddrPointer = ::PIN_ADDR;
+    using WinIn6Addr = ::IN6_ADDR;
+    using WinIn6AddrPointer = ::PIN6_ADDR;
 
     // Lookup records
-    using HostEnt = ::HOSTENT;
-    using HostEntPointer = ::PHOSTENT;
-    using ServEnt = ::SERVENT;
-    using ServEntPointer = ::PSERVENT;
-    using ProtoEnt = ::PROTOENT;
-    using ProtoEntPointer = ::PPROTOENT;
-    using AddrInfo = ::ADDRINFOA;
-    using AddrInfoPointer = ::PADDRINFOA;
-    using AddrInfoW = ::ADDRINFOW;
-    using AddrInfoWPointer = ::PADDRINFOW;
-    using SocketLength = ::socklen_t;
+    using WinHostEnt = ::HOSTENT;
+    using WinHostEntPointer = ::PHOSTENT;
+    using WinServEnt = ::SERVENT;
+    using WinServEntPointer = ::PSERVENT;
+    using WinProtoEnt = ::PROTOENT;
+    using WinProtoEntPointer = ::PPROTOENT;
+    using WinAddrInfo = ::ADDRINFOA;
+    using WinAddrInfoPointer = ::PADDRINFOA;
+    using WinAddrInfoW = ::ADDRINFOW;
+    using WinAddrInfoWPointer = ::PADDRINFOW;
+    using WinSocketLength = ::socklen_t;
 
     // Winsock-level types
     using WsaData = ::WSADATA;

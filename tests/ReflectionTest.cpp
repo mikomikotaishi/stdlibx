@@ -493,7 +493,7 @@ void test_enum_map() {
     EnumMap<Suit, i32> f;
     f.insert_or_assign(Suit::CLUBS, 1);
     f.insert_or_assign(Suit::HEARTS, 3);
-    expect_eq(stdx::fmt::format("{}", f), "{CLUBS=1, HEARTS=3}", "formatter lists entries in declaration order");
+    expect_eq(Ops::format("{}", f), "{CLUBS=1, HEARTS=3}", "formatter lists entries in declaration order");
 }
 #endif
 

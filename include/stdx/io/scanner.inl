@@ -94,7 +94,7 @@ export namespace stdx::io {
         explicit Scanner(const Path& path):
             owned_file_stream{Pointers::unique<InputFileStream>(path)} {
             if (!owned_file_stream->is_open()) {
-                throw IOException(stdx::fmt::format("Failed to open file: {}", path));
+                throw IOException(Ops::format("Failed to open file: {}", path));
             }
             source = owned_file_stream.get();
         }
@@ -114,7 +114,7 @@ export namespace stdx::io {
             }
             owned_file_stream = Pointers::unique<InputFileStream>(*path);
             if (!owned_file_stream->is_open()) {
-                throw IOException(stdx::fmt::format("Failed to open file: {}", path->string()));
+                throw IOException(Ops::format("Failed to open file: {}", path->string()));
             }
             source = owned_file_stream.get();
         }

@@ -347,7 +347,7 @@ export namespace stdx::core {
             Instant<SystemClock> now = SystemClock::now();
             LocalTime<Seconds> currentTime = stdx::time::current_zone()
                 ->to_local(stdx::time::floor<Seconds>(now));
-            return stdx::fmt::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
+            return Ops::format("{:%Y-%m-%d %H:%M:%S}", currentTime);
         }
 
         [[nodiscard]]

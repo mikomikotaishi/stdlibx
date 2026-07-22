@@ -565,12 +565,12 @@ export namespace stdx::meta::reflect {
     /**
      * @class Type
      * @brief Wraps the reflection of a type.
+     * @extends Mirror
      *
      * Exposes the full battery of type traits (size, alignment, category
      * tests, qualifier removal/addition, relations). Subclassed by
      * Class<T>, Enum<E>, and Union<U> for entities whose type is
      * known statically.
-     * @extends Mirror
      */
     class Type: public Mirror {
     public:
@@ -1082,7 +1082,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Parameter
      * @brief A parameter of a function.
-     *
      * @extends Mirror
      */
     class Parameter: public Mirror {
@@ -1123,7 +1122,6 @@ export namespace stdx::meta::reflect {
      * @brief A free or unspecified function. Member functions are
      * represented by Method, constructors/destructors by their
      * own wrappers.
-     *
      * @extends Mirror
      */
     class Callback: public Mirror {
@@ -1216,7 +1214,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Method
      * @brief A method of a class.
-     *
      * @extends Callback
      */
     class Method: public Callback {
@@ -1379,7 +1376,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Field
      * @brief A field of a class.
-     *
      * @extends Mirror
      */
     class Field: public Mirror {
@@ -1453,7 +1449,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Variable
      * @brief A variable.
-     *
      * @extends Mirror
      */
     class Variable: public Mirror {
@@ -1578,7 +1573,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Constructor
      * @brief Represents a constructor in the reflection system.
-     *
      * @extends Mirror
      */
     class Constructor: public Mirror {
@@ -1679,7 +1673,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Destructor
      * @brief Represents a destructor in the reflection system.
-     *
      * @extends Mirror
      */
     class Destructor: public Mirror {
@@ -1764,7 +1757,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Base
      * @brief Represents a base class in the reflection system.
-     *
      * @extends Mirror
      */
     class Base: public Mirror {
@@ -1808,7 +1800,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Enumerator
      * @brief Represents an enumerator in the reflection system.
-     *
      * @extends Mirror
      */
     class Enumerator: public Mirror {
@@ -1838,7 +1829,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Namespace
      * @brief Represents a namespace in the reflection system.
-     *
      * @extends Mirror
      */
     class Namespace: public Mirror {
@@ -1878,7 +1868,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class NamespaceAlias
      * @brief Represents a namespace alias in the reflection system.
-     *
      * @extends Mirror
      */
     class NamespaceAlias: public Mirror {
@@ -1902,7 +1891,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class TypeAlias
      * @brief Represents a type alias in the reflection system.
-     *
      * @extends Mirror
      */
     class TypeAlias: public Mirror {
@@ -1931,7 +1919,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Concept
      * @brief Represents a concept in the reflection system.
-     *
      * @extends Mirror
      */
     class Concept: public Mirror {
@@ -1962,7 +1949,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Template
      * @brief Represents a template in the reflection system.
-     *
      * @extends Mirror
      */
     class Template: public Mirror {
@@ -2033,7 +2019,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class Annotation
      * @brief Represents an annotation in the reflection system.
-     *
      * @extends Mirror
      */
     class Annotation: public Mirror {
@@ -2063,7 +2048,6 @@ export namespace stdx::meta::reflect {
     /**
      * @class StructuredBinding
      * @brief Represents a structured binding in the reflection system.
-     *
      * @extends Mirror
      */
     class StructuredBinding: public Mirror {
@@ -2087,9 +2071,8 @@ export namespace stdx::meta::reflect {
     /**
      * @class Class
      * @brief Statically-typed wrapper for class (non-union) types.
-     *
-     * @tparam T The class type being reflected.
      * @extends Type
+     * @tparam T The class type being reflected.
      */
     template <ReflectableClass T>
     class Class: public Type {
@@ -2200,8 +2183,8 @@ export namespace stdx::meta::reflect {
     /**
      * @class Enum
      * @brief Represents an enum in the reflection system.
-     * @tparam E The enum type being reflected.
      * @extends Type
+     * @tparam E The enum type being reflected.
      */
     template <ReflectableEnum E>
     class Enum: public Type {
@@ -2235,8 +2218,8 @@ export namespace stdx::meta::reflect {
     /**
      * @class Union
      * @brief Represents a union in the reflection system.
-     * @tparam U The union type being reflected.
      * @extends Type
+     * @tparam U The union type being reflected.
      */
     template <ReflectableUnion U>
     class Union: public Type {

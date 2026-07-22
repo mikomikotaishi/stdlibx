@@ -87,7 +87,7 @@ export namespace stdx::sys {
      * reap it - the caller must call wait() (or kill() then wait()) to avoid
      * zombie processes on Unix.
      */
-    class Process {
+    class [[nodiscard]] Process {
     public:
         class Builder;
     private:

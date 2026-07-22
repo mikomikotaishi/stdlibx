@@ -136,7 +136,7 @@ public:
         );
 
         if (SQL_SUCCEEDED(diag_ret)) {
-            msg = stdx::fmt::format(
+            msg = Ops::format(
                 "{}: {}", context, reinterpret_cast<char*>(message_buf)
             );
             sql_state = String(reinterpret_cast<char*>(state_buf));
@@ -276,7 +276,7 @@ void throw_sql_exception(SQLSMALLINT handle_type, SQLHANDLE handle, StringView c
     );
 
     if (SQL_SUCCEEDED(diag_ret)) {
-        msg = stdx::fmt::format(
+        msg = Ops::format(
             "{}: {}", context, reinterpret_cast<char*>(message_buf)
         );
         sql_state = String(reinterpret_cast<char*>(state_buf));
@@ -675,7 +675,7 @@ private:
             }
         }
 
-        throw SQLException(stdx::fmt::format("Column not found: {}", column_name));
+        throw SQLException(Ops::format("Column not found: {}", column_name));
     }
 
     /**
@@ -3859,12 +3859,12 @@ public:
     ) {
         String conn_str;
         if (port > 0) {
-            conn_str = stdx::fmt::format(
+            conn_str = Ops::format(
                 "Driver={{{}}};Server={};Port={};Database={};Uid={};Pwd={};",
                 driver, server, port, database, username, password
             );
         } else {
-            conn_str = stdx::fmt::format(
+            conn_str = Ops::format(
                 "Driver={{{}}};Server={};Database={};Uid={};Pwd={};",
                 driver, server, database, username, password
             );

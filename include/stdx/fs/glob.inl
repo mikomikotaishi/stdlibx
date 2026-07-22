@@ -78,7 +78,7 @@ namespace stdx::fs {
                                     contents += s;
                                     first = false;
                                 } else {
-                                    contents += stdx::fmt::format("-{}", s);
+                                    contents += Ops::format("-{}", s);
                                 }
                             }
                         }
@@ -94,17 +94,17 @@ namespace stdx::fs {
                         i = j + 1;
                         switch (contents[0]) {
                             case '!':
-                                contents = stdx::fmt::format("^{}", String(contents.begin() + 1, contents.end()));
+                                contents = Ops::format("^{}", String(contents.begin() + 1, contents.end()));
                                 break;
                             case '^':
                             case '[':
-                                contents = stdx::fmt::format("\\\\{}", contents);
+                                contents = Ops::format("\\\\{}", contents);
                                 break;
                             default:
                                 // empty
                                 break;
                         }
-                        result = stdx::fmt::format("{}[{}]", result, contents);
+                        result = Ops::format("{}[{}]", result, contents);
                     }
                     break;
                 default:
@@ -113,7 +113,7 @@ namespace stdx::fs {
                     if (special_characters_map.empty()) {
                         for (const char& sc: SPECIAL_CHARACTERS) {
                             special_characters_map.insert(
-                                {static_cast<i32>(sc), stdx::fmt::format("\\{}", String(1, sc))}
+                                {static_cast<i32>(sc), Ops::format("\\{}", String(1, sc))}
                             );
                         }
                     }
@@ -125,7 +125,7 @@ namespace stdx::fs {
                     }
             }
         }
-        return stdx::fmt::format("(({}{}", result, R"()|[\r\n])$)");
+        return Ops::format("(({}{}", result, R"()|[\r\n])$)");
     }
 
     [[nodiscard]]
@@ -162,7 +162,7 @@ namespace stdx::fs {
         }
         String s = p.string();
         if (s[0] == '~') {
-            s = stdx::fmt::format("{}{}", home.value(), s.substr(1, s.length() - 1));
+            s = Ops::format("{}{}", home.value(), s.substr(1, s.length() - 1));
             return Path(s);
         }
         return p;

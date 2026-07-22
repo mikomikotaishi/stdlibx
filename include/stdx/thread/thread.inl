@@ -9,6 +9,7 @@ using stdx::time::Instant;
  */
 namespace stdx::thread {
     /**
+     * @internal
      * @concept StandardThread
      * @brief The set of standard thread types BasicThread is intended to wrap.
      * @tparam Thr The candidate underlying thread type.
@@ -17,6 +18,7 @@ namespace stdx::thread {
     concept StandardThread = SameAs<Thr, std::jthread> || SameAs<Thr, std::thread>;
 
     /**
+     * @internal
      * @concept Stoppable
      * @brief Whether the wrapped thread type carries cooperative-cancellation
      * state (std::jthread's shared stop-source), so the stop API can be exposed.
@@ -28,24 +30,19 @@ namespace stdx::thread {
         t.get_stop_source();
         ct.get_stop_token();
     };
-}
 
-/**
- * @namespace stdx::thread
- * @brief Standard library threading operations.
- */
-export namespace stdx::thread {
     /**
+     * @internal
      * @class BasicThread
      * @brief A uniform, move-only wrapper over a standard thread type.
      * @tparam Thr The underlying thread type (std::thread or std::jthread).
      */
     template <StandardThread Thr>
-    class BasicThread {
+    class [[nodiscard]] BasicThread {
     public:
+        using Self = Thr; ///< The underlying thread type being wrapped.
         using Id = Thr::id; ///< The thread identifier type.
         using NativeHandle = Thr::native_handle_type; ///< The implementation-defined handle type.
-        using Of = Thr; ///< The underlying thread type being wrapped.
     private:
         Thr thread; ///< The wrapped thread.
     public:
@@ -92,6 +89,15 @@ export namespace stdx::thread {
         THROWS(SystemException)
         void detach() {
             thread.detach();
+        }
+
+        /**
+         * @brief Converts the wrapper to the underlying thread type.
+         * @return The underlying thread.
+         */
+        [[nodiscard]]
+        constexpr operator Thr() const noexcept {
+            return thread;
         }
 
         /**
@@ -207,6 +213,6 @@ export namespace stdx::thread {
         }
     };
 
-    using ManualThread = BasicThread<std::thread>;
-    using Thread = BasicThread<std::jthread>;
+    export using ManualThread = BasicThread<std::thread>;
+    export using Thread = BasicThread<std::jthread>;
 }

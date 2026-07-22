@@ -11,7 +11,7 @@ export namespace stdx::time::chrono {
      * Uses the same calendar rules as ISO (Gregorian) with a year
      * offset. Minguo year 1 = 1912 CE. Proleptic Minguo year = ISO year - 1911.
      */
-    class [[nodiscard]] MinguoChronology final {
+    class MinguoChronology final {
     public:
         MinguoChronology() = delete("MinguoChronology is a static utility class and cannot be instantiated.");
 

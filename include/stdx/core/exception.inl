@@ -5,29 +5,6 @@
  * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
-    using Exception = std::exception;
-    using NestedException = std::nested_exception;
-
-    /// @extends Exception
-    using BadExceptionException = std::bad_exception;
-    using LogicException = std::logic_error;
-    using RuntimeException = std::runtime_error;
-
-    /// @extends LogicException
-    using InvalidDomainException = std::domain_error;
-    using InvalidArgumentException = std::invalid_argument;
-    using LengthException = std::length_error;
-    using OutOfRangeException = std::out_of_range;
-
-    /// @extends RuntimeException
-    using InvalidRangeException = std::range_error;
-    using OverflowException = std::overflow_error;
-    using UnderflowException = std::underflow_error;
-    
-    using TerminateHandler = std::terminate_handler;
-
-    using ExceptionPointer = std::exception_ptr;
-
     using std::uncaught_exceptions;
     using std::make_exception_ptr;
     using std::current_exception;
@@ -41,7 +18,6 @@ export namespace stdx::core {
     /**
      * @class ArithmeticException
      * @brief Exception class for arithmetic conditions.
-     *
      * @extends RuntimeException
      * 
      * The ArithmeticException class is used to handle exceptions related to exceptional arithmetic conditions.
@@ -53,8 +29,7 @@ export namespace stdx::core {
 
     /**
      * @class InvalidOperationException
-     * @brief Exception class for arithmetic conditions.
-     *
+     * @brief Exception class for invalid operation errors.
      * @extends RuntimeException
      * 
      * The InvalidOperationException class is used to handle exceptions related to exceptional arithmetic conditions.
@@ -67,7 +42,6 @@ export namespace stdx::core {
     /**
      * @class IllegalStateException
      * @brief Exception class for illegal state errors.
-     *
      * @extends LogicException
      *
      * The IllegalStateException class is used to handle exceptions related to illegal state errors, such as calling a function at an inappropriate time or when the object is in an inappropriate state.
@@ -80,7 +54,6 @@ export namespace stdx::core {
     /**
      * @class NullPointerException
      * @brief Exception class for handling null pointer errors.
-     *
      * @extends InvalidArgumentException
      * 
      * This class is used to represent an exception that occurs when a null pointer (nullptr) is 
@@ -96,7 +69,6 @@ export namespace stdx::core {
     /**
      * @class NumberFormatException
      * @brief Exception class for calls to inappropriate formatting of numbers.
-     *
      * @extends InvalidArgumentException
      * 
      * The NumberFormatException class is used to indicate an attempt to
@@ -110,7 +82,6 @@ export namespace stdx::core {
     /**
      * @class UnsupportedOperationException
      * @brief Exception class for invalid/unsupported operations.
-     *
      * @extends RuntimeException
      * 
      * The UnsupportedOperationException class is used to handle exceptions related to invalid or unsupported operations.
@@ -123,7 +94,6 @@ export namespace stdx::core {
     /**
      * @class NotImplementedException
      * @brief Exception class for calls to unimplemented functions.
-     *
      * @extends UnsupportedOperationException
      * 
      * The NotImplementedException class is used to handle a function call
@@ -137,7 +107,6 @@ export namespace stdx::core {
     /**
      * @class NoSuchElementException
      * @brief Exception thrown when attempting to access an element that does not exist.
-     *
      * @extends RuntimeException
      */
     class NoSuchElementException: public RuntimeException {

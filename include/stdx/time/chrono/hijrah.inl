@@ -14,7 +14,7 @@ export namespace stdx::time::chrono {
      * (16 July 622 CE Gregorian). Months alternate between 30 and 29 days;
      * in leap years the 12th month (Dhu al-Hijjah) has 30 days.
      */
-    class [[nodiscard]] HijrahChronology final {
+    class HijrahChronology final {
     private:
         static constexpr i64 HIJRAH_EPOCH = gregorian_to_epoch_day(622, 7, 19); ///< The epoch day of the Hijrah calendar (corresponding to 622-07-19 in the Gregorian calendar).
 

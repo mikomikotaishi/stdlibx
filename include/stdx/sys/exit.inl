@@ -24,7 +24,7 @@ export namespace stdx::sys {
      * On Unix the raw value is the integer returned by waitpid(2).
      * On Windows it is the DWORD exit code from GetExitCodeProcess.
      */
-    class ExitStatus {
+    class [[nodiscard]] ExitStatus {
     public:
         static constexpr i32 EXIT_SUCCESS = System::EXIT_SUCCESS;
         static constexpr i32 EXIT_FAILURE = System::EXIT_FAILURE;

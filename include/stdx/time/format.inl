@@ -63,7 +63,7 @@ export namespace stdx::time {
      *             `EEEEE` narrow.
      *   - `G`     era. `G`/`GG`/`GGG` short, `GGGG` full, `GGGGG`
      *             narrow. Requires ChronologyTextLike.
-     *   - `'…'`   literal text. Use `''` for a single quote.
+     *   - `'...'`   literal text. Use `''` for a single quote.
      *   - Any other punctuation is emitted verbatim.
      *
      * Time-of-day letters (`H`, `m`, `s`, `a`, ...) are reserved for
@@ -162,7 +162,7 @@ export namespace stdx::time {
                             kind = FieldKind::ERA;
                             break;
                         default:
-                            throw DateTimeException(stdx::fmt::format("Unsupported pattern letter: {}", letter));
+                            throw DateTimeException(Ops::format("Unsupported pattern letter: {}", letter));
                     }
                     tokens.emplace_back(kind, count, "");
                 } else {
@@ -215,16 +215,16 @@ export namespace stdx::time {
                         const i32 y = date.year();
                         if (tok.count == 2) {
                             const u32 yy = static_cast<u32>(y < 0 ? -y : y) % 100u;
-                            out += stdx::fmt::format("{:02d}", yy);
+                            out += Ops::format("{:02d}", yy);
                         } else {
-                            out += stdx::fmt::format("{:0{}d}", y, tok.count);
+                            out += Ops::format("{:0{}d}", y, tok.count);
                         }
                         break;
                     }
                     case FieldKind::MONTH: {
                         const u32 m = date.month();
                         if (tok.count <= 2) {
-                            out += stdx::fmt::format("{:0{}d}", m, tok.count);
+                            out += Ops::format("{:0{}d}", m, tok.count);
                         } else if constexpr (ChronologyTextLike<Chrono>) {
                             const DateTextLength s = tok.count == 3 ? DateTextLength::SHORT
                                 : tok.count == 4 ? DateTextLength::FULL
@@ -236,7 +236,7 @@ export namespace stdx::time {
                         break;
                     }
                     case FieldKind::DAY_OF_MONTH:
-                        out += stdx::fmt::format("{:0{}d}", date.day(), tok.count);
+                        out += Ops::format("{:0{}d}", date.day(), tok.count);
                         break;
                     case FieldKind::DAY_OF_WEEK: {
                         const DateTextLength s = tok.count <= 3 ? DateTextLength::SHORT

@@ -13,7 +13,7 @@ export namespace stdx::time::chrono {
      * with no century correction. This is the calendar used in Europe
      * before the Gregorian reform of 1582-10-15.
      */
-    class [[nodiscard]] JulianChronology final {
+    class JulianChronology final {
     private:
         /**
          * @internal

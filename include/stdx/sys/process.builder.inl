@@ -56,14 +56,14 @@ export namespace stdx::sys {
      * @brief Builder for configuring and spawning a child process.
      *
      * @code
-     *   Expected<Output, ErrorCode> result = Builder::from("ls")
+     *   Expected<Output, ErrorCode> result = Process::Builder("ls")
      *       .arg("-la")
      *       .current_dir("/tmp")
-     *       .stdout(Stdio::Piped)
+     *       .stdout(Stdio::PIPED)
      *       .output();
      * @endcode
      */
-    class Process::Builder {
+    class [[nodiscard]] Process::Builder {
     private:
         Vector<String> prog_args; /// The program and its arguments (first element is the program).
         Vector<Pair<String, String>> env_set; ///< Environment variables to set (key-value pairs).
@@ -113,7 +113,8 @@ export namespace stdx::sys {
                 return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
             if (stderr_cfg == Stdio::PIPED && !make_pipe(err_r, err_w)) {
-                cleanup(); return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
+                cleanup();
+                return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
             }
 
             if (stdin_cfg == Stdio::NULL_DEV || stdout_cfg == Stdio::NULL_DEV || stderr_cfg == Stdio::NULL_DEV) {

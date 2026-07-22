@@ -464,7 +464,7 @@ export namespace stdx::io {
             if (fore.type == ColorType::RGB_COLOR) {
                 RGB c = fore.as_rgb();
                 sep();
-                s += stdx::fmt::format("38;2;{};{};{}", c.r, c.g, c.b);
+                s += Ops::format("38;2;{};{};{}", c.r, c.g, c.b);
             } else if (fore.type == ColorType::TERMINAL_COLOR) {
                 sep();
                 s += Byte::to_string(fore.as_terminal_code());
@@ -473,7 +473,7 @@ export namespace stdx::io {
             if (back.type == ColorType::RGB_COLOR) {
                 RGB c = back.as_rgb();
                 sep();
-                s += stdx::fmt::format("48;2;{};{};{}", c.r, c.g, c.b);
+                s += Ops::format("48;2;{};{};{}", c.r, c.g, c.b);
             } else if (back.type == ColorType::TERMINAL_COLOR) {
                 sep();
                 s += Byte::to_string(static_cast<u32>(back.as_terminal_code()) + 10u);

@@ -137,6 +137,29 @@ export namespace stdx {
         using imaxdiv = std::imaxdiv_t;
         using maxalign = std::max_align_t;
 
+        using Exception = std::exception;
+        using NestedException = std::nested_exception;
+
+        /// @extends Exception
+        using BadExceptionException = std::bad_exception;
+        using LogicException = std::logic_error;
+        using RuntimeException = std::runtime_error;
+
+        /// @extends LogicException
+        using InvalidDomainException = std::domain_error;
+        using InvalidArgumentException = std::invalid_argument;
+        using LengthException = std::length_error;
+        using OutOfRangeException = std::out_of_range;
+
+        /// @extends RuntimeException
+        using InvalidRangeException = std::range_error;
+        using OverflowException = std::overflow_error;
+        using UnderflowException = std::underflow_error;
+        
+        using TerminateHandler = std::terminate_handler;
+
+        using ExceptionPointer = std::exception_ptr;
+
         template <typename T, usize N>
         using Array = std::array<T, N>;
 
@@ -282,6 +305,18 @@ export namespace stdx {
                 return value;
             }
         };
+
+        template <typename T, typename U>
+        concept SameAs = std::same_as<T, U>;
+
+        template <typename Derived, typename Base>
+        concept Extends = std::derived_from<Derived, Base>;
+
+        template <typename Base, typename Derived>
+        concept Super = std::derived_from<Derived, Base>;
+
+        template <typename From, typename To>
+        concept ConvertibleTo = std::convertible_to<From, To>;
     }
 
     /**

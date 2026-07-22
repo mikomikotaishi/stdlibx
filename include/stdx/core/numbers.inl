@@ -324,9 +324,9 @@ export namespace stdx::core {
     template <CharacterLike Ch, typename Derived>
     class [[nodiscard]] CharacterBase {
     protected:
-        #include "Unicode/UnicodeBlock.inl"
-        #include "Unicode/UnicodeNames.inl"
-        #include "Unicode/UnicodeScript.inl"
+        #include "character.unicode_block.inl"
+        #include "character.unicode_names.inl"
+        #include "character.unicode_script.inl"
     public:
         [[nodiscard]]
         bool is_alphanumeric() const noexcept requires HasGet<Ch, Derived> {

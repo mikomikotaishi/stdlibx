@@ -11,7 +11,7 @@ export namespace stdx::time::chrono {
      * Uses the same calendar rules as ISO (Gregorian) with a year
      * offset. Thai Buddhist year 1 = 543 BCE. Thai year = ISO year + 543.
      */
-    class [[nodiscard]] ThaiBuddhistChronology final {
+    class ThaiBuddhistChronology final {
     public:
         ThaiBuddhistChronology() = delete("ThaiBuddhistChronology is a static utility class and cannot be instantiated.");
 

@@ -56,4 +56,13 @@ export namespace stdx::fmt {
     using std::vformat_to;
     using std::make_format_args;
     using std::make_wformat_args;
+
+    using std::format_kind;
+
+    template <typename T>
+    constexpr bool EnableNonlockingFormatterOptimization = std::enable_nonlocking_formatter_optimization<T>;
+
+    #if defined(__cpp_lib_format) && __cpp_lib_format >= 202603L
+    using std::dynamic_format;
+    #endif
 }

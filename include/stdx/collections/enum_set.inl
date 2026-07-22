@@ -21,7 +21,7 @@ export namespace stdx::collections {
      */
     template <typename E>
         requires (IsEnumValue<E>)
-    class EnumSet {
+    class [[nodiscard]] EnumSet {
     public:
         using ValueType = E;
         using UnderlyingType = UnderlyingTypeType<E>;

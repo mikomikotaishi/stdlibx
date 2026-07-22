@@ -114,7 +114,7 @@ namespace stdx::inject {
 
                 Binding* binding = find_binding(TypeIndex(typeid(T)), annotation);
                 if (!binding) {
-                    throw NoBindingException(stdx::fmt::format("No binding for type {}", typeid(T).name()));
+                    throw NoBindingException(Ops::format("No binding for type {}", typeid(T).name()));
                 }
 
                 if (binding->singleton) {
@@ -127,7 +127,7 @@ namespace stdx::inject {
                         return *static_cast<Plain*>(binding->instance.get());
                     } else {
                         throw SingletonAccessException(
-                            stdx::fmt::format("Singleton {} must be requested by reference or SharedPointer", typeid(T).name())
+                            Ops::format("Singleton {} must be requested by reference or SharedPointer", typeid(T).name())
                         );
                     }
                 }

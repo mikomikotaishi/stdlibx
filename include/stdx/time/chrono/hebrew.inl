@@ -18,7 +18,7 @@ export namespace stdx::time::chrono {
      * Year length is 353, 354, or 355 days in regular years and 383, 384,
      * or 385 days in leap years.
      */
-    class [[nodiscard]] HebrewChronology final {
+    class HebrewChronology final {
     private:
         static inline constexpr i64 HEBREW_EPOCH_OFFSET = 2092591; ///< Offset such that epoch_day = hebrew_elapsed_days(y) - HEBREW_EPOCH_OFFSET gives 1 Tishri of year y.
 
@@ -33,20 +33,20 @@ export namespace stdx::time::chrono {
          * common years; ADAR_I and ADAR_II only in leap years.
          */
         enum class HebrewMonth: u8 {
-            TISHRI = 1, ///< Tishri, the first month of the civil year
-            CHESHVAN = 2, ///< Cheshvan, the second month of the civil year
-            KISLEV = 3, ///< Kislev, the third month of the civil year
-            TEVET = 4, ///< Tevet, the fourth month of the civil year
-            SHEVAT = 5, ///< Shevat, the fifth month of the civil year
-            ADAR = 6, ///< Adar (common years only)
-            ADAR_I = 7, ///< Adar I / Adar Rishon (leap years only)
-            ADAR_II = 8, ///< Adar II / Adar Sheni (leap years only)
-            NISAN = 9, ///< Nisan
-            IYYAR = 10, ///< Iyyar
-            SIVAN = 11, ///< Sivan
-            TAMMUZ = 12, ///< Tammuz
-            AV = 13, ///< Av
-            ELUL = 14, ///< Elul, the last month of the civil year
+            TISHRI = 1, ///< Tishri, the first month of the Hebrew common year
+            CHESHVAN = 2, ///< Cheshvan, the second month of the Hebrew common year
+            KISLEV = 3, ///< Kislev, the third month of the Hebrew common year
+            TEVET = 4, ///< Tevet, the fourth month of the Hebrew common year
+            SHEVAT = 5, ///< Shevat, the fifth month of the Hebrew common year
+            ADAR = 6, ///< Adar (common years only), the sixth month of the Hebrew common year
+            ADAR_I = 7, ///< Adar I / Adar Rishon (leap years only), the sixth month of the Hebrew leap year
+            ADAR_II = 8, ///< Adar II / Adar Sheni (leap years only), the seventh month of the Hebrew leap year
+            NISAN = 9, ///< Nisan, the seventh month of the Hebrew common year (eighth in leap years)
+            IYYAR = 10, ///< Iyyar, the eighth month of the Hebrew common year (ninth in leap years)
+            SIVAN = 11, ///< Sivan, the ninth month of the Hebrew common year (tenth in leap years)
+            TAMMUZ = 12, ///< Tammuz, the tenth month of the Hebrew common year (eleventh in leap years)
+            AV = 13, ///< Av, the eleventh month of the Hebrew common year (twelfth in leap years)
+            ELUL = 14, ///< Elul, the twelfth month of the Hebrew common year (thirteenth in leap years)
         };
 
         /**

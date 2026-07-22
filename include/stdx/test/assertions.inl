@@ -10,7 +10,7 @@ namespace stdx::test {
      * @class Context
      * @brief Per-run state shared by the assertions and the runner.
      */
-    class Context {
+    class [[nodiscard]] Context {
     private:
         Atomic<usize> total_assertions_count{0}; ///< Assertions evaluated across the whole run.
         Atomic<usize> test_assertions_count{0}; ///< Assertions evaluated in the current test.
@@ -147,7 +147,7 @@ namespace stdx::test {
     [[nodiscard]]
     inline String annotate(String detail, StringView message) {
         if (!message.empty()) {
-            detail += stdx::fmt::format(" ({})", message);
+            detail += Ops::format(" ({})", message);
         }
         return detail;
     }
@@ -177,7 +177,7 @@ namespace stdx::test {
             pass();
             return;
         }
-        fail(loc, annotate(stdx::fmt::format("expected {} {} {}", a, op, b), message));
+        fail(loc, annotate(Ops::format("expected {} {} {}", a, op, b), message));
     }
 }
 
@@ -398,7 +398,7 @@ export namespace stdx::test {
         }
         fail(
             loc,
-            annotate(stdx::fmt::format("expected {} within {} of {}", actual, epsilon, expected), message)
+            annotate(Ops::format("expected {} within {} of {}", actual, epsilon, expected), message)
         );
     }
 
@@ -422,7 +422,7 @@ export namespace stdx::test {
             pass();
             return;
         } catch (const Exception& e) {
-            fail(loc, annotate(stdx::fmt::format("threw a different exception: {}", e.what()), message));
+            fail(loc, annotate(Ops::format("threw a different exception: {}", e.what()), message));
             return;
         } catch (...) {
             fail(loc, annotate("threw an unrecognized exception", message));
@@ -448,7 +448,7 @@ export namespace stdx::test {
             fn();
             pass();
         } catch (const Exception& e) {
-            fail(loc, annotate(stdx::fmt::format("threw: {}", e.what()), message));
+            fail(loc, annotate(Ops::format("threw: {}", e.what()), message));
         } catch (...) {
             fail(loc, annotate("threw an unrecognized exception", message));
         }
@@ -493,7 +493,7 @@ export namespace stdx::test {
             pass();
             return;
         }
-        fail(loc, annotate(stdx::fmt::format("expected {} == {}", actual, expected), message));
+        fail(loc, annotate(Ops::format("expected {} == {}", actual, expected), message));
         abort_test();
     }
 

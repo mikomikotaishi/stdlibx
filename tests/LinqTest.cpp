@@ -315,7 +315,7 @@ void test_zip() {
         .zip(scores)
         .select([](auto pair) -> String {
             auto [name, score] = pair;
-            return stdx::fmt::format("{}: {}", name, score);
+            return Ops::format("{}: {}", name, score);
         })
         .to<Vector<String>>();
     expect_eq(

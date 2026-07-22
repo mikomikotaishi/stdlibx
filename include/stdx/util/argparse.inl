@@ -58,7 +58,7 @@ String represent(const T& val) {
     if constexpr (IsSameValue<T, bool>) {
         return val ? "true" : "false";
     } else if constexpr (IsConvertibleValue<T, StringView>) {
-        return stdx::fmt::format("\"{}\"", val);
+        return Ops::format("\"{}\"", val);
     } else if constexpr (Collection<T>) {
         StringStream out;
         out << "{";
@@ -68,7 +68,7 @@ String represent(const T& val) {
             usize count = 1;
             const usize limit = Math::min<usize>(size, REPRESENTATION_MAX_CONTAINER_SIZE);
             for (auto it = Iterators::next(val.begin()); count < limit - 1; ++it, ++count) {
-                out << stdx::fmt::format(" {}", represent(*it));
+                out << Ops::format(" {}", represent(*it));
             }
             if (size <= REPRESENTATION_MAX_CONTAINER_SIZE) {
                 out << " ";
@@ -169,13 +169,13 @@ T perform_from_chars(StringView s) {
             if (ptr == last) {
                 return x;
             }
-            throw InvalidArgumentException(stdx::fmt::format("Pattern {} does not match to the end!", s));
+            throw InvalidArgumentException(Ops::format("Pattern {} does not match to the end!", s));
         case Errc::INVALID_ARGUMENT:
-            throw InvalidArgumentException(stdx::fmt::format("Pattern {} not found!", s));
+            throw InvalidArgumentException(Ops::format("Pattern {} not found!", s));
         case Errc::RESULT_OUT_OF_RANGE:
-            throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
+            throw InvalidRangeException(Ops::format("'{}' not representable!", s));
         default:
-            throw InvalidArgumentException(stdx::fmt::format("Unknown error while parsing '{}'", s));
+            throw InvalidArgumentException(Ops::format("Unknown error while parsing '{}'", s));
     }
     Ops::unreachable();
 }
@@ -194,7 +194,7 @@ struct ParseNumber<T, 2uz> {
         if (auto [ok, rest] = consume_binary_prefix(s); ok) {
             return perform_from_chars<T, 2uz>(rest);
         }
-        throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
+        throw InvalidArgumentException(Ops::format("Pattern '{}' not found!", s));
     }
 };
 
@@ -206,12 +206,12 @@ struct ParseNumber<T, 16uz> {
             try {
                 return perform_from_chars<T, 16uz>(rest);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidArgumentException(Ops::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidRangeException(Ops::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             }
         }
-        throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' not identified as hexadecimal!", s));
+        throw InvalidArgumentException(Ops::format("Failed to parse '{}' not identified as hexadecimal!", s));
     }
 };
 
@@ -225,9 +225,9 @@ struct ParseNumber<T> {
             try {
                 return perform_from_chars<T, 16uz>(rest);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidArgumentException(Ops::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+                throw InvalidRangeException(Ops::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
             }
         }
 
@@ -237,9 +237,9 @@ struct ParseNumber<T> {
             try {
                 return perform_from_chars<T, 2uz>(rest_binary);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as binary: {}", s, e.what()));
+                throw InvalidArgumentException(Ops::format("Failed to parse '{}' as binary: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as binary: {}", s, e.what()));
+                throw InvalidRangeException(Ops::format("Failed to parse '{}' as binary: {}", s, e.what()));
             }
         }
 
@@ -248,9 +248,9 @@ struct ParseNumber<T> {
             try {
                 return perform_from_chars<T, 8uz>(rest);
             } catch (const InvalidArgumentException& e) {
-                throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as octal: {}", s, e.what()));
+                throw InvalidArgumentException(Ops::format("Failed to parse '{}' as octal: {}", s, e.what()));
             } catch (const InvalidRangeException& e) {
-                throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as octal: {}", s, e.what()));
+                throw InvalidRangeException(Ops::format("Failed to parse '{}' as octal: {}", s, e.what()));
             }
         }
 
@@ -258,9 +258,9 @@ struct ParseNumber<T> {
         try {
             return perform_from_chars<T, 10uz>(rest);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
+            throw InvalidRangeException(Ops::format("Failed to parse '{}' as decimal integer: {}", s, e.what()));
         }
     }
 };
@@ -269,7 +269,7 @@ template <FloatingPoint T>
 THROWS(InvalidArgumentException, InvalidRangeException)
 T perform_floating_from_chars(StringView s, CharsFormat fmt) {
     if (Character::is_whitespace(static_cast<unsigned char>(s[0])) || s[0] == '+') {
-        throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
+        throw InvalidArgumentException(Ops::format("Pattern '{}' not found!", s));
     }
     
     T x{0};
@@ -281,11 +281,11 @@ T perform_floating_from_chars(StringView s, CharsFormat fmt) {
             if (ptr == last) {
                 return x;
             }
-            throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' does not match to the end!", s));
+            throw InvalidArgumentException(Ops::format("Pattern '{}' does not match to the end!", s));
         case Errc::INVALID_ARGUMENT:
-            throw InvalidArgumentException(stdx::fmt::format("Pattern '{}' not found!", s));
+            throw InvalidArgumentException(Ops::format("Pattern '{}' not found!", s));
         case Errc::RESULT_OUT_OF_RANGE:
-            throw InvalidRangeException(stdx::fmt::format("'{}' not representable!", s));
+            throw InvalidRangeException(Ops::format("'{}' not representable!", s));
     }
     Ops::unreachable();
 }
@@ -305,9 +305,9 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::GENERAL)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::GENERAL);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as number: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::format("Failed to parse '{}' as number: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as number: {}", s, e.what()));
+            throw InvalidRangeException(Ops::format("Failed to parse '{}' as number: {}", s, e.what()));
         }
     }
 };
@@ -327,9 +327,9 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::HEX)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::HEX);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
+            throw InvalidRangeException(Ops::format("Failed to parse '{}' as hexadecimal: {}", s, e.what()));
         }
     }
 };
@@ -368,9 +368,9 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::SCIENTIFIC)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::SCIENTIFIC);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
+            throw InvalidRangeException(Ops::format("Failed to parse '{}' as scientific notation: {}", s, e.what()));
         }
     }
 };
@@ -393,9 +393,9 @@ struct ParseNumber<T, static_cast<usize>(CharsFormat::FIXED)> {
         try {
             return perform_floating_from_chars<T>(s, CharsFormat::FIXED);
         } catch (const InvalidArgumentException& e) {
-            throw InvalidArgumentException(stdx::fmt::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
+            throw InvalidArgumentException(Ops::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
         } catch (const InvalidRangeException& e) {
-            throw InvalidRangeException(stdx::fmt::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
+            throw InvalidRangeException(Ops::format("Failed to parse '{}' as fixed notation: {}", s, e.what()));
         }
     }
 };
@@ -409,7 +409,7 @@ String join(It first, It last, const String& separator) {
     value << *first;
     ++first;
     while (first != last) {
-        value << stdx::fmt::format("{}{}", separator, *first);
+        value << Ops::format("{}{}", separator, *first);
         ++first;
     }
     return value.str();
@@ -425,7 +425,7 @@ String join(It first, It last, StringView separator) {
     value << *first;
     ++first;
     while (first != last) {
-        value << stdx::fmt::format("{}{}", separator, *first);
+        value << Ops::format("{}{}", separator, *first);
         ++first;
     }
     return value.str();
@@ -729,24 +729,24 @@ private:
         if (num_args_range.is_exact()) {
             stream << num_args_range.min();
         } else if (num_args_range.is_right_bounded()) {
-            stream << stdx::fmt::format("{} to {}", num_args_range.min(), num_args_range.max());
+            stream << Ops::format("{} to {}", num_args_range.min(), num_args_range.max());
         } else {
-            stream << stdx::fmt::format("{} or more", num_args_range.min());
+            stream << Ops::format("{} or more", num_args_range.min());
         }
-        stream << stdx::fmt::format(" argument(s) expected. {} provided.", values.size());
+        stream << Ops::format(" argument(s) expected. {} provided.", values.size());
         throw CommandLineParserException(stream.str());
     }
 
     [[noreturn]]
     THROWS(CommandLineParserException)
     void throw_required_arg_not_used() const {
-        throw CommandLineParserException(stdx::fmt::format("{}: required.", names.front()));
+        throw CommandLineParserException(Ops::format("{}: required.", names.front()));
     }
 
     [[noreturn]]
     THROWS(CommandLineParserException)
     void throw_required_arg_no_value_provided() const {
-        throw CommandLineParserException(stdx::fmt::format("{}: no value provided.", used_name));
+        throw CommandLineParserException(Ops::format("{}: no value provided.", used_name));
     }
 
     template <typename T>
@@ -770,10 +770,10 @@ private:
                     ch.end(),
                     ""s,
                     [](const String& a, const String& b) -> String {
-                        return stdx::fmt::format("{}{}", a, (a.empty() ? "" : ", ") + b);
+                        return Ops::format("{}{}", a, (a.empty() ? "" : ", ") + b);
                     }
                 );
-                throw CommandLineParserException(stdx::fmt::format("Invalid default value {} - allowed options: {{{}}}", default_value_repr, csv));
+                throw CommandLineParserException(Ops::format("Invalid default value {} - allowed options: {{{}}}", default_value_repr, csv));
             }
         }
     }
@@ -795,10 +795,10 @@ private:
             ch.end(),
             ""s,
             [](const String& a, const String& b) -> String {
-                return stdx::fmt::format("{}{}", a, (a.empty() ? "" : ", ") + b);
+                return Ops::format("{}{}", a, (a.empty() ? "" : ", ") + b);
             }
         );
-        throw CommandLineParserException(stdx::fmt::format("Invalid argument {} - allowed options: {{{}}}", represent(*option_it), csv));
+        throw CommandLineParserException(Ops::format("Invalid argument {} - allowed options: {{{}}}", represent(*option_it), csv));
     }
 
     void set_usage_newline_counter(u32 i) {
@@ -1095,7 +1095,7 @@ public:
     THROWS(CommandLineParserException)
     Iter consume(Iter start, Iter end, StringView name_used = {}, bool dry_run = false) {
         if (!is_repeatable && is_used) {
-            throw CommandLineParserException(stdx::fmt::format("Duplicate argument {}", name_used));
+            throw CommandLineParserException(Ops::format("Duplicate argument {}", name_used));
         }
         this->used_name = name_used;
         usize passed_options = 0;
@@ -1145,7 +1145,7 @@ public:
                 );
                 dist = static_cast<usize>(Iterators::distance(start, end));
                 if (dist < num_args_min) {
-                    throw CommandLineParserException(stdx::fmt::format("Too few arguments for '{}'.", used_name));
+                    throw CommandLineParserException(Ops::format("Too few arguments for '{}'.", used_name));
                 }
             }
 
@@ -1187,7 +1187,7 @@ public:
             }
             return start;
         }
-        throw CommandLineParserException(stdx::fmt::format("Too few arguments for '{}'.", used_name));
+        throw CommandLineParserException(Ops::format("Too few arguments for '{}'.", used_name));
     }
 
     THROWS(CommandLineParserException)
@@ -1216,7 +1216,7 @@ public:
             names.end(),
             ""s,
             [&](const String& result, const String& name) -> String {
-                return result.empty() ? name : stdx::fmt::format("{}{}{}", result, separator, name);
+                return result.empty() ? name : Ops::format("{}{}{}", result, separator, name);
             }
         );
     }
@@ -1227,7 +1227,7 @@ public:
         usage << get_names_csv('/');
         const String mv = !meta_variable.empty() ? meta_variable : "VAR";
         if (num_args_range.max() > 0) {
-            usage << stdx::fmt::format(" {}", mv);
+            usage << Ops::format(" {}", mv);
             if (num_args_range.max() > 1) {
                 usage << "...";
             }
@@ -1250,7 +1250,7 @@ public:
         usage << longest_name;
         const String mv = !meta_variable.empty() ? meta_variable : "VAR";
         if (num_args_range.max() > 0) {
-            usage << stdx::fmt::format(" {}", mv);
+            usage << Ops::format(" {}", mv);
             if (num_args_range.max() > 1 && meta_variable.find("> <") == String::npos) {
                 usage << "...";
             }
@@ -1305,7 +1305,7 @@ public:
                 return any_cast_container<T>(values);
             }
         }
-        throw LogicException(stdx::fmt::format("No value provided for '{}'.", names.back()));
+        throw LogicException(Ops::format("No value provided for '{}'.", names.back()));
     }
 
     template <typename T>
@@ -1358,13 +1358,13 @@ public:
         } else {
             name_stream << join(arg.names.begin(), arg.names.end(), ", "sv);
             if (!arg.meta_variable.empty() && arg.num_args_range == NArgsRange{1, 1}) {
-                name_stream << stdx::fmt::format(" {}", arg.meta_variable);
+                name_stream << Ops::format(" {}", arg.meta_variable);
             } else if (
                 !arg.meta_variable.empty() &&
                 arg.num_args_range.min() == arg.num_args_range.max() &&
                 arg.meta_variable.find("> <") != String::npos
             ) {
-                name_stream << stdx::fmt::format(" {}", arg.meta_variable);
+                name_stream << Ops::format(" {}", arg.meta_variable);
             }
         }
 
@@ -1378,21 +1378,21 @@ public:
         while ((pos = arg.help_text.find('\n', prev_pos)) != String::npos) {
             StringView line = hv.substr(prev_pos, pos - prev_pos + 1);
             if (first_line) {
-                stream << stdx::fmt::format("  {}", line);
+                stream << Ops::format("  {}", line);
                 first_line = false;
             } else {
                 stream.width(stream_width);
-                stream << stdx::fmt::format("{}  {}", name_pad, line);
+                stream << Ops::format("{}  {}", name_pad, line);
             }
             prev_pos += pos - prev_pos + 1;
         }
         if (first_line) {
-            stream << stdx::fmt::format("  {}", arg.help_text);
+            stream << Ops::format("  {}", arg.help_text);
         } else {
             StringView leftover = hv.substr(prev_pos, arg.help_text.size() - prev_pos);
             if (!leftover.empty()) {
                 stream.width(stream_width);
-                stream << stdx::fmt::format("{}  {}", name_pad, leftover);
+                stream << Ops::format("{}  {}", name_pad, leftover);
             }
         }
 
@@ -1401,19 +1401,19 @@ public:
         }
         if (arg.num_args_range.is_exact()) {
             if (arg.num_args_range.min() != 0 && arg.num_args_range.min() != 1) {
-                stream << stdx::fmt::format("[nargs: {}]", arg.num_args_range.min());
+                stream << Ops::format("[nargs: {}]", arg.num_args_range.min());
             }
         } else {
             if (!arg.num_args_range.is_right_bounded()) {
-                stream << stdx::fmt::format("[nargs: {} or more]", arg.num_args_range.min());
+                stream << Ops::format("[nargs: {} or more]", arg.num_args_range.min());
             } else {
-                stream << stdx::fmt::format("[nargs={}..{}]", arg.num_args_range.min(), arg.num_args_range.max());
+                stream << Ops::format("[nargs={}..{}]", arg.num_args_range.min(), arg.num_args_range.max());
             }
         }
 
         bool add_space = false;
         if (arg.default_val.has_value() && arg.num_args_range != NArgsRange{0, 0}) {
-            stream << stdx::fmt::format("[default: {}]", arg.default_value_repr);
+            stream << Ops::format("[default: {}]", arg.default_value_repr);
             add_space = true;
         } else if (arg.is_required) {
             stream << "[required]";
@@ -1444,7 +1444,7 @@ public:
     T get(const String& name) const {
         auto it = values.find(name);
         if (it == values.end()) {
-            throw LogicException(stdx::fmt::format("No such argument: '{}'", name));
+            throw LogicException(Ops::format("No such argument: '{}'", name));
         }
         return any_cast<T>(it->second);
     }
@@ -1612,14 +1612,14 @@ protected:
                     if (positional_arguments.empty()) {
                         if (!subparser_map.empty()) {
                             throw CommandLineParserException(
-                                stdx::fmt::format("Failed to parse '{}', did you mean '{}'",
+                                Ops::format("Failed to parse '{}', did you mean '{}'",
                                 cur,
                                 get_most_similar_string(subparser_map, cur))
                             );
                         }
                         throw CommandLineParserException("Zero positional arguments expected");
                     }
-                    throw CommandLineParserException(stdx::fmt::format(
+                    throw CommandLineParserException(Ops::format(
                         "Maximum number of positional arguments exceeded, failed to parse '{}'", cur));
                 }
                 auto argument = pos_it++;
@@ -1632,7 +1632,7 @@ protected:
                         pos_it->consume(Iterators::prev(end), end);
                         end = Iterators::prev(end);
                     } else {
-                        throw CommandLineParserException(stdx::fmt::format("Missing {}", pos_it->names.front()));
+                        throw CommandLineParserException(Ops::format("Missing {}", pos_it->names.front()));
                     }
                 }
                 it = argument->consume(it, end);
@@ -1648,11 +1648,11 @@ protected:
                     if (auto ami2 = argument_map.find(ha); ami2 != argument_map.end()) {
                         it = ami2->second->consume(it, end, ami2->first);
                     } else {
-                        throw CommandLineParserException(stdx::fmt::format("Unknown argument: {}", cur));
+                        throw CommandLineParserException(Ops::format("Unknown argument: {}", cur));
                     }
                 }
             } else {
-                throw CommandLineParserException(stdx::fmt::format("Unknown argument: {}", cur));
+                throw CommandLineParserException(Ops::format("Unknown argument: {}", cur));
             }
         }
         is_parsed = true;
@@ -1753,7 +1753,7 @@ public:
         if ((add_args & DefaultArguments::VERSION) == DefaultArguments::VERSION) {
             add_argument("-v", "--version")
                 .action([&](const auto& _) -> void {
-                    os << stdx::fmt::format("{}\n", ver);
+                    os << Ops::format("{}\n", ver);
                     if (exit_on_default_arguments) {
                         Environment::exit(0);
                     }
@@ -1845,7 +1845,7 @@ public:
             if (auto it = subparser_map.find(str_name); it != subparser_map.end()) {
                 return it->second->get();
             }
-            throw LogicException(stdx::fmt::format("No such subparser: {}", str_name));
+            throw LogicException(Ops::format("No such subparser: {}", str_name));
         }
     }
 
@@ -1881,7 +1881,7 @@ public:
                     mutex_arg = arg;
                 } else if (mutex_used && arg->is_used) {
                     throw CommandLineParserException(
-                        stdx::fmt::format("Argument '{}' not allowed with '{}'",
+                        Ops::format("Argument '{}' not allowed with '{}'",
                         arg->get_usage_full(),
                         mutex_arg->get_usage_full())
                     );
@@ -1891,13 +1891,13 @@ public:
                 String names;
                 usize i = 0;
                 for (Argument* arg: group.elems) {
-                    names += stdx::fmt::format("'{}' ", arg->get_usage_full());
+                    names += Ops::format("'{}' ", arg->get_usage_full());
                     if (i + 1 != group.elems.size()) {
                         names += "or ";
                     }
                     ++i;
                 }
-                throw CommandLineParserException(stdx::fmt::format("One of the arguments {} is required", names));
+                throw CommandLineParserException(Ops::format("One of the arguments {} is required", names));
             }
         }
     }
@@ -2046,15 +2046,15 @@ public:
                 return *(it->second);
             }
         }
-        throw LogicException(stdx::fmt::format("No such argument: {}", arg_name));
+        throw LogicException(Ops::format("No such argument: {}", arg_name));
     }
 
     friend OutputStream& operator<<(OutputStream& stream, const ArgumentParser& parser) {
         stream.setf(FormatFlags::LEFT);
         usize longest = parser.length_of_longest_argument();
-        stream << stdx::fmt::format("{}\n\n", parser.usage());
+        stream << Ops::format("{}\n\n", parser.usage());
         if (!parser.desc.empty()) {
-            stream << stdx::fmt::format("{}\n\n", parser.desc);
+            stream << Ops::format("{}\n\n", parser.desc);
         }
 
         bool has_vis_pos = stdx::util::find_if(
@@ -2072,7 +2072,7 @@ public:
         }
 
         if (!parser.optional_arguments.empty()) {
-            stream << stdx::fmt::format("{}{}", !has_vis_pos ? "" : "\n", "Optional arguments:\n");
+            stream << Ops::format("{}{}", !has_vis_pos ? "" : "\n", "Optional arguments:\n");
         }
         for (const Argument& a: parser.optional_arguments) {
             if (a.group_index == 0 && !a.is_hidden) {
@@ -2082,7 +2082,7 @@ public:
         }
 
         for (usize ig = 0; ig < parser.group_names.size(); ++ig) {
-            stream << stdx::fmt::format("\n{} (detailed usage):\n", parser.group_names[ig]);
+            stream << Ops::format("\n{} (detailed usage):\n", parser.group_names[ig]);
             for (const Argument& a: parser.optional_arguments) {
                 if (a.group_index == ig + 1 && !a.is_hidden) {
                     stream.width(static_cast<long>(longest));
@@ -2093,7 +2093,7 @@ public:
 
         if (stdx::util::any_of(parser.subparser_map.begin(), parser.subparser_map.end(),
                 [](auto& p) -> bool { return !p.second->get().suppress; })) {
-            stream << stdx::fmt::format("{}{}", 
+            stream << Ops::format("{}{}", 
                 parser.positional_arguments.empty() ? parser.optional_arguments.empty() ? "" : "\n" : "\n", 
                 "Subcommands:\n"
             );
@@ -2103,11 +2103,11 @@ public:
                 }
                 stream << "  ";
                 stream.width(static_cast<long>(longest - 2));
-                stream << stdx::fmt::format("{} {}\n", cmd, sub->get().desc);
+                stream << Ops::format("{} {}\n", cmd, sub->get().desc);
             }
         }
         if (!parser.epilog.empty()) {
-            stream << stdx::fmt::format("\n{}\n\n", parser.epilog);
+            stream << Ops::format("\n{}\n\n", parser.epilog);
         }
         return stream;
     }
@@ -2151,7 +2151,7 @@ public:
                     }
                     if (nl_counter != static_cast<i32>(arg.usage_newline_counter)) {
                         if (nl_counter >= 0 && curline.size() > indent) {
-                            stream << stdx::fmt::format("{}\n", curline);
+                            stream << Ops::format("{}\n", curline);
                             curline = String(indent, ' ');
                         }
                         nl_counter = static_cast<i32>(arg.usage_newline_counter);
@@ -2163,12 +2163,12 @@ public:
                 if (cur_mutex && !am) {
                     curline += ']';
                     if (usage_break_on_mutex) {
-                        stream << stdx::fmt::format("{}\n", curline);
+                        stream << Ops::format("{}\n", curline);
                         curline = String(indent, ' ');
                     }
                 } else if (!cur_mutex && am) {
                     if ((usage_break_on_mutex && curline.size() > indent) || curline.size() + 3 + iu.size() > usage_max_line_width) {
-                        stream << stdx::fmt::format("{}\n", curline);
+                        stream << Ops::format("{}\n", curline);
                         curline = String(indent, ' ');
                     }
                     curline += " [";
@@ -2176,7 +2176,7 @@ public:
                     if (cur_mutex != am) {
                         curline += ']';
                         if (usage_break_on_mutex || curline.size() + 3 + iu.size() > usage_max_line_width) {
-                            stream << stdx::fmt::format("{}\n", curline);
+                            stream << Ops::format("{}\n", curline);
                             curline = String(indent, ' ');
                         }
                         curline += " [";
@@ -2186,7 +2186,7 @@ public:
                 }
                 cur_mutex = am;
                 if (curline.size() != indent && curline.size() + 1 + iu.size() > usage_max_line_width) {
-                    stream << stdx::fmt::format("{}\n", curline);
+                    stream << Ops::format("{}\n", curline);
                     curline = String(indent, ' ');
                     curline += " ";
                 } else if (!cur_mutex) {
@@ -2202,7 +2202,7 @@ public:
 
         const bool found = deal_with_group(0);
         if (found && multiline && !positional_arguments.empty()) {
-            stream << stdx::fmt::format("{}\n", curline);
+            stream << Ops::format("{}\n", curline);
             curline = String(indent, ' ');
         }
         for (const Argument& arg: positional_arguments) {
@@ -2211,21 +2211,21 @@ public:
             }
             const String pa = !arg.meta_variable.empty() ? arg.meta_variable : arg.names.front();
             if (curline.size() + 1 + pa.size() > usage_max_line_width) {
-                stream << stdx::fmt::format("{}\n", curline);
+                stream << Ops::format("{}\n", curline);
                 curline = String(indent, ' ');
             }
             curline += " ";
             if (arg.num_args_range.min() == 0 && !arg.num_args_range.is_right_bounded()) {
-                curline += stdx::fmt::format("[{}]...", pa);
+                curline += Ops::format("[{}]...", pa);
             } else if (arg.num_args_range.min() == 1 && !arg.num_args_range.is_right_bounded()) {
-                curline += stdx::fmt::format("{}...", pa);
+                curline += Ops::format("{}...", pa);
             } else {
                 curline += pa;
             }
         }
         if (multiline) {
             for (usize i = 0; i < group_names.size(); ++i) {
-                stream << stdx::fmt::format("{}\n\n{}:\n", curline, group_names[i]);
+                stream << Ops::format("{}\n\n{}:\n", curline, group_names[i]);
                 curline = String(indent, ' ');
                 deal_with_group(i + 1);
             }
@@ -2238,7 +2238,7 @@ public:
                 if (sub->get().suppress) {
                     continue;
                 }
-                stream << stdx::fmt::format("{}{}", i == 0 ? "" : ",", cmd);
+                stream << Ops::format("{}{}", i == 0 ? "" : ",", cmd);
                 ++i;
             }
             stream << "}";
@@ -2247,7 +2247,7 @@ public:
     }
 
     void add_subparser(ArgumentParser& parser) {
-        parser.parser_path = stdx::fmt::format("{} {}", prog_name, parser.prog_name);
+        parser.parser_path = Ops::format("{} {}", prog_name, parser.prog_name);
         auto it = subparsers.emplace(subparsers.cend(), parser);
         subparser_map.insert_or_assign(parser.prog_name, it);
         subparser_used.insert_or_assign(parser.prog_name, false);

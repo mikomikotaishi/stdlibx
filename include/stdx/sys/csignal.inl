@@ -12,7 +12,7 @@ export namespace stdx::sys {
      * @class Signal
      * @brief Represents a system signal that can be raised and handled.
      */
-    class Signal {
+    class [[nodiscard]] Signal {
     public:
         using Handler = void (*)(i32);
         using AtomicStatus = std::sig_atomic_t;

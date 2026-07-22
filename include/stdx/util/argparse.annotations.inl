@@ -124,7 +124,7 @@ namespace stdx::util {
                 formatted += c;
             }
         }
-        return stdx::fmt::format("--{}", formatted);
+        return Ops::format("--{}", formatted);
     }
 
     template <typename T>
@@ -277,7 +277,7 @@ export namespace stdx::util {
                     if (short_flag.has_value()) {
                         throw CommandLineParserException("an argument may have at most one ShortName");
                     }
-                    short_flag = stdx::fmt::format("-{}", AnnotationType::letter);
+                    short_flag = Ops::format("-{}", AnnotationType::letter);
                 } else if constexpr (IsEnv<AnnotationType>) {
                     env_name = String{AnnotationType::str()};
                 }
@@ -290,7 +290,7 @@ export namespace stdx::util {
 
             if (long_index.has_value() && short_index.has_value()) {
                 throw CommandLineParserException(
-                    stdx::fmt::format("cannot pass both {} and {}", long_flag, *short_flag)
+                    Ops::format("cannot pass both {} and {}", long_flag, *short_flag)
                 );
             }
 
@@ -309,7 +309,7 @@ export namespace stdx::util {
                 if (index.has_value()) {
                     if (*index + 1 >= arguments.size()) {
                         throw CommandLineParserException(
-                            stdx::fmt::format("missing value for {}", long_flag)
+                            Ops::format("missing value for {}", long_flag)
                         );
                     }
                     result.[:field.value():] = convert_value<MemberType>(arguments[*index + 1]);
@@ -317,13 +317,13 @@ export namespace stdx::util {
                     if (Optional<StringView> env_value = Environment::get(*env_name); env_value.has_value()) {
                         result.[:field.value():] = convert_value<MemberType>(*env_value);
                     } else if (!optional_field && !defaulted_field) {
-                        throw CommandLineParserException(stdx::fmt::format(
+                        throw CommandLineParserException(Ops::format(
                             "missing {} (environment variable {} is unset)", long_flag, *env_name
                         ));
                     }
                 } else if (!optional_field && !defaulted_field) {
                     throw CommandLineParserException(
-                        stdx::fmt::format("missing required argument {}", long_flag)
+                        Ops::format("missing required argument {}", long_flag)
                     );
                 }
                 // Optional / defaulted and absent: keep the default-constructed value.
@@ -341,7 +341,7 @@ export namespace stdx::util {
         );
 
         constexpr AccessContext ctx = AccessContext::unchecked();
-        String out = stdx::fmt::format(
+        String out = Ops::format(
             "{}\n\n", argc > 0 ? StringView{argv[0]} : StringView{"program"}
         );
 
@@ -354,7 +354,7 @@ export namespace stdx::util {
             template for (constexpr Annotation ann: Ops::define_static_array(field.annotations())) {
                 using AnnotationType = typename [:ann.type().value():];
                 if constexpr (IsShortName<AnnotationType>) {
-                    short_flag = stdx::fmt::format("-{}", AnnotationType::letter);
+                    short_flag = Ops::format("-{}", AnnotationType::letter);
                 } else if constexpr (IsDescription<AnnotationType>) {
                     description = AnnotationType::str();
                 }
@@ -362,19 +362,19 @@ export namespace stdx::util {
 
             const String long_flag = format_member_as_arg(field.name().value());
             if (short_flag.has_value()) {
-                out += stdx::fmt::format("  {}, {}", *short_flag, long_flag);
+                out += Ops::format("  {}, {}", *short_flag, long_flag);
             } else {
-                out += stdx::fmt::format("  {}", long_flag);
+                out += Ops::format("  {}", long_flag);
             }
-            out += stdx::fmt::format("\n      {}", description.value_or(""));
-            out += stdx::fmt::format("\n      [type: {}]", friendly_type_name<MemberType>());
+            out += Ops::format("\n      {}", description.value_or(""));
+            out += Ops::format("\n      [type: {}]", friendly_type_name<MemberType>());
 
             if constexpr (IsOptional<MemberType>) {
                 out += "\n      [optional]";
             }
             if constexpr (field.has_default_initializer()) {
-                if constexpr (requires (MemberType m) { stdx::fmt::format("{}", m); }) {
-                    out += stdx::fmt::format("\n      [default: {}]", T().[:field.value():]);
+                if constexpr (requires (MemberType m) { Ops::format("{}", m); }) {
+                    out += Ops::format("\n      [default: {}]", T().[:field.value():]);
                 } else {
                     out += "\n      [has default]";
                 }

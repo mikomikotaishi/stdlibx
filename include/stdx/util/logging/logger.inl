@@ -105,7 +105,7 @@ export namespace stdx::util::logging {
                 return;
             }
 
-            String message = stdx::fmt::format(fmt, Ops::forward<Args>(args)...);
+            String message = Ops::format(fmt, Ops::forward<Args>(args)...);
             String timestamp = System::current_time_formatted();
 
             for (const SharedPointer<LogSink>& sink: sinks) {
@@ -426,7 +426,7 @@ export namespace stdx::util::logging {
 
             if (builder.banner) {
                 // The banner is written verbatim, outside the log-entry format.
-                String init_message = stdx::fmt::format("Logging system initialized (at {})", System::current_time_formatted());
+                String init_message = Ops::format("Logging system initialized (at {})", System::current_time_formatted());
                 for (const SharedPointer<LogSink>& sink: global_sinks) {
                     sink->write_raw("====================BEGIN DEBUG LOG====================");
                     sink->write_raw(init_message);

@@ -23,7 +23,7 @@ export namespace stdx::collections {
      */
     template <typename K, typename V>
         requires (IsEnumValue<K>)
-    class EnumMap {
+    class [[nodiscard]] EnumMap {
     public:
         using KeyType = K;
         using MappedType = V;
