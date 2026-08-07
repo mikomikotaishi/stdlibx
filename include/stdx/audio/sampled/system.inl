@@ -139,11 +139,11 @@ export namespace stdx::audio::sampled {
 
 #if defined(_WIN32) && __has_include(<mmsystem.h>)
 
-#elif defined(__APPLE__)
-
 #elif defined(__linux__) && __has_include(<alsa/asoundlib.h>)
 #include "stdx/audio/sampled/linux/alsa_pcm.inl"
 #else
+// No CoreAudio backend is wired up yet, so Darwin takes the throwing stub
+// implementation below until one lands.
 export namespace stdx::audio::sampled {
     Vector<DeviceInfo> AudioSystem::output_devices() {
         return {};

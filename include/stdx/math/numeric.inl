@@ -21,10 +21,10 @@ export namespace stdx::math {
     using std::midpoint;
 
     #ifdef __cpp_lib_saturation_arithmetic
-    using std::saturating_add;
-    using std::saturating_sub;
-    using std::saturating_mul;
-    using std::saturating_div;
-    using std::saturating_cast;
+    using std::add_sat;
+    using std::sub_sat;
+    using std::mul_sat;
+    using std::div_sat;
+    using std::saturate_cast;
     #endif
 }

@@ -76,7 +76,7 @@ export namespace stdx::sys {
         bool _env_clr = false; ///< If true, start with an empty environment instead of inheriting the parent's.
         bool _kill_with_parent = false; ///< If true, ask the OS to kill the child when this process dies (Linux: PR_SET_PDEATHSIG).
 
-        #ifdef __unix__
+        #if defined(__unix__) || defined(__APPLE__)
         [[nodiscard]]
         Expected<Process, ErrorCode> spawn_unix() const {
             i32 in_r = -1;
@@ -196,7 +196,14 @@ export namespace stdx::sys {
                 }
 
                 if (_env_clr) {
+                    #ifdef __APPLE__
+                    // Darwin has no clearenv(); emptying environ has the same
+                    // effect on the upcoming execvp.
+                    static char* empty_env[] = {nullptr};
+                    unix::environ = empty_env;
+                    #else
                     unix::clearenv();
+                    #endif
                 }
                 for (const String& key: _env_rem) {
                     unix::unsetenv(key.c_str());
@@ -444,7 +451,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         Expected<Process, ErrorCode> spawn() const {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return spawn_unix();
             #elifdef _WIN32
             return spawn_win32();

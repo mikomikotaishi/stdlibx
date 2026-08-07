@@ -72,7 +72,14 @@ export namespace stdx::os::darwin::coremidi {
     // Packet list helpers
     using ::MIDIPacketListInit;
     using ::MIDIPacketListAdd;
-    using ::MIDIPacketNext;
+
+    // MIDIPacketNext is a static-inline helper in CoreMIDI's headers, so it
+    // has internal linkage and a using-declaration for it cannot be exported;
+    // re-expose it as a thin wrapper. Deliberately not `inline`: an exported
+    // inline function may not reference a TU-local entity.
+    MidiPacket* MIDIPacketNext(const MidiPacket* packet) noexcept {
+        return ::MIDIPacketNext(packet);
+    }
 
     // Device / entity / endpoint enumeration
     using ::MIDIGetNumberOfDevices;

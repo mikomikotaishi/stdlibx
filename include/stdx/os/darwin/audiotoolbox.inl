@@ -84,7 +84,7 @@ export namespace stdx::os::darwin::audiotoolbox {
     using ::AudioQueueFlush;
     using ::AudioQueueGetParameter;
     using ::AudioQueueSetParameter;
-    using ::AudioQueueGetPropertyInfo;
+    using ::AudioQueueGetPropertySize;
     using ::AudioQueueGetProperty;
     using ::AudioQueueSetProperty;
     using ::AudioQueueGetCurrentTime;

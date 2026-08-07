@@ -18,7 +18,9 @@ export namespace stdx::io {
     using std::endl;
     using std::ends;
     using std::flush;
+    #ifdef __cpp_lib_syncbuf
     using std::emit_on_flush;
     using std::noemit_on_flush;
     using std::flush_emit;
+    #endif
 }

@@ -11,7 +11,9 @@ using stdx::net::IPAddress;
 using stdx::net::IPv4Address;
 using stdx::net::IPv6Address;
 using stdx::net::Interest;
+#if defined(_WIN32) || defined(__linux__)
 using stdx::net::Poller;
+#endif
 using stdx::net::Socket;
 using stdx::net::SocketException;
 using stdx::net::SocketTimeoutException;

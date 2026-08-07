@@ -125,36 +125,31 @@ export namespace stdx::core {
         template <typename T>
         [[nodiscard]]
         static constexpr T saturating_add(T a, T b) noexcept {
-            using std::saturating_add;
-            return saturating_add(a, b);
+            return std::add_sat(a, b);
         }
 
         template <typename T>
         [[nodiscard]]
         static constexpr T saturating_sub(T a, T b) noexcept {
-            using std::saturating_sub;
-            return saturating_sub(a, b);
+            return std::sub_sat(a, b);
         }
 
         template <typename T>
         [[nodiscard]]
         static constexpr T saturating_mul(T a, T b) noexcept {
-            using std::saturating_mul;
-            return saturating_mul(a, b);
+            return std::mul_sat(a, b);
         }
 
         template <typename T>
         [[nodiscard]]
         static constexpr T saturating_div(T a, T b) noexcept {
-            using std::saturating_div;
-            return saturating_div(a, b);
+            return std::div_sat(a, b);
         }
 
         template <typename T, typename U>
         [[nodiscard]]
         static constexpr T saturating_cast(U value) noexcept {
-            using std::saturating_cast;
-            return saturating_cast<T>(value);
+            return std::saturate_cast<T>(value);
         }
         #endif
 

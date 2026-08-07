@@ -29,15 +29,43 @@ option(BUILD_STATIC_LIBS "Build static libraries instead of shared" OFF)
 set(STDLIB "default" CACHE STRING "C++ standard library to use (default, libstdc++, libc++)")
 set_property(CACHE STDLIB PROPERTY STRINGS "default" "libstdc++" "libc++")
 
+if(NOT STDLIB MATCHES "^(default|libstdc\\+\\+|libc\\+\\+)$")
+    message(FATAL_ERROR "Unknown STDLIB value '${STDLIB}' (expected: default, libstdc++, libc++)")
+endif()
+
+# The -stdlib flag is applied after project(), once the compiler is known, so
+# that unsupported compiler/stdlib pairs fail with a clear message instead of
+# breaking the compiler sanity check.
 set(STDLIB_NAME_CLANG OFF)
 set(STDLIB_NAME_GCC OFF)
 
-if(STDLIB STREQUAL "libc++")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    set(STDLIB_NAME_CLANG ON)
-elseif(STDLIB STREQUAL "libstdc++")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-    set(STDLIB_NAME_GCC ON)
+# Upstream LLVM (e.g. Homebrew's) installs libc++ under lib/c++/, which is not
+# on clang's -print-file-name search path, so CMake's automatic discovery of
+# the std module metadata for 'import std' fails on macOS. CMake runs that
+# discovery inside project() and caches a bogus relative path, so the correct
+# location must be pinned here, before project(), by finding it relative to
+# the compiler. Falls through harmlessly (leaving discovery to CMake) when the
+# compiler is not a clang or ships no lib/c++ directory.
+if(APPLE AND NOT CMAKE_CXX_STDLIB_MODULES_JSON)
+    set(_stdlibx_cxx "${CMAKE_CXX_COMPILER}")
+    if(NOT _stdlibx_cxx AND DEFINED ENV{CXX})
+        set(_stdlibx_cxx "$ENV{CXX}")
+    endif()
+    if(_stdlibx_cxx MATCHES "clang")
+        if(NOT IS_ABSOLUTE "${_stdlibx_cxx}")
+            find_program(_stdlibx_cxx_path "${_stdlibx_cxx}")
+            if(_stdlibx_cxx_path)
+                set(_stdlibx_cxx "${_stdlibx_cxx_path}")
+            endif()
+        endif()
+        get_filename_component(_stdlibx_llvm_bin "${_stdlibx_cxx}" DIRECTORY)
+        find_file(CMAKE_CXX_STDLIB_MODULES_JSON libc++.modules.json
+            HINTS "${_stdlibx_llvm_bin}/../lib/c++" "${_stdlibx_llvm_bin}/../lib"
+            NO_DEFAULT_PATH)
+        if(CMAKE_CXX_STDLIB_MODULES_JSON)
+            message(STATUS "libc++ std module metadata: ${CMAKE_CXX_STDLIB_MODULES_JSON}")
+        endif()
+    endif()
 endif()
 
 if(BUILD_STATIC_LIBS)
@@ -78,6 +106,34 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(COMPILER_GCC ON)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(COMPILER_MSVC ON)
+endif()
+
+# stdlibx is built entirely on `import std` (CMAKE_CXX_MODULE_STD), which only
+# these toolchains can provide: upstream LLVM Clang 18.1.2+ with libc++,
+# GCC 15+ with libstdc++, and MSVC. Anything else fails deep inside the module
+# scan or a try-compile, so reject it here where the message can say why.
+if(COMPILER_APPLE_CLANG)
+    message(FATAL_ERROR
+        "Apple Clang cannot build stdlibx: Apple's toolchain does not ship the std "
+        "module sources needed for 'import std'. Use upstream LLVM Clang "
+        "(brew install llvm, then set CC/CXX to its clang/clang++) or GCC 15+ "
+        "(brew install gcc).")
+endif()
+
+if(COMPILER_CLANG AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.1.2)
+    message(FATAL_ERROR
+        "Clang ${CMAKE_CXX_COMPILER_VERSION} cannot build stdlibx: "
+        "'import std' requires Clang 18.1.2 or newer.")
+endif()
+
+if(COMPILER_GCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15)
+    message(FATAL_ERROR
+        "GCC ${CMAKE_CXX_COMPILER_VERSION} cannot build stdlibx: "
+        "'import std' requires GCC 15 or newer.")
+endif()
+
+if(APPLE AND COMPILER_GCC)
+    message(STATUS "GCC on macOS is experimental; the supported macOS toolchain is upstream LLVM Clang + libc++")
 endif()
 
 set(ARCH_X86_64 OFF)
@@ -202,31 +258,46 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(ENABLE_SANITIZERS OFF)
 endif()
 
-if(COMPILER_CLANG OR COMPILER_APPLE_CLANG)
-    if(STDLIB_NAME_CLANG)
-        message(STATUS "Standard library: libc++")
-        add_link_options(-stdlib=libc++)
-    elseif(STDLIB_NAME_GCC)
-        message(STATUS "Standard library: libstdc++")
-        add_link_options(-stdlib=libstdc++)
-    else()
+if(COMPILER_CLANG)
+    if(STDLIB STREQUAL "libstdc++")
         if(APPLE)
-            message(STATUS "Standard library: libc++ (default on macOS)")
-            set(STDLIB_NAME_CLANG ON)
-        elseif(UNIX)
-            message(STATUS "Standard library: libstdc++ (default on Linux)")
-            set(STDLIB_NAME_GCC ON)
-        else()
-            message(STATUS "Standard library: compiler default")
+            message(FATAL_ERROR
+                "STDLIB=libstdc++ is not usable with Clang on macOS: modern "
+                "macOS ships no GNU libstdc++ to compile or link against. Use "
+                "STDLIB=libc++ (or default), or build with GCC 15+ "
+                "(brew install gcc) for libstdc++ coverage.")
         endif()
+        # Clang + libstdc++ 'import std' works wherever a GCC 15+ libstdc++
+        # is installed: CMake locates its libstdc++.modules.json through
+        # clang's -print-file-name.
+        message(STATUS "Standard library: libstdc++")
+        set(STDLIB_NAME_GCC ON)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+        add_link_options(-stdlib=libstdc++)
+    elseif(STDLIB STREQUAL "libc++" OR APPLE)
+        # Explicitly requested, or macOS - where libc++ is both the platform
+        # default and the only C++ runtime the system ships.
+        message(STATUS "Standard library: libc++")
+        set(STDLIB_NAME_CLANG ON)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+        add_link_options(-stdlib=libc++)
+    elseif(UNIX)
+        # Clang's own default on Linux and the BSDs is the system libstdc++;
+        # no -stdlib flag needed.
+        message(STATUS "Standard library: libstdc++ (Clang default on this platform)")
+        set(STDLIB_NAME_GCC ON)
+    else()
+        message(STATUS "Standard library: compiler default")
     endif()
 elseif(COMPILER_GCC)
-    set(STDLIB_NAME_GCC ON)
-    if(STDLIB STREQUAL "default")
-        message(STATUS "Standard library: libstdc++ (GCC default)")
-    else()
-        message(WARNING "STDLIB option '${STDLIB}' is not applicable with GCC (always uses libstdc++)")
+    if(STDLIB STREQUAL "libc++")
+        message(FATAL_ERROR
+            "STDLIB=libc++ is not usable with GCC: 'import std' is only "
+            "supported with libstdc++ under GCC. Use STDLIB=libstdc++ (or "
+            "default), or build with LLVM Clang for libc++ coverage.")
     endif()
+    set(STDLIB_NAME_GCC ON)
+    message(STATUS "Standard library: libstdc++ (GCC default)")
 elseif(COMPILER_MSVC)
     if(STDLIB STREQUAL "default")
         message(STATUS "Standard library: MSVC STL (default)")

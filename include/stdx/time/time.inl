@@ -25,8 +25,14 @@ export namespace stdx::time {
     template <typename Dur>
     using LocalTime = std::chrono::local_time<Dur>;
 
+    // Everything from P0355 (utc/tai/gps clocks, clock_cast, the time zone
+    // database, zoned times, leap seconds, and chrono parsing) sits behind
+    // __cpp_lib_chrono >= 201907: libstdc++ and MSVC STL provide it, libc++
+    // does not yet.
+    #if __cpp_lib_chrono >= 201907L
     template <typename Dest, typename Src>
     using ClockTimeConversion = std::chrono::clock_time_conversion<Dest, Src>;
+    #endif
 
     template <typename T>
     using IsClock = std::chrono::is_clock<T>;
@@ -34,15 +40,18 @@ export namespace stdx::time {
     using SystemClock = std::chrono::system_clock;
     using SteadyClock = std::chrono::steady_clock;
     using HighResolutionClock = std::chrono::high_resolution_clock;
+    #if __cpp_lib_chrono >= 201907L
     using UtcClock = std::chrono::utc_clock;
     using TaiClock = std::chrono::tai_clock;
     using GpsClock = std::chrono::gps_clock;
+    #endif
     using FileClock = std::chrono::file_clock;
     using Local = std::chrono::local_t;
 
     template <typename Dur>
     using SystemTime = std::chrono::sys_time<Dur>;
 
+    #if __cpp_lib_chrono >= 201907L
     template <typename Dur>
     using UtcTime = std::chrono::utc_time<Dur>;
 
@@ -51,6 +60,7 @@ export namespace stdx::time {
 
     template <typename Dur>
     using GpsTime = std::chrono::gps_time<Dur>;
+    #endif
 
     template <typename Dur>
     using FileTime = std::chrono::file_time<Dur>;
@@ -59,9 +69,11 @@ export namespace stdx::time {
     using LocalTime = std::chrono::local_time<Dur>;
 
     using SystemSeconds = std::chrono::sys_seconds;
+    #if __cpp_lib_chrono >= 201907L
     using UtcSeconds = std::chrono::utc_seconds;
     using TaiSeconds = std::chrono::tai_seconds;
     using GpsSeconds = std::chrono::gps_seconds;
+    #endif
     using LocalSeconds = std::chrono::local_seconds;
 
     using LastSpecifier = std::chrono::last_spec;
@@ -78,6 +90,7 @@ export namespace stdx::time {
     using SystemDays = std::chrono::sys_days;
     using LocalDays = std::chrono::local_days;
 
+    #if __cpp_lib_chrono >= 201907L
     using TimeZoneDatabase = std::chrono::tzdb;
     using TimeZoneDatabaseList = std::chrono::tzdb_list;
     using TimeZone = std::chrono::time_zone;
@@ -88,6 +101,7 @@ export namespace stdx::time {
 
     template <typename Dur>
     using ZonedTime = std::chrono::zoned_time<Dur>;
+    #endif
 
     using Nanoseconds = std::chrono::nanoseconds;
     using Microseconds = std::chrono::microseconds;
@@ -99,6 +113,7 @@ export namespace stdx::time {
     using Weeks = std::chrono::weeks;
     using Months = std::chrono::months;
     using Years = std::chrono::years;
+    #if __cpp_lib_chrono >= 201907L
     using SystemInfo = std::chrono::sys_info;
     using LocalInfo = std::chrono::local_info;
 
@@ -107,6 +122,7 @@ export namespace stdx::time {
 
     using AmbiguousLocalTimeException = std::chrono::ambiguous_local_time;
     using NonexistentLocalTimeException = std::chrono::nonexistent_local_time;
+    #endif
 
     using Day = std::chrono::day;
     using Year = std::chrono::year;
@@ -290,6 +306,7 @@ export namespace stdx::time {
     using std::chrono::Friday;
     using std::chrono::Saturday;
     
+    #if __cpp_lib_chrono >= 201907L
     class [[nodiscard]] Choose final {
     public:
         using Self = std::chrono::choose;
@@ -306,6 +323,7 @@ export namespace stdx::time {
             return value;
         }
     };
+    #endif
 
     /**
      * @class DateTimeException
@@ -326,6 +344,8 @@ export namespace stdx::time {
     using std::chrono::ceil;
     using std::chrono::round;
     using std::chrono::abs;
+
+    #if __cpp_lib_chrono >= 201907L
     using std::chrono::from_stream;
     using std::chrono::clock_cast;
 
@@ -337,14 +357,17 @@ export namespace stdx::time {
     using std::chrono::current_zone;
 
     using std::chrono::get_leap_second_info;
+    #endif
 
     using std::chrono::is_am;
     using std::chrono::is_pm;
     using std::chrono::make12;
     using std::chrono::make24;
 
+    #if __cpp_lib_chrono >= 201907L
     using std::chrono::from_stream;
     using std::chrono::parse;
+    #endif
 
     [[nodiscard]]
     constexpr bool operator==(const Month& x, const Month& y) noexcept {

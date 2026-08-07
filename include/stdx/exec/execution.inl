@@ -1,5 +1,10 @@
 #pragma once
 
+// The parallel execution policies live behind __cpp_lib_execution: libstdc++
+// and MSVC STL provide std::execution / std::is_execution_policy, libc++ does
+// not.
+#ifdef __cpp_lib_execution
+
 /**
  * @namespace stdx::core
  * @brief The core objects of the standard library.
@@ -29,3 +34,5 @@ export namespace stdx::exec {
         static constexpr UnsequencedPolicy UNSEQUENCED = std::execution::unseq;
     };
 }
+
+#endif

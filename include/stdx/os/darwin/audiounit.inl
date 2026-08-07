@@ -63,7 +63,8 @@ export namespace stdx::os::darwin::audiounit {
     using ::AudioUnitGetProperty;
     using ::AudioUnitSetProperty;
     using ::AudioUnitAddPropertyListener;
-    using ::AudioUnitRemovePropertyListener;
+    // AudioUnitRemovePropertyListener (no user data) is not declared on LP64
+    // targets; the WithUserData form is the only 64-bit API.
     using ::AudioUnitRemovePropertyListenerWithUserData;
     using ::AudioUnitAddRenderNotify;
     using ::AudioUnitRemoveRenderNotify;

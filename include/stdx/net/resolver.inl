@@ -92,6 +92,8 @@ export namespace stdx::net {
      */
     [[noreturn]]
     void raise_resolver_error(i32 status, StringView host) {
+        const StringView shown = host.empty() ? "the local host"sv : host;
+
         #ifdef _WIN32
         const String reason = describe_socket_error(status);
         const i32 no_service = win32::WSATYPE_NOT_FOUND;
@@ -100,14 +102,22 @@ export namespace stdx::net {
         const i32 no_service = unix::EAI_SERVICE;
 
         if (status == unix::EAI_SYSTEM) {
-            raise_socket_error(last_socket_error(), Ops::fmt("resolving {}", host));
+            raise_socket_error(last_socket_error(), Ops::fmt("resolving {}", shown));
         }
         #endif
 
-        const String message = Ops::fmt("cannot resolve {}: {}", host, reason);
+        const String message = Ops::fmt("cannot resolve {}: {}", shown, reason);
         if (status == no_service) {
             throw UnknownServiceException(message);
         }
+        #ifndef _WIN32
+        // BSD resolvers (Darwin included) report an unknown service in a
+        // host-less lookup as EAI_NONAME, where glibc uses EAI_SERVICE. With
+        // no host present, the service was the only name in the query.
+        if (status == unix::EAI_NONAME && host.empty()) {
+            throw UnknownServiceException(message);
+        }
+        #endif
         throw UnknownHostException(message);
     }
 
@@ -236,7 +246,7 @@ export namespace stdx::net {
             );
             #endif
             if (status != 0) {
-                raise_resolver_error(status, host.empty() ? "the local host"sv : host);
+                raise_resolver_error(status, host);
             }
 
             Vector<Endpoint> endpoints;

@@ -95,7 +95,7 @@ Optional<Process> maybe_spawn_fluidsynth() {
         return nullopt;
     }
 
-    System::out.println("Auto-launching fluidsynth with {}", sf2.value());
+    System::out.println("Auto-launching fluidsynth with {}", sf2.value().string());
 
     Expected<Process, ErrorCode> child = Process::Builder("fluidsynth")
         .arg("-s")
@@ -180,11 +180,11 @@ void describe(const Path& path) {
     try {
         seq = MidiSystem::open_sequence(path);
     } catch (const InvalidMidiDataException& e) {
-        System::out.println("parses {}: failed", path.filename());
+        System::out.println("parses {}: failed", path.filename().string());
         System::err.println("       reason: {}", e.what());
         return;
     }
-    System::out.println("parses {}: ok", path.filename());
+    System::out.println("parses {}: ok", path.filename().string());
 
     const TimingType timing = seq->type();
     const i32 division = seq->division();
@@ -226,7 +226,7 @@ void play(const Path& path, i64 max_seconds) {
     try {
         seq = MidiSystem::open_sequence(path);
     } catch (const InvalidMidiDataException& e) {
-        System::err.println("Cannot parse {}: {}", path, e.what());
+        System::err.println("Cannot parse {}: {}", path.string(), e.what());
         return;
     }
 
@@ -255,13 +255,13 @@ void play(const Path& path, i64 max_seconds) {
     if (max_seconds > 0) {
         System::out.println(
             "Playing {} -> {} (first {}s)",
-            path.filename(),
+            path.filename().string(),
             target->name, max_seconds
         );
     } else {
         System::out.println(
             "Playing {} -> {}",
-            path.filename(),
+            path.filename().string(),
             target->name
         );
     }

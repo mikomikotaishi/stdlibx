@@ -58,7 +58,7 @@ export namespace stdx::core {
          */
         [[nodiscard]]
         static u32 pid() noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return static_cast<u32>(unix::getpid());
             #elifdef _WIN32
             return static_cast<u32>(win32::GetCurrentProcessId());
@@ -119,7 +119,7 @@ export namespace stdx::core {
          */
         [[nodiscard]]
         static Optional<SystemInfo> system_info() {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             unix::sys::UnixTimeSystemName uts{};
             if (unix::sys::uname(&uts) != 0) {
                 return nullopt;
@@ -188,7 +188,7 @@ export namespace stdx::core {
         [[nodiscard]]
         static HashMap<String, StringView> variables() {
             HashMap<String, StringView> map;
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             char** env_list = unix::environ;
             #elifdef _WIN32
             char** env_list = win32::_environ;
@@ -237,7 +237,7 @@ export namespace stdx::core {
         static bool set(StringView name, StringView value, bool overwrite = true) noexcept {
             const String name_str(name);
             const String value_str(value);
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return unix::setenv(name_str.c_str(), value_str.c_str(), overwrite ? 1 : 0) == 0;
             #elifdef _WIN32
             // _putenv_s keeps the CRT environment (what get() reads) in
@@ -261,7 +261,7 @@ export namespace stdx::core {
          */
         static bool unset(StringView name) noexcept {
             const String name_str(name);
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return unix::unsetenv(name_str.c_str()) == 0;
             #elifdef _WIN32
             // On the MSVC CRT, assigning an empty value removes the variable.

@@ -15,11 +15,16 @@ export namespace stdx::core {
     template <usize Rank, typename IdxT = usize>
     using Dims = std::dims<Rank, IdxT>;
 
+    // The padded layouts arrived with P2642, which shares its __cpp_lib_mdspan
+    // bump (202406) with P2389 (dims). libc++ implements P2389 but not P2642,
+    // so the macro value alone cannot discriminate; exclude libc++ explicitly.
+    #if __cpp_lib_mdspan >= 202406L && !defined(_LIBCPP_VERSION)
     template <usize PaddingValue = DYNAMIC_EXTENT>
     using LayoutLeftPadded = std::layout_left_padded<PaddingValue>;
 
     template <usize PaddingValue = DYNAMIC_EXTENT>
     using LayoutRightPadded = std::layout_right_padded<PaddingValue>;
+    #endif
 
     template <typename E>
     using DefaultAccessor = std::default_accessor<E>;
@@ -39,11 +44,12 @@ export namespace stdx::core {
     // template <typename OffsetT, typename LengthT, typename StrideT>
     // using StridedSlice = std::strided_slice<OffsetT, LengthT, StrideT>;
 
-    template <typename LayoutMapping>
-    using SubMultiSpanMappingResult = std::submdspan_mapping_result<LayoutMapping>;
     #endif
 
     #ifdef __cpp_lib_submdspan
+    template <typename LayoutMapping>
+    using SubMultiSpanMappingResult = std::submdspan_mapping_result<LayoutMapping>;
+
     // using std::submdspan_extents;
     using std::submdspan;
     #endif

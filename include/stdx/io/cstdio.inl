@@ -8,9 +8,18 @@ using stdx::fs::Path;
 using stdx::io::IOException;
 using stdx::mem::UniquePointer;
 
+#ifdef __APPLE__
+// Darwin's C library exports the standard streams as __stdinp/__stdoutp/
+// __stderrp; the portable names are only macros over them, invisible here in
+// the module purview, and no `stdin`-named symbols exist to link against.
+extern "C" std::FILE* __stdinp;
+extern "C" std::FILE* __stdoutp;
+extern "C" std::FILE* __stderrp;
+#else
 extern "C" std::FILE* stdin;
 extern "C" std::FILE* stdout;
 extern "C" std::FILE* stderr;
+#endif
 
 /**
  * @namespace stdx::io
@@ -136,7 +145,11 @@ export namespace stdx::io {
          */
         [[nodiscard]]
         static File& stdin() noexcept {
+            #ifdef __APPLE__
+            static File stdin_file(::__stdinp);
+            #else
             static File stdin_file(::stdin);
+            #endif
             return stdin_file;
         }
 
@@ -147,7 +160,11 @@ export namespace stdx::io {
          */
         [[nodiscard]]
         static File& stdout() noexcept {
+            #ifdef __APPLE__
+            static File stdout_file(::__stdoutp);
+            #else
             static File stdout_file(::stdout);
+            #endif
             return stdout_file;
         }
 
@@ -158,7 +175,11 @@ export namespace stdx::io {
          */
         [[nodiscard]]
         static File& stderr() noexcept {
+            #ifdef __APPLE__
+            static File stderr_file(::__stderrp);
+            #else
             static File stderr_file(::stderr);
+            #endif
             return stderr_file;
         }
 
@@ -442,7 +463,7 @@ export namespace stdx::io {
         static File open(const Path& path, StringView mode) {
             File file(path, mode);
             if (!file) {
-                throw IOException(Ops::fmt("Failed to open file: {}", path));
+                throw IOException(Ops::fmt("Failed to open file: {}", path.string()));
             }
             return file;
         }
@@ -475,7 +496,7 @@ export namespace stdx::io {
         THROWS(IOException)
         static File create(const Path& path) {
             if (stdx::fs::exists(path)) {
-                throw IOException(Ops::fmt("File already exists: {}", path));
+                throw IOException(Ops::fmt("File already exists: {}", path.string()));
             }
             return open(path, "w");
         }
