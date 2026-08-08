@@ -13,7 +13,9 @@ export namespace stdx::time::chrono {
      */
     class IsoChronology final {
     public:
-        IsoChronology() = delete("IsoChronology is a static utility class and cannot be instantiated.");
+        IsoChronology() = DELETE_METHOD("IsoChronology is a static utility class and cannot be instantiated.");
+
+        static constexpr StringView CALENDAR_TYPE = "iso8601"; ///< The CLDR/LDML calendar type.
 
         /**
          * @enum Era
@@ -25,24 +27,6 @@ export namespace stdx::time::chrono {
         };
 
         using enum GregorianMonth;
-
-        /**
-         * @brief Returns the chronology identifier.
-         * @return "ISO"
-         */
-        [[nodiscard]]
-        static constexpr StringView id() noexcept {
-            return "ISO";
-        }
-
-        /**
-         * @brief Returns the calendar type.
-         * @return "iso8601"
-         */
-        [[nodiscard]]
-        static constexpr StringView calendar_type() noexcept {
-            return "iso8601";
-        }
 
         /**
          * @brief Check if a year is a leap year.

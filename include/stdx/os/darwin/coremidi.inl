@@ -2,8 +2,7 @@
 
 /**
  * @namespace stdx::os::darwin::coremidi
- * @brief CoreMIDI - <CoreMIDI/CoreMIDI.h>, MIDIServices.h, MIDISetup.h,
- *        MIDIThruConnection.h.
+ * @brief CoreMIDI - <CoreMIDI/CoreMIDI.h>, MIDIServices.h, MIDISetup.h, MIDIThruConnection.h.
  */
 export namespace stdx::os::darwin::coremidi {
     #if defined(__APPLE__) && defined(__BLOCKS__) && __has_include(<CoreMIDI/CoreMIDI.h>)
@@ -72,7 +71,14 @@ export namespace stdx::os::darwin::coremidi {
     // Packet list helpers
     using ::MIDIPacketListInit;
     using ::MIDIPacketListAdd;
-    using ::MIDIPacketNext;
+
+    // MIDIPacketNext is a static-inline helper in CoreMIDI's headers, so it
+    // has internal linkage and a using-declaration for it cannot be exported;
+    // re-expose it as a thin wrapper. Deliberately not `inline`: an exported
+    // inline function may not reference a TU-local entity.
+    MidiPacket* MIDIPacketNext(const MidiPacket* packet) noexcept {
+        return ::MIDIPacketNext(packet);
+    }
 
     // Device / entity / endpoint enumeration
     using ::MIDIGetNumberOfDevices;

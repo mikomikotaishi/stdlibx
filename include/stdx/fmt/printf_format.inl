@@ -125,7 +125,7 @@ namespace stdx::fmt {
                 out += '0';
             }
             out.append(wstart, static_cast<usize>(wend - wstart));
-            if (prstart) {
+            if (prstart != nullptr) {
                 out += '.';
                 out.append(prstart, static_cast<usize>(prend - prstart));
             }
@@ -297,7 +297,7 @@ export namespace stdx::fmt {
         // Dispatch check_type<I> for each index in Idxss... at position idx.
         template <usize... Idxs>
         static consteval void dispatch_check(usize idx, char conv, IndexSequence<Idxs...>) {
-            (void)((Idxs == idx ? (check_type<Idxs>(conv), true) : false) || ...);
+            static_cast<void>(((Idxs == idx ? (check_type<Idxs>(conv), true) : false) || ...));
         }
 
         THROWS(FormatException)

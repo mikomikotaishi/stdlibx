@@ -19,7 +19,7 @@ private:
     struct Line {
         String item; ///< The item name.
         u32 quantity; ///< How many were added.
-        f64 unit_price; ///< The price of a single unit.
+        f64 unitPrice; ///< The price of a single unit.
     };
 
     Vector<Line> _lines; ///< The lines, in the order they were added.
@@ -28,17 +28,17 @@ public:
      * @brief Adds a line to the cart.
      * @param item The item name.
      * @param quantity How many to add; must be positive.
-     * @param unit_price The price of a single unit; must not be negative.
+     * @param unitPrice The price of a single unit; must not be negative.
      * @throws InvalidArgumentException if the quantity is zero or the price is negative.
      */
-    void add(StringView item, u32 quantity, f64 unit_price) {
+    void add(StringView item, u32 quantity, f64 unitPrice) {
         if (quantity == 0) {
             throw InvalidArgumentException("quantity must be positive");
         }
-        if (unit_price < 0.0) {
+        if (unitPrice < 0.0) {
             throw InvalidArgumentException("price must not be negative");
         }
-        _lines.emplace_back(Line{String(item), quantity, unit_price});
+        _lines.emplace_back(Line{String(item), quantity, unitPrice});
     }
 
     /**
@@ -79,7 +79,7 @@ public:
         }
         f64 sum = 0.0;
         for (const Line& line: _lines) {
-            sum += static_cast<f64>(line.quantity) * line.unit_price;
+            sum += static_cast<f64>(line.quantity) * line.unitPrice;
         }
         return sum * (1.0 - discount_percent / 100.0);
     }

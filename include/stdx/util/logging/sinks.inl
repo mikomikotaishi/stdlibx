@@ -24,20 +24,23 @@ export namespace stdx::util::logging {
         virtual ~LogSink() = default;
 
         /**
-         * @brief Write a formatted log message to the sink.
+         * @brief Write a log message using a source-location format.
          * @param timestamp The timestamp string
          * @param level The log level
          * @param logger_name The name of the logger
          * @param message The formatted message
-         * @param enable_source_location Whether to include source location in output
+         * @param format The source-location format
          * @param location The source location (if enabled)
+         *
+         * The default keeps existing custom sinks source-compatible and uses
+         * their full source-location behavior.
          */
         virtual void write(
             StringView timestamp,
             Level level,
             StringView logger_name,
-            StringView message, 
-            bool enable_source_location = false, 
+            StringView message,
+            SourceLocationFormat format,
             const SourceLocation& location = SourceLocation::current()
         ) = 0;
 
@@ -82,25 +85,45 @@ export namespace stdx::util::logging {
             Level level,
             StringView logger_name,
             StringView message,
-            bool enable_source_location = false,
+            SourceLocationFormat format,
             const SourceLocation& location = SourceLocation::current()
         ) override {
             ScopedLock<Mutex> lock(mutex);
-            if (enable_source_location) {
-                stdx::io::println(
-                    *_file, "[{}] {} [{}] [{}:{}:{}]: {}",
-                    timestamp, level, logger_name, 
-                    location.file_name(), location.line(), location.function_name(),
-                    message
-                );
-            } else {
-                stdx::io::println(*_file, "[{}] {} [{}]: {}", timestamp, level, logger_name, message);
+            switch (format) {
+                case SourceLocationFormat::NONE:
+                    stdx::io::println(*_file, "[{}] {:10!} [{}]: {}", timestamp, level, logger_name, message);
+                    break;
+                case SourceLocationFormat::FILE_LINE:
+                    stdx::io::println(
+                        *_file, "[{}] {:10!} [{}] [{}:{}]: {}",
+                        timestamp, level, logger_name,
+                        Path(location.file_name()).filename(), location.line(), message
+                    );
+                    break;
+                case SourceLocationFormat::FILE_LINE_FUNCTION:
+                    stdx::io::println(
+                        *_file, "[{}] {:10!} [{}] [{}:{}:{}]: {}",
+                        timestamp, level, logger_name,
+                        Path(location.file_name()).filename(), location.line(),
+                        location.function_name(), message
+                    );
+                    break;
+                case SourceLocationFormat::FULL:
+                    stdx::io::println(
+                        *_file, "[{}] {:10!} [{}] [{}:{}:{}]: {}",
+                        timestamp, level, logger_name,
+                        location.file_name(), location.line(), location.function_name(),
+                        message
+                    );
+                    break;
             }
+            _file->flush();
         }
 
         void write_raw(StringView message) override {
             ScopedLock<Mutex> lock(mutex);
             stdx::io::println(*_file, "{}", message);
+            _file->flush();
         }
 
         void flush() override {
@@ -131,32 +154,47 @@ export namespace stdx::util::logging {
             Level level,
             StringView logger_name,
             StringView message,
-            bool enable_source_location = false,
+            SourceLocationFormat format,
             const SourceLocation& location = SourceLocation::current()
         ) override {
             ScopedLock<Mutex> lock(_mutex);
-            if (enable_source_location) {
-                if (_use_stderr) {
-                    System::err.println(
-                        "[{}] {} [{}] [{}:{}:{}]: {}", 
-                        timestamp, level, logger_name,
-                        location.file_name(), location.line(), location.function_name(),
-                        message
-                    );
-                } else {
-                    System::out.println(
-                        "[{}] {} [{}] [{}:{}:{}]: {}", 
-                        timestamp, level, logger_name,
-                        location.file_name(), location.line(), location.function_name(),
-                        message
-                    );
+            auto output = [&](auto& stream) -> void {
+                switch (format) {
+                    case SourceLocationFormat::NONE:
+                        stream.println("[{}] {:10!} [{}]: {}", timestamp, level, logger_name, message);
+                        break;
+                    case SourceLocationFormat::FILE_LINE:
+                        stream.println(
+                            "[{}] {:10!} [{}] [{}:{}]: {}",
+                            timestamp, level, logger_name,
+                            Path(location.file_name()).filename(), location.line(), message
+                        );
+                        break;
+                    case SourceLocationFormat::FILE_LINE_FUNCTION:
+                        stream.println(
+                            "[{}] {:10!} [{}] [{}:{}:{}]: {}",
+                            timestamp, level, logger_name,
+                            Path(location.file_name()).filename(), location.line(),
+                            location.function_name(), message
+                        );
+                        break;
+                    case SourceLocationFormat::FULL:
+                        stream.println(
+                            "[{}] {:10!} [{}] [{}:{}:{}]: {}",
+                            timestamp, level, logger_name,
+                            location.file_name(), location.line(), location.function_name(),
+                            message
+                        );
+                        break;
                 }
+            };
+
+            if (_use_stderr) {
+                output(System::err);
+                stdx::io::cstdio::fflush(System::err);
             } else {
-                if (_use_stderr) {
-                    System::err.println("[{}] {} [{}]: {}", timestamp, level, logger_name, message);
-                } else {
-                    System::out.println("[{}] {} [{}]: {}", timestamp, level, logger_name, message);
-                }
+                output(System::out);
+                stdx::io::cstdio::fflush(System::out);
             }
         }
 
@@ -164,8 +202,10 @@ export namespace stdx::util::logging {
             ScopedLock<Mutex> lock(_mutex);
             if (_use_stderr) {
                 System::err.println("{}", message);
+                stdx::io::cstdio::fflush(System::err);
             } else {
                 System::out.println("{}", message);
+                stdx::io::cstdio::fflush(System::out);
             }
         }
 

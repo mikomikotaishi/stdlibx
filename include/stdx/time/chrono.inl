@@ -1,5 +1,7 @@
 #pragma once
 
+using stdx::fmt::Formatter;
+
 namespace stdx::time::chrono {
     /**
      * @internal
@@ -59,8 +61,7 @@ export namespace stdx::time::chrono {
      */
     template <typename T>
     concept ChronologyLike = requires (i32 y, u32 m, u32 d, i64 e) {
-        { T::id() } noexcept -> ConvertibleTo<StringView>;
-        { T::calendar_type() } noexcept -> ConvertibleTo<StringView>;
+        requires ConvertibleTo<decltype(T::CALENDAR_TYPE), StringView>;
         { T::is_leap_year(y) } -> SameAs<bool>;
         { T::days_in_month(y, m) } -> ConvertibleTo<u32>;
         { T::days_in_year(y) } -> ConvertibleTo<i32>;
@@ -374,7 +375,7 @@ export namespace stdx::time::chrono {
          */
         template <ChronologyLike Other>
         [[nodiscard]]
-        constexpr ChronoLocalDate<Other> to_chronology() const {
+        constexpr ChronoLocalDate<Other> to() const {
             return ChronoLocalDate<Other>::of_epoch_day(epoch_day);
         }
 
@@ -555,7 +556,18 @@ export namespace stdx::time::chrono {
          * @return The ordering between the two dates.
          */
         [[nodiscard]]
-        constexpr StrongOrdering operator<=>(const ChronoLocalDate& other) const noexcept = default;
+        constexpr StrongOrdering operator<=>(const ChronoLocalDate& other) const noexcept {
+            if (const StrongOrdering::Self order = epoch_day <=> other.epoch_day; order != 0) {
+                return order;
+            }
+            if (const StrongOrdering::Self order = proleptic_year <=> other.proleptic_year; order != 0) {
+                return order;
+            }
+            if (const StrongOrdering::Self order = mth <=> other.mth; order != 0) {
+                return order;
+            }
+            return dy <=> other.dy;
+        }
 
         /**
          * @brief Three-way comparison with a date of a different chronology.
@@ -682,4 +694,4 @@ namespace stdx::fmt {
 }
 
 template <ChronologyLike Chrono, typename Char>
-struct stdx::fmt::formatter<ChronoLocalDate<Chrono>, Char> : public stdx::fmt::Formatter<ChronoLocalDate<Chrono>, Char> {};
+struct stdx::fmt::formatter<ChronoLocalDate<Chrono>, Char>: public Formatter<ChronoLocalDate<Chrono>, Char> {};

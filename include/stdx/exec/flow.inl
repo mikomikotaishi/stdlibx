@@ -345,6 +345,35 @@ export namespace stdx::exec {
             return Flow<RemoveConstVolatileReferenceType<Snd>>(Ops::forward<Snd>(sender));
         }
 
+        template <typename... Ts>
+        [[nodiscard]]
+        static auto just(Ts&&... values) {
+            return from(Just(Ops::forward<Ts...>(values)...));
+        }
+
+        template <typename E>
+        [[nodiscard]]
+        static auto just_error(E&& error) {
+            return from(JustError(Ops::forward<E>(error)));
+        }
+
+        [[nodiscard]]
+        static auto just_stopped() {
+            return from(JustStopped());
+        }
+
+        template <Scheduler Sch>
+        [[nodiscard]]
+        static auto schedule(Sch sch) {
+            return from(Schedule(Ops::forward<Sch>(sch)));
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        static auto read_env(T&& query) {
+            return from(ReadEnv(Ops::forward<T>(query)));
+        }
+
         /**
          * @brief Starts a Flow on a scheduler.
          * @tparam Sch The scheduler type.

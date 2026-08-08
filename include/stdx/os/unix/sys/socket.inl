@@ -135,7 +135,6 @@ export namespace stdx::os::unix::sys {
     using ::accept;
     using ::shutdown;
     using ::sockatmark;
-    using ::isfdtype;
 
     /**
      * @brief Linux-only calls, guarded so the wrapper itself stays portable.
@@ -152,6 +151,9 @@ export namespace stdx::os::unix::sys {
     using ::sendmmsg;
     using ::recvmmsg;
     using ::accept4;
+
+    // XSI-only; glibc provides it, Darwin never has.
+    using ::isfdtype;
     #endif
     #endif
 }

@@ -78,7 +78,7 @@ export namespace stdx::core {
                 return Self(String(name).c_str());
             } catch (...) {
             }
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             if (!name.empty() && name != "C" && name != "POSIX"
                 && name.find('.') == StringView::npos) {
                 try {

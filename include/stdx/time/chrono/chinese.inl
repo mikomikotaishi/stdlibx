@@ -521,7 +521,9 @@ export namespace stdx::time::chrono {
             };
         }
     public:
-        ChineseChronology() = delete("ChineseChronology is a static utility class and cannot be instantiated.");
+        ChineseChronology() = DELETE_METHOD("ChineseChronology is a static utility class and cannot be instantiated.");
+
+        static constexpr StringView CALENDAR_TYPE = "chinese"; ///< The CLDR/LDML calendar type.
 
         /**
          * @enum Era
@@ -531,7 +533,7 @@ export namespace stdx::time::chrono {
          * (2637 BCE), which marks cycle 1, year 1. Proleptic years >= 1
          * fall in the HUANGDI era; years <= 0 are BEFORE_HUANGDI.
          */
-        enum class Era : i32 {
+        enum class Era: i32 {
             BEFORE_HUANGDI = 0, ///< Before the Yellow Emperor epoch (proleptic years <= 0)
             HUANGDI = 1, ///< Yellow Emperor epoch onwards (proleptic years >= 1)
         };
@@ -630,24 +632,6 @@ export namespace stdx::time::chrono {
         [[nodiscard]]
         static constexpr i32 year_of_era(i32 proleptic_year) noexcept {
             return proleptic_year >= 1 ? proleptic_year : 1 - proleptic_year;
-        }
-
-        /**
-         * @brief Returns the chronology identifier.
-         * @return "Chinese"
-         */
-        [[nodiscard]]
-        static constexpr StringView id() noexcept {
-            return "Chinese";
-        }
-
-        /**
-         * @brief Returns the calendar type.
-         * @return "chinese"
-         */
-        [[nodiscard]]
-        static constexpr StringView calendar_type() noexcept {
-            return "chinese";
         }
 
         /**

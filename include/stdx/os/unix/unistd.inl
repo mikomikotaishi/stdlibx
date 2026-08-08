@@ -138,4 +138,23 @@ export namespace stdx::os::unix {
     using ::gettid;
     using ::environ;
     #endif
+
+    // Darwin ships these POSIX basics too; the main capture list above stays
+    // __unix__-gated because many of its entries are Linux-only.
+    #if defined(__APPLE__) && !defined(__unix__) && __has_include(<unistd.h>)
+    using ::getpid;
+    using ::getppid;
+    using ::isatty;
+    using ::close;
+    using ::read;
+    using ::write;
+    using ::gethostname;
+    using ::_exit;
+    using ::chdir;
+    using ::dup;
+    using ::dup2;
+    using ::execvp;
+    using ::fork;
+    using ::pipe;
+    #endif
 }

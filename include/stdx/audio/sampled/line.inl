@@ -28,8 +28,8 @@ export namespace stdx::audio::sampled {
     class OutputLine {
     public:
         OutputLine() = default;
-        OutputLine(const OutputLine&) = delete("OutputLine is not copyable.");
-        OutputLine& operator=(const OutputLine&) = delete("OutputLine is not copyable.");
+        OutputLine(const OutputLine&) = DELETE_METHOD("OutputLine is not copyable.");
+        OutputLine& operator=(const OutputLine&) = DELETE_METHOD("OutputLine is not copyable.");
         virtual ~OutputLine() = default;
 
         /**
@@ -81,8 +81,8 @@ export namespace stdx::audio::sampled {
     class InputLine {
     public:
         InputLine() = default;
-        InputLine(const InputLine&) = delete("InputLine is not copyable.");
-        InputLine& operator=(const InputLine&) = delete("InputLine is not copyable.");
+        InputLine(const InputLine&) = DELETE_METHOD("InputLine is not copyable.");
+        InputLine& operator=(const InputLine&) = DELETE_METHOD("InputLine is not copyable.");
         virtual ~InputLine() = default;
 
         THROWS(LineUnavailableException)

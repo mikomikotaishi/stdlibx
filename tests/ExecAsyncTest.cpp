@@ -56,7 +56,7 @@ void test_async_awaited_in_task() {
 void test_async_propagates_exceptions() {
     bool threw = false;
     try {
-        Thread::sync_wait(Thread::offload([] -> void { throw RuntimeException("boom"); }));
+        Thread::sync_wait(Thread::offload([] [[noreturn]] -> void { throw RuntimeException("boom"); }));
     } catch (const RuntimeException& _) {
         threw = true;
     }

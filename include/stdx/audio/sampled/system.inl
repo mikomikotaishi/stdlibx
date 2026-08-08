@@ -18,7 +18,7 @@ export namespace stdx::audio::sampled {
      */
     class AudioSystem final {
     public:
-        AudioSystem() = delete("AudioSystem is a static utility class and cannot be instantiated.");
+        AudioSystem() = DELETE_METHOD("AudioSystem is a static utility class and cannot be instantiated.");
 
         /**
          * @brief Returns every output (playback) device the host advertises.
@@ -137,13 +137,14 @@ export namespace stdx::audio::sampled {
     };
 }
 
-#if defined(_WIN32) && __has_include(<mmsystem.h>)
-
-#elif defined(__APPLE__)
-
-#elif defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+#if defined(__linux__) && __has_include(<alsa/asoundlib.h>)
 #include "stdx/audio/sampled/linux/alsa_pcm.inl"
 #else
+// ALSA is the only backend wired up, so Darwin and Windows take the throwing
+// stub implementation below until CoreAudio and WASAPI ones land. A branch that
+// selects no backend at all is not an option: these are out-of-line definitions
+// of declared members, so leaving them out is an unresolved symbol at link time
+// rather than a graceful absence.
 export namespace stdx::audio::sampled {
     Vector<DeviceInfo> AudioSystem::output_devices() {
         return {};

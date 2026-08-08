@@ -198,3 +198,22 @@ export namespace stdx::literals::inline fs_literals {
         return Path(StringView(s, len));
     }
 }
+
+#ifndef __cpp_lib_format_path
+namespace std {
+    template <typename Char>
+        requires (is_same_v<Char, char> || is_same_v<Char, wchar_t>)
+    struct formatter<Path, Char>: formatter<basic_string<Char>, Char> {
+        /**
+         * @brief Writes @p path to the output as its string.
+         * @param path The path to write.
+         * @param context The format context.
+         * @return The iterator past the last character written.
+         */
+        template <typename Out>
+        Out format(const Path& path, basic_format_context<Out, Char>& context) const {
+            return formatter<basic_string<Char>, Char>::format(path.string<Char>(), context);
+        }
+    };
+}
+#endif

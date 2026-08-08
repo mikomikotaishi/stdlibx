@@ -13,7 +13,7 @@ export namespace stdx::audio::midi {
      * the channel (0-15) and is masked out of the constant values
      * themselves.
      */
-    enum class Status: u8 {
+    enum class MidiStatus: u8 {
         NOTE_OFF = 0x80,
         NOTE_ON = 0x90,
         POLY_KEY_PRESSURE = 0xA0, ///< Aftertouch per-key
@@ -88,12 +88,12 @@ export namespace stdx::audio::midi {
          * @param data2 Second data byte (velocity, controller value, ...). 0 for two-byte messages.
          */
         THROWS(InvalidMidiDataException)
-        ShortMessage(Status status, u8 channel, u8 data1, u8 data2 = 0) {
+        ShortMessage(MidiStatus status, u8 channel, u8 data1, u8 data2 = 0) {
             set_message(status, channel, data1, data2);
         }
 
         THROWS(InvalidMidiDataException)
-        void set_message(Status status, u8 channel, u8 data1, u8 data2 = 0) {
+        void set_message(MidiStatus status, u8 channel, u8 data1, u8 data2 = 0) {
             if (channel > 15) {
                 throw InvalidMidiDataException("channel out of range");
             }
@@ -101,8 +101,8 @@ export namespace stdx::audio::midi {
                 throw InvalidMidiDataException("data byte out of range");
             }
             const u8 s = static_cast<u8>(status);
-            const bool two_byte = (s == static_cast<u8>(Status::PROGRAM_CHANGE))
-                || (s == static_cast<u8>(Status::CHANNEL_PRESSURE));
+            const bool two_byte = (s == static_cast<u8>(MidiStatus::PROGRAM_CHANGE))
+                || (s == static_cast<u8>(MidiStatus::CHANNEL_PRESSURE));
             _bytes.clear();
             _bytes.push_back(static_cast<u8>(s | (channel & 0x0F)));
             _bytes.push_back(data1);
@@ -117,10 +117,10 @@ export namespace stdx::audio::midi {
         }
 
         [[nodiscard]]
-        Status command() const noexcept {
+        MidiStatus command() const noexcept {
             return _bytes.empty()
-                ? Status::SYSTEM_RESET
-                : static_cast<Status>(_bytes[0] & 0xF0);
+                ? MidiStatus::SYSTEM_RESET
+                : static_cast<MidiStatus>(_bytes[0] & 0xF0);
         }
 
         [[nodiscard]]

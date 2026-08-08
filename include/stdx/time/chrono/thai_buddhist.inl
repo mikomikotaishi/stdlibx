@@ -13,7 +13,9 @@ export namespace stdx::time::chrono {
      */
     class ThaiBuddhistChronology final {
     public:
-        ThaiBuddhistChronology() = delete("ThaiBuddhistChronology is a static utility class and cannot be instantiated.");
+        ThaiBuddhistChronology() = DELETE_METHOD("ThaiBuddhistChronology is a static utility class and cannot be instantiated.");
+
+        static constexpr StringView CALENDAR_TYPE = "buddhist"; ///< The CLDR/LDML calendar type.
 
         /**
          * @enum Era
@@ -27,24 +29,6 @@ export namespace stdx::time::chrono {
         using enum GregorianMonth;
 
         static constexpr i32 YEAR_OFFSET = 543;
-
-        /**
-         * @brief Returns the chronology identifier.
-         * @return "ThaiBuddhist"
-         */
-        [[nodiscard]]
-        static constexpr StringView id() noexcept {
-            return "ThaiBuddhist";
-        }
-
-        /**
-         * @brief Returns the calendar type.
-         * @return "buddhist"
-         */
-        [[nodiscard]]
-        static constexpr StringView calendar_type() noexcept {
-            return "buddhist";
-        }
 
         /**
          * @brief Check if a year is a leap year.

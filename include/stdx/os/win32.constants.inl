@@ -8,6 +8,12 @@ export namespace stdx::os::win32 {
     constexpr usize PATH_MAX = 260;
     constexpr usize MAX_PATH = 260;
 
+    /// The UTF-8 code page, for WideCharToMultiByte and MultiByteToWideChar.
+    constexpr u32 CP_UTF8 = 65001;
+    /// Makes a WideCharToMultiByte conversion fail on ill-formed UTF-16 rather
+    /// than substituting U+FFFD. Valid only with CP_UTF8 and CP_UTF7.
+    constexpr u32 WC_ERR_INVALID_CHARS = 0x00000080;
+
     constexpr u8 MINCHAR = 0x80;
     constexpr u8 MAXCHAR = 0x7f;
     constexpr u16 MINSHORT = 0x8000;
@@ -113,6 +119,26 @@ export namespace stdx::os::win32 {
     constexpr u64 WAIT_OBJECT_0 = 0x00000000l;
     constexpr u64 WAIT_TIMEOUT = 0x00000102l;
     constexpr u64 WAIT_FAILED = 0xFFFFFFFFl;
+
+    constexpr u32 INFINITE = 0xFFFFFFFF; ///< Infinite timeout for the wait functions.
+
+    constexpr u32 STD_INPUT_HANDLE = 0xFFFFFFF6; ///< GetStdHandle's stdin device, (DWORD)-10.
+    constexpr u32 STD_OUTPUT_HANDLE = 0xFFFFFFF5; ///< GetStdHandle's stdout device, (DWORD)-11.
+    constexpr u32 STD_ERROR_HANDLE = 0xFFFFFFF4; ///< GetStdHandle's stderr device, (DWORD)-12.
+
+    constexpr u32 HANDLE_FLAG_INHERIT = 0x00000001; ///< SetHandleInformation: child processes inherit the handle.
+    constexpr u32 ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004; ///< SetConsoleMode: interpret ANSI escape sequences.
+    constexpr u32 STARTF_USESTDHANDLES = 0x00000100; ///< STARTUPINFO.dwFlags: hStd* fields are valid.
+
+    constexpr u32 GENERIC_READ = 0x80000000;
+    constexpr u32 GENERIC_WRITE = 0x40000000;
+    constexpr u32 FILE_SHARE_READ = 0x00000001;
+    constexpr u32 FILE_SHARE_WRITE = 0x00000002;
+    constexpr u32 OPEN_EXISTING = 3; ///< CreateFile disposition: the file must already exist.
+
+    #ifdef _WIN32
+    inline const Handle INVALID_HANDLE_VALUE = reinterpret_cast<Handle>(~static_cast<usize>(0));
+    #endif
 
     /**
      * <winsock2.h> and <ws2tcpip.h> constants

@@ -132,7 +132,9 @@ export namespace stdx::time::chrono {
             return {y, m, static_cast<u32>(rem + 1)};
         }
     public:
-        HijrahChronology() = delete("HijrahChronology is a static utility class and cannot be instantiated.");
+        HijrahChronology() = DELETE_METHOD("HijrahChronology is a static utility class and cannot be instantiated.");
+
+        static constexpr StringView CALENDAR_TYPE = "islamic-umalqura"; ///< The CLDR/LDML calendar type.
 
         /**
          * @enum Era
@@ -143,24 +145,6 @@ export namespace stdx::time::chrono {
         };
 
         using enum HijrahMonth;
-
-        /**
-         * @brief Returns the chronology identifier.
-         * @return "Hijrah-umalqura"
-         */
-        [[nodiscard]]
-        static constexpr StringView id() noexcept {
-            return "Hijrah-umalqura";
-        }
-
-        /**
-         * @brief Returns the calendar type.
-         * @return "islamic-umalqura"
-         */
-        [[nodiscard]]
-        static constexpr StringView calendar_type() noexcept {
-            return "islamic-umalqura";
-        }
 
         /**
          * @brief Check if a year is a leap year in the Hijrah calendar.

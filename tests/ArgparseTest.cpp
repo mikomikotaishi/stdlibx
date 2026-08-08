@@ -16,7 +16,7 @@ using namespace stdx::test;
  */
 [[nodiscard]]
 static ArgumentParser parser(StringView name = "prog") {
-    return ArgumentParser(String(name), "1.0", DefaultArguments::NONE);
+    return ArgumentParser(name, "1.0", DefaultArguments::NONE);
 }
 
 /**
@@ -76,8 +76,7 @@ void test_argparse_scan() {
     expect_eq(p.get<i32>("--count"), 42, "a decimal scan yields an integer");
     expect_eq(p.get<u32>("--mask"), 0xffu, "a hexadecimal scan reads base 16 without a prefix");
     expect_eq(p.get<u32>("--prefixed"), 0xffu, "and with one");
-    // f64 is _Float64, which std::from_chars has no overload for; the scan has
-    // to route through double, so this asserts more than it looks like.
+ 
     expect_near(p.get<f64>("--ratio"), 2.5, 1e-12, "a general scan yields a double");
     expect_eq(p.get<i32>("--auto"), 16, "an 'i' scan infers the base from the prefix");
 }
@@ -302,6 +301,48 @@ void test_argparse_unknown_options() {
 }
 
 /**
+ * @brief Tests that the nullary parse_args()/parse_known_args() read the process's
+ * own command line rather than nothing at all.
+ *
+ * The command line is whatever this binary was invoked with - bare under ctest, but
+ * carrying the runner's own options when someone passes --filter - so the assertions
+ * are written against Environment::args() rather than fixed values.
+ */
+void test_argparse_no_explicit_arguments() {
+    const Span<const StringView> real = Environment::args();
+    require(!real.empty(), "the process command line is available");
+
+    ArgumentParser known = parser();
+    Vector<String> unknown;
+    expect_no_throw([&] -> void { unknown = known.parse_known_args(); }, "parse_known_args() needs no arguments");
+    require(unknown.size() == real.size() - 1, "it sees every element after the program name");
+
+    bool in_order = true;
+    for (usize i = 0; in_order && i < unknown.size(); ++i) {
+        in_order = unknown[i] == real[i + 1];
+    }
+    expect(in_order, "and they are real[1..], in order, so it read args() and not something else");
+    expect(unknown == parser().parse_known_args(real), "matching what passing Environment::args() by hand gives");
+
+    const auto outcome = [](ArgumentParser& p, auto&& parse) -> String {
+        try {
+            parse(p);
+            return "";
+        } catch (const CommandLineParserException& e) {
+            return String(e.what());
+        }
+    };
+
+    ArgumentParser strict = parser();
+    ArgumentParser spelled_out = parser();
+    expect_eq(
+        outcome(strict, [](ArgumentParser& p) -> void { p.parse_args(); }),
+        outcome(spelled_out, [&](ArgumentParser& p) -> void { p.parse_args(real); }),
+        "parse_args() and parse_args(Environment::args()) reach the same outcome"
+    );
+}
+
+/**
  * @brief Tests present(), which distinguishes "absent" from "empty".
  */
 void test_argparse_present() {
@@ -316,13 +357,11 @@ void test_argparse_present() {
     const Optional<String> value = given.present("--name");
     expect(value.has_value() && *value == "x", "a set option presents its value");
 
-    // An argument with a default can never be absent, so asking is a programmer
-    // error rather than an empty answer.
     ArgumentParser defaulted = parser();
     defaulted.add_argument("--name").default_value("d"s);
     defaulted.parse_args("prog");
     expect_throws<LogicException>(
-        [&] -> void { (void)defaulted.present("--name"); },
+        [&] -> void { static_cast<void>(defaulted.present("--name")); },
         "present() on an argument with a default is a logic error"
     );
 }
@@ -460,6 +499,7 @@ int main(int argc, char* argv[]) {
         {"Argparse.duplicate_option", test_argparse_duplicate_option},
         {"Argparse.remaining", test_argparse_remaining},
         {"Argparse.unknown_options", test_argparse_unknown_options},
+        {"Argparse.no_explicit_arguments", test_argparse_no_explicit_arguments},
         {"Argparse.present", test_argparse_present},
         {"Argparse.store_into", test_argparse_store_into},
         {"Argparse.mutually_exclusive", test_argparse_mutually_exclusive},

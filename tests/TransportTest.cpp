@@ -97,14 +97,11 @@ public:
     }
 };
 
-// The claims the split was made for, checked at compile time.
 static_assert(ByteStream<TcpStream>, "a connected TCP socket is a byte stream");
 static_assert(ByteStream<MemoryStream>, "so is a buffer that says it is one");
 static_assert(!ByteStream<UdpSocket>, "a datagram socket is not, though it has the shape of one");
 static_assert(!ByteStream<Socket>, "nor is a bare Socket, which might be either or neither");
 
-// A full stream satisfies each half, and the opt-in gates both halves rather
-// than the pair: a UdpSocket has try_send and try_receive and is neither.
 static_assert(ByteReader<TcpStream> && ByteWriter<TcpStream>, "a stream reads and writes");
 static_assert(!ByteReader<UdpSocket> && !ByteWriter<UdpSocket>, "a datagram socket is neither half");
 
@@ -125,10 +122,10 @@ template <ByteReader S>
 [[nodiscard]]
 static String drain(S& stream) {
     String out;
-    Array<byte, 64> buffer{};
+    Array<byte, 64> buffer = {};
     while (true) {
         const Optional<usize> read = stream.try_receive(Span<byte>(buffer));
-        if (!read || *read == 0) {
+        if (!read.has_value() || *read == 0) {
             return out;
         }
         out += text_of(Span<const byte>(buffer.data(), *read));
@@ -155,8 +152,6 @@ void test_byte_stream_is_substitutable() {
 
     expect_eq(drain(server), "hello from a socket", "the same reader drains a socket");
 
-    // A stall is "not now", not end-of-stream, and the reader must not treat the
-    // two alike - which is why try_receive reports 0 and nullopt differently.
     MemoryStream stalled("");
     stalled.stall(true);
     expect(!stalled.try_send(bytes_of("x")).has_value(), "a stalled stream reports no progress");
@@ -186,7 +181,7 @@ void test_tcp_accept_yields_a_stream() {
         "accept() is typed as the connection it returns, not as a bare Socket"
     );
 
-    if (server) {
+    if (server.has_value()) {
         expect(server->is_open(), "the accepted stream is open");
         const Optional<Endpoint> peer = client.remote_endpoint();
         expect(peer.has_value() && *peer == bound, "the client is connected to the listener");
@@ -205,7 +200,7 @@ void test_tcp_round_trip() {
     client.set_no_delay(true);
     client.send_all(bytes_of("ping"));
 
-    Array<byte, 16> buffer{};
+    Array<byte, 16> buffer = {};
     const usize read = server.receive(Span<byte>(buffer));
     expect_eq(text_of(Span<const byte>(buffer.data(), read)), "ping", "bytes arrive");
 
@@ -228,9 +223,9 @@ void test_udp_round_trip() {
     UdpSocket sender = UdpSocket::unbound();
     const Endpoint bound = listener.local_endpoint();
 
-    sender.send_to(bytes_of("datagram"), bound);
+    static_cast<void>(sender.send_to(bytes_of("datagram"), bound));
 
-    Array<byte, 32> buffer{};
+    Array<byte, 32> buffer = {};
     const UdpSocket::Received received = listener.receive_from(Span<byte>(buffer));
     expect_eq(
         text_of(Span<const byte>(buffer.data(), received.length)),
@@ -239,7 +234,7 @@ void test_udp_round_trip() {
     );
     expect(received.from.port() != 0, "the sender's ephemeral port is reported");
 
-    listener.send_to(bytes_of("reply"), received.from);
+    static_cast<void>(listener.send_to(bytes_of("reply"), received.from));
     const UdpSocket::Received back = sender.receive_from(Span<byte>(buffer));
     expect_eq(
         text_of(Span<const byte>(buffer.data(), back.length)),
@@ -261,9 +256,9 @@ void test_udp_connected() {
     const Endpoint server_address = server.local_endpoint();
 
     client.connect(server_address);
-    client.send(bytes_of("bound"));
+    static_cast<void>(client.send(bytes_of("bound")));
 
-    Array<byte, 16> buffer{};
+    Array<byte, 16> buffer = {};
     const UdpSocket::Received received = server.receive_from(Span<byte>(buffer));
     expect_eq(
         text_of(Span<const byte>(buffer.data(), received.length)),
@@ -271,7 +266,7 @@ void test_udp_connected() {
         "a connected datagram socket sends without naming the peer each time"
     );
 
-    server.send_to(bytes_of("back"), received.from);
+    static_cast<void>(server.send_to(bytes_of("back"), received.from));
     const usize read = client.receive(Span<byte>(buffer));
     expect_eq(text_of(Span<const byte>(buffer.data(), read)), "back", "and receives from it");
 }
@@ -285,7 +280,6 @@ void test_udp_connected() {
  * unreachable.
  */
 void test_typed_sockets_drive_a_poller() {
-    #if defined(_WIN32) || defined(__linux__)
     TcpListener listener = TcpListener::bind(loopback_any_port());
     listener.socket().set_blocking(false);
 
@@ -299,10 +293,10 @@ void test_typed_sockets_drive_a_poller() {
         for (const Event& event: poller.wait(50ms)) {
             if (event.token == 1 && event.readable) {
                 Optional<TcpStream> server = listener.try_accept();
-                if (server) {
+                if (server.has_value()) {
                     accepted = true;
                     client.send_all(bytes_of("through the reactor"));
-                    Array<byte, 32> buffer{};
+                    Array<byte, 32> buffer = {};
                     const usize read = server->receive(Span<byte>(buffer));
                     expect_eq(
                         text_of(Span<const byte>(buffer.data(), read)),
@@ -314,9 +308,6 @@ void test_typed_sockets_drive_a_poller() {
         }
     }
     expect(accepted, "the listener's readiness reached the poller through socket()");
-    #else
-    skip("the Poller has no backend for this platform (only epoll and WSAPoll exist)");
-    #endif
 }
 
 /**
@@ -337,7 +328,6 @@ void test_dual_stack_listener() {
     const u16 port = listener->local_endpoint().port();
     expect(port != 0, "port 0 yields a real port on a dual-stack listener");
 
-    // An IPv4 client, against a socket opened in the IPv6 family.
     TcpStream client = TcpStream::connect(Endpoint(IPAddress(IPv4Address::LOOPBACK), port));
     TcpStream server = listener->accept();
 
@@ -351,7 +341,7 @@ void test_dual_stack_listener() {
     expect(mapped->to_ipv4() == IPv4Address::LOOPBACK, "the mapping unwraps to the IPv4 client");
 
     client.send_all(bytes_of("dual"));
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     expect_eq(server.receive(buffer), 4u, "the dual-stack listener carries IPv4 traffic");
 }
 
@@ -366,9 +356,6 @@ void test_adopting_a_foreign_descriptor() {
     TcpListener listener = TcpListener::bind(loopback_any_port());
     const Endpoint bound = listener.local_endpoint();
 
-    // release() hands the descriptor over exactly as a supervisor would. It is
-    // on the wrapper rather than reached through socket(), so handing a
-    // connection onwards needs nothing from the raw layer.
     TcpStream connected = TcpStream::connect(bound);
     const Socket::NativeHandle handle = connected.release();
     expect(!connected.is_open(), "the original stream has given up the descriptor");
@@ -379,10 +366,9 @@ void test_adopting_a_foreign_descriptor() {
 
     TcpStream server = listener.accept();
     adopted.send_all(bytes_of("adopted"));
-    Array<byte, 16> buffer{};
+    Array<byte, 16> buffer = {};
     expect_eq(server.receive(buffer), 7u, "the adopted descriptor still carries traffic");
 
-    // The listener's own descriptor round-trips the same way.
     const Socket::NativeHandle listening = listener.release();
     TcpListener readopted = TcpListener::from_handle(listening);
     expect(readopted.local_endpoint() == bound, "the readopted listener keeps its address");
@@ -410,16 +396,6 @@ static void tune(SocketView socket) {
     expect(!socket.take_error().has_value(), "a freshly opened socket has no pending error");
 }
 
-// The substance of the narrowing, and the part no runtime test can reach: the
-// view has no way to end a descriptor's life, hand it away, or redo any of the
-// setup its owner already did. Each of these compiled while socket() still handed
-// out the Socket itself.
-//
-// Named rather than written inline, because a requires-expression only softens
-// errors for dependent expressions - `requires { view.close(); }` on a concrete
-// type is a hard error, not a false answer. Every one is asserted against Socket
-// too, so a misspelled member fails loudly here instead of quietly passing the
-// negative assertion for the wrong reason.
 template <typename S>
 concept Closes = requires (S socket) { socket.close(); };
 
@@ -465,15 +441,11 @@ void test_the_socket_view_borrows_without_owning() {
     UdpSocket datagram = UdpSocket::bind(loopback_any_port());
     Socket bare(IPAddress::Family::IPV4, Socket::Type::STREAM);
 
-    // One function, four kinds of socket, including one that never went through
-    // a wrapper - the implicit conversion from Socket& is what makes the last
-    // one work.
     tune(listener.socket());
     tune(client.socket());
     tune(datagram.socket());
     tune(bare);
 
-    // Borrowed, not taken: the views above are gone and every owner is intact.
     expect(listener.is_open(), "the listener still owns its descriptor after being viewed");
     expect(client.is_open(), "the stream still owns its descriptor after being viewed");
     expect(datagram.is_open(), "the datagram socket still owns its descriptor after being viewed");
@@ -490,11 +462,10 @@ void test_the_socket_view_borrows_without_owning() {
         "a larger receive buffer asked for through the view is not a smaller one"
     );
 
-    // A setting made through the view reaches the kernel, not just the wrapper.
     server.socket().set_receive_timeout(50ms);
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     expect_throws<SocketTimeoutException>(
-        [&server, &buffer] -> void { (void)server.receive(buffer); },
+        [&server, &buffer] -> void { static_cast<void>(server.receive(buffer)); },
         "a deadline set through the view is the one the receive obeys"
     );
 }

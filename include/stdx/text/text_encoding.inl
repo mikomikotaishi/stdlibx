@@ -430,5 +430,5 @@ namespace stdx::core {
 }
 
 template <>
-struct stdx::core::hash<TextEncoding> : public stdx::core::Hash<TextEncoding> {};
+struct stdx::core::hash<TextEncoding>: public Hash<TextEncoding> {};
 #endif

@@ -33,11 +33,11 @@ void test_biginteger_basic() {
 }
 
 void test_biginteger_cross_check() {
-    static constexpr Array<i64, 24> VALUES{
+    static constexpr Array<i64, 24> VALUES = {
         -2147483648LL, -100000007, -129, -128, -100, -9, -8, -7, -3, -2, -1,
         0, 1, 2, 3, 7, 8, 9, 100, 127, 128, 129, 100000007, 2147483647
     };
-    static constexpr Array<i32, 4> SHIFTS{0, 1, 7, 13};
+    static constexpr Array<i32, 4> SHIFTS = {0, 1, 7, 13};
     for (i64 a: VALUES) {
         const BigInteger big_a(a);
         expect(big_a.long_value() == a, "long_value round trip");
@@ -116,8 +116,6 @@ void test_biginteger_arithmetic() {
     expect(rest.signum() >= 0, "sqrt remainder non-negative");
     expect((root + 1) * (root + 1) > n, "sqrt is floor");
 
-    // Large operands to exercise the Karatsuba and Knuth division paths:
-    // (x - 1) * (y - 7) must equal x*y - 7x - y + 7 computed via shift/add only.
     const BigInteger x = BigInteger::ONE << 2500;
     const BigInteger y = BigInteger::ONE << 2300;
     const BigInteger left = (x - 1) * (y - 7);
@@ -212,7 +210,7 @@ void test_biginteger_conversions() {
     expect(BigInteger(-128).byte_value_exact() == -128, "byte_value_exact at minimum");
     bool threw = false;
     try {
-        (void)BigInteger(128).byte_value_exact();
+        static_cast<void>(BigInteger(128).byte_value_exact());
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -228,7 +226,7 @@ void test_biginteger_conversions() {
     expect((BigInteger::ONE << 1100).double_value() == Double::POSITIVE_INFINITY, "double_value overflow");
     expect(BigInteger(16777217).float_value() == 16777216.0f, "float_value rounds half to even");
 
-    static constexpr Array<i64, 10> VALUES{0, 1, -1, 127, 128, -128, -129, 255, 65535, -1000000};
+    static constexpr Array<i64, 10> VALUES = {0, 1, -1, 127, 128, -128, -129, 255, 65535, -1000000};
     for (i64 value: VALUES) {
         const BigInteger original(value);
         expect(BigInteger(original.to_byte_array()) == original, "byte array round trip");
@@ -315,7 +313,7 @@ void test_bigdecimal_divide() {
     expect_eq((BigDecimal("2.00") / BigDecimal("0.1")).to_string(), "20.0", "preferred scale");
     bool threw = false;
     try {
-        (void)(BigDecimal(1) / BigDecimal(3));
+        static_cast<void>((BigDecimal(1) / BigDecimal(3)));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -375,7 +373,7 @@ void test_bigdecimal_rounding() {
     expect_eq(BigDecimal("2.5").set_scale(3).to_string(), "2.500", "set_scale extends exactly");
     bool threw = false;
     try {
-        (void)BigDecimal("1.1").set_scale(0);
+        static_cast<void>(BigDecimal("1.1").set_scale(0));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -428,7 +426,7 @@ void test_bigdecimal_conversions() {
     expect_eq(BigDecimal::value_of(123456789, 4).to_string(), "12345.6789", "value_of with scale");
     bool threw = false;
     try {
-        (void)BigDecimal(Double::POSITIVE_INFINITY);
+        static_cast<void>(BigDecimal(Double::POSITIVE_INFINITY));
     } catch (const NumberFormatException& _) {
         threw = true;
     }
@@ -439,7 +437,7 @@ void test_bigdecimal_conversions() {
     expect(BigDecimal("5.00").to_big_integer_exact() == BigInteger(5), "to_big_integer_exact");
     threw = false;
     try {
-        (void)BigDecimal("5.5").to_big_integer_exact();
+        static_cast<void>(BigDecimal("5.5").to_big_integer_exact());
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -460,7 +458,7 @@ void test_bigdecimal_conversions() {
 void test_exceptions() {
     bool threw = false;
     try {
-        (void)(BigInteger(1) / BigInteger::ZERO);
+        static_cast<void>((BigInteger(1) / BigInteger::ZERO));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -468,7 +466,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)(BigDecimal(1) / BigDecimal());
+        static_cast<void>((BigDecimal(1) / BigDecimal()));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -476,7 +474,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger("123", 37);
+        static_cast<void>(BigInteger("123", 37));
     } catch (const NumberFormatException& _) {
         threw = true;
     }
@@ -484,7 +482,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger("");
+        static_cast<void>(BigInteger(""));
     } catch (const NumberFormatException& _) {
         threw = true;
     }
@@ -492,7 +490,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(-4).sqrt();
+        static_cast<void>(BigInteger(-4).sqrt());
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -500,7 +498,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(3).pow(-1);
+        static_cast<void>(BigInteger(3).pow(-1));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -508,7 +506,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(3).mod(BigInteger(-5));
+        static_cast<void>(BigInteger(3).mod(BigInteger(-5)));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -516,7 +514,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(4).mod_inverse(BigInteger(8));
+        static_cast<void>(BigInteger(4).mod_inverse(BigInteger(8)));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -524,7 +522,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(5).test_bit(-1);
+        static_cast<void>(BigInteger(5).test_bit(-1));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -532,11 +530,9 @@ void test_exceptions() {
 }
 
 void test_free_functions() {
-    // Member forms remain available.
     expect(BigInteger(-7).abs() == BigInteger(7), "BigInteger member abs");
     expect(BigDecimal("-2.5").abs() == BigDecimal("2.5"), "BigDecimal member abs");
 
-    // Free functions found by argument-dependent lookup.
     expect(abs(BigInteger(-7)) == BigInteger(7), "free abs(BigInteger) via ADL");
     expect(abs(BigDecimal("-2.5")) == BigDecimal("2.5"), "free abs(BigDecimal) via ADL");
     expect(min(BigInteger(3), BigInteger(8)) == BigInteger(3), "free min(BigInteger) via ADL");
@@ -544,13 +540,11 @@ void test_free_functions() {
     expect(min(BigDecimal("1.1"), BigDecimal("1.2")) == BigDecimal("1.1"), "free min(BigDecimal) via ADL");
     expect(max(BigDecimal("1.1"), BigDecimal("1.2")) == BigDecimal("1.2"), "free max(BigDecimal) via ADL");
 
-    // The standard customisation idiom (using std::abs; abs(x)) resolves to the overloads.
     {
         expect(abs(BigInteger(-9)) == BigInteger(9), "using std::abs; abs(BigInteger)");
         expect(abs(BigDecimal("-9.5")) == BigDecimal("9.5"), "using std::abs; abs(BigDecimal)");
     }
 
-    // Remaining free functions via ADL.
     expect(Math::clamp(BigInteger(10), BigInteger(0), BigInteger(5)) == BigInteger(5), "free clamp(BigInteger) via ADL");
     expect(Math::clamp(BigDecimal("2.5"), BigDecimal("0"), BigDecimal("1")) == BigDecimal("1"), "free clamp(BigDecimal) via ADL");
     expect(Math::signum(BigInteger(-9)) == -1, "free signum(BigInteger) via ADL");
@@ -562,14 +556,12 @@ void test_free_functions() {
     expect(Math::pow(BigDecimal("1.1"), 2) == BigDecimal("1.21"), "free pow(BigDecimal) via ADL");
     expect(Math::sqrt(BigInteger(144)) == BigInteger(12), "free sqrt(BigInteger) via ADL");
 
-    // Math facade: unconstrained methods already resolve for the big types.
     expect(Math::min(BigInteger(3), BigInteger(8)) == BigInteger(3), "Math::min(BigInteger)");
     expect(Math::max(BigInteger(3), BigInteger(8)) == BigInteger(8), "Math::max(BigInteger)");
     expect(Math::min(BigDecimal("1.1"), BigDecimal("1.2")) == BigDecimal("1.1"), "Math::min(BigDecimal)");
     expect(Math::max(BigDecimal("1.1"), BigDecimal("1.2")) == BigDecimal("1.2"), "Math::max(BigDecimal)");
     expect(Math::clamp(BigInteger(10), BigInteger(0), BigInteger(5)) == BigInteger(5), "Math::clamp(BigInteger)");
 
-    // Math facade: the new non-Numeric overloads delegate to the member functions.
     expect(Math::abs(BigInteger(-7)) == BigInteger(7), "Math::abs(BigInteger)");
     expect(Math::abs(BigDecimal("-2.5")) == BigDecimal("2.5"), "Math::abs(BigDecimal)");
     expect(Math::signum(BigInteger(-9)) == -1, "Math::signum(BigInteger)");

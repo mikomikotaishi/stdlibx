@@ -938,7 +938,7 @@ export namespace stdx::linq {
         [[nodiscard]]
         constexpr Span<const RangeValue<Ran>> to_array() {
             Vector<RangeValue<Ran>> tmp(begin(), end());
-            return Ops::define_static_array(tmp);
+            return Ops::static_array(tmp);
         }
         #endif
 

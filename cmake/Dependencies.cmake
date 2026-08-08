@@ -7,7 +7,12 @@ if(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY AND Lua_FOUND)
             INTERFACE_LINK_LIBRARIES "${LUA_LIBRARIES}"
         )
     endif()
-else()
+elseif(STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY)
+    # Reached only when the extension is wanted and Lua is genuinely absent. The
+    # earlier spelling of this was a plain else(), so it also fired when the
+    # extension had been switched off on purpose - which every GCC build with
+    # reflection enabled does - and reported a missing dependency that was sitting
+    # right there. Two different situations should not share one message.
     message(WARNING "Lua not found. Skipping Lua extension.")
 endif()
 

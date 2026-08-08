@@ -135,7 +135,10 @@ export namespace stdx::audio::midi {
                 UniquePointer<MidiMessage> msg = Pointers::unique<MetaMessage>(
                     type, Span<const u8>{payload.data(), payload.size()}
                 );
-                track.add(MidiEvent{abs_tick, Ops::move(msg)});
+                track.add(MidiEvent {
+                    .tick = abs_tick,
+                    .message = Ops::move(msg),
+                });
                 if (type == 0x2F) {
                     // End-of-track meta - done with this MTrk regardless of
                     // any padding bytes the writer may have left.
@@ -165,7 +168,10 @@ export namespace stdx::audio::midi {
                 UniquePointer<MidiMessage> msg = Pointers::unique<SysexMessage>(
                     Span<const u8>{raw.data(), raw.size()}
                 );
-                track.add(MidiEvent{abs_tick, Ops::move(msg)});
+                track.add(MidiEvent {
+                    .tick = abs_tick,
+                    .message = Ops::move(msg),
+                });
                 running_status = 0;
             } else {
                 // Channel-voice message. C0/D0 have 1 data byte; the rest take 2.
@@ -188,9 +194,12 @@ export namespace stdx::audio::midi {
                     d2 = static_cast<u8>(d2c);
                 }
                 UniquePointer<MidiMessage> msg = Pointers::unique<ShortMessage>(
-                    static_cast<Status>(cmd), channel, d1, d2
+                    static_cast<MidiStatus>(cmd), channel, d1, d2
                 );
-                track.add(MidiEvent{abs_tick, Ops::move(msg)});
+                track.add(MidiEvent {
+                    .tick = abs_tick,
+                    .message = Ops::move(msg),
+                });
             }
         }
 

@@ -183,18 +183,19 @@ export namespace stdx::meta::reflect {
      */
     class Mirror {
     public:
-        /**
-         * The underlying reflection. public so the type satisfies the
-         * "structural type" rule (required for define_static_array(),
-         * NTTPs, etc.).
-         */
-        const Info _info = {};
+        static const Mirror NONE; ///< The null reflection, created from a default-constructed Info primitive.
+
+        const Info _info; ///< The underlying reflection. Public, so that the type satisfies the "structural type" rule.
 
         consteval Mirror() noexcept = default;
 
-        consteval explicit Mirror(Info i) noexcept:
+        consteval Mirror(Info i) noexcept:
             _info{i} {}
 
+        /**
+         * @brief Returns the underlying Info primitive.
+         * @return The underlying Info primitive.
+         */
         [[nodiscard]]
         consteval Info value() const noexcept {
             return _info;
@@ -340,6 +341,7 @@ export namespace stdx::meta::reflect {
          * @brief The enclosing entity (the namespace, class, function, etc.
          * that this entity is declared inside), or nullopt for the global
          * namespace.
+         * @return The parent entity as {@code Mirror}, or nullopt for the global namespace.
          */
         [[nodiscard]]
         consteval Optional<Mirror> parent() const {
@@ -351,6 +353,7 @@ export namespace stdx::meta::reflect {
 
         /**
          * @brief True iff this reflection is the global namespace.
+         * @return Whether the reflection is of the global namespace.
          */
         [[nodiscard]]
         consteval bool is_global_namespace() const {
@@ -360,6 +363,7 @@ export namespace stdx::meta::reflect {
         /**
          * @brief True iff this entity is declared directly at global namespace
          * scope. False for the global namespace itself.
+         * @return Whether the entity is in the global namespace.
          */
         [[nodiscard]]
         consteval bool is_in_global_namespace() const {
@@ -373,6 +377,8 @@ export namespace stdx::meta::reflect {
         /**
          * @brief Number of enclosing entities up to (but not including) the
          * global namespace. Counts class scopes, function scopes, etc.
+         * @return An unsigned integer representing the number of enclosing scopes,
+         * excluding the global namespace.
          *
          * For stdx::time::Duration::operator+, returns 4 (operator+ -> Duration
          * -> time -> stdx -> global). For the global namespace itself, returns 0.
@@ -391,6 +397,8 @@ export namespace stdx::meta::reflect {
         /**
          * @brief Number of enclosing namespaces up to (but not including) the
          * global namespace. Skips class and other non-namespace scopes.
+         * @return An unsigned integer representing the number of enclosing namespace scopes,
+         * excluding the global namespace.
          *
          * For stdx::meta::reflect::Mirror, returns 3 (reflect, meta, stdx).
          */
@@ -409,8 +417,10 @@ export namespace stdx::meta::reflect {
 
         /**
          * @brief All enclosing scopes from outermost to innermost (excludes
-         * this entity itself). For ::stdx::time::Duration, returns
-         * { ::, stdx, time }. Empty for the global namespace.
+         * this entity itself).
+         * @return A list of enclosing scopes (as {@code Mirror}) in ascending order of scope.
+         *
+         * For ::stdx::time::Duration, returns { ::, stdx, time }. Empty for the global namespace.
          */
         [[nodiscard]]
         consteval Vector<Mirror> scope_chain() const {
@@ -431,6 +441,7 @@ export namespace stdx::meta::reflect {
         /**
          * @brief Innermost enclosing class, or nullopt if this entity is not
          * declared inside any class (e.g. namespace-scoped entities).
+         * @return The innermost enclosing class.
          */
         [[nodiscard]]
         consteval Optional<Type> enclosing_class() const;
@@ -439,6 +450,7 @@ export namespace stdx::meta::reflect {
          * @brief Innermost enclosing namespace. For the global namespace
          * itself, returns the global namespace. Walks through class scopes
          * to find the first namespace ancestor.
+         * @return The innermost enclosing namespace.
          */
         [[nodiscard]]
         consteval Namespace enclosing_namespace() const;
@@ -456,7 +468,7 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval EnumSet<ReflectionOf> kinds() const {
-            if (_info == Info{}) {
+            if (_info == Mirror::NONE.value()) {
                 return EnumSet<ReflectionOf>::of(ReflectionOf::NONE);
             }
             EnumSet<ReflectionOf> result;
@@ -537,6 +549,8 @@ export namespace stdx::meta::reflect {
         constexpr bool operator==(const Mirror& other) const noexcept = default;
     };
 
+    inline constexpr Mirror Mirror::NONE{Info{}};
+
     /**
      * @class Type
      * @brief Wraps the reflection of a type.
@@ -549,14 +563,19 @@ export namespace stdx::meta::reflect {
      */
     class Type: public Mirror {
     public:
-        consteval Type() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Type(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_type(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_type(i)) {
                 throw ReflectiveOperationException("Provided Info is not a type", ^^Type);
             }
+        }
+
+        template <typename T>
+        [[nodiscard]]
+        [[=Throws<ReflectiveOperationException>]]
+        static consteval Type of() {
+            return Type(^^T);
         }
 
         [[nodiscard]]
@@ -1032,7 +1051,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> template_arguments() const {
             Vector<Mirror> result;
-            for (Info a : reflect::template_arguments_of(_info)) {
+            for (Info a: reflect::template_arguments_of(_info)) {
                 result.emplace_back(a);
             }
             return result;
@@ -1061,12 +1080,10 @@ export namespace stdx::meta::reflect {
      */
     class Parameter: public Mirror {
     public:
-        consteval Parameter() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Parameter(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_function_parameter(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_function_parameter(i)) {
                 throw ReflectiveOperationException("Provided Info is not a function parameter", ^^Parameter);
             }
         }
@@ -1101,12 +1118,10 @@ export namespace stdx::meta::reflect {
      */
     class Callback: public Mirror {
     public:
-        consteval Callback() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Callback(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_function(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_function(i)) {
                 throw ReflectiveOperationException("Provided Info is not a function", ^^Callback);
             }
         }
@@ -1119,7 +1134,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Parameter> parameters() const {
             Vector<Parameter> result;
-            for (Info p : reflect::parameters_of(_info)) {
+            for (Info p: reflect::parameters_of(_info)) {
                 result.emplace_back(p);
             }
             return result;
@@ -1193,13 +1208,10 @@ export namespace stdx::meta::reflect {
      */
     class Method: public Callback {
     public:
-        consteval Method() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Method(Info i):
-            Callback(i)
-        {
-            if (i != Info{} &&
+            Callback(i) {
+            if (i != Mirror::NONE.value() &&
                 (!reflect::is_class_member(i) || reflect::is_constructor(i) || reflect::is_destructor(i)))
             {
                 throw ReflectiveOperationException("Provided Info is not a (non-special) class member function", ^^Method);
@@ -1355,12 +1367,10 @@ export namespace stdx::meta::reflect {
      */
     class Field: public Mirror {
     public:
-        consteval Field() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Field(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_nonstatic_data_member(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_nonstatic_data_member(i)) {
                 throw ReflectiveOperationException("Provided Info is not a non-static data member", ^^Field);
             }
         }
@@ -1428,12 +1438,10 @@ export namespace stdx::meta::reflect {
      */
     class Variable: public Mirror {
     public:
-        consteval Variable() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Variable(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_variable(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_variable(i)) {
                 throw ReflectiveOperationException("Provided Info is not a variable", ^^Variable);
             }
         }
@@ -1548,16 +1556,14 @@ export namespace stdx::meta::reflect {
     /**
      * @class Constructor
      * @brief Represents a constructor in the reflection system.
-     * @extends Mirror
+     * @extends Callback
      */
-    class Constructor: public Mirror {
+    class Constructor: public Callback {
     public:
-        consteval Constructor() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Constructor(Info i):
-            Mirror(i) {
-            if (i != Info{} && !reflect::is_constructor(i)) {
+            Callback(i) {
+            if (i != Mirror::NONE.value() && !reflect::is_constructor(i)) {
                 throw ReflectiveOperationException("Provided Info is not a constructor", ^^Constructor);
             }
         }
@@ -1565,15 +1571,6 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Type declaring_class() const {
             return Type(reflect::parent_of(_info));
-        }
-
-        [[nodiscard]]
-        consteval Vector<Parameter> parameters() const {
-            Vector<Parameter> result;
-            for (Info p : reflect::parameters_of(_info)) {
-                result.emplace_back(p);
-            }
-            return result;
         }
 
         [[nodiscard]]
@@ -1589,26 +1586,6 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval bool is_move() const {
             return reflect::is_move_constructor(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_explicit() const {
-            return reflect::is_explicit(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_deleted() const {
-            return reflect::is_deleted(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_defaulted() const {
-            return reflect::is_defaulted(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_noexcept() const {
-            return reflect::is_noexcept(_info);
         }
 
         [[nodiscard]]
@@ -1648,16 +1625,14 @@ export namespace stdx::meta::reflect {
     /**
      * @class Destructor
      * @brief Represents a destructor in the reflection system.
-     * @extends Mirror
+     * @extends Callback
      */
-    class Destructor: public Mirror {
+    class Destructor: public Callback {
     public:
-        consteval Destructor() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Destructor(Info i):
-            Mirror(i) {
-            if (i != Info{} && !reflect::is_destructor(i)) {
+            Callback(i) {
+            if (i != Mirror::NONE.value() && !reflect::is_destructor(i)) {
                 throw ReflectiveOperationException("Provided Info is not a destructor", ^^Destructor);
             }
         }
@@ -1675,21 +1650,6 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval bool is_pure_virtual() const {
             return reflect::is_pure_virtual(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_deleted() const {
-            return reflect::is_deleted(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_defaulted() const {
-            return reflect::is_defaulted(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_noexcept() const {
-            return reflect::is_noexcept(_info);
         }
 
         [[nodiscard]]
@@ -1736,12 +1696,10 @@ export namespace stdx::meta::reflect {
      */
     class Base: public Mirror {
     public:
-        consteval Base() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Base(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_base(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_base(i)) {
                 throw ReflectiveOperationException("Provided Info is not a base class", ^^Base);
             }
         }
@@ -1779,12 +1737,10 @@ export namespace stdx::meta::reflect {
      */
     class Enumerator: public Mirror {
     public:
-        consteval Enumerator() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Enumerator(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_enumerator(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_enumerator(i)) {
                 throw ReflectiveOperationException("Provided Info is not an enumerator", ^^Enumerator);
             }
         }
@@ -1808,12 +1764,12 @@ export namespace stdx::meta::reflect {
      */
     class Namespace: public Mirror {
     public:
-        consteval Namespace() noexcept = default;
+        static const Namespace GLOBAL; ///< The global namespace.
 
-        [[=Throws<ReflectiveOperationException>()]]
-        consteval explicit Namespace(Info i):
+        [[=Throws<ReflectiveOperationException>]]
+        consteval explicit Namespace(Info i = ^^::):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_namespace(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_namespace(i)) {
                 throw ReflectiveOperationException("Provided Info is not a namespace", ^^Namespace);
             }
         }
@@ -1833,12 +1789,14 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> members(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Mirror> result;
-            for (Info m : reflect::members_of(_info, ctx)) {
+            for (Info m: reflect::members_of(_info, ctx)) {
                 result.emplace_back(m);
             }
             return result;
         }
     };
+
+    inline constexpr Namespace Namespace::GLOBAL{^^::};
 
     /**
      * @class NamespaceAlias
@@ -1847,12 +1805,10 @@ export namespace stdx::meta::reflect {
      */
     class NamespaceAlias: public Mirror {
     public:
-        consteval NamespaceAlias() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit NamespaceAlias(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_namespace_alias(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_namespace_alias(i)) {
                 throw ReflectiveOperationException("Provided Info is not a namespace alias", ^^NamespaceAlias);
             }
         }
@@ -1870,12 +1826,10 @@ export namespace stdx::meta::reflect {
      */
     class TypeAlias: public Mirror {
     public:
-        consteval TypeAlias() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit TypeAlias(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_type_alias(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_type_alias(i)) {
                 throw ReflectiveOperationException("Provided Info is not a type alias", ^^TypeAlias);
             }
         }
@@ -1898,12 +1852,10 @@ export namespace stdx::meta::reflect {
      */
     class Concept: public Mirror {
     public:
-        consteval Concept() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Concept(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_concept(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_concept(i)) {
                 throw ReflectiveOperationException("Provided Info is not a concept", ^^Concept);
             }
         }
@@ -1919,6 +1871,18 @@ export namespace stdx::meta::reflect {
         consteval Info substitute() const {
             return reflect::substitute(_info, Vector<Info>{^^Args...});
         }
+
+        [[nodiscard]]
+        consteval Vector<Mirror> template_arguments() const {
+            Vector<Mirror> result;
+            for (Info a: reflect::template_arguments_of(_info)) {
+                result.emplace_back(a);
+            }
+            return result;
+        }
+
+        [[nodiscard]]
+        consteval Template template_of() const;
     };
 
     /**
@@ -1928,12 +1892,10 @@ export namespace stdx::meta::reflect {
      */
     class Template: public Mirror {
     public:
-        consteval Template() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Template(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_template(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_template(i)) {
                 throw ReflectiveOperationException("Provided Info is not a template", ^^Template);
             }
         }
@@ -1998,12 +1960,10 @@ export namespace stdx::meta::reflect {
      */
     class Annotation: public Mirror {
     public:
-        consteval Annotation() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Annotation(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_annotation(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_annotation(i)) {
                 throw ReflectiveOperationException("Provided Info is not an annotation", ^^Annotation);
             }
         }
@@ -2027,12 +1987,10 @@ export namespace stdx::meta::reflect {
      */
     class StructuredBinding: public Mirror {
     public:
-        consteval StructuredBinding() noexcept = default;
-
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit StructuredBinding(Info i):
             Mirror(i) {
-            if (i != Info{} && !reflect::is_structured_binding(i)) {
+            if (i != Mirror::NONE.value() && !reflect::is_structured_binding(i)) {
                 throw ReflectiveOperationException("Provided Info is not a structured binding", ^^StructuredBinding);
             }
         }
@@ -2058,10 +2016,18 @@ export namespace stdx::meta::reflect {
         consteval Class() noexcept:
             Type(^^T) {}
 
+        [[=Throws<ReflectiveOperationException>]]
+        consteval explicit Class(Info i) noexcept:
+            Type(i) {
+            if (i != ^^T) {
+                throw ReflectiveOperationException("Provided Type does not match Class type", i);
+            }
+        }
+
         [[nodiscard]]
         consteval Vector<Field> fields(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Field> result;
-            for (Info m : reflect::nonstatic_data_members_of(^^T, ctx)) {
+            for (Info m: reflect::nonstatic_data_members_of(^^T, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2070,7 +2036,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Variable> static_fields(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Variable> result;
-            for (Info m : reflect::static_data_members_of(^^T, ctx)) {
+            for (Info m: reflect::static_data_members_of(^^T, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2079,7 +2045,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Method> methods(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Method> result;
-            for (Info m : reflect::members_of(^^T, ctx)) {
+            for (Info m: reflect::members_of(^^T, ctx)) {
                 if (reflect::is_function(m)
                     && reflect::is_class_member(m)
                     && !reflect::is_constructor(m)
@@ -2094,7 +2060,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Constructor> constructors(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Constructor> result;
-            for (Info m : reflect::members_of(^^T, ctx)) {
+            for (Info m: reflect::members_of(^^T, ctx)) {
                 if (reflect::is_constructor(m)) {
                     result.emplace_back(m);
                 }
@@ -2102,20 +2068,29 @@ export namespace stdx::meta::reflect {
             return result;
         }
 
+        /**
+         * @brief Finds T's destructor.
+         * @param ctx The access context.
+         * @return The destructor, or nullopt if {@p ctx} cannot find it.
+         *
+         * Every complete class type has exactly one destructor. A destructor that
+         * is explicitly deleted still returns a destructor, but reports
+         * {@code Destructor::is_deleted()} to true.
+         */
         [[nodiscard]]
-        consteval Destructor destructor(AccessContext ctx = AccessContext::unchecked()) const {
-            for (Info m : reflect::members_of(^^T, ctx)) {
+        consteval Optional<Destructor> destructor(AccessContext ctx = AccessContext::unchecked()) const {
+            for (Info m: reflect::members_of(^^T, ctx)) {
                 if (reflect::is_destructor(m)) {
                     return Destructor(m);
                 }
             }
-            return Destructor{};
+            return nullopt;
         }
 
         [[nodiscard]]
         consteval Vector<Base> bases(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Base> result;
-            for (Info b : reflect::bases_of(^^T, ctx)) {
+            for (Info b: reflect::bases_of(^^T, ctx)) {
                 result.emplace_back(b);
             }
             return result;
@@ -2124,7 +2099,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> subobjects(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Mirror> result;
-            for (Info s : reflect::subobjects_of(^^T, ctx)) {
+            for (Info s: reflect::subobjects_of(^^T, ctx)) {
                 result.emplace_back(s);
             }
             return result;
@@ -2133,7 +2108,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> members(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Mirror> result;
-            for (Info m : reflect::members_of(^^T, ctx)) {
+            for (Info m: reflect::members_of(^^T, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2170,10 +2145,18 @@ export namespace stdx::meta::reflect {
         consteval Enum() noexcept:
             Type(^^E) {}
 
+        [[=Throws<ReflectiveOperationException>]]
+        consteval explicit Enum(Info i) noexcept:
+            Type(i) {
+            if (i != ^^E) {
+                throw ReflectiveOperationException("Provided Type does not match Class type", i);
+            }
+        }
+
         [[nodiscard]]
         consteval Vector<Enumerator> enumerators() const {
             Vector<Enumerator> result;
-            for (Info e : reflect::enumerators_of(^^E)) {
+            for (Info e: reflect::enumerators_of(^^E)) {
                 result.emplace_back(e);
             }
             return result;
@@ -2205,10 +2188,18 @@ export namespace stdx::meta::reflect {
         consteval Union() noexcept:
             Type(^^U) {}
 
+        [[=Throws<ReflectiveOperationException>]]
+        consteval explicit Union(Info i) noexcept:
+            Type(i) {
+            if (i != ^^U) {
+                throw ReflectiveOperationException("Provided Type does not match Class type", i);
+            }
+        }
+
         [[nodiscard]]
         consteval Vector<Field> fields(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Field> result;
-            for (Info m : reflect::nonstatic_data_members_of(^^U, ctx)) {
+            for (Info m: reflect::nonstatic_data_members_of(^^U, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2217,7 +2208,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> members(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Mirror> result;
-            for (Info m : reflect::members_of(^^U, ctx)) {
+            for (Info m: reflect::members_of(^^U, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2226,7 +2217,7 @@ export namespace stdx::meta::reflect {
 
     consteval Vector<Annotation> Mirror::annotations() const {
         Vector<Annotation> result;
-        for (Info a : reflect::annotations_of(_info)) {
+        for (Info a: reflect::annotations_of(_info)) {
             result.emplace_back(a);
         }
         return result;
@@ -2235,13 +2226,17 @@ export namespace stdx::meta::reflect {
     template <typename T>
     consteval Vector<Annotation> Mirror::annotations_with_type() const {
         Vector<Annotation> result;
-        for (Info a : reflect::annotations_of_with_type(_info, ^^T)) {
+        for (Info a: reflect::annotations_of_with_type(_info, ^^T)) {
             result.emplace_back(a);
         }
         return result;
     }
 
     consteval Template Type::template_of() const {
+        return Template(reflect::template_of(_info));
+    }
+
+    consteval Template Concept::template_of() const {
         return Template(reflect::template_of(_info));
     }
 

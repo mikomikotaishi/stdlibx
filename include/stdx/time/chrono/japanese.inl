@@ -41,7 +41,9 @@ export namespace stdx::time::chrono {
             SHIWASU = 12, ///< Shiwasu (師走), the twelfth month of the year (December)
         };
     public:
-        JapaneseChronology() = delete("JapaneseChronology is a static utility class and cannot be instantiated.");
+        JapaneseChronology() = DELETE_METHOD("JapaneseChronology is a static utility class and cannot be instantiated.");
+
+        static constexpr StringView CALENDAR_TYPE = "japanese"; ///< The CLDR/LDML calendar type.
 
         /**
          * @enum Era
@@ -57,24 +59,6 @@ export namespace stdx::time::chrono {
 
         using enum JapaneseMonth;
         using enum GregorianMonth;
-
-        /**
-         * @brief Returns the chronology identifier.
-         * @return "Japanese"
-         */
-        [[nodiscard]]
-        static constexpr StringView id() noexcept {
-            return "Japanese";
-        }
-
-        /**
-         * @brief Returns the calendar type.
-         * @return "japanese"
-         */
-        [[nodiscard]]
-        static constexpr StringView calendar_type() noexcept {
-            return "japanese";
-        }
 
         /**
          * @brief Check if a year is a leap year (uses Gregorian rules).

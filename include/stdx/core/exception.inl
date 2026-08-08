@@ -5,16 +5,6 @@
  * @brief The core objects of the standard library.
  */
 export namespace stdx::core {
-    using std::uncaught_exceptions;
-    using std::make_exception_ptr;
-    using std::current_exception;
-    using std::rethrow_exception;
-    using std::throw_with_nested;
-    using std::rethrow_if_nested;
-    using std::terminate;
-    using std::get_terminate;
-    using std::set_terminate;
-
     /**
      * @class ArithmeticException
      * @brief Exception class for arithmetic conditions.
