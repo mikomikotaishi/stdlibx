@@ -40,7 +40,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         bool success() const noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return unix::sys::WIFEXITED(raw_value) && unix::sys::WEXITSTATUS(raw_value) == 0;
             #else
             return raw_value == 0;
@@ -53,7 +53,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         Optional<i32> code() const noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             if (unix::sys::WIFEXITED(raw_value)) {
                 return static_cast<i32>(unix::sys::WEXITSTATUS(raw_value));
             }
@@ -63,7 +63,7 @@ export namespace stdx::sys {
             #endif
         }
 
-        #ifdef __unix__
+        #if defined(__unix__) || defined(__APPLE__)
         /** 
          * @brief The signal number that killed the process, if it was signal-terminated.
          * @return Optional<i32> The signal number if the process was signal-terminated, otherwise nullopt.
@@ -98,8 +98,15 @@ export namespace stdx::sys {
         [[nodiscard]]
         bool operator==(const ExitStatus&) const noexcept = default;
 
+        /**
+         * @brief Orders by the raw status value.
+         * @param other The other ExitStatus to compare with.
+         * @return A StrongOrdering indicating the comparison result.
+         */
         [[nodiscard]]
-        StrongOrdering operator<=>(const ExitStatus&) const noexcept = default;
+        StrongOrdering operator<=>(const ExitStatus& other) const noexcept {
+            return raw_value <=> other.raw_value;
+        }
     };
 
     /**
@@ -138,4 +145,4 @@ namespace stdx::fmt {
 }
 
 template <>
-struct stdx::fmt::formatter<ExitStatus> : public Formatter<ExitStatus> {};
+struct stdx::fmt::formatter<ExitStatus>: public Formatter<ExitStatus> {};

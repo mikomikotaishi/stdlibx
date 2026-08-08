@@ -20,8 +20,11 @@ export namespace stdx::os::win32 {
     using XSaveFormatPointer = ::PXSAVE_FORMAT;
     using XmmSaveArea32 = ::XMM_SAVE_AREA32;
     using XmmSaveArea32Pointer = ::PXMM_SAVE_AREA32;
+
+    #if defined(_M_IX86) || defined(__i386__)
     using FloatingSaveArea = ::FLOATING_SAVE_AREA;
     using FloatingSaveAreaPointer = ::PFLOATING_SAVE_AREA;
+    #endif
 
     // Thread context (full register state)
     using Context = ::CONTEXT;

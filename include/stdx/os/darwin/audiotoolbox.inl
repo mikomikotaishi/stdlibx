@@ -3,8 +3,9 @@
 /**
  * @namespace stdx::os::darwin::audiotoolbox
  * @brief AudioToolbox - <AudioToolbox/AudioToolbox.h>.
- *        Higher-level audio: file I/O, format conversion, audio queues,
- *        extended file I/O, MusicSequence.
+ *
+ * Higher-level audio: file I/O, format conversion, audio queues,
+ * extended file I/O, MusicSequence.
  */
 export namespace stdx::os::darwin::audiotoolbox {
     #if defined(__APPLE__) && defined(__BLOCKS__) && __has_include(<AudioToolbox/AudioToolbox.h>)
@@ -84,7 +85,7 @@ export namespace stdx::os::darwin::audiotoolbox {
     using ::AudioQueueFlush;
     using ::AudioQueueGetParameter;
     using ::AudioQueueSetParameter;
-    using ::AudioQueueGetPropertyInfo;
+    using ::AudioQueueGetPropertySize;
     using ::AudioQueueGetProperty;
     using ::AudioQueueSetProperty;
     using ::AudioQueueGetCurrentTime;

@@ -5,6 +5,7 @@ import stdx;
 using stdx::collections::Vector;
 using stdx::debug::SourceLocation;
 using stdx::fs::Path;
+using stdx::io::InputFileStream;
 using stdx::io::OpenMode;
 using stdx::mem::Pointers;
 using stdx::mem::SharedPointer;
@@ -13,6 +14,7 @@ using stdx::util::logging::Level;
 using stdx::util::logging::LogSink;
 using stdx::util::logging::Logger;
 using stdx::util::logging::LoggerFactory;
+using stdx::util::logging::SourceLocationFormat;
 
 using namespace stdx::test;
 
@@ -25,7 +27,7 @@ struct Entry {
     Level level; ///< The level it was logged at.
     String logger; ///< The name of the logger that produced it.
     String message; ///< The formatted message.
-    bool located = false; ///< Whether source location was requested.
+    SourceLocationFormat format = SourceLocationFormat::NONE; ///< The format to present the source location as.
     String file; ///< The file the location named.
     u32 line = 0; ///< The line the location named.
     bool raw = false; ///< Whether it arrived through write_raw.
@@ -50,25 +52,26 @@ public:
         Level level,
         StringView logger_name,
         StringView message,
-        bool enable_source_location = false,
+        SourceLocationFormat format = SourceLocationFormat::NONE,
         const SourceLocation& location = SourceLocation::current()
     ) override {
-        _entries.push_back(Entry{
-            String(timestamp),
-            level,
-            String(logger_name),
-            String(message),
-            enable_source_location,
-            String(location.file_name()),
-            location.line(),
-            false
+        _entries.push_back(Entry {
+            .timestamp = String(timestamp),
+            .level = level,
+            .logger = String(logger_name),
+            .message = String(message),
+            .format = format,
+            .file = String(location.file_name()),
+            .line = location.line(),
+            .raw = false,
         });
     }
 
     void write_raw(StringView message) override {
-        Entry entry;
-        entry.message = String(message);
-        entry.raw = true;
+        Entry entry {
+            .message = String(message),
+            .raw = true,
+        };
         _entries.push_back(Ops::move(entry));
     }
 
@@ -96,9 +99,9 @@ struct Rig {
 };
 
 [[nodiscard]]
-static Rig rig(Level minimum = Level::TRACE, bool locate = false) {
+static Rig rig(Level minimum = Level::TRACE, SourceLocationFormat format = SourceLocationFormat::NONE) {
     SharedPointer<MemorySink> sink = Pointers::shared<MemorySink>();
-    Logger logger("test", minimum, locate);
+    Logger logger("test", minimum, format);
     logger.add_sink(sink);
     return Rig{Ops::move(sink), Ops::move(logger)};
 }
@@ -220,27 +223,25 @@ void test_logging_no_sinks() {
  * it looks like an answer.
  */
 void test_logging_source_location() {
-    Rig off = rig(Level::TRACE, false);
+    Rig off = rig(Level::TRACE, SourceLocationFormat::NONE);
     off.logger.info("no location");
     require_eq(off.sink->entries().size(), 1uz, "the message arrives");
-    expect(!off.sink->entries()[0].located, "location is off by default");
+    expect(off.sink->entries()[0].format == SourceLocationFormat::NONE, "location is NONE by default");
 
-    Rig on = rig(Level::TRACE, true);
+    Rig on = rig(Level::TRACE, SourceLocationFormat::FULL);
     const SourceLocation here = SourceLocation::current();
     on.logger.info("with location");
 
     require_eq(on.sink->entries().size(), 1uz, "the message arrives");
     const Entry& entry = on.sink->entries()[0];
-    expect(entry.located, "location is reported as enabled");
+    expect(entry.format != SourceLocationFormat::NONE, "location is reported not as NONE");
     expect_eq(
-        Path(entry.file).filename().string(),
-        Path(here.file_name()).filename().string(),
+        Path(entry.file).filename(),
+        Path(here.file_name()).filename(),
         "the location names the calling file, not the logging library"
     );
 
-    // Passing the location explicitly must work too, and is the escape hatch
-    // for a wrapper that logs on someone else's behalf.
-    Rig explicitly = rig(Level::TRACE, true);
+    Rig explicitly = rig(Level::TRACE, SourceLocationFormat::FULL);
     explicitly.logger.info(here, "forwarded");
     require_eq(explicitly.sink->entries().size(), 1uz, "the forwarded message arrives");
     expect_eq(
@@ -268,13 +269,13 @@ void test_logging_level_formatting() {
  * @brief Tests that the factory hands back the same logger for the same name.
  */
 void test_logging_factory_caches() {
-    LoggerFactory factory = LoggerFactory::Builder()
+    LoggerFactory logging = LoggerFactory::Builder()
         .of_default_level(Level::WARNING)
         .build();
 
-    SharedPointer<Logger> first = factory.of("alpha");
-    SharedPointer<Logger> again = factory.of("alpha");
-    SharedPointer<Logger> other = factory.of("beta");
+    SharedPointer<Logger> first = logging.of("alpha");
+    SharedPointer<Logger> again = logging.of("alpha");
+    SharedPointer<Logger> other = logging.of("beta");
 
     expect(first.get() == again.get(), "the same name yields the same logger");
     expect(first.get() != other.get(), "a different name yields a different one");
@@ -286,12 +287,12 @@ void test_logging_factory_caches() {
  */
 void test_logging_factory_applies_settings() {
     SharedPointer<MemorySink> sink = Pointers::shared<MemorySink>();
-    LoggerFactory factory = LoggerFactory::Builder()
+    LoggerFactory logging = LoggerFactory::Builder()
         .of_default_level(Level::ERROR)
         .with_sink(sink)
         .build();
 
-    SharedPointer<Logger> logger = factory.of("configured");
+    SharedPointer<Logger> logger = logging.of("configured");
     logger->info("dropped");
     logger->error("kept");
 
@@ -302,7 +303,7 @@ void test_logging_factory_applies_settings() {
         expect_eq(got[0].logger, "configured", "under the requested name");
     }
 
-    factory.flush_all();
+    logging.flush_all();
     expect_eq(sink->flushes(), 1uz, "flush_all reaches the global sinks");
 }
 
@@ -311,7 +312,9 @@ void test_logging_factory_applies_settings() {
  */
 void test_logging_factory_banner() {
     SharedPointer<MemorySink> quiet = Pointers::shared<MemorySink>();
-    LoggerFactory without = LoggerFactory::Builder().with_sink(quiet).build();
+    LoggerFactory without = LoggerFactory::Builder()
+        .with_sink(quiet)
+        .build();
     expect(quiet->entries().empty(), "no banner is written unless asked for");
 
     SharedPointer<MemorySink> loud = Pointers::shared<MemorySink>();
@@ -340,25 +343,33 @@ void test_logging_factory_file_sink() {
     stdx::fs::remove_all(root);
 
     {
-        LoggerFactory factory = LoggerFactory::Builder()
+        LoggerFactory logging = LoggerFactory::Builder()
             .with_file(log, OpenMode::TRUNCATE)
             .of_default_level(Level::TRACE)
+            .of_source_location_format(SourceLocationFormat::FILE_LINE)
             .build();
 
         expect(stdx::fs::exists(log), "build() creates missing parent directories and opens the file");
 
-        SharedPointer<Logger> logger = factory.of("file");
+        SharedPointer<Logger> logger = logging.of("file");
         logger->warn("to disk {}", 1);
-        factory.flush_all();
+        logging.flush_all();
     }
 
-    using stdx::core::InputStreamBufferIterator;
-    stdx::io::InputFileStream input(log);
+    InputFileStream input(log);
     String contents((InputStreamBufferIterator<char>(input)), InputStreamBufferIterator<char>());
 
     expect(contents.find("to disk 1") != String::npos, "the message reaches the file");
     expect(contents.find("[WARNING]") != String::npos, "with its level");
     expect(contents.find("[file]") != String::npos, "and its logger name");
+    expect(
+        contents.find("[LoggingTest.cpp:") != String::npos,
+        "compact source locations keep the file name and line"
+    );
+    expect(
+        contents.find("test_logging_factory_file_sink") == String::npos,
+        "compact source locations omit the verbose function name"
+    );
 
     stdx::fs::remove_all(root);
 }
@@ -379,12 +390,12 @@ void test_logging_factory_reflected_name() {
     #ifdef __cpp_impl_reflection
     struct Widget {};
 
-    LoggerFactory factory = LoggerFactory::Builder().build();
-    SharedPointer<Logger> logger = factory.of<Widget>();
+    LoggerFactory logging = LoggerFactory::Builder().build();
+    SharedPointer<Logger> logger = logging.of<Widget>();
 
     expect_eq(String(logger->name()), "Widget", "the logger is named after the type's own identifier");
     expect(
-        factory.of("Widget").get() == logger.get(),
+        logging.of("Widget").get() == logger.get(),
         "and shares the cache entry with the string spelling"
     );
     #else

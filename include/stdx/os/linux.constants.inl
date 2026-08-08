@@ -422,10 +422,12 @@ export namespace stdx::os::linux {
          * <alsa/hwdep.h> constants
          */
 
+        #if defined(__unix__) || defined(__APPLE__)
         inline constexpr i32 SND_HWDEP_OPEN_READ = stdx::os::unix::O_RDONLY;
         inline constexpr i32 SND_HWDEP_OPEN_WRITE = stdx::os::unix::O_WRONLY;
         inline constexpr i32 SND_HWDEP_OPEN_DUPLEX = stdx::os::unix::O_RDWR;
         inline constexpr i32 SND_HWDEP_OPEN_NONBLOCK = stdx::os::unix::O_NONBLOCK;
+        #endif
 
         /**
          * <alsa/timer.h> constants

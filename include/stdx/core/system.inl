@@ -41,7 +41,11 @@ export namespace stdx::core {
         static constexpr auto HUGE_VALL = ::stdx::core::HUGE_VALL;
         static constexpr auto INFINITY = ::stdx::core::INFINITY;
         static constexpr auto NAN = ::stdx::core::NAN;
+        #ifdef __APPLE__
+        static inline const int MATH_ERRHANDLING = ::stdx::core::MATH_ERRHANDLING;
+        #else
         static constexpr auto MATH_ERRHANDLING = ::stdx::core::MATH_ERRHANDLING;
+        #endif
         static constexpr auto MATH_ERRNO = ::stdx::core::MATH_ERRNO;
         static constexpr auto MATH_ERREXCEPT = ::stdx::core::MATH_ERREXCEPT;
         static constexpr auto FP_NORMAL = ::stdx::core::FP_NORMAL;
@@ -94,7 +98,7 @@ export namespace stdx::core {
             virtual void flush() const = 0;
         };
     public:
-        System() = delete("System is a static utility class and cannot be instantiated.");
+        System() = DELETE_METHOD("System is a static utility class and cannot be instantiated.");
 
         class In final: public GlobalInputStream {
         private:
@@ -104,8 +108,8 @@ export namespace stdx::core {
 
             In() noexcept = default;
             ~In() = default;
-            In(const In&) = delete("System::In is not copyable.");
-            In& operator=(const In&) = delete("System::In is not copyable.");
+            In(const In&) = DELETE_METHOD("System::In is not copyable.");
+            In& operator=(const In&) = DELETE_METHOD("System::In is not copyable.");
         public:
             [[nodiscard]]
             operator const InputStream&() const noexcept override {
@@ -148,8 +152,8 @@ export namespace stdx::core {
 
             Out() noexcept = default;
             ~Out() = default;
-            Out(const Out&) = delete("System::Out is not copyable.");
-            Out& operator=(const Out&) = delete("System::Out is not copyable.");
+            Out(const Out&) = DELETE_METHOD("System::Out is not copyable.");
+            Out& operator=(const Out&) = DELETE_METHOD("System::Out is not copyable.");
         public:
             [[nodiscard]]
             operator const OutputStream&() const noexcept override {
@@ -212,8 +216,8 @@ export namespace stdx::core {
 
             Err() noexcept = default;
             ~Err() = default;
-            Err(const Err&) = delete("System::Err is not copyable.");
-            Err& operator=(const Err&) = delete("System::Err is not copyable.");
+            Err(const Err&) = DELETE_METHOD("System::Err is not copyable.");
+            Err& operator=(const Err&) = DELETE_METHOD("System::Err is not copyable.");
         public:
             [[nodiscard]]
             operator const OutputStream&() const noexcept override {
@@ -284,9 +288,18 @@ export namespace stdx::core {
         [[nodiscard]]
         static String local_timestamp() {
             Instant<SystemClock> now = SystemClock::now();
+            #if __cpp_lib_chrono >= 201907L
             LocalTime<Seconds> currentTime = stdx::time::current_zone()
                 ->to_local(stdx::time::floor<Seconds>(now));
             return Ops::fmt("{:%Y-%m-%d %H:%M:%S}", currentTime);
+            #else
+            // libc++ ships no time-zone database yet; fall back to the C
+            // library's local-time conversion.
+            std::time_t time = SystemClock::to_time_t(now);
+            char buffer[32]{};
+            std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
+            return String{buffer};
+            #endif
         }
 
         [[nodiscard]]
@@ -305,6 +318,46 @@ export namespace stdx::core {
             #else
             return "\n"sv;
             #endif
+        }
+
+        [[noreturn]]
+        static void terminate() noexcept {
+            std::terminate();
+        }
+
+        [[nodiscard]]
+        static TerminateHandler get_terminate() noexcept {
+            return std::get_terminate();
+        }
+
+        static TerminateHandler set_terminate(TerminateHandler handler) noexcept {
+            return std::set_terminate(handler);
+        }
+
+        [[nodiscard]]
+        static constexpr i32 uncaught_exceptions() noexcept {
+            return std::uncaught_exceptions();
+        }
+
+        [[nodiscard]]
+        static ExceptionPointer current_exception() noexcept {
+            return std::current_exception();
+        }
+
+        [[noreturn]]
+        static constexpr void rethrow_exception(ExceptionPointer p) {
+            std::rethrow_exception(p);
+        }
+
+        template <typename E>
+        [[noreturn]]
+        static constexpr void throw_with_nested(E&& e) {
+            std::throw_with_nested(Ops::forward<E>(e));
+        }
+
+        template <typename E>
+        static constexpr void rethrow_if_nested(E&& e) {
+            std::rethrow_if_nested(Ops::forward<E>(e));
         }
     };
 }

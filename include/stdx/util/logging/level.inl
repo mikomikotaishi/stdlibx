@@ -1,10 +1,23 @@
 #pragma once
 
+using stdx::fmt::Formatter;
+
 /**
  * @namespace stdx::util::logging
  * @brief Standard library extension utility operations.
  */
 export namespace stdx::util::logging {
+    /**
+     * @enum SourceLocationFormat
+     * @brief Controls the source-location fields written by log sinks.
+     */
+    enum class SourceLocationFormat: u8 {
+        NONE, ///< No source location information.
+        FILE_LINE, ///< File name and line number only.
+        FILE_LINE_FUNCTION, ///< File name, line number, and function name.
+        FULL, ///< Full file path, line, and compiler-provided function name.
+    };
+
     /**
      * @enum Level
      * @brief Enumeration for log message levels.
@@ -54,4 +67,4 @@ namespace stdx::fmt {
 }
 
 template <>
-struct stdx::fmt::formatter<Level> : stdx::fmt::Formatter<Level> {};
+struct stdx::fmt::formatter<Level>: public Formatter<Level> {};

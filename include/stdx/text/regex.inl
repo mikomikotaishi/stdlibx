@@ -75,7 +75,9 @@ export namespace stdx::text::regex {
         static constexpr Self AWK = std::regex_constants::awk;
         static constexpr Self GREP = std::regex_constants::grep;
         static constexpr Self EGREP = std::regex_constants::egrep;
-        #ifdef __GNUC__
+        // _S_polynomial is libstdc++-internal, so gate on the library, not
+        // the compiler (clang defines __GNUC__ too).
+        #ifdef __GLIBCXX__
         static constexpr Self POLYNOMIAL = std::regex_constants::_S_polynomial;
         #endif
         static constexpr Self MULTILINE = std::regex_constants::multiline;

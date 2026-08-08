@@ -13,7 +13,7 @@ export namespace stdx::time::chrono {
      */
     class MinguoChronology final {
     public:
-        MinguoChronology() = delete("MinguoChronology is a static utility class and cannot be instantiated.");
+        MinguoChronology() = DELETE_METHOD("MinguoChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era

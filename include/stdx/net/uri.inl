@@ -1,5 +1,7 @@
 #pragma once
 
+using stdx::fmt::Formatter;
+
 using namespace stdx::os;
 
 /**
@@ -294,7 +296,7 @@ export namespace stdx::net {
                 }
                 const Optional<u8> high = hex_value(text[index + 1]);
                 const Optional<u8> low = hex_value(text[index + 2]);
-                if (!high || !low) {
+                if (!high.has_value() || !low.has_value()) {
                     out += c;
                     continue;
                 }
@@ -324,7 +326,7 @@ export namespace stdx::net {
          */
         [[nodiscard]]
         StringView scheme() const noexcept {
-            if (!_scheme) {
+            if (!_scheme.has_value()) {
                 return ""sv;
             }
             return StringView(*_scheme);
@@ -345,7 +347,7 @@ export namespace stdx::net {
          */
         [[nodiscard]]
         StringView userinfo() const noexcept {
-            if (!_userinfo) {
+            if (!_userinfo.has_value()) {
                 return ""sv;
             }
             return StringView(*_userinfo);
@@ -363,7 +365,7 @@ export namespace stdx::net {
          */
         [[nodiscard]]
         String decoded_userinfo() const {
-            if (!_userinfo) {
+            if (!_userinfo.has_value()) {
                 return ""s;
             }
             return percent_decode(*_userinfo);
@@ -424,7 +426,7 @@ export namespace stdx::net {
          */
         [[nodiscard]]
         Optional<StringView> query() const noexcept {
-            if (!_query) {
+            if (!_query.has_value()) {
                 return nullopt;
             }
             return StringView(*_query);
@@ -436,7 +438,7 @@ export namespace stdx::net {
          */
         [[nodiscard]]
         Optional<StringView> fragment() const noexcept {
-            if (!_fragment) {
+            if (!_fragment.has_value()) {
                 return nullopt;
             }
             return StringView(*_fragment);
@@ -469,12 +471,12 @@ export namespace stdx::net {
         [[nodiscard]]
         String to_string() const {
             String out;
-            if (_scheme) {
+            if (_scheme.has_value()) {
                 out += Ops::fmt("{}{}", *_scheme, ':');
             }
             if (_has_authority) {
                 out += "//";
-                if (_userinfo) {
+                if (_userinfo.has_value()) {
                     out += Ops::fmt("{}{}", *_userinfo, '@');
                 }
                 if (_host.find(':') != String::npos) {
@@ -482,15 +484,15 @@ export namespace stdx::net {
                 } else {
                     out += _host;
                 }
-                if (_port) {
+                if (_port.has_value()) {
                     out += Ops::fmt("{}{}", ':', *_port);
                 }
             }
             out += _path;
-            if (_query) {
+            if (_query.has_value()) {
                 out += Ops::fmt("{}{}", '?', *_query);
             }
-            if (_fragment) {
+            if (_fragment.has_value()) {
                 out += Ops::fmt("{}{}", '#', *_fragment);
             }
             return out;
@@ -531,4 +533,4 @@ namespace stdx::fmt {
 }
 
 template <>
-struct stdx::fmt::formatter<Uri> : public stdx::fmt::Formatter<Uri> {};
+struct stdx::fmt::formatter<Uri>: public Formatter<Uri> {};

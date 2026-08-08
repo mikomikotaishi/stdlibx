@@ -2,8 +2,8 @@ import stdx;
 
 using namespace stdx::test;
 
-constexpr u64 MSB = 0x0123456789ABCDEFull;
-constexpr u64 LSB = 0xFEDCBA9876543210ull;
+static constexpr u64 MSB = 0x0123456789ABCDEFull;
+static constexpr u64 LSB = 0xFEDCBA9876543210ull;
 
 void test_nil_and_max() {
     expect(Uuid::NIL.is_nil(), "NIL is nil");
@@ -37,7 +37,6 @@ void test_string_roundtrip() {
     expect_eq(parsed->most_significant_bits(), MSB, "parsed msb");
     expect_eq(parsed->least_significant_bits(), LSB, "parsed lsb");
 
-    // Uppercase hex is accepted and normalized to lowercase on output.
     Optional<Uuid> upper = Uuid::from_string("01234567-89AB-CDEF-FEDC-BA9876543210");
     require(upper.has_value(), "an uppercase string parses");
     expect_eq(upper->to_string(), CANONICAL, "uppercase normalizes to lowercase");
@@ -51,12 +50,10 @@ void test_from_string_invalid() {
         !Uuid::from_string("01234567-89ab-cdef-fedc-ba9876543210-extra").has_value(),
         "an over-long string is rejected"
     );
-    // Right length (36), but the separator at index 8 is missing.
     expect(
         !Uuid::from_string("01234567x89ab-cdef-fedc-ba9876543210").has_value(),
         "a misplaced separator is rejected"
     );
-    // Right shape, but a non-hex digit ('g') where a nibble is expected.
     expect(
         !Uuid::from_string("0123456g-89ab-cdef-fedc-ba9876543210").has_value(),
         "a non-hex digit is rejected"

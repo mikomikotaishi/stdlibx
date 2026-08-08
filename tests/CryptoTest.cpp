@@ -79,7 +79,7 @@ void test_secure_random() {
     expect(u >= 0.0 && u < 1.0, "next_unit is in [0, 1)");
 
     expect_throws<InvalidArgumentException>(
-        [&] -> void { (void)rng.next<i32>(5, 5); }, "next with min == max throws"
+        [&] -> void { static_cast<void>(rng.next<i32>(5, 5)); }, "next with min == max throws"
     );
 }
 
@@ -87,7 +87,6 @@ void test_secure_random() {
  * @brief Tests for the MessageDigest class, which provides cryptographic hash functions such as SHA-256 and BLAKE2b.
  */
 void test_message_digest() {
-    // FIPS 180-4 SHA-256 test vectors.
     ByteBuffer sha_abc = MessageDigest::digest(MessageDigestAlgorithm::SHA_256, span_of("abc"));
     expect_eq(
         to_hex(bytes_of(sha_abc)),
@@ -101,12 +100,10 @@ void test_message_digest() {
         "SHA-256(\"\")"
     );
 
-    // Digest widths.
     expect_eq(MessageDigest::digest(MessageDigestAlgorithm::SHA_256, span_of("x")).size(), 32uz, "SHA-256 is 32 bytes");
     expect_eq(MessageDigest::digest(MessageDigestAlgorithm::SHA_512, span_of("x")).size(), 64uz, "SHA-512 is 64 bytes");
     expect_eq(MessageDigest::digest(MessageDigestAlgorithm::BLAKE2B_256, span_of("x")).size(), 32uz, "BLAKE2b-256 is 32 bytes");
 
-    // The string and enum factories produce the same engine.
     MessageDigest by_name = MessageDigest::instance("SHA-256");
     MessageDigest by_enum = MessageDigest::instance(MessageDigestAlgorithm::SHA_256);
     expect_eq(
@@ -115,7 +112,6 @@ void test_message_digest() {
         "string and enum factories agree"
     );
 
-    // Incremental updates equal the one-shot digest.
     MessageDigest incremental = MessageDigest::instance(MessageDigestAlgorithm::SHA_256);
     incremental.update(span_of("a"));
     incremental.update(span_of("bc"));
@@ -126,7 +122,7 @@ void test_message_digest() {
     );
 
     expect_throws<NoSuchAlgorithmException>(
-        [] -> void { (void)MessageDigest::instance("MD5"); }, "an unknown algorithm throws"
+        [] -> void { static_cast<void>(MessageDigest::instance("MD5")); }, "an unknown algorithm throws"
     );
 }
 
@@ -154,16 +150,14 @@ void test_signature() {
     verifier.update(span_of(MESSAGE));
     expect(verifier.verify(bytes_of(signature)), "a valid signature verifies");
 
-    // A different message must not verify against the same signature.
     verifier.init_verify(pair.public_key);
     verifier.update(span_of("the quick brown cat"));
     expect(!verifier.verify(bytes_of(signature)), "a tampered message fails verification");
 
-    // Signing without init_sign() is an error.
     Signature uninitialized = Signature::instance(Signature::Algorithm::ED25519);
     uninitialized.update(span_of(MESSAGE));
     expect_throws<InvalidKeyException>(
-        [&] -> void { (void)uninitialized.sign(); }, "sign() without init_sign() throws"
+        [&] -> void { static_cast<void>(uninitialized.sign()); }, "sign() without init_sign() throws"
     );
 }
 
@@ -187,31 +181,27 @@ void test_cipher() {
     ByteBuffer recovered = decipher.do_final(bytes_of(ciphertext));
     expect_eq(to_hex(bytes_of(recovered)), to_hex(span_of(PLAINTEXT)), "decryption recovers the plaintext");
 
-    // A fresh nonce per encryption means identical plaintext yields different ciphertext.
     cipher.init(CipherMode::ENCRYPT_MODE, key);
     ByteBuffer ciphertext2 = cipher.do_final(span_of(PLAINTEXT));
     expect(to_hex(bytes_of(ciphertext)) != to_hex(bytes_of(ciphertext2)), "each encryption uses a fresh nonce");
 
-    // Decrypting with the wrong key fails the authentication tag.
     SecretKey other = kg.generate_key();
     Cipher wrong = Cipher::instance("SecretBox");
     wrong.init(CipherMode::DECRYPT_MODE, other);
     expect_throws<AEADBadTagException>(
-        [&] -> void { (void)wrong.do_final(bytes_of(ciphertext)); },
+        [&] -> void { static_cast<void>(wrong.do_final(bytes_of(ciphertext))); },
         "decrypting with the wrong key fails the tag check"
     );
 
-    // do_final() before init() is an error.
     Cipher uninitialized = Cipher::instance("SecretBox");
     expect_throws<IllegalStateException>(
-        [&] -> void { (void)uninitialized.do_final(span_of(PLAINTEXT)); }, "do_final() before init() throws"
+        [&] -> void { static_cast<void>(uninitialized.do_final(span_of(PLAINTEXT))); }, "do_final() before init() throws"
     );
 
-    // A ciphertext shorter than nonce + MAC is rejected.
     expect_throws<InvalidArgumentException>(
         [&] -> void {
             ByteBuffer tiny(8, 0);
-            (void)decipher.do_final(bytes_of(tiny));
+            static_cast<void>(decipher.do_final(bytes_of(tiny)));
         },
         "a too-short ciphertext throws"
     );
@@ -239,23 +229,19 @@ void test_keys() {
  * stay on libsodium's constant-time paths.
  */
 void test_bigint_integration() {
-    // A SHA-256 digest is 32 bytes; read it as a positive 256-bit integer.
     ByteBuffer digest = MessageDigest::digest(MessageDigestAlgorithm::SHA_256, span_of("abc"));
     Vector<u8> digest_bytes(digest.data(), digest.data() + digest.size());
-    BigInteger value(1, digest_bytes); // signum = 1, big-endian magnitude
+    BigInteger value(1, digest_bytes);
 
     expect_eq(value.signum(), 1, "a non-zero digest reads as a positive integer");
     expect(value.bit_length() <= 256, "a 256-bit digest needs at most 256 bits");
 
-    // The integer round-trips through its two's-complement byte form.
     BigInteger round_trip(value.to_byte_array());
     expect(round_trip == value, "BigInteger survives a to_byte_array() round trip");
 
-    // ...and equals the digest parsed straight from its hex string.
     BigInteger from_hex("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", 16);
     expect(value == from_hex, "the digest-as-integer equals parsing its hex form");
 
-    // A CSPRNG can seed a random big integer of a chosen width.
     SecureRandom rng;
     ByteBuffer random_bytes = rng.next_bytes(16);
     Vector<u8> magnitude(random_bytes.data(), random_bytes.data() + random_bytes.size());
@@ -268,12 +254,12 @@ void test_bigint_integration() {
 int main(int argc, char* argv[]) {
     #ifdef STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY
     return run(argc, argv, {
-        {"crypto.secure_random", test_secure_random},
-        {"crypto.message_digest", test_message_digest},
-        {"crypto.signature", test_signature},
-        {"crypto.cipher", test_cipher},
-        {"crypto.keys", test_keys},
-        {"crypto.bigint_integration", test_bigint_integration},
+        {"Crypto.secure_random", test_secure_random},
+        {"Crypto.message_digest", test_message_digest},
+        {"Crypto.signature", test_signature},
+        {"Crypto.cipher", test_cipher},
+        {"Crypto.keys", test_keys},
+        {"Crypto.bigint_integration", test_bigint_integration},
     });
     #else
     System::out.println("[test] Test disabled (enable with STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY).");

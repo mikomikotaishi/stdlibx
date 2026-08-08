@@ -1,5 +1,6 @@
 #pragma once
 
+using stdx::fmt::Formatter;
 using stdx::random::MersenneTwister64;
 using stdx::random::RandomDevice;
 
@@ -77,7 +78,7 @@ export namespace stdx::core {
         [[nodiscard]]
         static Uuid random_uuid() {
             static thread_local MersenneTwister64 engine{RandomDevice{}()};
-            Array<byte, 16> bytes{};
+            Array<byte, 16> bytes = {};
 
             u64 high = engine();
             u64 low = engine();
@@ -102,7 +103,7 @@ export namespace stdx::core {
 
             const u64 timestamp = System::current_time_millis();
 
-            Array<byte, 16> bytes{};
+            Array<byte, 16> bytes = {};
 
             // 48-bit big-endian timestamp
             bytes[0] = static_cast<byte>(timestamp >> 40);
@@ -144,7 +145,7 @@ export namespace stdx::core {
                 return nullopt;
             }
 
-            Array<byte, 16> bytes{};
+            Array<byte, 16> bytes = {};
             usize byte_idx = 0;
 
             for (usize i = 0; i < 36 && byte_idx < 16; ++i) {
@@ -265,8 +266,15 @@ export namespace stdx::core {
             return Span<const byte, 16>{_data};
         }
 
+        /**
+         * @brief Orders by the raw bytes, most significant first.
+         * @param other The other UUID to compare with.
+         * @return A StrongOrdering indicating the comparison result.
+         */
         [[nodiscard]]
-        constexpr StrongOrdering operator<=>(const Uuid& other) const noexcept = default;
+        constexpr StrongOrdering operator<=>(const Uuid& other) const noexcept {
+            return _data <=> other._data;
+        }
 
         [[nodiscard]]
         constexpr bool operator==(const Uuid& other) const noexcept = default;
@@ -281,19 +289,37 @@ export namespace stdx::core {
     });
 }
 
-namespace stdx::core {
-    template <>
-    struct Hash<Uuid> {
-        [[nodiscard]]
-        usize operator()(const Uuid& uuid) const noexcept {
-            usize h = 0;
-            for (byte value : uuid.bytes()) {
-                h ^= Hash<u8>()(Byte::to_integer<u8>(value)) + 0x9E3779B9 + (h << 6) + (h >> 2);
+namespace stdx {
+    namespace core {
+        template <>
+        struct Hash<Uuid> {
+            [[nodiscard]]
+            usize operator()(const Uuid& uuid) const noexcept {
+                usize h = 0;
+                for (byte value: uuid.bytes()) {
+                    h ^= Hash<u8>()(Byte::to_integer<u8>(value)) + 0x9E3779B9 + (h << 6) + (h >> 2);
+                }
+                return h;
             }
-            return h;
-        }
-    };
+        };
+    }
+
+    namespace fmt {
+        template <>
+        struct Formatter<Uuid> {
+            constexpr auto parse(FormatParseContext& ctx) noexcept {
+                return ctx.begin();
+            }
+
+            auto format(const Uuid& uuid, FormatContext& ctx) const {
+                return format_to(ctx.out(), "{}", uuid.to_string());
+            }
+        };
+    }
 }
 
 template <>
-struct stdx::core::hash<Uuid> : public Hash<Uuid> {};
+struct stdx::core::hash<Uuid>: public Hash<Uuid> {};
+
+template <>
+struct stdx::fmt::formatter<Uuid>: public Formatter<Uuid> {};

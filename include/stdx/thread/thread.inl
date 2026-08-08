@@ -5,9 +5,13 @@ using stdx::time::Duration;
 using stdx::time::Instant;
 
 #ifdef STDLIBX_EXECUTION_AVAILABLE
+using stdx::exec::ParallelScheduler;
+using stdx::exec::Schedule;
 using stdx::exec::Sender;
 using stdx::exec::SyncWait;
 using stdx::exec::SyncWaitWithVariant;
+using stdx::exec::Task;
+using stdx::exec::Then;
 #endif
 
 /**

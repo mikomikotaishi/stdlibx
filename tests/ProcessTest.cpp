@@ -36,6 +36,10 @@ void test_true_false() {
     Expected<ExitStatus, ErrorCode> f = Process::Builder("false").status();
     expect(f.has_value(), "false: spawned successfully");
     expect(f.has_value() && !f->success(), "false: exit code non-zero");
+
+    expect(ExitStatus(0) < ExitStatus(1), "a lower raw status orders first");
+    expect(ExitStatus(1) > ExitStatus(0), "and the reverse holds");
+    expect(ExitStatus(1) == ExitStatus(1), "equal raw statuses compare equal");
 }
 
 void test_cat_stdin_pipe() {
@@ -53,7 +57,7 @@ void test_cat_stdin_pipe() {
     expect(child.has_stdin(), "cat pipe: has stdin");
     expect(child.has_stdout(), "cat pipe: has stdout");
 
-    #ifdef __unix__
+    #if defined(__unix__) || defined(__APPLE__)
     StringView msg = "piped input\n";
     unix::write(child.stdin_fd(), msg.data(), msg.size());
     unix::close(child.stdin_fd());
@@ -346,11 +350,11 @@ void test_current_process() {
 
 void test_terminate_on_parent_exit() {
     #ifdef __linux__
-    // PR_SET_PDEATHSIG: a child spawned with terminate_on_parent_exit() must die when
-    // its spawner dies, even with no kill()/wait(). This process runs the
-    // assertions, so it can't be the one that dies - fork an intermediate
-    // "spawner" that launches `sleep`, reports the sleep PID up a pipe, then
-    // _exit()s. The kernel should then SIGKILL the orphaned sleep.
+    if (linux::sys::prctl(linux::sys::PR_SET_CHILD_SUBREAPER_OPTION, 1UL) == -1) {
+        expect(false, "terminate_on_parent_exit: became a subreaper");
+        return;
+    }
+
     i32 fds[2];
     if (unix::pipe(fds) == -1) {
         expect(false, "terminate_on_parent_exit: pipe created");
@@ -377,7 +381,6 @@ void test_terminate_on_parent_exit() {
         u32 sleeper_pid = sleeper.has_value() ? sleeper->id() : 0u;
         unix::write(fds[1], &sleeper_pid, sizeof(sleeper_pid));
         unix::close(fds[1]);
-        // Deliberately leak the Process (no wait) and die; PDEATHSIG must reap it.
         unix::_exit(0);
     }
 
@@ -397,21 +400,32 @@ void test_terminate_on_parent_exit() {
         return;
     }
 
-    // The kernel delivers SIGKILL when the spawner dies; wait (up to ~2s) for the
-    // orphan to be reaped, after which kill(pid, 0) reports ESRCH (-1).
-    bool dead = false;
+    i32 sleeper_status = 0;
+    i32 waited = 0;
     for (i32 i = 0; i < 100; ++i) {
-        if (unix::kill(static_cast<i32>(sleeper_pid), 0) == -1) {
-            dead = true;
+        waited = static_cast<i32>(
+            unix::sys::waitpid(static_cast<i32>(sleeper_pid), &sleeper_status, unix::sys::WNOHANG)
+        );
+        if (waited != 0) {
             break;
         }
         Thread::sleep_for(20ms);
     }
-    if (!dead) {
-        // Don't leak the survivor if the assertion is about to fail.
+
+    const bool killed = waited == static_cast<i32>(sleeper_pid)
+        && unix::sys::WIFSIGNALED(sleeper_status)
+        && unix::sys::WTERMSIG(sleeper_status) == Signal::KILL;
+    const bool refused_to_start = waited == static_cast<i32>(sleeper_pid)
+        && unix::sys::WIFEXITED(sleeper_status)
+        && unix::sys::WEXITSTATUS(sleeper_status) == 127;
+
+    if (!killed && !refused_to_start) {
         unix::kill(static_cast<i32>(sleeper_pid), Signal::KILL);
     }
-    expect(dead, "terminate_on_parent_exit: child killed when spawner died");
+    expect(
+        killed || refused_to_start,
+        "terminate_on_parent_exit: child killed when spawner died"
+    );
     #else
     expect(true, "terminate_on_parent_exit: skipped (non-Linux)");
     #endif
@@ -419,24 +433,24 @@ void test_terminate_on_parent_exit() {
 
 int main(int argc, char* argv[]) {
     return run(argc, argv, {
-        {"process.echo", test_echo},
-        {"process.true_false", test_true_false},
-        {"process.cat_stdin_pipe", test_cat_stdin_pipe},
-        {"process.null_dev", test_null_dev},
-        {"process.current_dir", test_current_dir},
-        {"process.env", test_env},
-        {"process.multiple_args", test_multiple_args},
-        {"process.args_range", test_args_range},
-        {"process.try_wait", test_try_wait},
-        {"process.exit_status", test_exit_status},
-        {"process.stderr_capture", test_stderr_capture},
-        {"process.large_output", test_large_output},
-        {"process.python_basic", test_python_basic, {"python"}},
-        {"process.python_args", test_python_args, {"python"}},
-        {"process.python_stderr", test_python_stderr, {"python"}},
-        {"process.python_exit_code", test_python_exit_code, {"python"}},
-        {"process.python_env", test_python_env, {"python"}},
-        {"process.current_process", test_current_process},
-        {"process.terminate_on_parent_exit", test_terminate_on_parent_exit},
+        {"Process.echo", test_echo},
+        {"Process.true_false", test_true_false},
+        {"Process.cat_stdin_pipe", test_cat_stdin_pipe},
+        {"Process.null_dev", test_null_dev},
+        {"Process.current_dir", test_current_dir},
+        {"Process.env", test_env},
+        {"Process.multiple_args", test_multiple_args},
+        {"Process.args_range", test_args_range},
+        {"Process.try_wait", test_try_wait},
+        {"Process.exit_status", test_exit_status},
+        {"Process.stderr_capture", test_stderr_capture},
+        {"Process.large_output", test_large_output},
+        {"Process.python_basic", test_python_basic, {"python"}},
+        {"Process.python_args", test_python_args, {"python"}},
+        {"Process.python_stderr", test_python_stderr, {"python"}},
+        {"Process.python_exit_code", test_python_exit_code, {"python"}},
+        {"Process.python_env", test_python_env, {"python"}},
+        {"Process.current_process", test_current_process},
+        {"Process.terminate_on_parent_exit", test_terminate_on_parent_exit},
     });
 }

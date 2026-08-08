@@ -26,7 +26,7 @@ using stdx::util::DefaultArguments;
  */
 struct SineRenderer {
     f32 phase = 0.0f;
-    f32 phase_inc;
+    f32 phaseInc;
     u16 channels;
 
     void operator()(Span<f32> out, AudioTime) noexcept {
@@ -34,7 +34,7 @@ struct SineRenderer {
         const usize frames = out.size() / channels;
         for (usize i = 0; i < frames; ++i) {
             const f32 s = 0.2f * Math::sin(phase);
-            phase += phase_inc;
+            phase += phaseInc;
             if (phase >= TWO_PI) {
                 phase -= TWO_PI;
             }
@@ -45,7 +45,7 @@ struct SineRenderer {
     }
 };
 
-void list_devices() {
+void listDevices() {
     Vector<DeviceInfo> devices;
     try {
         devices = AudioSystem::output_devices();
@@ -65,13 +65,13 @@ void list_devices() {
     }
 }
 
-void play_sine(const String& requested_id) {
-    // Empty requested_id => use AudioSystem::default_output() so we go
+void playSine(const String& requestedId) {
+    // Empty requestedId => use AudioSystem::default_output() so we go
     // through the backend's preferred-default resolver (which on Linux
     // auto-probes for the leak-free "pulse" shim). Explicit names like
     // "null" or "plughw:0,3" bypass the resolver - useful as controls.
     DeviceInfo dev;
-    if (requested_id.empty()) {
+    if (requestedId.empty()) {
         try {
             dev = AudioSystem::default_output();
         } catch (const AudioException& e) {
@@ -80,8 +80,8 @@ void play_sine(const String& requested_id) {
         }
     } else {
         dev = DeviceInfo {
-            .id = requested_id,
-            .name = requested_id,
+            .id = requestedId,
+            .name = requestedId,
             .direction = StreamDirection::OUTPUT,
             .backend = AudioBackend::ALSA,
             .is_default = false,
@@ -97,7 +97,7 @@ void play_sine(const String& requested_id) {
 
     SineRenderer renderer {
         .phase = 0.0f,
-        .phase_inc = static_cast<f32>(Math::PI * 440.0) / static_cast<f32>(fmt.sample_rate),
+        .phaseInc = static_cast<f32>(Math::PI * 440.0) / static_cast<f32>(fmt.sample_rate),
         .channels = fmt.channels,
     };
 
@@ -118,16 +118,15 @@ void play_sine(const String& requested_id) {
     }
 }
 
-void play_file(const String& path_str) {
-    Path path{path_str};
+void playFile(const Path& path) {
     UniquePointer<AudioInputStream> stream;
     try {
         stream = AudioSystem::open_audio_file(path);
     } catch (const UnsupportedAudioFileException& e) {
-        System::err.println("Cannot decode {}: {}", path_str, e.what());
+        System::err.println("Cannot decode {}: {}", path, e.what());
         return;
     } catch (const AudioException& e) {
-        System::err.println("Audio error opening {}: {}", path_str, e.what());
+        System::err.println("Audio error opening {}: {}", path, e.what());
         return;
     }
 
@@ -135,7 +134,7 @@ void play_file(const String& path_str) {
     const u64 total = stream->total_frames();
     System::out.println(
         "Decoded {}: {} Hz, {} ch, {} frames ({:.2f} s)",
-        path_str,
+        path,
         fmt.sample_rate,
         fmt.channels,
         total,
@@ -184,16 +183,16 @@ int main(int argc, char* argv[]) {
 
     parser.parse_args(argc, argv);
 
-    list_devices();
+    listDevices();
 
-    const String file_arg = parser.get("--file");
+    const String fileArg = parser.get("--file");
     const i32 repeat = parser.get<i32>("--repeat");
     const String device = parser.get("--device");
 
-    if (!file_arg.empty()) {
+    if (!fileArg.empty()) {
         for (i32 i = 0; i < repeat; ++i) {
-            System::out.println("\n[run {}/{}] Playing file: {}", i + 1, repeat, file_arg);
-            play_file(file_arg);
+            System::out.println("\n[run {}/{}] Playing file: {}", i + 1, repeat, fileArg);
+            playFile(fileArg);
         }
         return System::EXIT_SUCCESS;
     }
@@ -201,7 +200,7 @@ int main(int argc, char* argv[]) {
     if (parser.get<bool>("--play")) {
         for (i32 i = 0; i < repeat; ++i) {
             System::out.println("\n[run {}/{}] Playing 440 Hz sine for 500 ms...", i + 1, repeat);
-            play_sine(device);
+            playSine(device);
         }
     } else {
         System::out.println(

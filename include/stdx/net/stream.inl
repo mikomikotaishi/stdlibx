@@ -66,4 +66,22 @@ export namespace stdx::net {
      */
     template <typename S>
     concept ByteStream = ByteReader<S> && ByteWriter<S>;
+
+    /**
+     * @concept Acceptor
+     * @brief Something that yields connections one at a time without blocking.
+     * @tparam L The type to check.
+     *
+     * The listening counterpart to @ref ByteReader, on the same terms: an empty
+     * Optional means "none yet" rather than failure, so a reactor can drive it.
+     * TcpListener models it; a TlsListener or a test double would too.
+     *
+     * It lives here rather than beside @ref Reactor::accept because a member
+     * declaration has to be able to name it, and this header is included first.
+     */
+    template <typename L>
+    concept Acceptor = requires (L& listener) {
+        { listener.try_accept() } -> SameAs<Optional<typename L::Stream>>;
+        { listener.native_handle() } -> SameAs<Socket::NativeHandle>;
+    };
 }

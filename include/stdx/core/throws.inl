@@ -57,7 +57,7 @@ namespace stdx::core {
     constexpr bool IsThrowsValue = false;
 
     template <Extends<Exception>... Es>
-    constexpr bool IsThrowsValue<Throws<Es...>> = true;
+    constexpr bool IsThrowsValue<ThrowsAnnotation<Es...>> = true;
 
     /**
      * @concept IsThrows
@@ -74,7 +74,7 @@ namespace stdx::core {
      */
     template <Extends<Exception>... Es>
     [[nodiscard]]
-    consteval Vector<Info> throws_pack_infos(Throws<Es...> _) {
+    consteval Vector<Info> throws_pack_infos(ThrowsAnnotation<Es...> _) {
         return Vector<Info>{^^Es...};
     }
 
@@ -157,7 +157,7 @@ namespace stdx::core {
      */
     template <Info Fn>
     [[nodiscard]]
-    [[=Throws<InvalidThrowsAnnotationException>()]]
+    [[=Throws<InvalidThrowsAnnotationException>]]
     consteval Vector<Info> collect_thrown_infos() {
         Vector<Info> result;
         if constexpr (reflect::is_function(Fn)) {

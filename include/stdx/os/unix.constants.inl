@@ -12,13 +12,17 @@
  * built against these on such a host would not fail to compile; it would call
  * the kernel with the wrong option numbers.
  *
- * The values are literals rather than `= SOL_SOCKET` because a macro does not
- * cross `import :os`, and this file is included on the stdx:main side where the
- * system headers are not visible. The portable fix is to define them on the
- * stdx:os side instead - os.cppm already includes <sys/socket.h> in its global
- * module fragment, so a `constexpr` initialized from the real macro there is
- * exported as a variable and is correct on every platform by construction.
- * Until that is done, treat the whole file as Linux-only.
+ * A macro does not cross `import :os`, and this file sits on the stdx:main side
+ * where the system headers are not visible, so a value can only be written as a
+ * literal here or read from a `constexpr` captured on the stdx:os side - the
+ * stdx::os::unix::captured namespace, whose files (unix/errno.inl,
+ * unix/sys/socket.inl, ...) do include the real headers and so are right on every
+ * platform by construction.
+ *
+ * That migration is partly done: as of 2026-08-10, 279 of the 747 constants here
+ * read `captured::`, and the remaining 468 are still Linux literals. The warning
+ * above applies to those 468 - O_CLOEXEC is 02000000 here and 0x01000000 on
+ * Darwin, and nothing catches the difference at build time.
  */
 
 /**
@@ -26,6 +30,7 @@
  * @brief Unix operations.
  */
 export namespace stdx::os::unix {
+    #if defined(__unix__) || defined(__APPLE__)
     /**
      * <errno.h> constants
      */
@@ -1096,4 +1101,5 @@ export namespace stdx::os::unix {
             return (s & 0xFF) == 0x7F;
         }
     }
+    #endif
 }

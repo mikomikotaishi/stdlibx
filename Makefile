@@ -123,12 +123,15 @@ configure:
 	if [ "$(BUILD_TESTS)" = "ON" ]; then \
 		printf "$(BOLD)$(CYAN)Tests enabled$(RESET)\n"; \
 	fi; \
-	cmake -S . -B $(BUILD_DIR) -G $(CMAKE_GENERATOR) \
+	CONFIG_EXIT=0; cmake -S . -B $(BUILD_DIR) -G $(CMAKE_GENERATOR) \
 		-DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) \
 		-DSTDLIBX_ENABLE_SANITIZERS=$(ENABLE_SANITIZERS) \
 		$(CMAKE_BUILD_FLAGS) \
-		$(CMAKE_SANITIZER_FLAGS); \
+		$(CMAKE_SANITIZER_FLAGS) || CONFIG_EXIT=$$?; \
 	END_TIME=$$(date +%s); ELAPSED=$$(($$END_TIME - $$START_TIME)); \
+	if [ $$CONFIG_EXIT -ne 0 ]; then \
+		printf "$(RED)✗ Configuration failed in $${ELAPSED}s$(RESET)\n"; exit $$CONFIG_EXIT; \
+	fi; \
 	printf "$(GREEN)✓ Configuration complete in $${ELAPSED}s$(RESET)\n"
 
 # Build the library

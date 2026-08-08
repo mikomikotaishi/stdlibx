@@ -82,16 +82,22 @@ export namespace stdx::util::logging {
         String _name;
         Vector<SharedPointer<LogSink>> _sinks;
         Level _min_level = Level::DEBUG;
-        bool _enable_source_location =  false;
+        SourceLocationFormat _source_location_format = SourceLocationFormat::FULL;
     public:
         /**
          * @brief Constructor.
          * @param logger_name The name of this logger
          * @param minimum_level Minimum log level to output (default: DEBUG)
-         * @param enable_source_location Whether to capture source location (default: false)
+         * @param source_location_format The source-location format (default: FULL)
          */
-        explicit Logger(StringView name, Level minimum_level = Level::DEBUG, bool enable_source_location = false):
-            _name{String(name)}, _min_level{minimum_level}, _enable_source_location{enable_source_location} {}
+        explicit Logger(
+            StringView name,
+            Level minimum_level = Level::DEBUG,
+            SourceLocationFormat source_location_format = SourceLocationFormat::FULL
+        ):
+            _name{String(name)},
+            _min_level{minimum_level},
+            _source_location_format{source_location_format} {}
 
         /**
          * @brief Add a sink to this logger.
@@ -155,7 +161,7 @@ export namespace stdx::util::logging {
             String timestamp = System::local_timestamp();
 
             for (const SharedPointer<LogSink>& sink: _sinks) {
-                sink->write(timestamp, level, _name, message, _enable_source_location, location);
+                sink->write(timestamp, level, _name, message, _source_location_format, location);
             }
         }
 
@@ -332,7 +338,7 @@ export namespace stdx::util::logging {
             Vector<SharedPointer<LogSink>> _sinks;
             Vector<FileSpec> _files;
             Level _default_level = Level::DEBUG;
-            bool _enable_source_location = false;
+            SourceLocationFormat _source_location_format = SourceLocationFormat::FULL;
             bool _console = false;
             bool _console_stderr = true;
             bool _banner = false;
@@ -349,11 +355,11 @@ export namespace stdx::util::logging {
             }
 
             /**
-             * @brief Enable or disable source location tracking for the factory's loggers.
-             * @param enable Whether to enable source location tracking
+             * @brief Select the source-location fields written by sinks.
+             * @param format The source-location format
              */
-            Builder& trace_source(bool enable = true) noexcept {
-                _enable_source_location = enable;
+            Builder& of_source_location_format(SourceLocationFormat format) noexcept {
+                _source_location_format = format;
                 return *this;
             }
 
@@ -426,7 +432,7 @@ export namespace stdx::util::logging {
         Vector<SharedPointer<LogSink>> _global_sinks;
         mutable Mutex _mutex;
         Level _default_level;
-        bool _enable_source_location;
+        SourceLocationFormat _source_location_format;
 
         /**
          * @brief Constructs the factory from a builder's configuration.
@@ -439,7 +445,7 @@ export namespace stdx::util::logging {
         explicit LoggerFactory(const Builder& builder):
             _global_sinks{builder._sinks},
             _default_level{builder._default_level},
-            _enable_source_location{builder._enable_source_location} {
+            _source_location_format{builder._source_location_format} {
             for (const Builder::FileSpec& file: builder._files) {
                 if (Path parent = file.path.parent_path(); !parent.empty()) {
                     stdx::fs::create_directories(parent);
@@ -463,10 +469,10 @@ export namespace stdx::util::logging {
     public:
         ~LoggerFactory() = default;
 
-        LoggerFactory(const LoggerFactory&) = delete("LoggerFactory is not copyable.");
-        LoggerFactory& operator=(const LoggerFactory&) = delete("LoggerFactory is not copyable.");
-        LoggerFactory(LoggerFactory&&) = delete("LoggerFactory is not movable.");
-        LoggerFactory& operator=(LoggerFactory&&) = delete("LoggerFactory is not movable.");
+        LoggerFactory(const LoggerFactory&) = DELETE_METHOD("LoggerFactory is not copyable.");
+        LoggerFactory& operator=(const LoggerFactory&) = DELETE_METHOD("LoggerFactory is not copyable.");
+        LoggerFactory(LoggerFactory&&) = DELETE_METHOD("LoggerFactory is not movable.");
+        LoggerFactory& operator=(LoggerFactory&&) = DELETE_METHOD("LoggerFactory is not movable.");
 
         /**
          * @brief Get or create a logger with the given name.
@@ -485,7 +491,7 @@ export namespace stdx::util::logging {
             SharedPointer<Logger> logger = Pointers::shared<Logger>(
                 key,
                 _default_level,
-                _enable_source_location
+                _source_location_format
             );
 
             for (const SharedPointer<LogSink>& sink: _global_sinks) {

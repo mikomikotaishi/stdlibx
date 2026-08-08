@@ -26,7 +26,7 @@ export namespace stdx::net {
     private:
         Socket _socket; ///< The datagram descriptor.
     public:
-        UdpSocket() = delete("A UdpSocket always owns a descriptor; take one from bind() or unbound().");
+        UdpSocket() = DELETE_METHOD("A UdpSocket always owns a descriptor; take one from bind() or unbound().");
 
         /**
          * @brief Adopts an existing datagram socket.
@@ -85,6 +85,7 @@ export namespace stdx::net {
          * @return The number of bytes sent.
          * @throws SocketException if the send fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize send_to(Span<const byte> buffer, const Endpoint& endpoint) {
             return _socket.send_to(buffer, endpoint);
@@ -97,6 +98,7 @@ export namespace stdx::net {
          * @return The number of bytes sent, or an empty Optional if the socket would block.
          * @throws SocketException if the send fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_send_to(Span<const byte> buffer, const Endpoint& endpoint) {
             return _socket.try_send_to(buffer, endpoint);
@@ -150,6 +152,7 @@ export namespace stdx::net {
          * @return The number of bytes sent.
          * @throws SocketException if no peer has been set, or the send fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize send(Span<const byte> buffer) {
             return _socket.send(buffer);
@@ -161,6 +164,7 @@ export namespace stdx::net {
          * @return The number of bytes sent, or an empty Optional if the socket would block.
          * @throws SocketException if no peer has been set, or the send fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_send(Span<const byte> buffer) {
             return _socket.try_send(buffer);
@@ -172,6 +176,7 @@ export namespace stdx::net {
          * @return The number of bytes read.
          * @throws SocketException if the receive fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize receive(Span<byte> buffer) {
             return _socket.receive(buffer);
@@ -183,6 +188,7 @@ export namespace stdx::net {
          * @return The number of bytes read, or an empty Optional if the socket would block.
          * @throws SocketException if the receive fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_receive(Span<byte> buffer) {
             return _socket.try_receive(buffer);

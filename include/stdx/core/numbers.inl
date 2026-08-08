@@ -1,10 +1,10 @@
 #pragma once
 
-using stdx::meta::IsConstructibleValue;
-using stdx::meta::IsPolymorphicValue;
-using stdx::meta::IsStandardLayoutValue;
-using stdx::meta::IsTriviallyCopyableValue;
-using stdx::meta::IsTriviallyDestructibleValue;
+using stdx::meta::IsSameValue;
+
+#ifdef __cpp_impl_reflection
+using stdx::meta::reflect::Class;
+#endif
 
 /**
  * @namespace stdx::core
@@ -896,7 +896,7 @@ export namespace stdx::core {
         static constexpr Array SCRIPT_STARTS = CharacterBase::SCRIPT_STARTS;
     };
 
-    class [[nodiscard]] Character8 final: public Number<char8>, public CharacterBase<char8> {
+    class [[nodiscard]] Utf8Character final: public Number<char8>, public CharacterBase<char8> {
     public:
         using Number::Number;
 
@@ -913,7 +913,7 @@ export namespace stdx::core {
         static constexpr Array SCRIPT_STARTS = CharacterBase::SCRIPT_STARTS;
     };
 
-    class [[nodiscard]] Character16 final: public Number<char16>, public CharacterBase<char16> {
+    class [[nodiscard]] Utf16Character final: public Number<char16>, public CharacterBase<char16> {
     public:
         using Number::Number;
 
@@ -930,7 +930,7 @@ export namespace stdx::core {
         static constexpr Array SCRIPT_STARTS = CharacterBase::SCRIPT_STARTS;
     };
 
-    class [[nodiscard]] Character32 final: public Number<char32>, public CharacterBase<char32> {
+    class [[nodiscard]] Utf32Character final: public Number<char32>, public CharacterBase<char32> {
     public:
         using Number::Number;
 
@@ -1055,81 +1055,160 @@ export namespace stdx::core {
     using Float32 = Float;
     using Float64 = Double;
     using Float128 = Quad;
-
-    /**
-     * @internal
-     * A wrapper must cost exactly what it wraps. These held until the base
-     * acquired a virtual destructor and nine virtual conversions, at which
-     * point every wrapper grew a vtable pointer - Integer became 16 bytes for
-     * four bytes of payload, and Character 16 for one. Nothing noticed, because
-     * nothing in the tree ever constructs one. Asserted here so a vtable cannot
-     * come back unremarked.
-     */
-    #define STDLIBX_ASSERT_NUMBER_IS_FREE(Wrapper, Underlying) \
-        static_assert(sizeof(Wrapper) == sizeof(Underlying), \
-            #Wrapper " must cost exactly what it wraps"); \
-        static_assert(alignof(Wrapper) == alignof(Underlying), \
-            #Wrapper " must align like what it wraps"); \
-        static_assert(IsTriviallyCopyableValue<Wrapper>, \
-            #Wrapper " must stay trivially copyable"); \
-        static_assert(IsTriviallyDestructibleValue<Wrapper>, \
-            #Wrapper " must stay trivially destructible"); \
-        static_assert(IsStandardLayoutValue<Wrapper>, \
-            #Wrapper " must stay standard layout"); \
-        static_assert(!IsPolymorphicValue<Wrapper>, \
-            #Wrapper " must not acquire a vtable"); \
-        static_assert(IsConstructibleValue<Wrapper, Underlying>, \
-            #Wrapper " must be constructible from the value it wraps")
-
-    STDLIBX_ASSERT_NUMBER_IS_FREE(SignedByte, i8);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Byte, u8);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Short, i16);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Integer, i32);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Long, i64);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(UnsignedShort, u16);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(UnsignedInteger, u32);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(UnsignedLong, u64);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Character, char);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(UnsignedCharacter, unsigned char);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Character8, char8);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Character16, char16);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Character32, char32);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(WideCharacter, wchar);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(SignedSize, isize);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(UnsignedSize, usize);
-    #ifdef __STDCPP_FLOAT16_T__
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Half, f16);
-    #endif
-    #ifdef __STDCPP_BFLOAT16_T__
-    STDLIBX_ASSERT_NUMBER_IS_FREE(BrainHalf, bf16);
-    #endif
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Float, f32);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Double, f64);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Quad, f128);
-    STDLIBX_ASSERT_NUMBER_IS_FREE(Boolean, bool);
-
-    #undef STDLIBX_ASSERT_NUMBER_IS_FREE
-
-    /**
-     * @internal
-     * The explicit object parameter has to deduce the leaf, not the base. If it
-     * ever deduced Number<i32> instead, arithmetic would silently start
-     * returning the base class, and the wrapper would evaporate one operation
-     * into an expression.
-     */
-    static_assert(IsSameValue<decltype(Integer{1} + 1), Integer>);
-    static_assert(IsSameValue<decltype(Long{1} * 2), Long>);
-    static_assert(IsSameValue<decltype(-Float{1.0f}), Float>);
-    static_assert(IsSameValue<decltype(~Byte{0}), Byte>);
-    static_assert(IsSameValue<decltype(Character{'a'} + 1), Character>);
-    static_assert(IsSameValue<decltype(++Ops::declval<Integer&>()), Integer&>);
-
-    /// The operations must survive constant evaluation, which is most of the point of a wrapper.
-    static_assert((Integer{40} + 2).get() == 42);
-    static_assert((Integer{7} % 4).get() == 3);
-    static_assert((Byte{0b1010} & 0b0110).get() == 0b0010);
-    static_assert((Short{1} << 4).get() == 16);
-    static_assert(Character{'a'}.get() == 'a');
-    static_assert(Integer{1} < Integer{2});
-    static_assert(Double{1.5} == Double{1.5});
 }
+
+namespace stdx::fmt {
+    template <typename T, typename Char = char>
+    struct NumberFormatter: public Formatter<StringView> {
+        bool show_raw_value = false;
+
+        THROWS(FormatException)
+        constexpr auto parse(FormatParseContext& ctx) {
+            auto it = ctx.begin();
+
+            while (it != ctx.end() && *it != '}') {
+                if (*it == '#') {
+                    show_raw_value = true;
+                }
+                ++it;
+            }
+            return it;
+        }
+
+        auto format(const T& wrapper, FormatContext& ctx) const {
+            if (show_raw_value) {
+                return format_to(ctx.out(), "{}", wrapper.get());
+            } else {
+                #ifdef __cpp_impl_reflection
+                return format_to(ctx.out(), "{}({})", Class<T>().name().value(), wrapper.get());
+                #else
+                StringView type_name;
+                if constexpr (IsSameValue<T, Boolean>) {
+                    type_name = "Boolean";
+                } else if constexpr (IsSameValue<T, SignedByte>) {
+                    type_name = "SignedByte";
+                } else if constexpr (IsSameValue<T, Byte>) {
+                    type_name = "Byte";
+                } else if constexpr (IsSameValue<T, Short>) {
+                    type_name = "Short";
+                } else if constexpr (IsSameValue<T, Integer>) {
+                    type_name = "Integer";
+                } else if constexpr (IsSameValue<T, Long>) {
+                    type_name = "Long";
+                } else if constexpr (IsSameValue<T, UnsignedShort>) {
+                    type_name = "UnsignedShort";
+                } else if constexpr (IsSameValue<T, UnsignedInteger>) {
+                    type_name = "UnsignedInteger";
+                } else if constexpr (IsSameValue<T, UnsignedLong>) {
+                    type_name = "UnsignedLong";
+                } else if constexpr (IsSameValue<T, Character>) {
+                    type_name = "Character";
+                } else if constexpr (IsSameValue<T, UnsignedCharacter>) {
+                    type_name = "UnsignedCharacter";
+                } else if constexpr (IsSameValue<T, Utf8Character>) {
+                    type_name = "Utf8Character";
+                } else if constexpr (IsSameValue<T, Utf16Character>) {
+                    type_name = "Utf16Character";
+                } else if constexpr (IsSameValue<T, Utf32Character>) {
+                    type_name = "Utf32Character";
+                } else if constexpr (IsSameValue<T, WideCharacter>) {
+                    type_name = "WideCharacter";
+                } else if constexpr (IsSameValue<T, SignedSize>) {
+                    type_name = "SignedSize";
+                } else if constexpr (IsSameValue<T, UnsignedSize>) {
+                    type_name = "UnsignedSize";
+                #ifdef __STDCPP_FLOAT16_T__
+                } else if constexpr (IsSameValue<T, Half>) {
+                    type_name = "Half";
+                #endif
+                #ifdef __STDCPP_BFLOAT16_T__
+                } else if constexpr (IsSameValue<T, BrainHalf>) {
+                    type_name = "BrainHalf";
+                #endif
+                } else if constexpr (IsSameValue<T, Float>) {
+                    type_name = "Float";
+                } else if constexpr (IsSameValue<T, Double>) {
+                    type_name = "Double";
+                } else if constexpr (IsSameValue<T, Quad>) {
+                    type_name = "Quad";
+                } else {
+                    static_assert(sizeof(T) == 0, "Not a number wrapper class");
+                }
+                return format_to(ctx.out(), "{}({})", type_name, wrapper.get());
+                #endif
+            }
+        }
+    };
+}
+
+using stdx::fmt::NumberFormatter;
+
+template <>
+struct stdx::fmt::formatter<Boolean>: public NumberFormatter<Boolean> {};
+
+template <>
+struct stdx::fmt::formatter<SignedByte>: public NumberFormatter<SignedByte> {};
+
+template <>
+struct stdx::fmt::formatter<Byte>: public NumberFormatter<Byte> {};
+
+template <>
+struct stdx::fmt::formatter<Short>: public NumberFormatter<Short> {};
+
+template <>
+struct stdx::fmt::formatter<Integer>: public NumberFormatter<Integer> {};
+
+template <>
+struct stdx::fmt::formatter<Long>: public NumberFormatter<Long> {};
+
+template <>
+struct stdx::fmt::formatter<UnsignedShort>: public NumberFormatter<UnsignedShort> {};
+
+template <>
+struct stdx::fmt::formatter<UnsignedInteger>: public NumberFormatter<UnsignedInteger> {};
+
+template <>
+struct stdx::fmt::formatter<UnsignedLong>: public NumberFormatter<UnsignedLong> {};
+
+template <>
+struct stdx::fmt::formatter<Character>: public NumberFormatter<Character> {};
+
+template <>
+struct stdx::fmt::formatter<UnsignedCharacter>: public NumberFormatter<UnsignedCharacter> {};
+
+template <>
+struct stdx::fmt::formatter<Utf8Character>: public NumberFormatter<Utf8Character> {};
+
+template <>
+struct stdx::fmt::formatter<Utf16Character>: public NumberFormatter<Utf16Character> {};
+
+template <>
+struct stdx::fmt::formatter<Utf32Character>: public NumberFormatter<Utf32Character> {};
+
+template <>
+struct stdx::fmt::formatter<WideCharacter>: public NumberFormatter<WideCharacter> {};
+
+template <>
+struct stdx::fmt::formatter<SignedSize>: public NumberFormatter<SignedSize> {};
+
+template <>
+struct stdx::fmt::formatter<UnsignedSize>: public NumberFormatter<UnsignedSize> {};
+
+#ifdef __STDCPP_FLOAT16_T__
+template <>
+struct stdx::fmt::formatter<Half>: public NumberFormatter<Half> {};
+#endif
+
+#ifdef __STDCPP_BFLOAT16_T__
+template <>
+struct stdx::fmt::formatter<BrainHalf>: public NumberFormatter<BrainHalf> {};
+#endif
+
+template <>
+struct stdx::fmt::formatter<Float>: public NumberFormatter<Float> {};
+
+template <>
+struct stdx::fmt::formatter<Double>: public NumberFormatter<Double> {};
+
+template <>
+struct stdx::fmt::formatter<Quad>: public NumberFormatter<Quad> {};

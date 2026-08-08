@@ -94,7 +94,7 @@ struct Tagged {
  * @extends Tagged
  *
  * One base of each interesting kind - plain public, virtual public, private -
- * so bases() has something to report that a Class<B> alone could not carry.
+ * so bases() has something to report that a Class<Base> alone could not carry.
  */
 struct Circle: public Shape, virtual Named, private Tagged {
     f64 radius;
@@ -186,53 +186,53 @@ int main(int argc, char* argv[]) {
     System::out.println("Length of '{}': {}", s, len);
     System::out.println(names);
 
-    constexpr Info MATH_CLASS = Ops::info<Math>();
-    constexpr Info SYSTEM_CLASS = Ops::info<System>();
-    static constexpr Span<const Info> MATH_CONSTANTS = Query(Ops::define_static_array(reflect::members_of(MATH_CLASS, ctx)))
+    static constexpr Info MATH_CLASS = Ops::info<Math>();
+    static constexpr Info SYSTEM_CLASS = Ops::info<System>();
+    static constexpr Span<const Info> MATH_CONSTANTS = Query(Ops::static_array(reflect::members_of(MATH_CLASS, ctx)))
         .where([](Info m) -> bool { return reflect::is_public(m); })
         .where([](Info m) -> bool { return reflect::is_variable(m); })
         .where([](Info m) -> bool { return reflect::is_const(m); })
         .where([](Info m) -> bool { return reflect::has_static_storage_duration(m); })
         .to_array();
-    static constexpr Span<const Info> SYSTEM_MEMBERS = Query(Ops::define_static_array(reflect::members_of(SYSTEM_CLASS, ctx)))
+    static constexpr Span<const Info> SYSTEM_MEMBERS = Query(Ops::static_array(reflect::members_of(SYSTEM_CLASS, ctx)))
         .where([](Info m) -> bool { return reflect::has_identifier(m); })
         .to_array();
 
-    static constinit Array<Pair<StringView, f64>, MATH_CONSTANTS.size()> math_constants;
+    static constinit Array<Pair<StringView, f64>, MATH_CONSTANTS.size()> mathConstants;
     static constinit usize index = 0;
     template for (constexpr Info mem: MATH_CONSTANTS) {
-        math_constants[index++] = Ops::pair(reflect::identifier_of(mem), [:mem:]);
+        mathConstants[index++] = Ops::pair(reflect::identifier_of(mem), [:mem:]);
     }
 
-    static constinit Vector<StringView> system_members;
+    static constinit Vector<StringView> systemMembers;
     template for (constexpr Info mem: SYSTEM_MEMBERS) {
-        system_members.push_back(reflect::identifier_of(mem));
+        systemMembers.push_back(reflect::identifier_of(mem));
     }
 
-    System::out.println("Constants of Math class: {}", math_constants);
-    System::out.println("Members of System class: {}", system_members);
+    System::out.println("Constants of Math class: {}", mathConstants);
+    System::out.println("Members of System class: {}", systemMembers);
 
     System::out.println();
     System::out.println("Class<Vec2>:");
-    constexpr Class<Vec2> VEC2_CLASS = Ops::class_of<Vec2>();
-    constexpr EnumSet<ReflectionOf> VEC2_KINDS = VEC2_CLASS.kinds();
+    static constexpr Class<Vec2> VEC2_CLASS = Class<Vec2>();
+    static constexpr EnumSet<ReflectionOf> VEC2_KINDS = VEC2_CLASS.kinds();
     System::out.println("name: {}", VEC2_CLASS.name().value());
     System::out.println("size/align: {} / {} bytes", VEC2_CLASS.size(), VEC2_CLASS.alignment());
     System::out.println("aggregate: {}", VEC2_CLASS.is_aggregate());
     System::out.println("trivially copyable: {}", VEC2_CLASS.is_trivially_copyable());
     System::out.println("kinds: {}", VEC2_KINDS);
 
-    static constexpr Span<const Field> VEC2_FIELDS = Ops::define_static_array(VEC2_CLASS.fields(ctx));
+    static constexpr Span<const Field> VEC2_FIELDS = Ops::static_array(VEC2_CLASS.fields(ctx));
     System::out.println("Fields:");
     template for (constexpr Field f: VEC2_FIELDS) {
         constexpr StringView name = f.name().value_or("unnamed field");
-        constexpr StringView type_name = f.type().display_name();
+        constexpr StringView typeName = f.type().display_name();
         constexpr usize offset = f.offset().bytes;
         constexpr usize access = Ops::to_underlying(f.access());
-        System::out.println("  {} : {} at +{} (access={})", name, type_name, offset, access);
+        System::out.println("  {} : {} at +{} (access={})", name, typeName, offset, access);
     }
 
-    static constexpr Span<const Method> VEC2_METHODS = Query(Ops::define_static_array(VEC2_CLASS.methods(ctx)))
+    static constexpr Span<const Method> VEC2_METHODS = Query(Ops::static_array(VEC2_CLASS.methods(ctx)))
         .where([](Method m) -> bool { return m.name().has_value(); })
         .to_array();
     System::out.println("Methods:");
@@ -242,19 +242,19 @@ int main(int argc, char* argv[]) {
             constexpr StringView sym = m.operator_symbol();
             System::out.println("  {} -> operator '{}'", name, sym);
         } else {
-            constexpr bool const_qualified = m.cv_qualifiers().contains(CvQualifier::CONST);
-            constexpr bool noexcept_marked = m.specifiers().contains(FunctionSpecifier::NOEXCEPT);
-            System::out.println("  {} (const: {}, noexcept: {})", name, const_qualified, noexcept_marked);
+            constexpr bool constQualified = m.cv_qualifiers().contains(CvQualifier::CONST);
+            constexpr bool noexceptMarked = m.specifiers().contains(FunctionSpecifier::NOEXCEPT);
+            System::out.println("  {} (const: {}, noexcept: {})", name, constQualified, noexceptMarked);
         }
     }
 
     System::out.println();
     System::out.println("Enum<Suit>:");
-    constexpr Enum<Suit> SUIT_ENUM = Ops::enum_of<Suit>();
+    static constexpr Enum<Suit> SUIT_ENUM = Enum<Suit>();
     System::out.println("name: {}", SUIT_ENUM.name().value_or("unnamed enum"));
     System::out.println("scoped: {}", SUIT_ENUM.is_scoped());
 
-    static constexpr Span<const Enumerator> SUITS = Ops::define_static_array(SUIT_ENUM.enumerators());
+    static constexpr Span<const Enumerator> SUITS = Ops::static_array(SUIT_ENUM.enumerators());
     System::out.println("Enumerators:");
     template for (constexpr Enumerator e: SUITS) {
         constexpr StringView name = e.name().value_or("unnamed enumerator");
@@ -264,14 +264,14 @@ int main(int argc, char* argv[]) {
 
     System::out.println();
     System::out.println("EnumSet<Suit>:");
-    constexpr EnumSet<Suit> REDS = EnumSet<Suit>::of(Suit::DIAMONDS, Suit::HEARTS);
-    constexpr EnumSet<Suit> BLACKS = ~REDS;
-    System::out.println("|reds| = {}, contains HEARTS: {}", REDS.size(), REDS.contains(Suit::HEARTS));
-    System::out.println("|blacks| = {}, contains SPADES: {}", BLACKS.size(), BLACKS.contains(Suit::SPADES));
-    System::out.println("reds | blacks fully covers Suit? {}", (REDS | BLACKS).is_full());
+    static constexpr EnumSet<Suit> REDS = EnumSet<Suit>::of(Suit::DIAMONDS, Suit::HEARTS);
+    static constexpr EnumSet<Suit> BLACKS = ~REDS;
+    System::out.println("|REDS| = {}, contains HEARTS: {}", REDS.size(), REDS.contains(Suit::HEARTS));
+    System::out.println("|BLACKS| = {}, contains SPADES: {}", BLACKS.size(), BLACKS.contains(Suit::SPADES));
+    System::out.println("REDS | BLACKS fully covers Suit? {}", (REDS | BLACKS).is_full());
 
     System::out.println();
-    constexpr Type INT_TYPE = Ops::type_of<i32>();
+    static constexpr Type INT_TYPE = Type::of<i32>();
     System::out.println(
         "{} (integral: {}, signed: {}, size: {} bytes)",
         INT_TYPE.display_name(),
@@ -280,14 +280,13 @@ int main(int argc, char* argv[]) {
         INT_TYPE.size()
     );
 
-    static constexpr Span<const Base> CIRCLE_BASES =
-        Ops::define_static_array(Ops::class_of<Circle>().bases(ctx));
-    constexpr Class<Shape> clazz = Ops::class_of<CIRCLE_BASES[0].type()>();
+    static constexpr Span<const Base> CIRCLE_BASES = Ops::static_array(Class<Circle>().bases(ctx));
+    constexpr Class<Shape> clazz(CIRCLE_BASES[0].type());
     static_assert(Class<Shape>::VALUE == ^^Shape);
-    constexpr StringView shape_name = clazz.name().value_or("");
-    constexpr usize shape_fields = clazz.fields(ctx).size();
+    constexpr StringView shapeName = clazz.name().value_or("");
+    constexpr usize shapeFields = clazz.fields(ctx).size();
 
-    System::out.println("Shape: {} ({} fields)", shape_name, shape_fields);
+    System::out.println("Shape: {} ({} fields)", shapeName, shapeFields);
     #else
     System::out.println("Example disabled (compiler does not support reflection).");
     #endif

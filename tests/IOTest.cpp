@@ -25,8 +25,6 @@ void test_buffer_construction() {
     ByteBuffer listed{1, 2, 3};
     expect_eq(listed.capacity(), 3uz, "a braced list is data, not a capacity");
 
-    // The trap that follows from having both constructors: braces prefer the
-    // initializer-list overload, so these two spellings mean opposite things.
     ByteBuffer parens(4);
     ByteBuffer braces{4};
     expect_eq(parens.capacity(), 4uz, "ByteBuffer(4) is four bytes of room");
@@ -68,10 +66,10 @@ void test_buffer_bounds() {
     );
 
     buffer.flip();
-    (void)buffer.get();
-    (void)buffer.get();
+    static_cast<void>(buffer.get());
+    static_cast<void>(buffer.get());
     expect_throws<OutOfRangeException>(
-        [&] -> void { (void)buffer.get(); },
+        [&] -> void { static_cast<void>(buffer.get()); },
         "reading past the limit underflows"
     );
 
@@ -88,7 +86,7 @@ void test_buffer_bounds() {
  * @brief Tests that span() is the remaining bytes, and that iteration is not.
  *
  * These two disagree on purpose - span() is what a reader still has to consume,
- * begin()/end() is everything up to the limit - but the difference is invisible
+ * begin()/end() is everything up to the limit, but the difference is invisible
  * at the call site, so it is pinned here.
  */
 void test_buffer_views() {
@@ -141,7 +139,6 @@ void test_buffer_clear_releases_storage() {
         "so the nio habit of clear-then-write overflows"
     );
 
-    // resize is what actually returns it to a writable state.
     buffer.resize(2);
     expect_no_throw([&] -> void { buffer.put(1); }, "resize is how a cleared buffer is reused");
 }
@@ -171,12 +168,12 @@ void test_buffer_mark_and_reset() {
         "resetting without a mark is a programmer error, not a rewind"
     );
 
-    (void)buffer.get();
+    static_cast<void>(buffer.get());
     buffer.mark();
     expect(buffer.has_mark(), "mark records the position");
 
-    (void)buffer.get();
-    (void)buffer.get();
+    static_cast<void>(buffer.get());
+    static_cast<void>(buffer.get());
     expect_eq(buffer.position(), 3uz, "reads move on from it");
 
     buffer.reset();
@@ -198,7 +195,6 @@ void test_buffer_mark_and_reset() {
 void test_buffer_compact() {
     ByteBuffer buffer(8);
 
-    // A first read arrives and is partly consumed.
     buffer.put(0xA1);
     buffer.put(0xA2);
     buffer.put(0xA3);
@@ -210,7 +206,6 @@ void test_buffer_compact() {
     expect_eq(buffer.limit(), 8uz, "and reopens the rest of the capacity for writing");
     expect_eq(buffer.remaining(), 6uz, "so there is room for the next read");
 
-    // The next read appends behind what was kept.
     buffer.put(0xA4);
     buffer.flip();
     expect_eq(buffer.get(), u8{0xA2}, "the unconsumed bytes survived the move");
@@ -226,7 +221,7 @@ void test_buffer_compact_edges() {
     ByteBuffer drained(4);
     drained.put(1);
     drained.flip();
-    (void)drained.get();
+    static_cast<void>(drained.get());
     drained.compact();
     expect_eq(drained.position(), 0uz, "compacting a fully-read buffer starts over at zero");
     expect_eq(drained.limit(), 4uz, "with all of the capacity available");
@@ -241,7 +236,7 @@ void test_buffer_compact_edges() {
  * @brief Tests the multi-byte accessors, which default to network order.
  *
  * Every wire format ahead of this - TLS records, HTTP/2 frame headers,
- * WebSocket lengths - is big-endian, so a default that matched the host would
+ * WebSocket lengths, is big-endian, so a default that matched the host would
  * be right on nothing and silently wrong on x86.
  */
 void test_buffer_integers_default_to_network_order() {
@@ -284,8 +279,6 @@ void test_buffer_integer_byte_order() {
         "reading in the other order reverses it, which is the whole point of naming it"
     );
 
-    // Mixed orders in one buffer, which is what a stateful order() setting
-    // would make dependent on call history.
     ByteBuffer mixed(6);
     mixed.put_u16(0xABCD);
     mixed.put_u32(0x11223344, Endian::LITTLE);
@@ -300,14 +293,14 @@ void test_buffer_integer_byte_order() {
 void test_buffer_integer_bounds() {
     ByteBuffer buffer{1, 2, 3};
     expect_throws<OutOfRangeException>(
-        [&] -> void { (void)buffer.get_u32(); },
+        [&] -> void { static_cast<void>(buffer.get_u32()); },
         "reading four bytes from three underflows"
     );
     expect_eq(buffer.position(), 0uz, "and consumes nothing when it fails");
 
     expect_eq(buffer.get_u16(), u16{0x0102}, "the bytes that are there still read");
     expect_throws<OutOfRangeException>(
-        [&] -> void { (void)buffer.get_u16(); },
+        [&] -> void { static_cast<void>(buffer.get_u16()); },
         "and the trailing single byte is not padded into a pair"
     );
 

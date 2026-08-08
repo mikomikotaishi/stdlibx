@@ -34,6 +34,8 @@ export namespace stdx::os::win32 {
     // Process creation / termination
     using ::CreateProcessA;
     using ::CreateProcessW;
+    // Anonymous pipes (<namedpipeapi.h>), for wiring up a child's stdio.
+    using ::CreatePipe;
     using ::CreateProcessAsUserA;
     using ::CreateProcessAsUserW;
     using ::OpenProcess;
@@ -59,9 +61,9 @@ export namespace stdx::os::win32 {
     /// JOBOBJECTINFOCLASS value that selects JOBOBJECT_EXTENDED_LIMIT_INFORMATION.
     inline constexpr JobObjectInfoClass JobObjectExtendedLimitInfoClass = ::JobObjectExtendedLimitInformation;
     /// Limit flag (a <winnt.h> macro): kill every process in the job when its last handle closes.
-    inline constexpr WinDWord JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE_FLAG = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+    inline constexpr DWord JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE_FLAG = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
     /// CreateProcess flag (a <winbase.h> macro): start the primary thread suspended.
-    inline constexpr WinDWord CREATE_SUSPENDED_FLAG = CREATE_SUSPENDED;
+    inline constexpr DWord CREATE_SUSPENDED_FLAG = CREATE_SUSPENDED;
 
     // Thread creation / control
     using ::CreateThread;

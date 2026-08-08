@@ -251,6 +251,7 @@ namespace stdx::test {
      * @tparam Nsp The reflection of the namespace to scan.
      */
     template <Info Nsp>
+        requires ScannableScope<Nsp>
     constexpr Span<const Discovered> DISCOVERED = reflect::define_static_array(discovered_in(Nsp));
 
     /**
@@ -259,6 +260,7 @@ namespace stdx::test {
      * @tparam Nsp The reflection of the namespace to scan.
      */
     template <Info Nsp>
+        requires ScannableScope<Nsp>
     constexpr DiscoveredHooks HOOKS = hooks_in(Nsp);
 
     /**
@@ -341,6 +343,7 @@ export namespace stdx::test {
      * are defined - from main(), as run() does.
      */
     template <Info Nsp>
+        requires ScannableScope<Nsp>
     [[nodiscard]]
     Vector<Test> discover() {
         return tests_from(DISCOVERED<Nsp>);
@@ -355,6 +358,7 @@ export namespace stdx::test {
      * machinery it drives lives.
      */
     template <Info Nsp>
+        requires ScannableScope<Nsp>
     Suite Suite::of() {
         // Bound to a constant first: an Info is a consteval-only value, so it cannot
         // appear in a run-time expression, not even as an immediate call's argument.
@@ -377,9 +381,29 @@ export namespace stdx::test {
      * @endcode
      */
     template <Info Nsp>
+        requires ScannableScope<Nsp>
     int run(int argc, char* argv[]) {
         constexpr const char* name = namespace_name(Nsp);
         return run(argc, argv, suite_from(name, HOOKS<Nsp>, DISCOVERED<Nsp>));
+    }
+
+    /**
+     * @brief Discovers and runs the tests in a namespace, taking the command line
+     * from the process.
+     * @tparam Nsp The reflection of the namespace to scan, e.g. ^^tests.
+     * @return 0 if no test failed, 1 otherwise.
+     *
+     * @code
+     * int main() {
+     *     return stdx::test::run<^^tests>();
+     * }
+     * @endcode
+     */
+    template <Info Nsp>
+        requires ScannableScope<Nsp>
+    int run() {
+        constexpr const char* name = namespace_name(Nsp);
+        return run(suite_from(name, HOOKS<Nsp>, DISCOVERED<Nsp>));
     }
 }
 #endif

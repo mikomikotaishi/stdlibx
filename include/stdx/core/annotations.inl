@@ -6,7 +6,7 @@
  */
 export namespace stdx::core {
     /**
-     * @struct Throws
+     * @struct ThrowsAnnotation
      * @brief An annotation indicating the exception types that a function may throw.
      * @tparam Es All exception types that a function may throw. Each must derive
      * from Exception.
@@ -14,7 +14,7 @@ export namespace stdx::core {
      * Apply it to a function (or a callable type's call operator) to document the
      * exceptions it may propagate, then recover the list with Ops::thrown_exceptions():
      * @code
-     * [[=Throws<InvalidArgumentException, InvalidRangeException>()]]
+     * [[=Throws<InvalidArgumentException, InvalidRangeException>]]
      * i32 parse(StringView s);
      *
      * // Tuple<Class<InvalidArgumentException>, Class<InvalidRangeException>>
@@ -28,7 +28,19 @@ export namespace stdx::core {
      * included after the reflection layer.
      */
     template <Extends<Exception>... Es>
-    struct Throws {
+    struct ThrowsAnnotation {
         static constexpr usize COUNT = sizeof...(Es); ///< Number of exception types named by this annotation.
     };
+
+    /**
+     * @brief The {@code [[=Throws<...>]]} annotation.
+     * @tparam Es All exception types that a function may throw.
+     *
+     * A variable template, so the annotation needs no call parentheses. The type
+     * behind it is named apart from it the way C# pairs {@code ObsoleteAttribute}
+     * with {@code [Obsolete]}; write {@code ThrowsAnnotation<Es...>} where a type
+     * is wanted and {@code Throws<Es...>} where the annotation is.
+     */
+    template <Extends<Exception>... Es>
+    inline constexpr ThrowsAnnotation<Es...> Throws{};
 }

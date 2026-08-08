@@ -18,9 +18,7 @@ export module stdx:exec;
 
 import :foundation;
 
-#ifdef __GNUC__
-using namespace stdx::core;
-#endif
+using namespace stdx::core; // necessary for template <typename...> typename Tpl = Tuple
 
 export namespace stdx::exec {
     #ifdef STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY

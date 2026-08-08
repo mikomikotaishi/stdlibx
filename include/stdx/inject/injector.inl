@@ -56,9 +56,13 @@ namespace stdx::inject {
          * @brief A registered binding: its factory, scope, and cached instance.
          */
         struct Binding {
+            struct Storage {
+                SharedPointer<void> instance = nullptr; ///< The cached singleton instance.
+            };
+
             Factory factory; ///< Creates the instance.
             bool singleton; ///< Whether the instance is cached after first creation.
-            SharedPointer<void> instance; ///< The cached singleton instance, if created.
+            SharedPointer<Storage> storage; ///< Shared cache for aliased binding keys.
         };
     private:
         HashMap<BindingKey, Binding, BindingKeyHash> _bindings;
@@ -75,16 +79,16 @@ namespace stdx::inject {
             auto lookup = [&](const Optional<AnnotationKey>& key) -> Binding* {
                 auto it = _bindings.find(BindingKey {
                     .type = type,
-                    .annotation = key
+                    .annotation = key,
                 });
                 return it != _bindings.end() ? &it->second : nullptr;
             };
 
             Binding* binding = lookup(annotation);
-            if (!binding && annotation.has_value()) {
+            if (binding == nullptr && annotation.has_value()) {
                 binding = lookup(Optional<AnnotationKey>(AnnotationKey(annotation->type())));
             }
-            if (!binding) {
+            if (binding == nullptr) {
                 binding = lookup(nullopt);
             }
             return binding;
@@ -104,7 +108,7 @@ namespace stdx::inject {
          */
         template <typename T>
         [[nodiscard]]
-        [[=Throws<NoBindingException, SingletonAccessException>()]]
+        [[=Throws<NoBindingException, SingletonAccessException>]]
         T get(Optional<AnnotationKey> annotation = nullopt) {
             if constexpr (IsProviderValue<T>) {
                 // A Provider<U> is satisfied without a binding lookup: it
@@ -115,18 +119,22 @@ namespace stdx::inject {
                 using Plain = RemoveReferenceType<T>;
 
                 Binding* binding = find_binding(TypeIndex(typeid(T)), annotation);
-                if (!binding) {
+                if (binding == nullptr) {
                     throw NoBindingException(Ops::fmt("No binding for type {}", typeid(T).name()));
                 }
 
                 if (binding->singleton) {
-                    if (!binding->instance) {
-                        binding->instance = Ops::any_cast<SharedPointer<void>>(binding->factory(*this, annotation));
+                    if (binding->storage->instance == nullptr) {
+                        binding->storage->instance = Ops::any_cast<SharedPointer<void>>(
+                            binding->factory(*this, annotation)
+                        );
                     }
                     if constexpr (IsSharedPointerValue<T>) {
-                        return Pointers::static_pointer_cast<typename SharedPointerElement<T>::Element>(binding->instance);
+                        return Pointers::static_pointer_cast<typename SharedPointerElement<T>::Element>(
+                            binding->storage->instance
+                        );
                     } else if constexpr (IsLvalueReferenceValue<T>) {
-                        return *static_cast<Plain*>(binding->instance.get());
+                        return *static_cast<Plain*>(binding->storage->instance.get());
                     } else {
                         throw SingletonAccessException(
                             Ops::fmt("Singleton {} must be requested by reference or SharedPointer", typeid(T).name())
@@ -161,15 +169,22 @@ namespace stdx::inject {
          * low-level registration used by the binding builders.
          */
         template <typename T>
-        void bind(Factory factory, Optional<AnnotationKey> annotation = nullopt, bool singleton = true) {
+        void bind(
+            Factory factory,
+            Optional<AnnotationKey> annotation = nullopt,
+            bool singleton = true,
+            SharedPointer<Binding::Storage> storage = nullptr
+        ) {
             BindingKey key {
                 .type = TypeIndex(typeid(T)),
-                .annotation = Ops::move(annotation)
+                .annotation = Ops::move(annotation),
             };
             _bindings[Ops::move(key)] = Binding {
                 .factory = Ops::move(factory),
                 .singleton = singleton,
-                .instance = nullptr
+                .storage = storage
+                    ? Ops::move(storage)
+                    : Pointers::shared<Binding::Storage>(Binding::Storage {}),
             };
         }
 
@@ -210,7 +225,7 @@ namespace stdx::inject {
          * @throws SingletonAccessException if a singleton is requested by value.
          */
         [[nodiscard]]
-        [[=Throws<NoBindingException, SingletonAccessException>()]]
+        [[=Throws<NoBindingException, SingletonAccessException>]]
         T get() const {
             return _injector->get<T>(_annotation);
         }
@@ -222,13 +237,13 @@ namespace stdx::inject {
      * @return The qualifier annotation, or nullopt if none.
      * @throws ReflectiveOperationException if more than one qualifier is present.
      *
-     * Only annotations whose type is marked {@code [[=Qualifier()]]} are
+     * Only annotations whose type is marked {@code [[=Qualifier]]} are
      * considered; all other annotations on the parameter are ignored.
      */
     consteval Optional<Annotation> find_qualifier(const Parameter& parameter) {
         Optional<Annotation> found;
         for (Annotation annotation: parameter.annotations()) {
-            if (reflect::annotations_of_with_type(reflect::remove_cv(annotation.type()), ^^Qualifier).empty()) {
+            if (reflect::annotations_of_with_type(reflect::remove_cv(annotation.type()), ^^QualifierAnnotation).empty()) {
                 continue;
             }
             if (found.has_value()) {
@@ -243,25 +258,25 @@ namespace stdx::inject {
     /**
      * @internal
      * @brief Whether {@code T} is singleton-scoped.
-     * @return True if {@code T} has a [[=Scope()]] annotation of type [[=Singleton()]].
+     * @return True if {@code T} has a [[=Scope]] annotation of type [[=Singleton]].
      * @throws ReflectiveOperationException on multiple or unsupported scopes.
      *
      * Inspects {@code T}'s annotations for one whose type is marked
-     * {@code [[=Scope()]]}. {@code Singleton} is the only scope the injector
+     * {@code [[=Scope]]}. {@code Singleton} is the only scope the injector
      * implements; any other scope-marked annotation is rejected.
      */
     template <typename T>
     consteval bool is_singleton_scoped() {
         bool found = false;
         for (Annotation annotation: Class<T>().annotations()) {
-            if (reflect::annotations_of_with_type(reflect::remove_cv(annotation.type()), ^^Scope).empty()) {
+            if (reflect::annotations_of_with_type(reflect::remove_cv(annotation.type()), ^^ScopeAnnotation).empty()) {
                 continue;
             }
             if (found) {
                 throw ReflectiveOperationException("Multiple scope annotations on class", ^^T);
             }
             found = true;
-            if (reflect::remove_cv(annotation.type()) != ^^Singleton) {
+            if (reflect::remove_cv(annotation.type()) != ^^SingletonAnnotation) {
                 throw ReflectiveOperationException("Unsupported scope annotation", ^^T);
             }
         }
@@ -270,16 +285,16 @@ namespace stdx::inject {
 
     /**
      * @internal
-     * @brief Finds the constructor of {@code T} marked {@code [[=Inject()]]},
+     * @brief Finds the constructor of {@code T} marked {@code [[=Inject]]},
      * falling back to the default constructor.
      * @return The constructor to use for injection.
-     * @throws ReflectiveOperationException if no [[=Inject()]] or default constructor is
+     * @throws ReflectiveOperationException if no [[=Inject]] or default constructor is
      */
     template <typename T>
     [[nodiscard]]
     consteval Constructor find_inject_constructor() {
         for (Constructor ctor: Class<T>().constructors()) {
-            if (!ctor.annotations_with_type<Inject>().empty()) {
+            if (!ctor.annotations_with_type<InjectAnnotation>().empty()) {
                 return ctor;
             }
         }
@@ -290,7 +305,7 @@ namespace stdx::inject {
             }
         }
 
-        throw ReflectiveOperationException("No [[=Inject()]] or default constructor found", ^^T);
+        throw ReflectiveOperationException("No [[=Inject]] or default constructor found", ^^T);
     }
 
     /**
@@ -344,7 +359,7 @@ namespace stdx::inject {
 
         Array<Optional<AnnotationKey>, N> annotations;
         usize i = 0;
-        template for (constexpr Parameter p: Ops::define_static_array(Ctor.parameters())) {
+        template for (constexpr Parameter p: Ops::static_array(Ctor.parameters())) {
             constexpr bool has_qualifier = find_qualifier(p).has_value();
             if constexpr (has_qualifier) {
                 // Rebuild the wrapper from its scalar Info: copying the wrapper
@@ -357,7 +372,7 @@ namespace stdx::inject {
             ++i;
         }
 
-        return [annotations = Ops::move(annotations)](Injector& injector, const Optional<AnnotationKey>&) -> Any {
+        return [annotations = Ops::move(annotations)](Injector& injector, const Optional<AnnotationKey>& _) -> Any {
             return Helper::make(injector, annotations.data());
         };
     }
@@ -378,10 +393,10 @@ namespace stdx::inject {
             _injector.bind<T>(Ops::move(factory), Ops::move(_annotation), singleton);
         }
     public:
-        explicit AnnotatedBindingBuilder(Injector& injector, AnnotationKey annotation):
+        AnnotatedBindingBuilder(Injector& injector, AnnotationKey annotation):
             _injector{injector}, _annotation{Ops::move(annotation)} {}
 
-        AnnotatedBindingBuilder(const AnnotatedBindingBuilder&) = delete("AnnotatedBindingBuilder is not copyable.");
+        AnnotatedBindingBuilder(const AnnotatedBindingBuilder&) = DELETE_METHOD("AnnotatedBindingBuilder is not copyable.");
         AnnotatedBindingBuilder(AnnotatedBindingBuilder&&) = default;
 
         /**
@@ -407,11 +422,11 @@ namespace stdx::inject {
         template <typename F>
         void to_provider(F&& f) {
             if constexpr (Invocable<F, const A&>) {
-                finalize([f = Ops::forward<F>(f)](Injector&, const Optional<AnnotationKey>& annotation) -> Any {
+                finalize([f = Ops::forward<F>(f)](Injector& _, const Optional<AnnotationKey>& annotation) -> Any {
                     return Any(f(Ops::any_cast<const A&>(annotation->value())));
                 }, false);
             } else if constexpr (Invocable<F, Injector&>) {
-                finalize([f = Ops::forward<F>(f)](Injector& injector, const Optional<AnnotationKey>&) -> Any {
+                finalize([f = Ops::forward<F>(f)](Injector& injector, const Optional<AnnotationKey>& _) -> Any {
                     return Any(f(injector));
                 }, false);
             } else if constexpr (Invocable<F, Injector&, const A&>) {
@@ -447,7 +462,7 @@ namespace stdx::inject {
         explicit BindingBuilder(Injector& injector):
             _injector{injector} {}
 
-        BindingBuilder(const BindingBuilder&) = delete("BindingBuilder is not copyable.");
+        BindingBuilder(const BindingBuilder&) = DELETE_METHOD("BindingBuilder is not copyable.");
         BindingBuilder(BindingBuilder&&) = default;
 
         /**
@@ -491,7 +506,7 @@ namespace stdx::inject {
         template <typename F>
         void to_provider(F&& f) {
             if constexpr (Invocable<F, Injector&>) {
-                finalize([f = Ops::forward<F>(f)](Injector& injector, const Optional<AnnotationKey>&) -> Any {
+                finalize([f = Ops::forward<F>(f)](Injector& injector, const Optional<AnnotationKey>& _) -> Any {
                     return Any(f(injector));
                 }, false);
             } else {
@@ -526,19 +541,41 @@ namespace stdx::inject {
         }
 
         /**
+         * @brief Registers an implementation type {@code Impl} against its abstract {@code Inter}.
+         * @tparam Inter The abstract base class or interface.
+         * @tparam Impl The concrete type to construct and bind, which must inherit from {@code Inter}.
+         * @return A reference to this {@code Binder}.
+         *
+         * Reflects over {@code Impl}'s {@code [[=Inject]]} constructor (or default
+         * constructor) and registers a factory that resolves each parameter.
+         * If {@code Impl} is marked {@code [[=Singleton]]}, one shared instance is
+         * created and cached under the {@code Inter} type identity.
+         */
+        template <typename Inter, Extends<Inter> Impl>
+        Binder& add_binding() {
+            constexpr Constructor ctor = find_inject_constructor<Impl>();
+            constexpr bool singleton = is_singleton_scoped<Impl>();
+            SharedPointer<Injector::Binding::Storage> storage = Pointers::shared<Injector::Binding::Storage>();
+            Injector::Factory factory = make_factory_for<Impl, ctor>();
+            _injector.bind<Inter>(factory, nullopt, singleton, storage);
+            _injector.bind<SharedPointer<Inter>>(Ops::move(factory), nullopt, singleton, Ops::move(storage));
+
+            return *this;
+        }
+
+        /**
          * @brief Registers {@code T} for constructor injection.
          * @tparam T The type to construct and bind.
+         * @return A reference to this {@code Binder}.
          *
-         * Reflects over {@code T}'s {@code [[=Inject()]]} constructor (or default
+         * Reflects over {@code T}'s {@code [[=Inject]]} constructor (or default
          * constructor) and registers a factory that resolves each parameter.
-         * If {@code T} is marked {@code [[=Singleton()]]}, one shared instance is
+         * If {@code T} is marked {@code [[=Singleton]]}, one shared instance is
          * created and cached.
          */
         template <typename T>
-        void add_binding() {
-            constexpr Constructor ctor = find_inject_constructor<T>();
-            constexpr bool singleton = is_singleton_scoped<T>();
-            _injector.bind<T>(make_factory_for<T, ctor>(), nullopt, singleton);
+        Binder& add_binding() {
+            return add_binding<T, T>();
         }
     };
 

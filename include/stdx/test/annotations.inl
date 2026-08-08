@@ -35,7 +35,7 @@ export namespace stdx::test {
         const char* value; ///< The tag text, in static storage.
 
         consteval Tag(StringView tag) noexcept:
-            value{Ops::define_static_string(tag)} {}
+            value{Ops::static_string(tag)} {}
     };
 
     /**
@@ -53,7 +53,7 @@ export namespace stdx::test {
         const char* value; ///< The display name, in static storage.
 
         consteval DisplayName(StringView name) noexcept:
-            value{Ops::define_static_string(name)} {}
+            value{Ops::static_string(name)} {}
     };
 
     /**
@@ -71,7 +71,7 @@ export namespace stdx::test {
         const char* reason; ///< The reason shown next to SKIP, in static storage.
 
         consteval Disabled(StringView reason = "") noexcept:
-            reason{Ops::define_static_string(reason)} {}
+            reason{Ops::static_string(reason)} {}
     };
 
     /**

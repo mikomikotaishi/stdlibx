@@ -1,5 +1,7 @@
 #pragma once
 
+using stdx::fmt::Formatter;
+
 /**
  * @namespace stdx::math
  * @brief Standard library mathematical operations.
@@ -215,19 +217,19 @@ export namespace stdx::math {
          * @brief Returns the saturated value for a conversion whose string form overflowed
          * the target floating-point type: signed infinity for huge magnitudes and
          * signed zero for tiny ones.
-         * @tparam F The target floating-point type.
+         * @tparam Flt The target floating-point type.
          * @return The signed infinity or signed zero saturating value.
          */
-        template <FloatingPoint F>
+        template <FloatingPoint Flt>
         [[nodiscard]]
-        F overflowed_value() const noexcept {
+        Flt overflowed_value() const noexcept {
             const i64 adjusted = static_cast<i64>(precision()) - 1 - _scale_val;
             if (adjusted > 0) {
                 return signum() < 0
-                    ? -NumericLimits<F>::infinity()
-                    : NumericLimits<F>::infinity();
+                    ? -NumericLimits<Flt>::infinity()
+                    : NumericLimits<Flt>::infinity();
             }
-            return signum() < 0 ? -F(0) : F(0);
+            return signum() < 0 ? -Flt(0) : Flt(0);
         }
 
         /**
@@ -310,11 +312,11 @@ export namespace stdx::math {
 
         /**
          * @brief Constructs a BigDecimal from a built-in integral value, with a scale of zero.
-         * @tparam T The integral type of the value.
+         * @tparam Int The integral type of the value.
          * @param value The value to construct from.
          */
-        template <Integral T>
-        BigDecimal(T value):
+        template <Integral Int>
+        BigDecimal(Int value):
             _int_val{value} {}
 
         /**
@@ -1299,10 +1301,10 @@ namespace stdx {
 }
 
 template <>
-struct stdx::core::hash<BigDecimal> : public stdx::core::Hash<BigDecimal> {};
+struct stdx::core::hash<BigDecimal>: public Hash<BigDecimal> {};
 
 template <>
-struct stdx::fmt::formatter<BigDecimal> : public stdx::fmt::Formatter<BigDecimal> {};
+struct stdx::fmt::formatter<BigDecimal>: public Formatter<BigDecimal> {};
 
 export namespace stdx::literals::inline math_literals {
     [[nodiscard]]

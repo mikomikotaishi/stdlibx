@@ -16,7 +16,7 @@ export namespace stdx::audio::midi {
      */
     class MidiSystem final {
     public:
-        MidiSystem() = delete("MidiSystem is a static utility class and cannot be instantiated.");
+        MidiSystem() = DELETE_METHOD("MidiSystem is a static utility class and cannot be instantiated.");
 
         [[nodiscard]]
         THROWS(MidiException)

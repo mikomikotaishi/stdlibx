@@ -12,7 +12,7 @@ export namespace stdx::os::win32 {
     using TreeItemHandle = ::HTREEITEM;
 
     // Init
-    using InitCommonControlsEx = ::INITCOMMONCONTROLSEX;
+    using CommonControlsInitEx = ::INITCOMMONCONTROLSEX;
 
     // Color scheme
     using ColorScheme = ::COLORSCHEME;

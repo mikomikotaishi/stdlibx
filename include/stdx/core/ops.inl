@@ -1,5 +1,6 @@
 #pragma once
 
+using stdx::exec::NoopCoroutineHandle;
 using stdx::fmt::FormatArgs;
 using stdx::fmt::FormatString;
 using stdx::fmt::WideFormatArgs;
@@ -22,14 +23,6 @@ using stdx::meta::TypeIdentityType;
 using stdx::meta::UnderlyingTypeType;
 using stdx::ranges::InputRange;
 using stdx::ranges::RangeValue;
-
-#ifdef STDLIBX_EXECUTION_AVAILABLE
-using stdx::exec::ParallelScheduler;
-using stdx::exec::Schedule;
-using stdx::exec::Sender;
-using stdx::exec::Task;
-using stdx::exec::Then;
-#endif
 
 #ifdef __cpp_lib_reflection
 using stdx::meta::reflect::Class;
@@ -54,7 +47,7 @@ export namespace stdx::core {
      */
     class Ops final {
     public:
-        Ops() = delete("Ops is a static utility class and cannot be instantiated.");
+        Ops() = DELETE_METHOD("Ops is a static utility class and cannot be instantiated.");
 
         /**
         * @brief Extracts the type of the parameter of a function type.
@@ -185,7 +178,7 @@ export namespace stdx::core {
         }
 
         template <typename T>
-        static void as_const(const T&&) = delete("as_const is not callable with an rvalue reference.");
+        static void as_const(const T&&) = DELETE_METHOD("as_const is not callable with an rvalue reference.");
 
         template <typename T>
         [[nodiscard]]
@@ -214,7 +207,7 @@ export namespace stdx::core {
         }
 
         template <typename T>
-        static void ref(const T&&) = delete("ref is not callable with an rvalue reference.");
+        static void ref(const T&&) = DELETE_METHOD("ref is not callable with an rvalue reference.");
 
         template <typename T>
         static ReferenceWrapper<const T> cref(const T& t) noexcept {
@@ -227,7 +220,7 @@ export namespace stdx::core {
         }
 
         template <typename T>
-        static void cref(const T&&) = delete("cref is not callable with an rvalue reference.");
+        static void cref(const T&&) = DELETE_METHOD("cref is not callable with an rvalue reference.");
 
         template <typename F, typename... Args>
         static constexpr InvokeResultType<F, Args...> invoke(F&& f, Args&&... args)
@@ -291,6 +284,12 @@ export namespace stdx::core {
         static constexpr decltype(auto) apply(F&& f, Tpl&& tpl)
             noexcept(noexcept(std::apply(forward<F>(f), forward<Tpl>(tpl)))) {
             return std::apply(forward<F>(f), forward<Tpl>(tpl));
+        }
+
+        template <typename E>
+        [[nodiscard]]
+        static constexpr ExceptionPointer exception_pointer(E e) noexcept {
+            return std::make_exception_ptr(e);
         }
 
         [[nodiscard]]
@@ -473,6 +472,25 @@ export namespace stdx::core {
             return std::vformat(loc, fmt, args);
         }
 
+        #ifdef __cpp_lib_debugging
+        static void breakpoint() noexcept {
+            std::breakpoint();
+        }
+
+        static void breakpoint_if_debugging() noexcept {
+            std::breakpoint_if_debugging();
+        }
+
+        [[nodiscard]]
+        static bool is_debugger_present() noexcept {
+            return std::is_debugger_present();
+        }
+        #endif
+
+        static NoopCoroutineHandle noop_coroutine() noexcept {
+            return std::noop_coroutine();
+        }
+
         #ifdef __cpp_lib_reflection
         template <typename T>
         [[nodiscard]]
@@ -494,19 +512,19 @@ export namespace stdx::core {
 
         template <InputRange R>
         [[nodiscard]]
-        static consteval const RangeValue<R>* define_static_string(R&& r) {
+        static consteval const RangeValue<R>* static_string(R&& r) {
             return std::define_static_string(forward<R>(r));
         }
 
         template <InputRange R>
         [[nodiscard]]
-        static consteval Span<const RangeValue<R>> define_static_array(R&& r) {
+        static consteval Span<const RangeValue<R>> static_array(R&& r) {
             return std::define_static_array(forward<R>(r));
         }
 
         template <typename T>
         [[nodiscard]]
-        static consteval RemoveConstVolatileReferenceType<T>* define_static_object(T&& t) {
+        static consteval RemoveConstVolatileReferenceType<T>* static_object(T&& t) {
             return std::define_static_object(forward<T>(t));
         }
 
@@ -520,49 +538,6 @@ export namespace stdx::core {
         [[nodiscard]]
         static consteval Info reflect_constant_array(R&& r) {
             return std::meta::reflect_constant_array(forward<R>(r));
-        }
-
-        template <ReflectableAsClass T>
-        [[nodiscard]]
-        static consteval Class<T> class_of() noexcept {
-            return Class<T>();
-        }
-
-        /**
-         * @brief The Class wrapper for an already-erased reflection of a class
-         * type: turns a Base's type(), a Field's type(), or any other Info back
-         * into a statically-typed Class. @p I has to be a constant expression,
-         * so this works on a constexpr Base or Field inside a template for.
-         * @tparam I The reflection of a class (non-union) type.
-         * @return The Class wrapper for the type @p I reflects.
-         *
-         * This hands back the wrapper, not the type. Splice with
-         * typename [:I:] when the type itself is what is wanted (a
-         * static_cast, a declaration, a non-reflective template argument).
-         */
-        template <Info I>
-            requires (reflect::is_type(I) && reflect::is_class_type(I) && !reflect::is_union_type(I))
-        [[nodiscard]]
-        static consteval Class<typename [:I:]> class_of() noexcept {
-            return Class<typename [:I:]>();
-        }
-
-        template <ReflectableAsEnum E>
-        [[nodiscard]]
-        static consteval Enum<E> enum_of() noexcept {
-            return Enum<E>();
-        }
-
-        template <ReflectableAsUnion U>
-        [[nodiscard]]
-        static consteval Union<U> union_of() noexcept {
-            return Union<U>();
-        }
-
-        template <typename T>
-        [[nodiscard]]
-        static consteval Type type_of() noexcept {
-            return Type(^^T);
         }
 
         /**

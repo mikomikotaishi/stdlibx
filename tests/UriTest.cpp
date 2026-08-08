@@ -50,19 +50,16 @@ void test_uri_ipv6() {
 }
 
 void test_uri_special_forms() {
-    // mailto: has no authority - the whole remainder is the path.
     Uri mail{"mailto:user@example.com"};
     expect_eq(mail.scheme(), "mailto", "mailto scheme");
     expect(!mail.has_authority(), "mailto has no authority");
     expect_eq(mail.path(), "user@example.com", "mailto path is the address");
 
-    // file:// with an empty authority.
     Uri file{"file:///etc/hosts"};
     expect(file.has_authority(), "file uri has an (empty) authority");
     expect(file.host().empty(), "file authority host is empty");
     expect_eq(file.path(), "/etc/hosts", "file path preserved");
 
-    // An empty port ("host:") is allowed and means "no explicit port".
     Uri empty_port{"http://host:/"};
     expect(!empty_port.port().has_value(), "empty port parses as no port");
     expect_eq(empty_port.host(), "host", "host parsed despite empty port");
@@ -83,15 +80,15 @@ void test_uri_roundtrip() {
 
 void test_uri_malformed() {
     expect_throws<UriSyntaxException>(
-        [] -> void { (void)Uri("http://[::1/"); }, "unterminated IPv6 literal is rejected"
+        [] -> void { static_cast<void>(Uri("http://[::1/")); }, "unterminated IPv6 literal is rejected"
     );
     expect_throws<UriSyntaxException>(
-        [] -> void { (void)Uri("http://host:99999/"); }, "out-of-range port is rejected"
+        [] -> void { static_cast<void>(Uri("http://host:99999/")); }, "out-of-range port is rejected"
     );
     expect_throws<UriSyntaxException>(
-        [] -> void { (void)Uri("http://host:80x/"); }, "non-numeric port is rejected"
+        [] -> void { static_cast<void>(Uri("http://host:80x/")); }, "non-numeric port is rejected"
     );
-    // parse reports the same failures without throwing.
+
     expect(!Uri::parse("http://[::1/").has_value(), "parse returns empty on malformed input");
     expect(Uri::parse("http://ok.example/").has_value(), "parse returns a value on valid input");
 }
@@ -127,8 +124,6 @@ void test_uri_percent_decoding() {
     expect_eq(Uri::percent_decode("100%"), "100%", "a trailing '%' is left alone rather than raising");
     expect_eq(Uri::percent_decode("%C3%A9"), "\xc3\xa9", "decoding yields bytes, not transcoded characters");
 
-    // Every '%' must introduce two hex digits (RFC 3986 2.1); a Uri that parsed
-    // would otherwise hold a component its own decoder could not read.
     expect(!Uri::parse("http://a/100%").has_value(), "a truncated escape is rejected");
     expect(!Uri::parse("http://a/%zz").has_value(), "a non-hex escape is rejected");
     expect(!Uri::parse("http://a/?q=%1").has_value(), "a short escape in the query is rejected");

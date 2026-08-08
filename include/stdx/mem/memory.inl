@@ -21,7 +21,7 @@ export namespace stdx::mem {
     using OwnerLess = std::owner_less<T>;
 
     template <typename T>
-    using EnableSharedFromThis = std::enable_shared_from_this<T>;
+    using SharedProvider = std::enable_shared_from_this<T>;
 
     #ifdef __cpp_lib_out_ptr
     template <typename Smart, typename Pointer, typename... Args>
@@ -111,7 +111,7 @@ export namespace stdx::mem {
 
     class Pointers final {
     public:
-        Pointers() = delete("Pointers is a static utility class and cannot be instantiated.");
+        Pointers() = DELETE_METHOD("Pointers is a static utility class and cannot be instantiated.");
 
         template <typename T>
         [[nodiscard]]
@@ -133,7 +133,7 @@ export namespace stdx::mem {
 
         template <typename T>
         [[nodiscard]]
-        static const T* addressof(T&&) = delete("addressof is not callable with an rvalue reference.");
+        static const T* addressof(T&&) = DELETE_METHOD("addressof is not callable with an rvalue reference.");
 
         [[nodiscard]]
         void* align(usize alignment, usize size, void*& ptr, usize& space) noexcept {

@@ -85,11 +85,11 @@ export namespace stdx::net {
 
 namespace stdx::net {
     #ifdef _WIN32
-    using SocketAddress = win32::WinSockAddr;
-    using SocketAddressStorage = win32::WinSockAddrStorage;
-    using SocketLength = win32::WinSocketLength;
-    using InternetSocketAddress = win32::WinSockAddrIn;
-    using Internet6SocketAddress = win32::WinSockAddrIn6;
+    using SocketAddress = win32::SockAddr;
+    using SocketAddressStorage = win32::SockAddrStorage;
+    using SocketLength = win32::SocketLength;
+    using InternetSocketAddress = win32::SockAddrIn;
+    using Internet6SocketAddress = win32::SockAddrIn6;
 
     inline constexpr i32 NATIVE_AF_UNSPEC = win32::AF_UNSPEC;
     inline constexpr i32 NATIVE_AF_INET = win32::AF_INET;
@@ -370,7 +370,7 @@ namespace stdx::net {
         if (family == NATIVE_AF_INET) {
             InternetSocketAddress address{};
             stdx::mem::memcpy(&address, &storage, sizeof(address));
-            Array<u8, 4> octets{};
+            Array<u8, 4> octets = {};
             stdx::mem::memcpy(octets.data(), &address.sin_addr, octets.size());
             return Endpoint(IPv4Address(octets), from_network_order(address.sin_port));
         }
@@ -378,7 +378,7 @@ namespace stdx::net {
         if (family == NATIVE_AF_INET6) {
             Internet6SocketAddress address{};
             stdx::mem::memcpy(&address, &storage, sizeof(address));
-            Array<u8, 16> bytes{};
+            Array<u8, 16> bytes = {};
             stdx::mem::memcpy(bytes.data(), &address.sin6_addr, bytes.size());
             return Endpoint(
                 IPv6Address(bytes, static_cast<u32>(address.sin6_scope_id)),
@@ -412,7 +412,7 @@ export namespace stdx::net {
          * @brief The platform's socket descriptor type.
          */
         #ifdef _WIN32
-        using NativeHandle = win32::WinSocket;
+        using NativeHandle = win32::Socket;
         #else
         using NativeHandle = i32;
         #endif
@@ -651,9 +651,9 @@ export namespace stdx::net {
             }
             const NativeHandle handle = Ops::exchange(_handle, INVALID_HANDLE);
             #ifdef _WIN32
-            (void)win32::closesocket(handle);
+            static_cast<void>(win32::closesocket(handle));
             #else
-            (void)unix::close(handle);
+            static_cast<void>(unix::close(handle));
             #endif
         }
 
@@ -705,7 +705,7 @@ export namespace stdx::net {
         THROWS(SocketException)
         Socket accept() {
             Optional<Socket> accepted = try_accept();
-            if (!accepted) {
+            if (!accepted.has_value()) {
                 raise_socket_error(last_socket_error(), "accept");
             }
             return Ops::move(*accepted);
@@ -736,7 +736,9 @@ export namespace stdx::net {
                 );
                 #endif
                 if (peer != INVALID_HANDLE) {
-                    return Socket(peer);
+                    Socket accepted(peer);
+                    accepted.set_blocking(true);
+                    return accepted;
                 }
                 const i32 error = last_socket_error();
                 if (is_interrupted(error)) {
@@ -819,10 +821,11 @@ export namespace stdx::net {
          * @return The number of bytes sent, which may be fewer than requested.
          * @throws SocketException if the send fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize send(Span<const byte> buffer) {
             const Optional<usize> sent = try_send(buffer);
-            if (!sent) {
+            if (!sent.has_value()) {
                 raise_socket_error(last_socket_error(), "send");
             }
             return *sent;
@@ -834,6 +837,7 @@ export namespace stdx::net {
          * @return The number of bytes sent, or an empty Optional if the socket would block.
          * @throws SocketException if the send fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_send(Span<const byte> buffer) {
             require_open();
@@ -873,7 +877,7 @@ export namespace stdx::net {
             usize offset = 0;
             while (offset < buffer.size()) {
                 const Optional<usize> sent = try_send(buffer.subspan(offset));
-                if (!sent) {
+                if (!sent.has_value()) {
                     throw SocketException("send would block before the whole buffer was written");
                 }
                 if (*sent == 0) {
@@ -889,10 +893,11 @@ export namespace stdx::net {
          * @return The number of bytes received; zero means the peer closed its end.
          * @throws SocketException if the receive fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize receive(Span<byte> buffer) {
             const Optional<usize> received = try_receive(buffer);
-            if (!received) {
+            if (!received.has_value()) {
                 raise_socket_error(last_socket_error(), "recv");
             }
             return *received;
@@ -907,6 +912,7 @@ export namespace stdx::net {
          * A returned zero is end-of-stream, not emptiness: the peer has shut its
          * sending half down and no further data will arrive.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_receive(Span<byte> buffer) {
             require_open();
@@ -938,12 +944,13 @@ export namespace stdx::net {
          * @return true if the buffer was filled, false if the peer closed first.
          * @throws SocketException if the receive fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         bool receive_exactly(Span<byte> buffer) {
             usize offset = 0;
             while (offset < buffer.size()) {
                 const Optional<usize> received = try_receive(buffer.subspan(offset));
-                if (!received) {
+                if (!received.has_value()) {
                     throw SocketException("recv would block before the whole buffer was filled");
                 }
                 if (*received == 0) {
@@ -961,10 +968,11 @@ export namespace stdx::net {
          * @return The number of bytes sent.
          * @throws SocketException if the send fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize send_to(Span<const byte> buffer, const Endpoint& endpoint) {
             const Optional<usize> sent = try_send_to(buffer, endpoint);
-            if (!sent) {
+            if (!sent.has_value()) {
                 raise_socket_error(last_socket_error(), "sendto");
             }
             return *sent;
@@ -977,6 +985,7 @@ export namespace stdx::net {
          * @return The number of bytes sent, or an empty Optional if the socket would block.
          * @throws SocketException if the send fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_send_to(Span<const byte> buffer, const Endpoint& endpoint) {
             require_open();
@@ -1027,7 +1036,7 @@ export namespace stdx::net {
         THROWS(SocketException)
         Received receive_from(Span<byte> buffer) {
             const Optional<Received> received = try_receive_from(buffer);
-            if (!received) {
+            if (!received.has_value()) {
                 raise_socket_error(last_socket_error(), "recvfrom");
             }
             return *received;
@@ -1067,7 +1076,7 @@ export namespace stdx::net {
                 #endif
                 if (result >= 0) {
                     const Optional<Endpoint> from = from_socket_address(storage);
-                    if (!from) {
+                    if (!from.has_value()) {
                         throw SocketException("recvfrom reported an unsupported address family");
                     }
                     return Received{static_cast<usize>(result), *from};
@@ -1098,12 +1107,12 @@ export namespace stdx::net {
             const i32 how = mode == ShutdownMode::READ
                 ? win32::SD_RECEIVE
                 : (mode == ShutdownMode::WRITE ? win32::SD_SEND : win32::SD_BOTH);
-            (void)win32::shutdown(_handle, how);
+            static_cast<void>(win32::shutdown(_handle, how));
             #else
             const i32 how = mode == ShutdownMode::READ
                 ? unix::sys::SHUT_RD
                 : (mode == ShutdownMode::WRITE ? unix::sys::SHUT_WR : unix::sys::SHUT_RDWR);
-            (void)unix::sys::shutdown(_handle, how);
+            static_cast<void>(unix::sys::shutdown(_handle, how));
             #endif
         }
 
@@ -1129,7 +1138,7 @@ export namespace stdx::net {
                 raise_socket_error(last_socket_error(), "getsockname");
             }
             const Optional<Endpoint> endpoint = from_socket_address(storage);
-            if (!endpoint) {
+            if (!endpoint.has_value()) {
                 throw SocketException("the socket is bound to an unsupported address family");
             }
             return *endpoint;
@@ -1166,7 +1175,7 @@ export namespace stdx::net {
         void set_blocking(bool blocking) {
             require_open();
             #ifdef _WIN32
-            u32 mode = blocking ? 0ul : 1ul;
+            win32::ULong mode = blocking ? 0ul : 1ul;
             if (win32::ioctlsocket(_handle, static_cast<i32>(win32::FIONBIO), &mode) != 0) {
                 raise_socket_error(last_socket_error(), "ioctlsocket");
             }
@@ -1397,7 +1406,7 @@ export namespace stdx::net {
     class SocketView {
         Socket* _socket; ///< The borrowed socket; never null.
     public:
-        SocketView() = delete("A view always refers to a socket; construct it from the socket it views.");
+        SocketView() = DELETE_METHOD("A view always refers to a socket; construct it from the socket it views.");
 
         /**
          * @brief Views @p socket.

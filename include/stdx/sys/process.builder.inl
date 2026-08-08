@@ -30,7 +30,10 @@ namespace stdx::sys {
             if (handle == nullptr) {
                 return nullptr;
             }
-            JobObjectExtendedLimitInformation info{};
+            // Qualified: winnt.h also has a global enumerator of this exact name
+            // (JOBOBJECTINFOCLASS::JobObjectExtendedLimitInformation), so the bare
+            // spelling is either ambiguous with it or resolves to a value.
+            win32::JobObjectExtendedLimitInformation info{};
             info.BasicLimitInformation.LimitFlags = win32::JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE_FLAG;
             if (!win32::SetInformationJobObject(
                 handle, win32::JobObjectExtendedLimitInfoClass, &info, sizeof(info)
@@ -76,7 +79,7 @@ export namespace stdx::sys {
         bool _env_clr = false; ///< If true, start with an empty environment instead of inheriting the parent's.
         bool _kill_with_parent = false; ///< If true, ask the OS to kill the child when this process dies (Linux: PR_SET_PDEATHSIG).
 
-        #ifdef __unix__
+        #if defined(__unix__) || defined(__APPLE__)
         [[nodiscard]]
         Expected<Process, ErrorCode> spawn_unix() const {
             i32 in_r = -1;
@@ -85,10 +88,12 @@ export namespace stdx::sys {
             i32 out_w = -1;
             i32 err_r = -1;
             i32 err_w = -1;
-            i32 null = -1;
+            // One descriptor on /dev/null, shared by however many of the three
+            // streams asked for NULL_DEV, and opened only if any of them did.
+            i32 null_dev = -1;
 
             auto cleanup = [&] noexcept -> void {
-                for (i32 fd: {in_r, in_w, out_r, out_w, err_r, err_w, null}) {
+                for (i32 fd: {in_r, in_w, out_r, out_w, err_r, err_w, null_dev}) {
                     if (fd != -1) {
                         unix::close(fd);
                     }
@@ -118,8 +123,8 @@ export namespace stdx::sys {
             }
 
             if (_stdin_cfg == Stdio::NULL_DEV || _stdout_cfg == Stdio::NULL_DEV || _stderr_cfg == Stdio::NULL_DEV) {
-                null = static_cast<i32>(unix::open("/dev/null", unix::O_RDWR));
-                if (null == -1) {
+                null_dev = static_cast<i32>(unix::open("/dev/null", unix::O_RDWR));
+                if (null_dev == -1) {
                     cleanup();
                     return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
                 }
@@ -160,7 +165,7 @@ export namespace stdx::sys {
                         dup_or_die(in_r, unix::STDIN_FILENO);
                         break;
                     case Stdio::NULL_DEV:
-                        dup_or_die(null, unix::STDIN_FILENO);
+                        dup_or_die(null_dev, unix::STDIN_FILENO);
                         break;
                     case Stdio::INHERIT:
                         break;
@@ -170,7 +175,7 @@ export namespace stdx::sys {
                         dup_or_die(out_w, unix::STDOUT_FILENO);
                         break;
                     case Stdio::NULL_DEV:
-                        dup_or_die(null,  unix::STDOUT_FILENO);
+                        dup_or_die(null_dev,  unix::STDOUT_FILENO);
                         break;
                     case Stdio::INHERIT:
                         break;
@@ -180,23 +185,30 @@ export namespace stdx::sys {
                         dup_or_die(err_w, unix::STDERR_FILENO);
                         break;
                     case Stdio::NULL_DEV:
-                        dup_or_die(null, unix::STDERR_FILENO);
+                        dup_or_die(null_dev, unix::STDERR_FILENO);
                         break;
                     case Stdio::INHERIT:
                         break;
                 }
-                for (i32 fd: {in_r, in_w, out_r, out_w, err_r, err_w, null}) {
+                for (i32 fd: {in_r, in_w, out_r, out_w, err_r, err_w, null_dev}) {
                     if (fd != -1) {
                         unix::close(fd);
                     }
                 }
 
-                if (_cwd && unix::chdir(_cwd->c_str()) == -1) {
+                if (_cwd.has_value() && unix::chdir(_cwd->c_str()) == -1) {
                     unix::_exit(127);
                 }
 
                 if (_env_clr) {
+                    #ifdef __APPLE__
+                    // Darwin has no clearenv(); emptying environ has the same
+                    // effect on the upcoming execvp.
+                    static char* empty_env[] = {nullptr};
+                    unix::environ = empty_env;
+                    #else
                     unix::clearenv();
+                    #endif
                 }
                 for (const String& key: _env_rem) {
                     unix::unsetenv(key.c_str());
@@ -217,7 +229,7 @@ export namespace stdx::sys {
                 unix::_exit(127);
             }
 
-            for (i32 fd: {in_r, out_w, err_w, null}) {
+            for (i32 fd: {in_r, out_w, err_w, null_dev}) {
                 if (fd != -1) {
                     unix::close(fd);
                 }
@@ -231,30 +243,32 @@ export namespace stdx::sys {
         #ifdef _WIN32
         [[nodiscard]]
         Expected<Process, ErrorCode> spawn_win32() const {
-            SecurityAttributes sa(sizeof(sa), nullptr, TRUE);
-            win32::Handle in_r = INVALID_HANDLE_VALUE;
-            win32::Handle in_w = INVALID_HANDLE_VALUE;
-            win32::Handle out_r = INVALID_HANDLE_VALUE;
-            win32::Handle out_w = INVALID_HANDLE_VALUE;
-            win32::Handle err_r = INVALID_HANDLE_VALUE;
-            win32::Handle err_w = INVALID_HANDLE_VALUE;
-            win32::Handle null = INVALID_HANDLE_VALUE;
+            win32::SecurityAttributes sa(sizeof(sa), nullptr, true);
+            win32::Handle in_r = win32::INVALID_HANDLE_VALUE;
+            win32::Handle in_w = win32::INVALID_HANDLE_VALUE;
+            win32::Handle out_r = win32::INVALID_HANDLE_VALUE;
+            win32::Handle out_w = win32::INVALID_HANDLE_VALUE;
+            win32::Handle err_r = win32::INVALID_HANDLE_VALUE;
+            win32::Handle err_w = win32::INVALID_HANDLE_VALUE;
+            // One handle on NUL, shared by however many of the three streams
+            // asked for NULL_DEV, and opened only if any of them did.
+            win32::Handle null_dev = win32::INVALID_HANDLE_VALUE;
 
-            auto close_h = [](Handle& h) noexcept -> void {
-                if (h != INVALID_HANDLE_VALUE) {
-                    win32::CloseHandle(h); h = INVALID_HANDLE_VALUE;
+            auto close_h = [](win32::Handle& h) noexcept -> void {
+                if (h != win32::INVALID_HANDLE_VALUE) {
+                    win32::CloseHandle(h); h = win32::INVALID_HANDLE_VALUE;
                 }
             };
             auto cleanup = [&] noexcept -> void {
-                for (Handle* h: {&in_r, &in_w, &out_r, &out_w, &err_r, &err_w, &null}) {
+                for (win32::Handle* h: {&in_r, &in_w, &out_r, &out_w, &err_r, &err_w, &null_dev}) {
                     close_h(*h);
                 }
             };
-            auto make_pipe = [&](Handle& r, Handle& w, bool parent_is_r) -> bool {
+            auto make_pipe = [&](win32::Handle& r, win32::Handle& w, bool parent_is_r) -> bool {
                 if (!win32::CreatePipe(&r, &w, &sa, 0)) {
                     return false;
                 }
-                win32::SetHandleInformation(parent_is_r ? r : w, HANDLE_FLAG_INHERIT, 0);
+                win32::SetHandleInformation(parent_is_r ? r : w, win32::HANDLE_FLAG_INHERIT, 0);
                 return true;
             };
 
@@ -272,25 +286,33 @@ export namespace stdx::sys {
             }
 
             if (_stdin_cfg == Stdio::NULL_DEV || _stdout_cfg == Stdio::NULL_DEV || _stderr_cfg == Stdio::NULL_DEV) {
-                null = win32::CreateFileW(L"NUL", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, OPEN_EXISTING, 0, nullptr);
-                if (null == INVALID_HANDLE_VALUE) {
+                null_dev = win32::CreateFileW(
+                    L"NUL",
+                    win32::GENERIC_READ | win32::GENERIC_WRITE,
+                    win32::FILE_SHARE_READ | win32::FILE_SHARE_WRITE,
+                    &sa,
+                    win32::OPEN_EXISTING,
+                    0,
+                    nullptr
+                );
+                if (null_dev == win32::INVALID_HANDLE_VALUE) {
                     cleanup();
                     return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
                 }
             }
 
-            StartupInfoW si {
-                .cb = sizeof(StartupInfoW),
-                .dwFlags = STARTF_USESTDHANDLES,
+            win32::StartupInfoW si {
+                .cb = static_cast<win32::DWord>(sizeof(win32::StartupInfoW)),
+                .dwFlags = win32::STARTF_USESTDHANDLES,
                 .hStdInput = (_stdin_cfg == Stdio::PIPED)
                     ? in_r : (_stdin_cfg == Stdio::NULL_DEV)
-                    ? null : win32::GetStdHandle(STD_INPUT_HANDLE),
+                    ? null_dev : win32::GetStdHandle(win32::STD_INPUT_HANDLE),
                 .hStdOutput = (_stdout_cfg == Stdio::PIPED)
                     ? out_w : (_stdout_cfg == Stdio::NULL_DEV)
-                    ? null : win32::GetStdHandle(STD_OUTPUT_HANDLE),
+                    ? null_dev : win32::GetStdHandle(win32::STD_OUTPUT_HANDLE),
                 .hStdError = (_stderr_cfg == Stdio::PIPED)
                     ? err_w : (_stderr_cfg == Stdio::NULL_DEV)
-                    ? null : win32::GetStdHandle(STD_ERROR_HANDLE)
+                    ? null_dev : win32::GetStdHandle(win32::STD_ERROR_HANDLE)
             };
 
             WideString cmdline;
@@ -304,11 +326,11 @@ export namespace stdx::sys {
             }
 
             WideString wcwd;
-            if (_cwd) {
+            if (_cwd.has_value()) {
                 wcwd = _cwd->wstring();
             }
 
-            ProcessInformation pi;
+            win32::ProcessInformation pi;
             // When linking the child to our lifetime, start it suspended so it can
             // be placed in the kill-on-close job before it (or any of its own
             // children) runs - closing the create/assign race.
@@ -336,7 +358,7 @@ export namespace stdx::sys {
                 win32::ResumeThread(pi.hThread);
             }
 
-            for (win32::Handle* h: {&in_r, &out_w, &err_w, &null}) {
+            for (win32::Handle* h: {&in_r, &out_w, &err_w, &null_dev}) {
                 close_h(*h);
             }
 
@@ -444,7 +466,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         Expected<Process, ErrorCode> spawn() const {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return spawn_unix();
             #elifdef _WIN32
             return spawn_win32();
@@ -468,8 +490,8 @@ export namespace stdx::sys {
         }
 
         /**
-         * @brief Spawn the child with stdout/stderr piped and stdin null, wait for exit,
-         * and return the captured Output.
+         * @brief Spawn the child with stdout/stderr piped and stdin on the null
+         * device, wait for exit, and return the captured Output.
          * @return Expected<Output, ErrorCode> The captured output of the spawned child process or an error.
          */
         [[nodiscard]]

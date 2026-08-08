@@ -39,7 +39,7 @@ namespace stdx::audio::midi {
     public:
         explicit AlsaMidiParser(usize bufsize = 256) noexcept {
             linux::alsa::snd_midi_event_new(bufsize, &_parser);
-            if (_parser) {
+            if (_parser != nullptr) {
                 linux::alsa::snd_midi_event_init(_parser);
                 // Disable running-status suppression so each ShortMessage
                 // becomes a self-contained snd_seq_event_t.
@@ -48,13 +48,13 @@ namespace stdx::audio::midi {
         }
 
         ~AlsaMidiParser() noexcept {
-            if (_parser) {
+            if (_parser != nullptr) {
                 linux::alsa::snd_midi_event_free(_parser);
             }
         }
 
-        AlsaMidiParser(const AlsaMidiParser&) = delete("AlsaMidiParser is not copyable.");
-        AlsaMidiParser& operator=(const AlsaMidiParser&) = delete("AlsaMidiParser is not copyable.");
+        AlsaMidiParser(const AlsaMidiParser&) = DELETE_METHOD("AlsaMidiParser is not copyable.");
+        AlsaMidiParser& operator=(const AlsaMidiParser&) = DELETE_METHOD("AlsaMidiParser is not copyable.");
 
         [[nodiscard]]
         linux::alsa::SoundMidiEventParser* get() const noexcept {
@@ -85,7 +85,7 @@ namespace stdx::audio::midi {
 
         void send(const MidiMessage& msg, [[maybe_unused]] u64 time_micros) override {
             linux::alsa::SoundSequencer* client = alsa_seq_client();
-            if (!client || !_encoder.valid() || msg.length() == 0) {
+            if (client == nullptr || !_encoder.valid() || msg.length() == 0) {
                 return;
             }
 
@@ -130,7 +130,7 @@ namespace stdx::audio::midi {
 
         void input_loop() noexcept {
             linux::alsa::SoundSequencer* client = alsa_seq_client();
-            if (!client) {
+            if (client == nullptr) {
                 return;
             }
 
@@ -182,7 +182,7 @@ namespace stdx::audio::midi {
                     }
 
                     Receiver* r = _rx.load();
-                    if (!r) {
+                    if (r == nullptr) {
                         continue;
                     }
 
@@ -261,7 +261,7 @@ namespace stdx::audio::midi {
                 return;
             }
             linux::alsa::SoundSequencer* client = alsa_seq_client();
-            if (!client) {
+            if (client == nullptr) {
                 throw MidiException("ALSA seq client unavailable");
             }
 
@@ -328,7 +328,7 @@ namespace stdx::audio::midi {
             _tx.reset();
 
             linux::alsa::SoundSequencer* client = alsa_seq_client();
-            if (client) {
+            if (client != nullptr) {
                 if (_my_write_port >= 0) {
                     linux::alsa::snd_seq_delete_simple_port(client, _my_write_port);
                 }
@@ -371,7 +371,7 @@ export namespace stdx::audio::midi {
     Vector<MidiDeviceInfo> MidiSystem::devices() {
         Vector<MidiDeviceInfo> out;
         linux::alsa::SoundSequencer* client = alsa_seq_client();
-        if (!client) {
+        if (client == nullptr) {
             return out;
         }
 
@@ -379,11 +379,11 @@ export namespace stdx::audio::midi {
         linux::alsa::SoundSequencerPortInfo* pinfo = nullptr;
         linux::alsa::snd_seq_client_info_malloc(&cinfo);
         linux::alsa::snd_seq_port_info_malloc(&pinfo);
-        if (!cinfo || !pinfo) {
-            if (cinfo) {
+        if (cinfo == nullptr || pinfo == nullptr) {
+            if (cinfo != nullptr) {
                 linux::alsa::snd_seq_client_info_free(cinfo);
             }
-            if (pinfo) {
+            if (pinfo != nullptr) {
                 linux::alsa::snd_seq_port_info_free(pinfo);
             }
             throw MidiException("snd_seq_*_info allocation failed");
