@@ -89,13 +89,11 @@ export namespace stdx::core {
     template <typename Rel, typename T, typename U>
     concept StrictWeakOrder = std::strict_weak_order<Rel, T, U>;
 
+    template <typename T, typename... Args>
+    concept IsAnyOf = (SameAs<T, Args> || ...);
+
     template <typename T>
-    concept CharacterLike = SameAs<T, char>
-        || SameAs<T, unsigned char>
-        || SameAs<T, char8_t>
-        || SameAs<T, char16_t>
-        || SameAs<T, char32_t>
-        || SameAs<T, wchar_t>;
+    concept CharacterLike = IsAnyOf<T, char, unsigned char, char8_t, char16_t, char32_t, wchar_t>;
 
     template <typename T>
     concept Numeric = Integral<T> || FloatingPoint<T>;

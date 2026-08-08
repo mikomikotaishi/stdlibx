@@ -13,15 +13,34 @@ using stdx::ranges::Generator;
  * @namespace stdx::io
  * @brief Standard library input/output operations.
  */
+namespace stdx::io {
+    template <typename T>
+    concept ScannableInto = IsAnyOf<T,
+        i8, i16, i32, i64,
+        u8, u16, u32, u64,
+        f32, f64,
+        char, unsigned char, char8_t, char16_t, char32_t, wchar_t,
+        String
+    >; 
+}
+
+/**
+ * @namespace stdx::io
+ * @brief Standard library input/output operations.
+ */
 export namespace stdx::io {
     /**
      * @class Scanner
      * @brief A Java-style text scanner that parses primitive types and strings
-     *        using delimiters (whitespace by default).
+     * using delimiters (whitespace by default).
      *
      * The Scanner class can read from an InputStream, a File, a filesystem Path,
-     * or a String. It breaks its input into tokens using a delimiter pattern,
-     * then parses those tokens into various types.
+     * or a String. It breaks its input into tokens using a set of delimiter
+     * characters, then parses those tokens into various types.
+     *
+     * @note The delimiter is a set of characters rather than a pattern, and
+     * input is read a line at a time, so a token never spans a line break.
+     * See use_delimiter() for what that means in practice.
      *
      * @note This class is move-only.
      *
@@ -29,56 +48,218 @@ export namespace stdx::io {
      * @code
      *     // Read from stdin
      *     Scanner sc(System::in);
-     *     while (sc.has_next_int()) {
-     *         i32 n = sc.next_int();
+     *     while (sc.has_next<i32>()) {
+     *         i32 n = *sc.next<i32>();
      *     }
      *
-     *     // Read from a file
+     *     // Read from a file, distinguishing why a read stopped
      *     Scanner file_sc("input.txt"_path);
-     *     String line = file_sc.next_line();
+     *     Expected<String, Scanner::Error> line = file_sc.next_line();
+     *     if (!line && line.error() == Scanner::Error::IO_ERROR) {
+     *         // the source failed, rather than simply running out
+     *     }
      *
-     *     // Read from a string
-     *     Scanner str_sc("hello world 42"s);
-     *     String word = str_sc.next();
+     *     // Read comma-separated values from a string
+     *     Scanner str_sc("hello,world,42"s);
+     *     str_sc.use_delimiter(",");
+     *     Expected<String, Scanner::Error> word = str_sc.next();
      * @endcode
      */
     class Scanner {
+    public:
+        /**
+         * @enum Error
+         * @brief Why a scan did not produce a value.
+         */
+        enum class Error: u8 {
+            END_OF_INPUT, ///< The input holds no further token or line.
+            MISMATCH, ///< A token was available but did not parse as the requested type.
+            IO_ERROR, ///< The underlying stream failed while being read.
+        };
     private:
-        UniquePointer<InputFileStream> _owned_file_stream; ///< Owned file stream (when constructed from Path/File).
+        UniquePointer<InputStream> _owned_source; ///< Owned stream (when constructed from a Path, File, or String).
         InputStream* _source = nullptr; ///< Non-owning pointer to the input stream being scanned.
         String _delimiter = " \t\n\r\f\v"; ///< Current set of delimiter characters.
         String _buffered_line; ///< Internal line buffer for token parsing.
-        InputStringStream _line_stream; ///< Stream over the current buffered line.
+        usize _line_position = 0; ///< Read position within the line buffer.
+        usize _token_end = 0; ///< End of the token last reported by peek_line_token().
         bool _line_consumed = true; ///< Whether the current line buffer has been fully consumed.
+        bool _line_terminated = false; ///< Whether the buffered line ended with a line terminator.
+        bool _io_failed = false; ///< Whether the source reported a read failure.
+        bool _closed = false; ///< Whether close() has been called.
 
         /**
-         * @brief Ensures the line buffer has content to parse.
-         * @return True if there is content available, false if the source is exhausted.
+         * @brief Throws if the scanner has been closed.
+         * @throws IllegalStateException if close() has been called.
+         */
+        THROWS(IllegalStateException)
+        void ensure_open() const {
+            if (_closed) {
+                throw IllegalStateException("Scanner is closed");
+            }
+        }
+
+        /**
+         * @brief The reason a scan found nothing left to read.
+         * @return IO_ERROR once the source has reported a read failure, END_OF_INPUT otherwise.
+         */
+        [[nodiscard]]
+        Error exhausted_reason() const noexcept {
+            return _io_failed ? Error::IO_ERROR : Error::END_OF_INPUT;
+        }
+
+        /**
+         * @brief Reads the next line from the source into the line buffer.
+         *
+         * Recognises "\n", "\r\n" and a lone "\r" as line terminators, and
+         * records whether the line ended with one so that has_next_line() can
+         * tell a spent final line from one that still has an empty remainder.
+         * A read failure on the source is latched, so it can be reported apart
+         * from a clean end of input.
+         *
+         * @note The Unicode separators U+2028, U+2029 and U+0085 are not
+         * treated as terminators. Tokens are split on a set of bytes, so
+         * decoding line breaks as code points would be inconsistent with how
+         * the rest of the scanner reads its input.
+         *
+         * @return True if a line was read, false if the source is exhausted or failed.
+         */
+        bool read_line() {
+            if (_source == nullptr) {
+                return false;
+            }
+            _buffered_line.clear();
+            _line_terminated = false;
+
+            int ch = _source->get();
+            if (ch == CharTraits<char>::eof()) {
+                _io_failed = _io_failed || _source->bad();
+                return false;
+            }
+            while (ch != CharTraits<char>::eof()) {
+                if (ch == '\n') {
+                    _line_terminated = true;
+                    break;
+                }
+                if (ch == '\r') {
+                    if (_source->peek() == '\n') {
+                        _source->get();
+                    }
+                    _line_terminated = true;
+                    break;
+                }
+                _buffered_line.push_back(static_cast<char>(ch));
+                ch = _source->get();
+            }
+            if (_source->bad()) {
+                _io_failed = true;
+                return false;
+            }
+            _line_position = 0;
+            _line_consumed = false;
+            return true;
+        }
+
+        /**
+         * @brief Reads the next token from the current line without consuming it.
+         * @param token Receives the token when one is available.
+         * @return True if a token remains on the current line.
+         *
+         * Leading delimiter characters are skipped; the token runs to the next
+         * delimiter or to the end of the line. The read position is left alone,
+         * so a caller that rejects the token leaves the scanner exactly where it
+         * found it. The token's end is recorded for consume_token().
+         */
+        bool peek_line_token(String& token) {
+            usize start = _buffered_line.find_first_not_of(_delimiter, _line_position);
+            if (start == String::npos) {
+                return false;
+            }
+            usize stop = _buffered_line.find_first_of(_delimiter, start);
+            _token_end = (stop == String::npos) ? _buffered_line.size() : stop;
+            token = _buffered_line.substr(start, _token_end - start);
+            return true;
+        }
+
+        /**
+         * @brief Advances the current line past the token reported by peek_next().
+         */
+        void consume_token() noexcept {
+            _line_position = _token_end;
+        }
+
+        /**
+         * @brief Ensures the line buffer is positioned on a line that still holds a token.
+         * @return True if a token is available, false if the source is exhausted.
+         *
+         * Blank and fully consumed lines are skipped, so a run of empty lines
+         * does not hide the tokens that follow it.
          */
         bool ensure_line() {
-            if (!_line_consumed) {
-                if (_line_stream.peek() != CharTraits<char>::eof()) {
-                    InputStringStream test(_line_stream.str().substr(
-                        static_cast<usize>(_line_stream.tellg())
-                    ));
-                    String token;
-                    if (test >> token) {
-                        return true;
-                    }
+            String token;
+            while (true) {
+                if (!_line_consumed && peek_line_token(token)) {
+                    return true;
                 }
                 _line_consumed = true;
+                if (!read_line()) {
+                    return false;
+                }
             }
-            while (_source && getline(*_source, _buffered_line)) {
-                _line_stream = InputStringStream(_buffered_line);
-                _line_consumed = false;
-                return true;
+        }
+
+        /**
+         * @brief Returns the next token without consuming it, advancing lines as needed.
+         * @param token Receives the token when one is available.
+         * @return True if a token is available.
+         */
+        bool peek_next(String& token) {
+            return ensure_line() && peek_line_token(token);
+        }
+
+        template <ScannableInto T>
+        [[nodiscard]]
+        static constexpr Optional<T> parse(StringView s) noexcept {
+            if constexpr (SameAs<T, bool>) {
+                return Boolean::parse(s);
+            } else if constexpr (SameAs<T, i8>) {
+                return SignedByte::parse(s);
+            } else if constexpr (SameAs<T, i16>) {
+                return Short::parse(s);
+            } else if constexpr (SameAs<T, i32>) {
+                return Integer::parse(s);
+            } else if constexpr (SameAs<T, i64>) {
+                return Long::parse(s);
+            } else if constexpr (SameAs<T, u8>) {
+                return Byte::parse(s);
+            } else if constexpr (SameAs<T, u16>) {
+                return UnsignedShort::parse(s);
+            } else if constexpr (SameAs<T, u32>) {
+                return UnsignedInteger::parse(s);
+            } else if constexpr (SameAs<T, u64>) {
+                return UnsignedLong::parse(s);
+            } else if constexpr (SameAs<T, f32>) {
+                return Float::parse(s);
+            } else if constexpr (SameAs<T, f64>) {
+                return Double::parse(s);
+            } else if constexpr (SameAs<T, char>) {
+                return Character::parse(s);
+            } else if constexpr (SameAs<T, unsigned char>) {
+                return UnsignedCharacter::parse(s);
+            } else if constexpr (SameAs<T, char8>) {
+                return Utf8Character::parse(s);
+            } else if constexpr (SameAs<T, char16>) {
+                return Utf16Character::parse(s);
+            } else if constexpr (SameAs<T, char32>) {
+                return Utf32Character::parse(s);
+            } else {
+                static_assert(false, "Type not supported for parsing");
             }
-            return false;
+            Ops::unreachable();
         }
     public:
         /**
          * @brief Constructs a Scanner that reads from an InputStream.
-         *
          * @param stream The input stream to read from (e.g., System.in / Cin).
          */
         explicit Scanner(InputStream& stream) noexcept:
@@ -86,23 +267,22 @@ export namespace stdx::io {
 
         /**
          * @brief Constructs a Scanner that reads from a filesystem Path.
-         *
          * @param path The path to the file to read.
          * @throws IOException if the file cannot be opened.
          */
         THROWS(IOException)
-        explicit Scanner(const Path& path):
-            _owned_file_stream{Pointers::unique<InputFileStream>(path)} {
-            if (!_owned_file_stream->is_open()) {
+        explicit Scanner(const Path& path) {
+            UniquePointer<InputFileStream> stream = Pointers::unique<InputFileStream>(path);
+            if (!stream->is_open()) {
                 throw IOException(Ops::fmt("Failed to open file: {}", path));
             }
-            _source = _owned_file_stream.get();
+            _owned_source = Ops::move(stream);
+            _source = _owned_source.get();
         }
 
         /**
          * @brief Constructs a Scanner that reads from a File object.
          * The File must have been opened with a path.
-         *
          * @param file The File to read from.
          * @throws IOException if the file has no associated path or cannot be opened.
          */
@@ -112,131 +292,213 @@ export namespace stdx::io {
             if (!path.has_value()) {
                 throw IOException("File has no associated path.");
             }
-            _owned_file_stream = Pointers::unique<InputFileStream>(*path);
-            if (!_owned_file_stream->is_open()) {
+            UniquePointer<InputFileStream> stream = Pointers::unique<InputFileStream>(*path);
+            if (!stream->is_open()) {
                 throw IOException(Ops::fmt("Failed to open file: {}", path->string()));
             }
-            _source = _owned_file_stream.get();
+            _owned_source = Ops::move(stream);
+            _source = _owned_source.get();
         }
 
         /**
          * @brief Constructs a Scanner that reads from a String.
-         *
          * @param input The string to scan.
+         *
+         * The string is scanned as a stream, so multi-line input is split into
+         * lines exactly as it would be when read from a file.
          */
         explicit Scanner(const String& input):
-            _owned_file_stream{nullptr},
-            _source{nullptr} {
-            _buffered_line = input;
-            _line_stream = InputStringStream(_buffered_line);
-            _line_consumed = false;
+            _owned_source{Pointers::unique<InputStringStream>(input)} {
+            _source = _owned_source.get();
         }
 
         ~Scanner() = default;
-        Scanner(const Scanner&) = delete("Scanner is not copyable.");
-        Scanner& operator=(const Scanner&) = delete("Scanner is not copyable.");
+        Scanner(const Scanner&) = DELETE_METHOD("Scanner is not copyable.");
+        Scanner& operator=(const Scanner&) = DELETE_METHOD("Scanner is not copyable.");
         Scanner(Scanner&&) = default;
         Scanner& operator=(Scanner&&) = default;
 
         /**
          * @brief Closes the scanner and releases any underlying resources.
+         *
+         * Every scanning operation throws IllegalStateException afterwards.
+         * Closing an already closed scanner has no effect.
          */
         void close() noexcept {
-            _owned_file_stream.reset();
+            _owned_source.reset();
             _source = nullptr;
             _line_consumed = true;
+            _closed = true;
         }
 
         /**
-         * @brief Returns true if the scanner has another token in its input.
-         *
-         * @return True if another token is available.
+         * @brief Returns the characters that currently separate tokens.
+         * @return The current delimiter set.
          */
         [[nodiscard]]
-        bool has_next() {
-            return ensure_line();
+        StringView delimiter() const noexcept {
+            return _delimiter;
         }
 
         /**
-         * @brief Returns the next token from the scanner.
+         * @brief Sets the characters that separate tokens.
+         * @param delimiters The characters that separate tokens.
+         * @return This scanner, so calls can be chained.
          *
-         * @return The next token as an Optional<String>, or empty if no more tokens are available.
+         * The delimiter is a set of characters rather than a pattern: every
+         * character in @p delimiters ends a token, and runs of them between
+         * tokens are skipped. The new set applies from the next token scanned,
+         * so it can be changed part-way through the input.
+         *
+         * @note Input is read a line at a time, so a token never spans a line
+         * break however the delimiter set is chosen. Scanning "a,b\nc" with a
+         * "," delimiter yields "a", "b", then "c" - never "b\nc". Keep "\n" in
+         * the set only to describe intent; it is never seen in a line buffer.
          */
-        Optional<String> next() {
-            if (!ensure_line()) {
-                return nullopt;
+        Scanner& use_delimiter(StringView delimiters) {
+            _delimiter = delimiters;
+            return *this;
+        }
+
+        /**
+         * @brief Returns true if the next token can be parsed as a T.
+         * @tparam T the type to check the next of from the scanner.
+         * @return True if the next token is a valid integer.
+         * @throws IllegalStateException if the scanner is closed.
+         */
+        template <ScannableInto T = String>
+        [[nodiscard]]
+        THROWS(IllegalStateException)
+        bool has_next() {
+            if constexpr (SameAs<String, T>) {
+                ensure_open();
+                return ensure_line();
+            } else {
+                ensure_open();
+                String token;
+                return peek_next(token) && parse<T>(token).has_value();
             }
-            String token;
-            if (_line_stream >> token) {
+            Ops::unreachable();
+        }
+
+        /**
+         * @brief Scans the next token as a T.
+         * @tparam T the type to receive the next of from the scanner.
+         * @return The parsed value, Error::MISMATCH if the token is not an integer,
+         * Error::END_OF_INPUT if no token remains, or Error::IO_ERROR if the
+         * source failed.
+         * @throws IllegalStateException if the scanner is closed.
+         *
+         * The token is consumed only when it parses; on a mismatch the scanner
+         * does not advance, so the token stays retrievable via next().
+         */
+        template <ScannableInto T = String>
+        [[nodiscard]]
+        THROWS(IllegalStateException)
+        Expected<T, Error> next() {
+            if constexpr (SameAs<T, String>) {
+                ensure_open();
+                String token;
+                if (!peek_next(token)) {
+                    return Unexpected(exhausted_reason());
+                }
+                consume_token();
                 return token;
+            } else {
+                ensure_open();
+                String token;
+                if (!peek_next(token)) {
+                    return Unexpected(exhausted_reason());
+                }
+                Optional<T> value = parse<T>(token);
+                if (!value.has_value()) {
+                    return Unexpected(Error::MISMATCH);
+                }
+                consume_token();
+                return *value;
             }
-            _line_consumed = true;
-            if (!ensure_line()) {
-                return nullopt;
-            }
-            if (_line_stream >> token) {
-                return token;
-            }
-            return nullopt;
+            Ops::unreachable();
         }
 
         /**
          * @brief Returns true if the scanner has another line in its input.
-         *
          * @return True if another line is available.
+         * @throws IllegalStateException if the scanner is closed.
          */
         [[nodiscard]]
+        THROWS(IllegalStateException)
         bool has_next_line() {
-            if (!_line_consumed) {
+            ensure_open();
+            if (!_line_consumed
+                && (_line_position < _buffered_line.size() || _line_terminated)) {
                 return true;
             }
-            return _source && _source->peek() != CharTraits<char>::eof();
+            return _source != nullptr && _source->peek() != CharTraits<char>::eof();
         }
 
         /**
          * @brief Advances past the current line and returns the rest of it.
-         *
-         * @return The rest of the current line as an Optional<String>, or empty if no more lines are available.
+         * @return The rest of the current line, Error::END_OF_INPUT if no line
+         * remains, or Error::IO_ERROR if the source failed.
+         * @throws IllegalStateException if the scanner is closed.
          */
-        Optional<String> next_line() {
+        THROWS(IllegalStateException)
+        Expected<String, Error> next_line() {
+            ensure_open();
             if (!_line_consumed) {
                 _line_consumed = true;
-                StreamPosition pos = _line_stream.tellg();
-                if (pos >= 0 && static_cast<usize>(pos) < _buffered_line.size()) {
-                    return _buffered_line.substr(static_cast<usize>(pos));
+                if (_line_position < _buffered_line.size()) {
+                    return _buffered_line.substr(_line_position);
                 }
-                return ""s;
+                if (_line_terminated) {
+                    return ""s;
+                }
             }
-            if (_source && getline(*_source, _buffered_line)) {
+            if (read_line()) {
                 _line_consumed = true;
                 return _buffered_line;
             }
-            return nullopt;
+            return Unexpected(exhausted_reason());
         }
 
-    #ifdef __cpp_lib_generator
+        #ifdef __cpp_lib_generator
         /**
          * @brief Lazily yields each remaining token as a single-pass range.
+         * @return A Generator yielding each remaining token in turn.
+         * @throws IllegalStateException if the scanner is closed, and IOException
+         * if the source fails mid-scan - both on the step that reads from it
+         * rather than when the generator is created.
          *
          * The generator form of the has_next()/next() loop: it drives next()
          * to exhaustion, yielding one delimited token at a time. The scanner is
          * consumed as the range is advanced, so traverse it once and do not
          * interleave with manual next()/has_next() calls.
          *
-         * @return A Generator yielding each remaining token in turn.
-         *
          * @note Synchronous: each step reads from the underlying stream as
-         *       needed. This is lazy iteration, not asynchronous I/O.
+         * needed. This is lazy iteration, not asynchronous I/O.
          */
         [[nodiscard]]
+        THROWS(IllegalStateException, IOException)
         Generator<String> tokens() {
-            while (Optional<String> token = next()) {
-                co_yield *token;
+            while (true) {
+                Expected<String, Error> token = next();
+                if (token.has_value()) {
+                    co_yield *token;
+                    continue;
+                }
+                if (token.error() == Error::IO_ERROR) {
+                    throw IOException("Scanner source failed while reading");
+                }
+                co_return;
             }
         }
 
         /**
          * @brief Lazily yields each remaining line as a single-pass range.
+         * @return A Generator yielding each remaining line in turn.
+         * @throws IllegalStateException if the scanner is closed, and IOException
+         * if the source fails mid-scan - both on the step that reads from it
+         * rather than when the generator is created.
          *
          * The generator form of the has_next_line()/next_line() loop: it drives
          * next_line() to exhaustion, yielding one line at a time without ever
@@ -244,241 +506,55 @@ export namespace stdx::io {
          * advanced, so traverse it once and do not interleave with manual
          * next_line()/has_next_line() calls.
          *
-         * @return A Generator yielding each remaining line in turn.
-         *
          * @note Synchronous: each step reads from the underlying stream as
-         *       needed. This is lazy iteration, not asynchronous I/O.
+         * needed. This is lazy iteration, not asynchronous I/O.
          */
         [[nodiscard]]
+        THROWS(IllegalStateException, IOException)
         Generator<String> lines() {
-            while (Optional<String> line = next_line()) {
-                co_yield *line;
+            while (true) {
+                Expected<String, Error> line = next_line();
+                if (line.has_value()) {
+                    co_yield *line;
+                    continue;
+                }
+                if (line.error() == Error::IO_ERROR) {
+                    throw IOException("Scanner source failed while reading");
+                }
+                co_return;
             }
         }
-    #endif
+        #endif
+    };
+}
 
-        /**
-         * @brief Returns true if the next token can be parsed as an i32.
-         *
-         * @return True if the next token is a valid integer.
-         */
-        [[nodiscard]]
-        bool has_next_int() {
-            if (!ensure_line()) {
-                return false;
-            }
-            StreamPosition pos = _line_stream.tellg();
-            String token;
-            bool result = (_line_stream >> token) && Integer::parse(token).has_value();
-            _line_stream.seekg(pos);
-            _line_stream.clear();
-            return result;
+using stdx::io::Scanner;
+
+namespace stdx::fmt {
+    template <>
+    struct Formatter<Scanner::Error> {
+        constexpr auto parse(FormatParseContext& ctx) noexcept {
+            return ctx.begin();
         }
 
-        /**
-         * @brief Scans the next token as an i32.
-         *
-         * @return The next token parsed as an Optional<i32>, or empty if no more tokens
-         *         are available or the token cannot be parsed as an integer.
-         */
-        Optional<i32> next_int() {
-            Optional<String> token = next();
-            if (!token.has_value()) {
-                return nullopt;
+        auto format(Scanner::Error err, FormatContext& ctx) const {
+            StringView name;
+            switch (err) {
+                case Scanner::Error::MISMATCH:
+                    name = "Mismatch";
+                    break;
+                case Scanner::Error::END_OF_INPUT:
+                    name = "End of input";
+                    break;
+                case Scanner::Error::IO_ERROR:
+                    name = "I/O error";
+                    break;
             }
-            return Integer::parse(*token);
-        }
-
-        /**
-         * @brief Returns true if the next token can be parsed as an i64.
-         *
-         * @return True if the next token is a valid long.
-         */
-        [[nodiscard]]
-        bool has_next_long() {
-            if (!ensure_line()) {
-                return false;
-            }
-            StreamPosition pos = _line_stream.tellg();
-            String token;
-            bool result = (_line_stream >> token) && Long::parse(token).has_value();
-            _line_stream.seekg(pos);
-            _line_stream.clear();
-            return result;
-        }
-
-        /**
-         * @brief Scans the next token as an i64.
-         *
-         * @return The next token parsed as an Optional<i64>, or empty if no more tokens
-         *         are available or the token cannot be parsed as a long.
-         */
-        Optional<i64> next_long() {
-            Optional<String> token = next();
-            if (!token.has_value()) {
-                return nullopt;
-            }
-            return Long::parse(*token);
-        }
-
-        /**
-         * @brief Returns true if the next token can be parsed as an f32.
-         *
-         * @return True if the next token is a valid float.
-         */
-        [[nodiscard]]
-        bool has_next_float() {
-            if (!ensure_line()) {
-                return false;
-            }
-            StreamPosition pos = _line_stream.tellg();
-            String token;
-            bool result = (_line_stream >> token) && Float::parse(token).has_value();
-            _line_stream.seekg(pos);
-            _line_stream.clear();
-            return result;
-        }
-
-        /**
-         * @brief Scans the next token as an f32.
-         *
-         * @return The next token parsed as an Optional<f32>, or empty if no more tokens
-         *         are available or the token cannot be parsed as a float.
-         */
-        Optional<f32> next_float() {
-            Optional<String> token = next();
-            if (!token.has_value()) {
-                return nullopt;
-            }
-            return Float::parse(*token);
-        }
-
-        /**
-         * @brief Returns true if the next token can be parsed as an f64.
-         *
-         * @return True if the next token is a valid double.
-         */
-        [[nodiscard]]
-        bool has_next_double() {
-            if (!ensure_line()) {
-                return false;
-            }
-            StreamPosition pos = _line_stream.tellg();
-            String token;
-            bool result = (_line_stream >> token) && Double::parse(token).has_value();
-            _line_stream.seekg(pos);
-            _line_stream.clear();
-            return result;
-        }
-
-        /**
-         * @brief Scans the next token as an f64.
-         *
-         * @return The next token parsed as an Optional<f64>, or empty if no more tokens
-         *         are available or the token cannot be parsed as a double.
-         */
-        Optional<f64> next_double() {
-            Optional<String> token = next();
-            if (!token.has_value()) {
-                return nullopt;
-            }
-            return Double::parse(*token);
-        }
-
-        /**
-         * @brief Returns true if the next token can be parsed as a boolean.
-         *
-         * @return True if the next token is "true", "false", "1", or "0".
-         */
-        [[nodiscard]]
-        bool has_next_boolean() {
-            if (!ensure_line()) {
-                return false;
-            }
-            StreamPosition pos = _line_stream.tellg();
-            String token;
-            bool result = (_line_stream >> token) && Boolean::parse(token).has_value();
-            _line_stream.seekg(pos);
-            _line_stream.clear();
-            return result;
-        }
-
-        /**
-         * @brief Scans the next token as a boolean.
-         *
-         * @return The next token parsed as an Optional<bool>, or empty if no more tokens
-         *         are available or the token cannot be parsed as a boolean.
-         */
-        Optional<bool> next_boolean() {
-            Optional<String> token = next();
-            if (!token.has_value()) {
-                return nullopt;
-            }
-            return Boolean::parse(*token);
-        }
-
-        /**
-         * @brief Returns true if the next token can be parsed as an i8.
-         *
-         * @return True if the next token is a valid byte.
-         */
-        [[nodiscard]]
-        bool has_next_byte() {
-            if (!ensure_line()) {
-                return false;
-            }
-            StreamPosition pos = _line_stream.tellg();
-            String token;
-            bool result = (_line_stream >> token) && SignedByte::parse(token).has_value();
-            _line_stream.seekg(pos);
-            _line_stream.clear();
-            return result;
-        }
-
-        /**
-         * @brief Scans the next token as an i8.
-         *
-         * @return The next token parsed as an Optional<i8>, or empty if no more tokens
-         *         are available or the token cannot be parsed as a byte.
-         */
-        Optional<i8> next_byte()  {
-            Optional<String> token = next();
-            if (!token.has_value()) {
-                return nullopt;
-            }
-            return SignedByte::parse(*token);
-        }
-
-        /**
-         * @brief Returns true if the next token can be parsed as an i16.
-         *
-         * @return True if the next token is a valid short.
-         */
-        [[nodiscard]]
-        bool has_next_short() {
-            if (!ensure_line()) {
-                return false;
-            }
-            StreamPosition pos = _line_stream.tellg();
-            String token;
-            bool result = (_line_stream >> token) && Short::parse(token).has_value();
-            _line_stream.seekg(pos);
-            _line_stream.clear();
-            return result;
-        }
-
-        /**
-         * @brief Scans the next token as an i16.
-         *
-         * @return The next token parsed as an Optional<i16>, or empty if no more tokens
-         *         are available or the token cannot be parsed as a short.
-         */
-        Optional<i16> next_short() {
-            Optional<String> token = next();
-            if (!token.has_value()) {
-                return nullopt;
-            }
-            return Short::parse(*token);
+            return format_to(ctx.out(), "{:11}", name);
         }
     };
 }
+
+template <>
+struct stdx::fmt::formatter<Scanner::Error>: public Formatter<Scanner::Error> {};
+

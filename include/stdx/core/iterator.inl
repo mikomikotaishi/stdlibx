@@ -111,8 +111,10 @@ export namespace stdx::core {
     template <typename T>
     using IteratorReference = std::iter_reference_t<T>;
 
+    #ifdef __cpp_lib_ranges_as_const
     template <IndirectlyReadable T>
     using IteratorConstReference = std::iter_const_reference_t<T>;
+    #endif
 
     template <typename T>
     using IteratorDifference = std::iter_difference_t<T>;
@@ -199,7 +201,7 @@ export namespace stdx::core {
 
     class Iterators final {
     public:
-        Iterators() = delete("Iterators is a static utility class and cannot be instantiated.");
+        Iterators() = DELETE_METHOD("Iterators is a static utility class and cannot be instantiated.");
 
         template <typename Iter>
         [[nodiscard]]

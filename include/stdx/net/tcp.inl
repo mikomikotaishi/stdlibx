@@ -26,15 +26,11 @@ export namespace stdx::net {
     private:
         Socket _socket; ///< The connected descriptor.
     public:
-        TcpStream() = delete("A TcpStream is always connected; take one from connect() or TcpListener::accept().");
+        TcpStream() = DELETE_METHOD("A TcpStream is always connected; take one from connect() or TcpListener::accept().");
 
         /**
          * @brief Adopts a socket that is already connected.
          * @param socket The connected socket to take over.
-         *
-         * The unchecked door, for a descriptor that came from somewhere this
-         * library does not own - an inherited fd, a foreign library, a test.
-         * Whether it really is a connected TCP socket is the caller's to know.
          */
         explicit TcpStream(Socket socket) noexcept:
             _socket{Ops::move(socket)} {}
@@ -43,12 +39,6 @@ export namespace stdx::net {
          * @brief Adopts a descriptor that came from outside this library.
          * @param handle A connected TCP descriptor, which this now owns and will close.
          * @return The stream wrapping it.
-         *
-         * The same unchecked door as the constructor above, spelled so that a
-         * caller holding only a descriptor need not name Socket to get through it -
-         * an inherited fd, a socket handed over by systemd, one end of a
-         * socketpair, or a descriptor from a C library. Whether it really is a
-         * connected TCP socket is the caller's to know; nothing here verifies it.
          */
         [[nodiscard]]
         static TcpStream from_handle(Socket::NativeHandle handle) noexcept {
@@ -76,6 +66,7 @@ export namespace stdx::net {
          * @return The number of bytes sent, which may be fewer than asked.
          * @throws SocketException if the send fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize send(Span<const byte> buffer) {
             return _socket.send(buffer);
@@ -87,6 +78,7 @@ export namespace stdx::net {
          * @return The number of bytes sent, or an empty Optional if the socket would block.
          * @throws SocketException if the send fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_send(Span<const byte> buffer) {
             return _socket.try_send(buffer);
@@ -108,6 +100,7 @@ export namespace stdx::net {
          * @return The number of bytes read; 0 means the peer has closed its writing half.
          * @throws SocketException if the receive fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize receive(Span<byte> buffer) {
             return _socket.receive(buffer);
@@ -122,6 +115,7 @@ export namespace stdx::net {
          * A returned 0 is end-of-stream and an empty Optional is "not yet"; they
          * are different answers and a reactor loop has to tell them apart.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_receive(Span<byte> buffer) {
             return _socket.try_receive(buffer);
@@ -133,6 +127,7 @@ export namespace stdx::net {
          * @return true if the buffer was filled, false if the peer closed first.
          * @throws SocketException if the receive fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         bool receive_exactly(Span<byte> buffer) {
             return _socket.receive_exactly(buffer);
@@ -155,9 +150,6 @@ export namespace stdx::net {
          * @brief Whether segments are sent as soon as they are written.
          * @param enable true to disable Nagle's algorithm.
          * @throws SocketException if the option cannot be set.
-         *
-         * TCP-specific, which is why it lives here rather than on Socket's
-         * shared surface.
          */
         THROWS(SocketException)
         void set_no_delay(bool enable) {
@@ -199,9 +191,6 @@ export namespace stdx::net {
         /**
          * @brief The settings the socket has regardless of it being a stream.
          * @return A borrowed view of the owned socket, valid while this stream is.
-         *
-         * Blocking mode, buffer sizes, timeouts and take_error, and nothing that
-         * would undo what makes this a connected stream. See SocketView.
          */
         [[nodiscard]]
         constexpr SocketView socket() noexcept {
@@ -220,9 +209,6 @@ export namespace stdx::net {
         /**
          * @brief The descriptor, to register with a Poller.
          * @return The descriptor, or Socket::INVALID_HANDLE if the stream is closed.
-         *
-         * Borrowed, not given: the stream still owns the descriptor and still
-         * closes it. Use @ref release to hand it over for good.
          */
         [[nodiscard]]
         constexpr Socket::NativeHandle native_handle() const noexcept {
@@ -232,11 +218,6 @@ export namespace stdx::net {
         /**
          * @brief Gives up the descriptor without closing it.
          * @return The descriptor, which the caller must now close.
-         *
-         * The counterpart to @ref from_handle, and the way a connection leaves this
-         * library still open - handed to another process, to a foreign API, or to a
-         * layer that wants to own it. The stream is closed afterwards in the sense
-         * that it no longer owns anything; the descriptor is not.
          */
         [[nodiscard]]
         constexpr Socket::NativeHandle release() noexcept {
@@ -251,22 +232,18 @@ export namespace stdx::net {
         }
     };
 
-    static_assert(ByteStream<TcpStream>);
-
     /**
      * @class TcpListener
      * @brief A bound TCP socket that accepts connections and does nothing else.
-     *
-     * The other half of the split. A listener has no send() and no receive() to
-     * call by mistake - operations that a bare Socket offered and the kernel
-     * refused at runtime - and @ref accept hands back a TcpStream rather than
-     * something that has to be taken on trust.
      */
     class [[nodiscard]] TcpListener {
     private:
         Socket _socket; ///< The bound, listening descriptor.
     public:
-        TcpListener() = delete("A TcpListener is always bound and listening; take one from bind().");
+        /// What @ref try_accept yields. Naming it is how a listener opts in to Acceptor.
+        using Stream = TcpStream;
+
+        TcpListener() = DELETE_METHOD("A TcpListener is always bound and listening; take one from bind().");
 
         /**
          * @brief Adopts a socket that is already bound and listening.
@@ -279,11 +256,6 @@ export namespace stdx::net {
          * @brief Adopts a descriptor that is already bound and listening.
          * @param handle A listening TCP descriptor, which this now owns and will close.
          * @return The listener wrapping it.
-         *
-         * The case this is really for is socket activation: a supervisor binds the
-         * port, passes the descriptor down, and the process listens on it without
-         * ever having permission to bind it itself. Nothing here checks that
-         * listen() was called on it.
          */
         [[nodiscard]]
         static TcpListener from_handle(Socket::NativeHandle handle) noexcept {
@@ -297,9 +269,6 @@ export namespace stdx::net {
          * @return The listening socket.
          * @throws BindException if the address is taken or unavailable.
          * @throws SocketException if the socket cannot be opened or listened on.
-         *
-         * SO_REUSEADDR is set before the bind, so a listener can be restarted
-         * while connections from its previous life are still in TIME_WAIT.
          */
         [[nodiscard]]
         THROWS(SocketException, BindException)
@@ -318,22 +287,6 @@ export namespace stdx::net {
          * @return The listening socket, serving IPv4 and IPv6 alike.
          * @throws BindException if the port is taken or unavailable.
          * @throws SocketException if the host will not serve both families from one socket.
-         *
-         * One socket on the IPv6 wildcard, with IPV6_V6ONLY cleared, which is how
-         * a server listens on both families without opening and polling two
-         * descriptors. IPv4 peers arrive as IPv4-mapped addresses, so
-         * @ref TcpStream::remote_endpoint reports them in the socket's family;
-         * IPAddress::to_v4 unwraps them where the distinction matters.
-         *
-         * This exists as its own factory rather than a flag on @ref bind because
-         * the option has to be set after the socket is opened and before it is
-         * bound - there is no point in the sequence @ref bind exposes where a
-         * caller could insert it - and because it only means anything on the IPv6
-         * wildcard, which this picks itself rather than accepting.
-         *
-         * Not every host allows it: some disable IPv4-mapped addresses outright
-         * (Linux's net.ipv6.bindv6only, or an OpenBSD-style refusal), in which case
-         * the option or the bind fails and two listeners are the only way.
          */
         [[nodiscard]]
         THROWS(SocketException, BindException)
@@ -366,7 +319,7 @@ export namespace stdx::net {
         THROWS(SocketException)
         Optional<TcpStream> try_accept() {
             Optional<Socket> accepted = _socket.try_accept();
-            if (!accepted) {
+            if (!accepted.has_value()) {
                 return nullopt;
             }
             return TcpStream(Ops::move(*accepted));

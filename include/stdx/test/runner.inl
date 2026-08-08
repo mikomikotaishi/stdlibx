@@ -1,7 +1,19 @@
 #pragma once
 
 using stdx::collections::Vector;
+using stdx::future::Future;
+using stdx::future::FutureStatus;
+using stdx::future::LaunchPolicy;
 using stdx::io::TextStyle;
+using stdx::mem::Pointers;
+using stdx::sync::ConditionVariable;
+using stdx::sync::LockGuard;
+using stdx::sync::Mutex;
+using stdx::sync::UniqueLock;
+using stdx::thread::StopToken;
+using stdx::thread::Thread;
+using stdx::time::Duration;
+using stdx::time::Nanoseconds;
 
 #ifdef __cpp_impl_reflection
 using stdx::meta::reflect::Info;
@@ -12,17 +24,50 @@ using stdx::meta::reflect::Info;
  * @brief Minimal assertion-based unit-testing framework.
  */
 export namespace stdx::test {
+    #ifdef __cpp_impl_reflection
+    /**
+     * @concept ScannableScope
+     * @brief An Info that test discovery can scan: a namespace, or a class whose
+     * static member functions are the tests.
+     * @tparam Nsp The reflection to check, e.g. ^^tests or ^^Fixture.
+     *
+     * Spelled as a concept rather than repeated as a requires-clause at each use,
+     * for two reasons beyond brevity. A requires-clause takes a primary expression,
+     * so `requires reflect::is_namespace(Nsp) || ...` is ill-formed without an extra
+     * pair of parentheses, which is easy to omit; naming a concept is a primary
+     * expression and needs none. And the class case is not `is_class_type` alone -
+     * that is true of unions too, which have no meaningful tests to find.
+     */
+    template <Info Nsp>
+    concept ScannableScope = reflect::is_namespace(Nsp)
+        || (reflect::is_class_type(Nsp) && !reflect::is_union_type(Nsp));
+    #endif
+
     /**
      * @class Test
      * @brief A single named test: a function plus optional tags.
      */
     struct Test {
         using Callback = void(*)(); ///< The type of the test body function.
+        using CancellableCallback = void(*)(StopToken); ///< A test body that polls for a stop request.
 
         StringView name; ///< Test display name.
         Callback fn; ///< The test body.
         Vector<StringView> tags; ///< Optional tags for --tag filtering.
         Optional<StringView> disabled = nullopt; ///< When set, the test is reported skipped, with this reason, without running.
+        Optional<Nanoseconds> timeout = nullopt; ///< When set, the test fails if its body runs longer than this.
+
+        /**
+         * When set, a timed-out test is asked to stop rather than simply
+         * abandoned: run_body launches it on a std::jthread and calls
+         * request_stop() on timeout instead of orphaning a std::future. The
+         * test body must poll the token itself (e.g. `if (token.stop_requested())
+         * return;` inside its loop) - nothing forces it to notice, this only
+         * gives it the chance to. fn is still required and still runs when no
+         * timeout is set, so a cancellable test works the same as any other
+         * when it isn't given a budget.
+         */
+        Optional<CancellableCallback> cancellable_fn = nullopt;
     };
 
     /**
@@ -52,6 +97,7 @@ export namespace stdx::test {
          * discovery.inl, alongside the machinery it drives.
          */
         template <Info Nsp>
+            requires ScannableScope<Nsp>
         [[nodiscard]]
         static Suite of();
         #endif
@@ -122,20 +168,19 @@ namespace stdx::test {
 
     /**
      * @internal
-     * @brief Parses the runner options from argv.
-     * @param argc The argument count.
-     * @param argv The argument vector.
+     * @brief Parses the runner options from a command line.
+     * @param args The command line, argv[0] first - as Environment::args reports it.
      * @return The parsed options.
      */
     [[nodiscard]]
-    inline Options parse_options(int argc, char* argv[]) {
+    inline Options parse_options(Span<const StringView> args) {
         Options options;
-        for (usize i = 1; i < argc; ++i) {
-            const StringView arg = argv[i];
-            if (arg == "--filter" && i + 1 < argc) {
-                options.filter = argv[++i];
-            } else if (arg == "--tag" && i + 1 < argc) {
-                options.tag = argv[++i];
+        for (usize i = 1; i < args.size(); ++i) {
+            const StringView arg = args[i];
+            if (arg == "--filter" && i + 1 < args.size()) {
+                options.filter = args[++i];
+            } else if (arg == "--tag" && i + 1 < args.size()) {
+                options.tag = args[++i];
             } else if (arg == "--list") {
                 options.list = true;
             } else if (arg == "--verbose" || arg == "-v") {
@@ -145,6 +190,31 @@ namespace stdx::test {
             }
         }
         return options;
+    }
+
+    /**
+     * @internal
+     * @brief Adapts a main() argument vector to the Span form the runner uses.
+     * @param argc The argument count.
+     * @param argv The argument vector.
+     * @return The arguments as views, argv[0] first.
+     *
+     * The result owns the view array, so callers keep it alive for as long as they
+     * hold the span - the views themselves point into argv, which outlives them.
+     */
+    [[nodiscard]]
+    inline Vector<StringView> args_of(int argc, char* argv[]) {
+        Vector<StringView> args;
+        if (argv == nullptr || argc <= 0) {
+            return args;
+        }
+        args.reserve(static_cast<usize>(argc));
+        for (i32 i = 0; i < argc; ++i) {
+            if (argv[i] != nullptr) {
+                args.emplace_back(argv[i]);
+            }
+        }
+        return args;
     }
 
     /**
@@ -172,7 +242,7 @@ namespace stdx::test {
 
     /**
      * @internal
-     * @brief Prints one status line, optionally colorised.
+     * @brief Prints one status line, optionally colorized.
      * @param status The status label, e.g. "PASS".
      * @param color The color to use when color is enabled.
      * @param line The remainder of the line.
@@ -185,10 +255,149 @@ namespace stdx::test {
         bool use_color
     ) {
         if (use_color) {
-            stdx::io::println(TextStyle().fg(color), "{}  {}", status, line);
+            stdx::io::print(TextStyle().fg(color), "{}", status);
+            System::out.println("  {}", line);
         } else {
             System::out.println("{}  {}", status, line);
         }
+    }
+
+    /**
+     * @internal
+     * @enum BodyOutcome
+     * @brief How a test body's run ended, decided on whichever thread ran it
+     * and read back on the caller's thread once that is safe to do.
+     */
+    enum class BodyOutcome {
+        COMPLETED, ///< Returned normally.
+        ABORTED, ///< Threw TestAbort - a require_* or contract handler already reported it.
+        SKIPPED, ///< Threw TestSkipped.
+        THREW, ///< Threw a recognized Exception.
+        THREW_UNKNOWN, ///< Threw something not derived from Exception.
+    };
+
+    /**
+     * @internal
+     * @struct BodyResult
+     * @brief The outcome of a test body plus whatever it needs reported.
+     */
+    struct BodyResult {
+        BodyOutcome outcome = BodyOutcome::COMPLETED;
+        String detail; ///< The skip reason (SKIPPED) or exception message (THREW).
+    };
+
+    /**
+     * @internal
+     * @brief Runs fn, turning the exceptions run_one already knows how to
+     * handle into a BodyResult instead of letting them propagate.
+     * @param fn The test body.
+     * @return What happened.
+     *
+     * Shared by both run_body overloads so a cancellable test's cross-thread
+     * run and a plain test's same-thread run report identically. This must
+     * never let an exception escape when called as a std::jthread's
+     * function - jthread, like thread, calls std::terminate() if one does -
+     * so every exception type run_one previously caught directly is caught
+     * here too, without exception.
+     */
+    template <typename Fn>
+    [[nodiscard]]
+    inline BodyResult run_body_capturing(Fn&& fn) {
+        try {
+            fn();
+            return BodyResult {.outcome = BodyOutcome::COMPLETED};
+        } catch (const TestAbort& _) {
+            return BodyResult {.outcome = BodyOutcome::ABORTED};
+        } catch (const TestSkipped& s) {
+            return BodyResult {.outcome = BodyOutcome::SKIPPED, .detail = String(s.what())};
+        } catch (const Exception& e) {
+            return BodyResult {.outcome = BodyOutcome::THREW, .detail = String(e.what())};
+        } catch (...) {
+            return BodyResult {.outcome = BodyOutcome::THREW_UNKNOWN};
+        }
+    }
+
+    /**
+     * @internal
+     * @struct Completion
+     * @brief A one-shot, wait_for-capable "is it done yet" signal.
+     *
+     * std::jthread only offers a blocking join() - no wait_for - so a bounded
+     * wait for one needs its own condition variable rather than anything the
+     * thread type provides directly.
+     */
+    struct Completion {
+        Mutex mutex;
+        ConditionVariable ready;
+        bool done = false;
+
+        void signal() {
+            const LockGuard<Mutex> guard(mutex);
+            done = true;
+            ready.notify_all();
+        }
+
+        /**
+         * @return True if signal() had already happened within the wait.
+         */
+        template <typename Rep, typename Period>
+        [[nodiscard]]
+        bool wait_for(const Duration<Rep, Period>& timeout) {
+            UniqueLock<Mutex> lock(mutex);
+            return ready.wait_for(lock, timeout, [this] -> bool { return done; });
+        }
+    };
+
+    /**
+     * @internal
+     * @brief Runs a test body, enforcing an optional timeout.
+     * @param fn The test body.
+     * @param cancellable_fn When set, used instead of fn once a timeout is also
+     * set, so the body can be asked to stop rather than merely abandoned.
+     * @param timeout When set, the longest the body is allowed to run.
+     * @return The outcome, or nullopt if the timeout elapsed first.
+     */
+    [[nodiscard]]
+    inline Optional<BodyResult> run_body(
+        Test::Callback fn,
+        const Optional<Test::CancellableCallback>& cancellable_fn,
+        const Optional<Nanoseconds>& timeout
+    ) {
+        if (!timeout.has_value()) {
+            return run_body_capturing([fn] -> void { fn(); });
+        }
+        if (cancellable_fn.has_value()) {
+            auto result = Pointers::shared<BodyResult>();
+            auto completion = Pointers::shared<Completion>();
+            Thread worker([cancellable_fn, result, completion](StopToken token) -> void {
+                *result = run_body_capturing([cancellable_fn, token] -> void { (*cancellable_fn)(token); });
+                completion->signal();
+            });
+            if (completion->wait_for(*timeout)) {
+                worker.join();
+                return *result;
+            }
+            worker.request_stop();
+            static constexpr Nanoseconds GRACE = 50ms;
+            if (completion->wait_for(GRACE)) {
+                worker.join();
+                return *result;
+            }
+            static Vector<Thread> orphaned;
+            worker.detach();
+            orphaned.push_back(Ops::move(worker));
+            return nullopt;
+        }
+        Future<BodyResult> future = stdx::future::async(
+            LaunchPolicy::ASYNC,
+            [fn] -> BodyResult { return run_body_capturing([fn] -> void { fn(); }); }
+        );
+        if (future.wait_for(*timeout) == FutureStatus::TIMEOUT) {
+            static Vector<Future<BodyResult>> orphaned;
+            orphaned.push_back(Ops::move(future));
+            return nullopt;
+        }
+        return future.get();
     }
 
     /**
@@ -208,7 +417,6 @@ namespace stdx::test {
         Tally& tally
     ) {
         Context& ctx = Context::context();
-        ctx.begin_test();
         if (test.disabled.has_value()) {
             ++tally.skipped;
             const StringView why = *test.disabled;
@@ -220,25 +428,46 @@ namespace stdx::test {
             );
             return;
         }
+        ctx.begin_test();
         bool skipped = false;
+        bool timed_out = false;
         String skip_reason;
         const u64 start = System::nano_time();
         try {
             if (suite.before_each != nullptr) {
                 suite.before_each();
             }
-            test.fn();
-        } catch (const TestAbort& _) {
-            // A require_* assertion already reported the failure.
-        } catch (const TestSkipped& s) {
-            skipped = true;
-            skip_reason = s.what();
+            const Optional<BodyResult> outcome = run_body(test.fn, test.cancellable_fn, test.timeout);
+            if (!outcome.has_value()) {
+                timed_out = true;
+            } else {
+                switch (outcome->outcome) {
+                    case BodyOutcome::COMPLETED:
+                        break;
+                    case BodyOutcome::ABORTED:
+                        // A require_* assertion or the contract-violation
+                        // handler already reported the failure.
+                        break;
+                    case BodyOutcome::SKIPPED:
+                        skipped = true;
+                        skip_reason = outcome->detail;
+                        break;
+                    case BodyOutcome::THREW:
+                        ctx.record_error();
+                        System::err.println("    uncaught exception: {}", outcome->detail);
+                        break;
+                    case BodyOutcome::THREW_UNKNOWN:
+                        ctx.record_error();
+                        System::err.println("    uncaught unrecognized exception");
+                        break;
+                }
+            }
         } catch (const Exception& e) {
             ctx.record_error();
-            System::err.println("    uncaught exception: {}", e.what());
+            System::err.println("    uncaught exception in before_each: {}", e.what());
         } catch (...) {
             ctx.record_error();
-            System::err.println("    uncaught unrecognized exception");
+            System::err.println("    uncaught unrecognized exception in before_each");
         }
         try {
             if (suite.after_each != nullptr) {
@@ -247,13 +476,23 @@ namespace stdx::test {
         } catch (...) {
             // Teardown failures are ignored.
         }
+        ctx.end_test();
         const f64 elapsed_ms = static_cast<f64>(System::nano_time() - start) / 1.0e6;
-        const String line = Ops::fmt(
+        String line = Ops::fmt(
             "{} ({:.3f} ms, {} assertions)",
             test.name,
             elapsed_ms,
             ctx.test_assertions()
         );
+        if (timed_out) {
+            const f64 timeout_ms = static_cast<f64>(test.timeout->count()) / 1.0e6;
+            line = Ops::fmt(
+                "{} - exceeded its {:.3f} ms timeout; its thread is still running in the "
+                "background and may still record assertions against later tests",
+                line,
+                timeout_ms
+            );
+        }
         if (skipped) {
             ++tally.skipped;
             report(
@@ -262,14 +501,14 @@ namespace stdx::test {
                 skip_reason.empty() ? line : Ops::fmt("{} - {}", line, skip_reason),
                 options.color
             );
-        } else if (ctx.test_failures() == 0) {
+        } else if (timed_out || ctx.test_failures() != 0) {
+            ++tally.failed;
+            report("FAIL", TextStyle::Color::RED, line, options.color);
+        } else {
             ++tally.passed;
             if (options.verbose) {
                 report("PASS", TextStyle::Color::GREEN, line, options.color);
             }
-        } else {
-            ++tally.failed;
-            report("FAIL", TextStyle::Color::RED, line, options.color);
         }
     }
 
@@ -282,8 +521,8 @@ namespace stdx::test {
      * @return 0 if no test failed, 1 otherwise.
      */
     [[nodiscard]]
-    inline int run_impl(int argc, char* argv[], InitializerList<Suite> suites) {
-        const Options options = parse_options(argc, argv);
+    inline int run_impl(Span<const StringView> args, InitializerList<Suite> suites) {
+        const Options options = parse_options(args);
         Context::context().color(options.color);
         if (options.list) {
             for (const Suite& suite: suites) {
@@ -348,7 +587,20 @@ export namespace stdx::test {
      * @return 0 if no test failed, 1 otherwise.
      */
     int run(int argc, char* argv[], InitializerList<Test> tests) {
-        return run_impl(argc, argv, {Suite {.tests = Vector<Test>(tests)}});
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, {Suite {.tests = Vector<Test>(tests)}});
+    }
+
+    /**
+     * @brief Runs tests as an anonymous suite, taking the command line from the process.
+     * @param tests The tests to run.
+     * @return 0 if no test failed, 1 otherwise.
+     *
+     * Equivalent to the argc/argv overload with Environment::args(), which needs no
+     * cooperation from main - so `int main() { return run({...}); }` works.
+     */
+    int run(InitializerList<Test> tests) {
+        return run_impl(Environment::args(), {Suite {.tests = Vector<Test>(tests)}});
     }
 
     /**
@@ -365,7 +617,21 @@ export namespace stdx::test {
         Vector<Test> list;
         list.reserve(sizeof...(tests));
         (list.push_back(Ops::forward<decltype(tests)>(tests)), ...);
-        return run_impl(argc, argv, {Suite {.tests = Ops::move(list)}});
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, {Suite {.tests = Ops::move(list)}});
+    }
+
+    /**
+     * @brief Runs tests given as separate arguments, taking the command line from
+     * the process. See the argc/argv overload.
+     * @param tests The tests to run, each given as its own argument.
+     * @return 0 if no test failed, 1 otherwise.
+     */
+    int run(DecaysTo<Test> auto&&... tests) {
+        Vector<Test> list;
+        list.reserve(sizeof...(tests));
+        (list.push_back(Ops::forward<decltype(tests)>(tests)), ...);
+        return run_impl(Environment::args(), {Suite {.tests = Ops::move(list)}});
     }
 
     /**
@@ -379,7 +645,17 @@ export namespace stdx::test {
      * of {name, fn} entries selects the InitializerList<Test> overload instead.
      */
     int run(int argc, char* argv[], const Suite& suite) {
-        return run_impl(argc, argv, {suite});
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, {suite});
+    }
+
+    /**
+     * @brief Runs a single suite, taking the command line from the process.
+     * @param suite The suite to run.
+     * @return 0 if no test failed, 1 otherwise.
+     */
+    int run(const Suite& suite) {
+        return run_impl(Environment::args(), {suite});
     }
 
     /**
@@ -395,7 +671,17 @@ export namespace stdx::test {
      * ambiguous.
      */
     int run_suites(int argc, char* argv[], InitializerList<Suite> suites) {
-        return run_impl(argc, argv, suites);
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, suites);
+    }
+
+    /**
+     * @brief Runs several suites, taking the command line from the process.
+     * @param suites The suites to run.
+     * @return 0 if no test failed, 1 otherwise.
+     */
+    int run_suites(InitializerList<Suite> suites) {
+        return run_impl(Environment::args(), suites);
     }
 
     /**
@@ -409,6 +695,17 @@ export namespace stdx::test {
      * run(argc, argv, Suite {...}, Suite {...}).
      */
     int run(int argc, char* argv[], DecaysTo<Suite> auto&&... suites) {
-        return run_impl(argc, argv, {Ops::forward<decltype(suites)>(suites)...});
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, {Ops::forward<decltype(suites)>(suites)...});
+    }
+
+    /**
+     * @brief Runs suites given as separate arguments, taking the command line from
+     * the process. See the argc/argv overload.
+     * @param suites The suites to run, each given as its own argument.
+     * @return 0 if no test failed, 1 otherwise.
+     */
+    int run(DecaysTo<Suite> auto&&... suites) {
+        return run_impl(Environment::args(), {Ops::forward<decltype(suites)>(suites)...});
     }
 }

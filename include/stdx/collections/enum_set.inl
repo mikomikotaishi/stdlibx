@@ -66,17 +66,9 @@ export namespace stdx::collections {
         }
 
         [[nodiscard]]
-        static constexpr EnumSet of(E v) noexcept {
+        static constexpr EnumSet of(SameAs<E> auto... vals) noexcept requires (sizeof...(vals) > 0) {
             EnumSet s;
-            s.insert(v);
-            return s;
-        }
-
-        [[nodiscard]]
-        static constexpr EnumSet of(E first, SameAs<E> auto... rest) noexcept {
-            EnumSet s;
-            s.insert(first);
-            (s.insert(rest), ...);
+            (s.insert(vals), ...);
             return s;
         }
 
@@ -343,5 +335,5 @@ namespace stdx::fmt {
 }
 
 template <typename T, typename Char>
-struct stdx::fmt::formatter<EnumSet<T>, Char> : public Formatter<EnumSet<T>, Char> {};
+struct stdx::fmt::formatter<EnumSet<T>, Char>: public Formatter<EnumSet<T>, Char> {};
 #endif

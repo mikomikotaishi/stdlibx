@@ -8,7 +8,9 @@
 #include <threads.h>
 #endif
 
-#ifdef __unix__
+// Darwin does not define __unix__ (only __APPLE__/__MACH__), but ships all of
+// these POSIX headers except <mqueue.h>.
+#if defined(__unix__) || defined(__APPLE__)
 #include <aio.h>
 #include <dirent.h>
 #include <dlfcn.h>
@@ -22,7 +24,9 @@
 #include <langinfo.h>
 #include <libgen.h>
 #include <monetary.h>
+#if __has_include(<mqueue.h>)
 #include <mqueue.h>
+#endif
 #include <netdb.h>
 #include <nl_types.h>
 #include <pthread.h>

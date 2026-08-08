@@ -22,8 +22,8 @@ export namespace stdx::audio::sampled {
     private:
         UniquePointer<AudioInputStream> _stream;
         UniquePointer<OutputLine> _line;
-        Atomic<bool> _finished{false};
-        Atomic<bool> _playing{false};
+        Atomic<bool> _finished = false;
+        Atomic<bool> _playing = false;
     public:
         explicit Clip(UniquePointer<AudioInputStream> stream) noexcept:
             _stream{Ops::move(stream)} {}
@@ -32,8 +32,8 @@ export namespace stdx::audio::sampled {
             close();
         }
 
-        Clip(const Clip&) = delete("Clip is not copyable.");
-        Clip& operator=(const Clip&) = delete("Clip is not copyable.");
+        Clip(const Clip&) = DELETE_METHOD("Clip is not copyable.");
+        Clip& operator=(const Clip&) = DELETE_METHOD("Clip is not copyable.");
 
         /**
          * @brief Open the default output at the file's native format and start
@@ -55,7 +55,7 @@ export namespace stdx::audio::sampled {
             // and the OutputLine destructor joins its worker.
             RenderCallback cb = [this](Span<f32> out, AudioTime) -> void {
                 if (_finished.load()) {
-                    for (f32& s : out) {
+                    for (f32& s: out) {
                         s = 0.0f;
                     }
                     return;

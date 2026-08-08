@@ -184,7 +184,7 @@ export namespace stdx::io {
          */
         THROWS(IllegalStateException)
         void reset() {
-            if (!marked) {
+            if (!marked.has_value()) {
                 throw IllegalStateException("ByteBuffer has no mark to reset to");
             }
             pos = *marked;
@@ -267,7 +267,7 @@ export namespace stdx::io {
             if (pos > lim) {
                 pos = lim;
             }
-            if (marked && *marked > lim) {
+            if (marked.has_value() && *marked > lim) {
                 marked = nullopt;
             }
         }

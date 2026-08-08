@@ -25,7 +25,7 @@ namespace stdx::audio::midi {
      */
     class SoftSequencerTransmitter final: public Transmitter {
     private:
-        Atomic<Receiver*> _rx{nullptr};
+        Atomic<Receiver*> _rx = nullptr;
     public:
         void set_receiver(Receiver* r) noexcept override {
             _rx.store(r);
@@ -54,14 +54,14 @@ namespace stdx::audio::midi {
         UniquePointer<Sequence> _seq;
         SoftSequencerTransmitter _tx;
         Thread _worker;
-        Atomic<bool> _running{false};
-        Atomic<bool> _opened{false};
-        Atomic<i64> _tick_pos{0};
-        Atomic<u32> _tempo_us_per_qn{500'000}; ///< Tempo in microseconds per quarter-note. 500'000 == 120 BPM.
-        Atomic<f32> _factor{1.0f};
-        Atomic<i64> _loop_start{0};
-        Atomic<i64> _loop_end{-1};
-        Atomic<i32> _loop_count{0};
+        Atomic<bool> _running = false;
+        Atomic<bool> _opened = false;
+        Atomic<i64> _tick_pos = 0;
+        Atomic<u32> _tempo_us_per_qn = 500'000; ///< Tempo in microseconds per quarter-note. 500'000 == 120 BPM.
+        Atomic<f32> _factor = 1.0f;
+        Atomic<i64> _loop_start = 0;
+        Atomic<i64> _loop_end = -1;
+        Atomic<i32> _loop_count = 0;
 
         void play_loop() noexcept {
             if (!_seq) {
@@ -173,7 +173,7 @@ namespace stdx::audio::midi {
                 } else {
                     // ShortMessage or SysexMessage - forward to the wired Receiver.
                     Receiver* r = _tx.receiver();
-                    if (r) {
+                    if (r != nullptr) {
                         try {
                             r->send(*msg, 0);
                         } catch (...) {

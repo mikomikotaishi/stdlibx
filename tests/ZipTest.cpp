@@ -27,8 +27,10 @@ bool bytes_equal(Span<const u8> a, Span<const u8> b) noexcept {
     return true;
 }
 
-// Run input through a Deflater fully (FINISH), then through an Inflater, and
-// return the round-tripped bytes. Throws if either step fails.
+/**
+ * @brief Runs input through a Deflater fully (FINISH), then through an Inflater, and
+ * return the round-tripped bytes. Throws if either step fails.
+ */
 [[nodiscard]]
 Vector<u8> round_trip(Span<const u8> input, bool nowrap) {
     Deflater deflater{CompressionLevel::DEFAULT_COMPRESSION, nowrap};
@@ -43,7 +45,6 @@ Vector<u8> round_trip(Span<const u8> input, bool nowrap) {
 }
 
 void test_crc32() {
-    // ISO/IEC 13818-1 reference: CRC-32/ISO-HDLC of "123456789" = 0xCBF43926.
     static constexpr StringView VECTOR = "123456789";
     const Span<const u8> bytes{
         reinterpret_cast<const u8*>(VECTOR.data()), VECTOR.size()
@@ -55,7 +56,6 @@ void test_crc32() {
         "CRC32 of \"123456789\" equals 0xCBF43926"
     );
 
-    // Incremental update must match single-shot.
     CRC32 crc_incremental;
     crc_incremental.update(bytes.subspan(0, 4));
     crc_incremental.update(bytes.subspan(4));
@@ -64,7 +64,6 @@ void test_crc32() {
         "CRC32 is associative across chunk boundaries"
     );
 
-    // reset() returns to the initial state.
     crc.reset();
     expect(
         crc.value() == 0u,
@@ -73,7 +72,6 @@ void test_crc32() {
 }
 
 void test_adler32() {
-    // Reference vector from the Adler-32 RFC 1950 appendix: "Wikipedia" → 0x11E60398.
     static constexpr StringView VECTOR = "Wikipedia";
     const Span<const u8> bytes{
         reinterpret_cast<const u8*>(VECTOR.data()), VECTOR.size()
@@ -85,7 +83,6 @@ void test_adler32() {
         "Adler32 of \"Wikipedia\" equals 0x11E60398"
     );
 
-    // Adler-32 of the empty string is 1 (the algorithm's initial state).
     Adler32 empty;
     expect(
         empty.value() == 1u,
@@ -117,8 +114,6 @@ void test_roundtrip_small() {
 }
 
 void test_roundtrip_large() {
-    // Build ~256 KB of repeating-pattern data so the compressor actually has
-    // something to chew on. Pattern: 0..255 cycled.
     static constexpr usize SIZE = 256 * 1024;
     Vector<u8> input(SIZE);
     for (usize i = 0; i < SIZE; ++i) {
@@ -129,9 +124,6 @@ void test_roundtrip_large() {
     d.set_input(Span<const u8>{input.data(), input.size()});
     ByteBuffer compressed = d.finish();
 
-    // 256 KB of a perfectly repeating byte pattern should compress to <1 KB
-    // with BEST_COMPRESSION. If it doesn't, something is wrong with the
-    // compressor pipeline (FlushMode::FINISH not applied, output truncated, ...).
     expect(
         compressed.size() < 2 * 1024,
         "repeating pattern compresses to under 2 KB"
@@ -165,7 +157,7 @@ void test_gzip_roundtrip() {
     GZIPDeflater d{CompressionLevel::DEFAULT_COMPRESSION};
     d.set_input(input);
     ByteBuffer compressed = d.finish();
-    // GZIP framing must be present: first two bytes are the magic 0x1F 0x8B.
+
     expect(
         compressed.size() >= 2 &&
         compressed.data()[0] == 0x1F &&
@@ -190,8 +182,6 @@ void test_gzip_roundtrip() {
 }
 
 void test_invalid_input() {
-    // Bytes that aren't a valid deflate stream - inflate() must throw
-    // DataFormatException (the project's own subclass of ZipException).
     static constexpr Array<u8, 8> GARBAGE = {
         0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
     };
@@ -199,7 +189,7 @@ void test_invalid_input() {
     inf.set_input(Span<const u8>(GARBAGE));
     bool threw = false;
     try {
-        (void)inf.inflate_all();
+        static_cast<void>(inf.inflate_all());
     } catch (const DataFormatException& _) {
         threw = true;
     }
@@ -210,12 +200,12 @@ void test_invalid_input() {
 int main(int argc, char* argv[]) {
     #ifdef STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY
     return run(argc, argv, {
-        {"zip.crc32", test_crc32},
-        {"zip.adler32", test_adler32},
-        {"zip.roundtrip_small", test_roundtrip_small},
-        {"zip.roundtrip_large", test_roundtrip_large},
-        {"zip.gzip_roundtrip", test_gzip_roundtrip},
-        {"zip.invalid_input", test_invalid_input},
+        {"Zip.crc32", test_crc32},
+        {"Zip.adler32", test_adler32},
+        {"Zip.roundtrip_small", test_roundtrip_small},
+        {"Zip.roundtrip_large", test_roundtrip_large},
+        {"Zip.gzip_roundtrip", test_gzip_roundtrip},
+        {"Zip.invalid_input", test_invalid_input},
     });
     #else
     System::out.println("[test] Test disabled (enable with STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY).");

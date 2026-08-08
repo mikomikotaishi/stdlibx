@@ -1,5 +1,6 @@
 #pragma once
 
+using stdx::text::TextEncoding;
 using stdx::text::string::String;
 using stdx::text::string::StringView;
 using stdx::text::string::BasicString;
@@ -77,8 +78,9 @@ export namespace stdx::core {
             try {
                 return Self(String(name).c_str());
             } catch (...) {
+                // nothing
             }
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             if (!name.empty() && name != "C" && name != "POSIX"
                 && name.find('.') == StringView::npos) {
                 try {
@@ -216,17 +218,17 @@ export namespace stdx::core {
          * @return The locale's encoding, or an unknown encoding if none is named.
          */
         [[nodiscard]]
-        text::TextEncoding encoding() const noexcept {
+        TextEncoding encoding() const noexcept {
             const String locale_name = _locale.name();
             const auto dot = locale_name.find('.');
             if (dot == String::npos) {
-                return text::TextEncoding();
+                return TextEncoding();
             }
             StringView codeset = StringView(locale_name).substr(dot + 1);
             if (const auto at = codeset.find('@'); at != StringView::npos) {
                 codeset = codeset.substr(0, at);
             }
-            return text::TextEncoding(codeset);
+            return TextEncoding(codeset);
         }
         #endif
 

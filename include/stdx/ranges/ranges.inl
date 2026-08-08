@@ -76,8 +76,10 @@ export namespace stdx::ranges {
     template <typename T>
     concept ViewableRange = std::ranges::viewable_range<T>;
 
+    #ifdef __cpp_lib_ranges_as_const
     template <typename T>
     concept ConstantRange = std::ranges::constant_range<T>;
+    #endif
 
     #ifdef __cpp_lib_ranges_reserve_hint
     template <typename T>
@@ -90,14 +92,18 @@ export namespace stdx::ranges {
     template <typename T>
     using RangeIterator = std::ranges::iterator_t<T>;
 
+    #ifdef __cpp_lib_ranges_as_const
     template <Range R>
     using RangeConstIterator = std::ranges::const_iterator_t<R>;
+    #endif
 
     template <Range R>
     using RangeSentinel = std::ranges::sentinel_t<R>;
 
+    #ifdef __cpp_lib_ranges_as_const
     template <Range R>
     using RangeConstSentinel = std::ranges::const_sentinel_t<R>;
+    #endif
 
     template <SizedRange R>
     using RangeSize = std::ranges::range_size_t<R>;
@@ -105,8 +111,10 @@ export namespace stdx::ranges {
     template <Range R>
     using RangeReference = std::ranges::range_reference_t<R>;
 
+    #ifdef __cpp_lib_ranges_as_const
     template <Range R>
     using RangeConstReference = std::ranges::range_const_reference_t<R>;
+    #endif
 
     template <Range R>
     using RangeRvalueReference = std::ranges::range_rvalue_reference_t<R>;

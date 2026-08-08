@@ -382,4 +382,4 @@ namespace stdx::fmt {
 }
 
 template <typename F, typename Char>
-struct stdx::fmt::formatter<Quaternion<F>, Char> : public Formatter<Quaternion<F>, Char> {};
+struct stdx::fmt::formatter<Quaternion<F>, Char>: public Formatter<Quaternion<F>, Char> {};

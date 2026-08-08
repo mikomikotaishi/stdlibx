@@ -13,6 +13,7 @@ using stdx::mem::UniquePointer;
 using stdx::thread::Thread;
 using stdx::time::Duration;
 using stdx::time::Instant;
+using stdx::time::Seconds;
 using stdx::time::SteadyClock;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
@@ -21,7 +22,7 @@ using stdx::util::DefaultArguments;
 // either the project root, build/, or build/tests/, so probe a few common
 // prefixes before giving up. The first match wins.
 [[nodiscard]]
-Optional<Path> resolve_default_sample() noexcept {
+Optional<Path> resolveDefaultSample() noexcept {
     static constexpr Array<StringView, 4> CANDIDATES = {
         "examples/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
         "../examples/Audio/audio/wav/th06/th06_01-SD90_440Hz.wav",
@@ -68,26 +69,26 @@ void describe(const Path& path) {
 
     // Pull the whole stream through read() in chunks; verify it reports a
     // consistent total and position-after-EOF matches frame_count.
-    constexpr usize CHUNK_FRAMES = 4096;
+    static constexpr usize CHUNK_FRAMES = 4096;
     Vector<f32> buf(CHUNK_FRAMES * fmt.channels);
-    u64 read_total = 0;
+    u64 readTotal = 0;
     while (true) {
         const usize got = stream->read(Span<f32>{buf.data(), buf.size()});
         if (got == 0) {
             break;
         }
-        read_total += got;
+        readTotal += got;
     }
-    System::out.println("{}: {}", "read sum equals total_frames", read_total == total);
+    System::out.println("{}: {}", "read sum equals total_frames", readTotal == total);
     System::out.println("{}: {}", "position after EOF equals total_frames", stream->position_frames() == total);
 
     // After EOF, further reads return 0 forever.
-    const usize after_eof = stream->read(Span<f32>{buf.data(), buf.size()});
-    System::out.println("{}: {}", "read past EOF returns 0", after_eof == 0);
+    const usize afterEof = stream->read(Span<f32>{buf.data(), buf.size()});
+    System::out.println("{}: {}", "read past EOF returns 0", afterEof == 0);
 }
 
 // @p max_seconds caps playback at the first N seconds; 0 plays in full.
-void play(const Path& path, i64 max_seconds) {
+void play(const Path& path, Seconds seconds) {
     UniquePointer<AudioInputStream> stream;
     try {
         stream = AudioSystem::open_audio_file(path);
@@ -98,12 +99,12 @@ void play(const Path& path, i64 max_seconds) {
     const u64 total = stream->total_frames();
     const u32 rate = stream->format().sample_rate;
     const f64 length = static_cast<f64>(total) / static_cast<f64>(rate);
-    if (max_seconds > 0 && static_cast<f64>(max_seconds) < length) {
+    if (seconds > 0s && seconds.count() < length) {
         System::out.println(
-            "Playing {} (first {}s of {:.2f}s)…", path, max_seconds, length
+            "Playing {} (first {}s of {:.2f}s)...", path, seconds.count(), length
         );
     } else {
-        System::out.println("Playing {} ({:.2f}s)…", path, length);
+        System::out.println("Playing {} ({:.2f}s)...", path, length);
     }
     try {
         Clip clip{Ops::move(stream)};
@@ -113,7 +114,7 @@ void play(const Path& path, i64 max_seconds) {
         const Instant<SteadyClock> start = SteadyClock::now();
         while (clip.is_playing()) {
             const f64 elapsed = Duration<f64>(SteadyClock::now() - start).count();
-            if (max_seconds > 0 && elapsed >= static_cast<f64>(max_seconds)) {
+            if (seconds > 0s && elapsed >= seconds.count()) {
                 break;
             }
             Thread::sleep_for(10ms);
@@ -150,7 +151,7 @@ int main(int argc, char* argv[]) {
             return System::EXIT_FAILURE;
         }
     } else {
-        Optional<Path> resolved = resolve_default_sample();
+        Optional<Path> resolved = resolveDefaultSample();
         if (!resolved.has_value()) {
             System::err.println(
                 "Could not locate the bundled sample. Pass --file <path> or "
@@ -165,7 +166,7 @@ int main(int argc, char* argv[]) {
 
     if (parser.get<bool>("--play")) {
         System::out.println("");
-        play(path, parser.get<i64>("--abridge"));
+        play(path, Seconds(parser.get<i64>("--abridge")));
     }
 
     return System::EXIT_SUCCESS;

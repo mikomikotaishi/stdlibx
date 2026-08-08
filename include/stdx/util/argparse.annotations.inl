@@ -5,6 +5,7 @@ using stdx::collections::Vector;
 using stdx::meta::RemoveConstVolatileReferenceType;
 using stdx::meta::reflect::AccessContext;
 using stdx::meta::reflect::Annotation;
+using stdx::meta::reflect::Class;
 using stdx::meta::reflect::Field;
 using stdx::meta::reflect::ReflectableAsClass;
 
@@ -60,6 +61,39 @@ namespace stdx::util {
         Vector<StringView> result;
         for (usize i = 1; i < argc; ++i) {
             result.emplace_back(argv[i]);
+        }
+        return result;
+    }
+
+    /**
+     * @brief The same, from a command line already held as views: element 0 dropped.
+     * @param command_line The whole command line, program name first.
+     */
+    [[nodiscard]]
+    Vector<StringView> collect_args(Span<const StringView> command_line) {
+        Vector<StringView> result;
+        for (usize i = 1; i < command_line.size(); ++i) {
+            result.emplace_back(command_line[i]);
+        }
+        return result;
+    }
+
+    /**
+     * @brief argv as views, program name included, for handing to the Span overloads.
+     * @param argc The argument count.
+     * @param argv The argument vector.
+     */
+    [[nodiscard]]
+    Vector<StringView> whole_command_line(int argc, char* argv[]) {
+        Vector<StringView> result;
+        if (argv == nullptr || argc <= 0) {
+            return result;
+        }
+        result.reserve(static_cast<usize>(argc));
+        for (i32 i = 0; i < argc; ++i) {
+            if (argv[i] != nullptr) {
+                result.emplace_back(argv[i]);
+            }
         }
         return result;
     }
@@ -127,21 +161,20 @@ namespace stdx::util {
         return Ops::fmt("--{}", formatted);
     }
 
-    template <typename T>
-        requires IsSameValue<T, String>
+    template <SameAs<String> T>
     String convert_value(StringView value) {
         return String(value);
     }
 
     template <typename T>
-        requires (Integral<T> && !IsSameValue<T, bool>)
-    [[=Throws<InvalidArgumentException, InvalidRangeException>()]]
+        requires (Integral<T> && !SameAs<T, bool>)
+    [[=Throws<InvalidArgumentException, InvalidRangeException>]]
     T convert_value(StringView value) {
-        return perform_from_chars<T, 10uz>(value);
+        return from_chars<T, 10uz>(value);
     }
 
     template <IsOptional T>
-    [[=Throws<InvalidArgumentException, InvalidRangeException>()]]
+    [[=Throws<InvalidArgumentException, InvalidRangeException>]]
     typename OptionalValueType<T>::Value convert_value(StringView value) {
         return convert_value<typename OptionalValueType<T>::Value>(value);
     }
@@ -151,20 +184,18 @@ namespace stdx::util {
         return "value";
     }
 
-    template <typename T>
-        requires IsSameValue<T, String>
+    template <SameAs<String> T>
     constexpr StringView friendly_type_name() noexcept {
         return "string";
     }
 
     template <typename T>
-        requires (Integral<T> && !IsSameValue<T, bool>)
+        requires (Integral<T> && !SameAs<T, bool>)
     constexpr StringView friendly_type_name() noexcept {
         return "number";
     }
 
-    template <typename T>
-        requires IsSameValue<T, bool>
+    template <SameAs<bool> T>
     constexpr StringView friendly_type_name() noexcept {
         return "bool";
     }
@@ -229,7 +260,7 @@ export namespace stdx::util {
      */
     template <typename T>
     concept IsShortName = requires { T::letter; }
-        && IsSameValue<RemoveConstVolatileReferenceType<T>, ShortName<T::letter>>;
+        && SameAs<RemoveConstVolatileReferenceType<T>, ShortName<T::letter>>;
 
     /**
      * @concept IsDescription
@@ -238,7 +269,7 @@ export namespace stdx::util {
      */
     template <typename T>
     concept IsDescription = requires { T::descriptor(); }
-        && IsSameValue<RemoveConstVolatileReferenceType<T>, Description<T::descriptor()>>;
+        && SameAs<RemoveConstVolatileReferenceType<T>, Description<T::descriptor()>>;
 
     /**
      * @concept IsEnv
@@ -247,28 +278,41 @@ export namespace stdx::util {
      */
     template <typename T>
     concept IsEnv = requires { T::descriptor(); }
-        && IsSameValue<RemoveConstVolatileReferenceType<T>, Env<T::descriptor()>>;
+        && SameAs<RemoveConstVolatileReferenceType<T>, Env<T::descriptor()>>;
 
     template <ReflectableAsClass T>
-    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>()]]
+    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>]]
     T ArgumentParser::parse(int argc, char* argv[]) {
+        const Vector<StringView> command_line = whole_command_line(argc, argv);
+        return parse<T>(Span<const StringView>(command_line));
+    }
+
+    template <ReflectableAsClass T>
+    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>]]
+    T ArgumentParser::parse() {
+        return parse<T>(Environment::args());
+    }
+
+    template <ReflectableAsClass T>
+    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>]]
+    T ArgumentParser::parse(Span<const StringView> command_line) {
         static_assert(
-            Ops::class_of<T>().is_default_constructible(),
+            Class<T>().is_default_constructible(),
             "ArgumentParser::parse<T> requires T to be default-constructible"
         );
 
         constexpr AccessContext ctx = AccessContext::unchecked();
-        const Vector<StringView> arguments = collect_args(argc, argv);
+        const Vector<StringView> arguments = collect_args(command_line);
 
         T result;
 
-        template for (constexpr Field field: Ops::define_static_array(Ops::class_of<T>().fields(ctx))) {
+        template for (constexpr Field field: Ops::static_array(Class<T>().fields(ctx))) {
             using MemberType = typename [:field.type().value():];
 
             Optional<String> short_flag;
             Optional<String> env_name;
 
-            template for (constexpr Annotation ann: Ops::define_static_array(field.annotations())) {
+            template for (constexpr Annotation ann: Ops::static_array(field.annotations())) {
                 using AnnotationType = typename [:ann.type().value():];
                 if constexpr (IsShortName<AnnotationType>) {
                     if (short_flag.has_value()) {
@@ -292,7 +336,7 @@ export namespace stdx::util {
                 );
             }
 
-            if constexpr (IsSameValue<MemberType, bool>) {
+            if constexpr (SameAs<MemberType, bool>) {
                 result.[:field.value():] = long_index.has_value() || short_index.has_value();
             } else {
                 constexpr bool optional_field = IsOptional<MemberType>;
@@ -312,7 +356,7 @@ export namespace stdx::util {
                     }
                     result.[:field.value():] = convert_value<MemberType>(arguments[*index + 1]);
                 } else if (env_name.has_value()) {
-                    if (Optional<StringView> env_value = Environment::get(*env_name); env_value.has_value()) {
+                    if (Optional<String> env_value = Environment::get(*env_name); env_value.has_value()) {
                         result.[:field.value():] = convert_value<MemberType>(*env_value);
                     } else if (!optional_field && !defaulted_field) {
                         throw CommandLineParserException(Ops::fmt(
@@ -333,23 +377,34 @@ export namespace stdx::util {
 
     template <ReflectableAsClass T>
     String ArgumentParser::help(int argc, char* argv[]) {
+        const Vector<StringView> command_line = whole_command_line(argc, argv);
+        return help<T>(Span<const StringView>(command_line));
+    }
+
+    template <ReflectableAsClass T>
+    String ArgumentParser::help() {
+        return help<T>(Environment::args());
+    }
+
+    template <ReflectableAsClass T>
+    String ArgumentParser::help(Span<const StringView> command_line) {
         static_assert(
-            Ops::class_of<T>().is_default_constructible(),
+            Class<T>().is_default_constructible(),
             "ArgumentParser::help<T> requires T to be default-constructible"
         );
 
         constexpr AccessContext ctx = AccessContext::unchecked();
         String out = Ops::fmt(
-            "{}\n\n", argc > 0 ? StringView(argv[0]) : "program"sv
+            "{}\n\n", command_line.empty() ? "program"sv : command_line.front()
         );
 
-        template for (constexpr Field field: Ops::define_static_array(Ops::class_of<T>().fields(ctx))) {
+        template for (constexpr Field field: Ops::static_array(Class<T>().fields(ctx))) {
             using MemberType = typename [:field.type().value():];
 
             Optional<String> short_flag;
             Optional<StringView> description;
 
-            template for (constexpr Annotation ann: Ops::define_static_array(field.annotations())) {
+            template for (constexpr Annotation ann: Ops::static_array(field.annotations())) {
                 using AnnotationType = typename [:ann.type().value():];
                 if constexpr (IsShortName<AnnotationType>) {
                     short_flag = Ops::fmt("-{}", AnnotationType::letter);
