@@ -1,5 +1,7 @@
 #pragma once
 
+using stdx::fmt::Formatter;
+
 namespace stdx::time::chrono {
     /**
      * @internal
@@ -682,4 +684,4 @@ namespace stdx::fmt {
 }
 
 template <ChronologyLike Chrono, typename Char>
-struct stdx::fmt::formatter<ChronoLocalDate<Chrono>, Char> : public stdx::fmt::Formatter<ChronoLocalDate<Chrono>, Char> {};
+struct stdx::fmt::formatter<ChronoLocalDate<Chrono>, Char>: public Formatter<ChronoLocalDate<Chrono>, Char> {};

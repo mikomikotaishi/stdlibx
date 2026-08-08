@@ -13,7 +13,7 @@ export namespace stdx::time::chrono {
      */
     class ThaiBuddhistChronology final {
     public:
-        ThaiBuddhistChronology() = delete("ThaiBuddhistChronology is a static utility class and cannot be instantiated.");
+        ThaiBuddhistChronology() = DELETE_METHOD("ThaiBuddhistChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era

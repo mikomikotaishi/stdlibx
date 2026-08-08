@@ -8,7 +8,7 @@ using namespace stdx::os;
  */
 namespace stdx::net {
     #ifdef _WIN32
-    using AddressInfo = win32::WinAddrInfo;
+    using AddressInfo = win32::AddrInfo;
     #else
     using AddressInfo = unix::AddressInfo;
     #endif
@@ -74,6 +74,64 @@ namespace stdx::net {
         }
         return scheme;
     }
+
+    /**
+     * @internal
+     * @brief Whether @p status means the service name is simply not registered.
+     * @param status The status a lookup returned.
+     * @param host The host the lookup named; an empty one changes what EAI_NONAME means.
+     * @return true if the name is unknown, false if the lookup failed for some other reason.
+     *
+     * The one place this question is answered. raise_resolver_error consults it
+     * to choose UnknownServiceException, and Resolver::service_port consults it
+     * to answer with an empty Optional - so the two agree by construction rather
+     * than by the second catching what the first threw.
+     *
+     * Which status stands for "no such service" is a platform matter and not a
+     * tidy one: glibc answers EAI_SERVICE, some BSD resolvers answer EAI_NONAME
+     * when no host was named, and Winsock answers WSATYPE_NOT_FOUND. Collecting
+     * those here means a fourth spelling is one edit, in one function, rather
+     * than a silent change in what a query returns.
+     */
+    [[nodiscard]]
+    inline bool is_service_not_found(i32 status, [[maybe_unused]] StringView host) noexcept {
+        #ifdef _WIN32
+        return status == win32::WSATYPE_NOT_FOUND;
+        #else
+        return status == unix::EAI_SERVICE || (status == unix::EAI_NONAME && host.empty());
+        #endif
+    }
+
+    /**
+     * @internal
+     * @brief Whether resolving @p host has to consult a name service.
+     * @param host The host the lookup names; an empty one asks about the local host.
+     * @param numeric_host Whether the resolver refuses names outright.
+     * @return true if a name must be looked up, false if the answer is already in the host text.
+     *
+     * This decides one thing: whether the lookup asks for AI_ADDRCONFIG. That
+     * flag exists to keep a name lookup from offering a family the machine has
+     * no address for, so a host with no IPv6 address is not handed an AAAA
+     * record it cannot connect to. It is the right policy for a name and the
+     * wrong one for a literal, because a literal has nothing to filter: the
+     * caller already said which address it means.
+     *
+     * Asking for it anyway turns a local configuration detail into a parse
+     * failure. glibc answers EAI_ADDRFAMILY for "::1" on a machine with no IPv6
+     * address configured, which is how a container with IPv4-only networking
+     * makes the one address that needs no resolving fail to resolve.
+     *
+     * An empty host stays a name lookup. It asks for the local host, or for the
+     * wildcard when the results are for bind(), and which families those have is
+     * exactly the question AI_ADDRCONFIG answers.
+     */
+    [[nodiscard]]
+    inline bool needs_name_lookup(StringView host, bool numeric_host) noexcept {
+        if (host.empty()) {
+            return true;
+        }
+        return !numeric_host && !IPAddress::parse(host);
+    }
 }
 
 /**
@@ -92,20 +150,20 @@ export namespace stdx::net {
      */
     [[noreturn]]
     void raise_resolver_error(i32 status, StringView host) {
+        const StringView shown = host.empty() ? "the local host"sv : host;
+
         #ifdef _WIN32
         const String reason = describe_socket_error(status);
-        const i32 no_service = win32::WSATYPE_NOT_FOUND;
         #else
         const String reason = String(unix::gai_strerror(status));
-        const i32 no_service = unix::EAI_SERVICE;
 
         if (status == unix::EAI_SYSTEM) {
-            raise_socket_error(last_socket_error(), Ops::fmt("resolving {}", host));
+            raise_socket_error(last_socket_error(), Ops::fmt("resolving {}", shown));
         }
         #endif
 
-        const String message = Ops::fmt("cannot resolve {}: {}", host, reason);
-        if (status == no_service) {
+        const String message = Ops::fmt("cannot resolve {}: {}", shown, reason);
+        if (is_service_not_found(status, host)) {
             throw UnknownServiceException(message);
         }
         throw UnknownHostException(message);
@@ -142,10 +200,11 @@ export namespace stdx::net {
 
         /**
          * @brief The hints structure this resolver's options describe.
+         * @param host The host the lookup will name, which decides whether AI_ADDRCONFIG applies.
          * @return The hints to hand to getaddrinfo.
          */
         [[nodiscard]]
-        AddressInfo hints() const noexcept {
+        AddressInfo hints(StringView host) const noexcept {
             AddressInfo hints{};
 
             #ifdef _WIN32
@@ -153,7 +212,10 @@ export namespace stdx::net {
             hints.ai_socktype = _options.type == Socket::Type::STREAM
                 ? win32::SOCK_STREAM
                 : win32::SOCK_DGRAM;
-            hints.ai_flags = win32::AI_ADDRCONFIG;
+            hints.ai_flags = 0;
+            if (needs_name_lookup(host, _options.numeric_host)) {
+                hints.ai_flags |= win32::AI_ADDRCONFIG;
+            }
             if (_options.passive) {
                 hints.ai_flags |= win32::AI_PASSIVE;
             }
@@ -168,7 +230,10 @@ export namespace stdx::net {
             hints.ai_socktype = _options.type == Socket::Type::STREAM
                 ? unix::sys::SOCK_STREAM
                 : unix::sys::SOCK_DGRAM;
-            hints.ai_flags = unix::AI_ADDRCONFIG;
+            hints.ai_flags = 0;
+            if (needs_name_lookup(host, _options.numeric_host)) {
+                hints.ai_flags |= unix::AI_ADDRCONFIG;
+            }
             if (_options.passive) {
                 hints.ai_flags |= unix::AI_PASSIVE;
             }
@@ -181,6 +246,65 @@ export namespace stdx::net {
             #endif
 
             return hints;
+        }
+
+        /**
+         * @internal
+         * @brief Performs a lookup without deciding what a failure means.
+         * @param host The host name or address literal; empty means the local host.
+         * @param service The service name or port number; empty leaves the port at 0.
+         * @param endpoints Filled with every result that maps onto an Endpoint.
+         * @return 0 on success, otherwise the resolver's own status code.
+         *
+         * The seam that keeps "not found" from having to be recovered from an
+         * exception. A caller for whom an unknown name is a failure raises on a
+         * non-zero status; a caller merely asking whether a name exists reads the
+         * status itself. Neither needs to know which exception the other would
+         * have chosen, which is the coupling this replaces.
+         */
+        [[nodiscard]]
+        THROWS(SocketException)
+        i32 lookup(StringView host, StringView service, Vector<Endpoint>& endpoints) const {
+            start_socket_layer();
+
+            const String host_text(host);
+            const String service_text(service);
+            const AddressInfo requested = hints(host);
+
+            AddressInfoList results;
+            #ifdef _WIN32
+            const i32 status = win32::getaddrinfo(
+                host.empty() ? nullptr : host_text.c_str(),
+                service.empty() ? nullptr : service_text.c_str(),
+                &requested,
+                results.address()
+            );
+            #else
+            const i32 status = unix::getaddrinfo(
+                host.empty() ? nullptr : host_text.c_str(),
+                service.empty() ? nullptr : service_text.c_str(),
+                &requested,
+                results.address()
+            );
+            #endif
+            if (status != 0) {
+                return status;
+            }
+
+            for (const AddressInfo* entry = results.head(); entry != nullptr; entry = entry->ai_next) {
+                if (entry->ai_addr == nullptr) {
+                    continue;
+                }
+                SocketAddressStorage storage{};
+                const usize length = static_cast<usize>(entry->ai_addrlen) < sizeof(storage)
+                    ? static_cast<usize>(entry->ai_addrlen)
+                    : sizeof(storage);
+                stdx::mem::memcpy(&storage, entry->ai_addr, length);
+                if (const Optional<Endpoint> endpoint = from_socket_address(storage)) {
+                    endpoints.push_back(*endpoint);
+                }
+            }
+            return 0;
         }
     public:
         Resolver() noexcept = default;
@@ -213,45 +337,9 @@ export namespace stdx::net {
         [[nodiscard]]
         THROWS(UnknownHostException)
         Vector<Endpoint> resolve(StringView host, StringView service) const {
-            start_socket_layer();
-
-            const String host_text(host);
-            const String service_text(service);
-            const AddressInfo requested = hints();
-
-            AddressInfoList results;
-            #ifdef _WIN32
-            const i32 status = win32::getaddrinfo(
-                host.empty() ? nullptr : host_text.c_str(),
-                service.empty() ? nullptr : service_text.c_str(),
-                &requested,
-                results.address()
-            );
-            #else
-            const i32 status = unix::getaddrinfo(
-                host.empty() ? nullptr : host_text.c_str(),
-                service.empty() ? nullptr : service_text.c_str(),
-                &requested,
-                results.address()
-            );
-            #endif
-            if (status != 0) {
-                raise_resolver_error(status, host.empty() ? "the local host"sv : host);
-            }
-
             Vector<Endpoint> endpoints;
-            for (const AddressInfo* entry = results.head(); entry != nullptr; entry = entry->ai_next) {
-                if (entry->ai_addr == nullptr) {
-                    continue;
-                }
-                SocketAddressStorage storage{};
-                const usize length = static_cast<usize>(entry->ai_addrlen) < sizeof(storage)
-                    ? static_cast<usize>(entry->ai_addrlen)
-                    : sizeof(storage);
-                stdx::mem::memcpy(&storage, entry->ai_addr, length);
-                if (const Optional<Endpoint> endpoint = from_socket_address(storage)) {
-                    endpoints.push_back(*endpoint);
-                }
+            if (const i32 status = lookup(host, service, endpoints); status != 0) {
+                raise_resolver_error(status, host);
             }
             return endpoints;
         }
@@ -338,20 +426,32 @@ export namespace stdx::net {
          * @brief Looks a service name up as a port number.
          * @param service The service name, e.g. "https".
          * @return The port, or an empty Optional if the service is unknown.
+         * @throws UnknownHostException if the resolver could not answer at all.
          * @throws SocketException if the resolver itself failed.
+         *
+         * An unknown name is an answer here, not a failure - and that is a
+         * deliberate difference from @ref resolve_one, which throws for one. The
+         * two are asked different questions: resolve_one is told to reach
+         * something and treats a name that names nothing as a failed request,
+         * while this is asked whether a name exists at all, where "no" is the
+         * useful reply. A resolver that cannot answer either question still
+         * throws, because that is a different event from a confident no.
          */
         [[nodiscard]]
-        THROWS(SocketException)
+        THROWS(SocketException, UnknownHostException)
         Optional<u16> service_port(StringView service) const {
-            try {
-                const Optional<Endpoint> endpoint = resolve_one("", service);
-                if (!endpoint) {
-                    return nullopt;
-                }
-                return endpoint->port();
-            } catch (const UnknownServiceException& _) {
+            Vector<Endpoint> endpoints;
+            const i32 status = lookup("", service, endpoints);
+            if (is_service_not_found(status, "")) {
                 return nullopt;
             }
+            if (status != 0) {
+                raise_resolver_error(status, "");
+            }
+            if (endpoints.empty()) {
+                return nullopt;
+            }
+            return endpoints.front().port();
         }
 
         /**
@@ -373,7 +473,7 @@ export namespace stdx::net {
             const SocketLength length = to_socket_address(Endpoint(address, 0), storage);
 
             #ifdef _WIN32
-            Array<char, win32::NI_MAXHOST> host{};
+            Array<char, win32::NI_MAXHOST> host = {};
             const i32 status = win32::getnameinfo(
                 reinterpret_cast<const SocketAddress*>(&storage),
                 length,
@@ -384,7 +484,7 @@ export namespace stdx::net {
                 win32::NI_NAMEREQD
             );
             #else
-            Array<char, unix::NI_MAXHOST> host{};
+            Array<char, unix::NI_MAXHOST> host = {};
             const i32 status = unix::getnameinfo(
                 reinterpret_cast<const SocketAddress*>(&storage),
                 length,
@@ -411,7 +511,7 @@ export namespace stdx::net {
         static String host_name() {
             start_socket_layer();
 
-            Array<char, 256> name{};
+            Array<char, 256> name = {};
             #ifdef _WIN32
             const i32 result = win32::gethostname(name.data(), static_cast<i32>(name.size() - 1));
             #else

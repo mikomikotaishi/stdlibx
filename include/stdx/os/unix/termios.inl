@@ -5,7 +5,7 @@
  * @brief Unix POSIX operations.
  */
 export namespace stdx::os::unix {
-    #if defined(__unix__) && __has_include(<termios.h>)
+    #if (defined(__unix__) || defined(__APPLE__)) && __has_include(<termios.h>)
     using TerminalIOSettings = ::termios;
 
     using ProcessId = ::pid_t;

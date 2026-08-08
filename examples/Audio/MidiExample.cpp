@@ -65,7 +65,8 @@ void list_devices() {
 
 [[nodiscard]]
 bool is_passthrough_port(const MidiDeviceInfo& d) noexcept {
-    return d.name.starts_with("Midi Through") || d.name.starts_with("System");
+    return d.name.starts_with("Midi Through")
+        || d.name.starts_with("System");
 }
 
 [[nodiscard]]
@@ -166,7 +167,7 @@ void play_arpeggio(const String& requested_id) {
                 break;
             }
         }
-        if (!target) {
+        if (target == nullptr) {
             System::out.println(
                 "Requested device id={} is not an output-capable MIDI port.",
                 requested_id
@@ -180,7 +181,7 @@ void play_arpeggio(const String& requested_id) {
                 break;
             }
         }
-        if (!target) {
+        if (target == nullptr) {
             for (const MidiDeviceInfo& d: devices) {
                 if (d.is_output) {
                     target = &d;
@@ -198,7 +199,7 @@ void play_arpeggio(const String& requested_id) {
             }
         }
     }
-    if (!target) {
+    if (target == nullptr) {
         System::out.println("No output-capable MIDI device available - skipping.");
         return;
     }
@@ -208,23 +209,23 @@ void play_arpeggio(const String& requested_id) {
     try {
         UniquePointer<MidiDevice> device = MidiSystem::open_device(*target);
         Receiver* rx = device->receiver();
-        if (!rx) {
+        if (rx == nullptr) {
             System::out.println("Device has no receiver - nothing to do.");
             return;
         }
 
         // C major arpeggio: C4, E4, G4, C5
-        static constexpr Array<u8, 4> C_MAJOR_ARPEGGIO{60, 64, 67, 72};
+        static constexpr Array<u8, 4> C_MAJOR_ARPEGGIO = {60, 64, 67, 72};
         static constexpr u8 CHANNEL = 0;
         static constexpr u8 VELOCITY = 100;
 
         for (u8 note: C_MAJOR_ARPEGGIO) {
-            ShortMessage on{Status::NOTE_ON, CHANNEL, note, VELOCITY};
+            ShortMessage on(Status::NOTE_ON, CHANNEL, note, VELOCITY);
             rx->send(on, 0);
             System::out.println("  NoteOn  ch={} note={} vel={}", CHANNEL, note, VELOCITY);
             Thread::sleep_for(200ms);
 
-            ShortMessage off{Status::NOTE_OFF, CHANNEL, note, 0};
+            ShortMessage off(Status::NOTE_OFF, CHANNEL, note, 0);
             rx->send(off, 0);
             Thread::sleep_for(50ms);
         }
@@ -235,7 +236,7 @@ void play_arpeggio(const String& requested_id) {
     }
 }
 
-void play_smf(const String& file_path, const String& requested_id) {
+void play_smf(const Path& file, const String& requested_id) {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
@@ -253,7 +254,7 @@ void play_smf(const String& file_path, const String& requested_id) {
                 break;
             }
         }
-        if (!target) {
+        if (target == nullptr) {
             System::out.println(
                 "Requested device id={} is not an output-capable MIDI port.",
                 requested_id
@@ -268,7 +269,7 @@ void play_smf(const String& file_path, const String& requested_id) {
             }
         }
     }
-    if (!target) {
+    if (target == nullptr) {
         System::out.println(
             "No non-pass-through output found. Start a soft synth (e.g. "
             "`fluidsynth -a alsa -m alsa_seq /usr/share/soundfonts/Arachno.sf2`)."
@@ -278,20 +279,20 @@ void play_smf(const String& file_path, const String& requested_id) {
 
     UniquePointer<Sequence> seq;
     try {
-        seq = MidiSystem::open_sequence(Path{file_path});
+        seq = MidiSystem::open_sequence(file);
     } catch (const InvalidMidiDataException& e) {
-        System::err.println("Cannot parse {}: {}", file_path, e.what());
+        System::err.println("Cannot parse {}: {}", file, e.what());
         return;
     }
     System::out.println(
         "Parsed {}: {} track(s), last tick = {}",
-        file_path, seq->track_count(), seq->last_tick()
+        file, seq->track_count(), seq->last_tick()
     );
 
     try {
         UniquePointer<MidiDevice> device = MidiSystem::open_device(*target);
         Receiver* rx = device->receiver();
-        if (!rx) {
+        if (rx == nullptr) {
             System::out.println("Device has no receiver - nothing to do.");
             return;
         }
@@ -299,7 +300,7 @@ void play_smf(const String& file_path, const String& requested_id) {
         Sequencer& sequencer = MidiSystem::default_sequencer();
         sequencer.open();
         Transmitter* tx = sequencer.transmitter();
-        if (!tx) {
+        if (tx == nullptr) {
             System::out.println("Sequencer has no transmitter - nothing to do.");
             return;
         }

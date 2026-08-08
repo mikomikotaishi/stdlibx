@@ -5,6 +5,7 @@ import stdx;
 using stdx::collections::Vector;
 using stdx::debug::SourceLocation;
 using stdx::fs::Path;
+using stdx::io::InputFileStream;
 using stdx::io::OpenMode;
 using stdx::mem::Pointers;
 using stdx::mem::SharedPointer;
@@ -53,22 +54,23 @@ public:
         bool enable_source_location = false,
         const SourceLocation& location = SourceLocation::current()
     ) override {
-        _entries.push_back(Entry{
-            String(timestamp),
-            level,
-            String(logger_name),
-            String(message),
-            enable_source_location,
-            String(location.file_name()),
-            location.line(),
-            false
+        _entries.push_back(Entry {
+            .timestamp = String(timestamp),
+            .level = level,
+            .logger = String(logger_name),
+            .message = String(message),
+            .located = enable_source_location,
+            .file = String(location.file_name()),
+            .line = location.line(),
+            .raw = false,
         });
     }
 
     void write_raw(StringView message) override {
-        Entry entry;
-        entry.message = String(message);
-        entry.raw = true;
+        Entry entry {
+            .message = String(message),
+            .raw = true,
+        };
         _entries.push_back(Ops::move(entry));
     }
 
@@ -233,8 +235,8 @@ void test_logging_source_location() {
     const Entry& entry = on.sink->entries()[0];
     expect(entry.located, "location is reported as enabled");
     expect_eq(
-        Path(entry.file).filename().string(),
-        Path(here.file_name()).filename().string(),
+        Path(entry.file).filename(),
+        Path(here.file_name()).filename(),
         "the location names the calling file, not the logging library"
     );
 
@@ -311,7 +313,9 @@ void test_logging_factory_applies_settings() {
  */
 void test_logging_factory_banner() {
     SharedPointer<MemorySink> quiet = Pointers::shared<MemorySink>();
-    LoggerFactory without = LoggerFactory::Builder().with_sink(quiet).build();
+    LoggerFactory without = LoggerFactory::Builder()
+        .with_sink(quiet)
+        .build();
     expect(quiet->entries().empty(), "no banner is written unless asked for");
 
     SharedPointer<MemorySink> loud = Pointers::shared<MemorySink>();
@@ -352,8 +356,7 @@ void test_logging_factory_file_sink() {
         factory.flush_all();
     }
 
-    using stdx::core::InputStreamBufferIterator;
-    stdx::io::InputFileStream input(log);
+    InputFileStream input(log);
     String contents((InputStreamBufferIterator<char>(input)), InputStreamBufferIterator<char>());
 
     expect(contents.find("to disk 1") != String::npos, "the message reaches the file");

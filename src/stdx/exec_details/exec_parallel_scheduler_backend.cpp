@@ -9,6 +9,9 @@
  * forces every consumer to emit the backend inline. Isolating it here keeps
  * the heavy static_thread_pool machinery out of the module entirely.
  */
+
+#include <vector>
+
 #include <stdexec/execution.hpp>
 
 #define STDEXEC_PARALLEL_SCHEDULER_INLINE

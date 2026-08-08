@@ -8,6 +8,12 @@ export namespace stdx::os::win32 {
     constexpr usize PATH_MAX = 260;
     constexpr usize MAX_PATH = 260;
 
+    /// The UTF-8 code page, for WideCharToMultiByte and MultiByteToWideChar.
+    constexpr u32 CP_UTF8 = 65001;
+    /// Makes a WideCharToMultiByte conversion fail on ill-formed UTF-16 rather
+    /// than substituting U+FFFD. Valid only with CP_UTF8 and CP_UTF7.
+    constexpr u32 WC_ERR_INVALID_CHARS = 0x00000080;
+
     constexpr u8 MINCHAR = 0x80;
     constexpr u8 MAXCHAR = 0x7f;
     constexpr u16 MINSHORT = 0x8000;

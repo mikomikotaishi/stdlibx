@@ -22,8 +22,7 @@ void test_exceptions() {
     );
     expect_no_throw(
         [] -> void {
-            volatile i32 x = 1 + 1;
-            static_cast<void>(x);
+            volatile i32 _ = 1 + 1;
         }
     );
 }

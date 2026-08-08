@@ -118,16 +118,15 @@ void play_sine(const String& requested_id) {
     }
 }
 
-void play_file(const String& path_str) {
-    Path path{path_str};
+void play_file(const Path& path) {
     UniquePointer<AudioInputStream> stream;
     try {
         stream = AudioSystem::open_audio_file(path);
     } catch (const UnsupportedAudioFileException& e) {
-        System::err.println("Cannot decode {}: {}", path_str, e.what());
+        System::err.println("Cannot decode {}: {}", path, e.what());
         return;
     } catch (const AudioException& e) {
-        System::err.println("Audio error opening {}: {}", path_str, e.what());
+        System::err.println("Audio error opening {}: {}", path, e.what());
         return;
     }
 
@@ -135,7 +134,7 @@ void play_file(const String& path_str) {
     const u64 total = stream->total_frames();
     System::out.println(
         "Decoded {}: {} Hz, {} ch, {} frames ({:.2f} s)",
-        path_str,
+        path,
         fmt.sample_rate,
         fmt.channels,
         total,

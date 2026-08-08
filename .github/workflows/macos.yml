@@ -1,0 +1,72 @@
+name: macOS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Pinned, and for a sharper reason than on Linux: Homebrew has no notion of
+    # an old formula, so the runner image is the only version pin available to
+    # this job. A macos-latest that rolls forward would silently change both the
+    # SDK and every dependency at once.
+    runs-on: macos-15
+    name: clang-libc++
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain and dependencies
+        run: |
+          # Apple Clang is deliberately not used: it lags upstream by a long way
+          # and has no C++26 module support worth the name. The versioned formula
+          # is requested rather than plain 'llvm' so that a Homebrew bump cannot
+          # quietly move this job to a different major version.
+          brew update
+          brew install llvm@22 ninja cmake libsodium gmp lua unixodbc
+
+      - name: Report toolchain
+        run: |
+          echo "$(brew --prefix llvm@22)/bin" >> "$GITHUB_PATH"
+          export PATH="$(brew --prefix llvm@22)/bin:$PATH"
+          cmake --version
+          ninja --version
+          clang++ --version
+
+      # macOS has no libstdc++, so libc++ is not a choice here - it is the only
+      # standard library on the platform, which is exactly why this job earns its
+      # place: it is the one configuration the Linux matrix cannot stand in for.
+      - name: Configure
+        run: |
+          export PATH="$(brew --prefix llvm@22)/bin:$PATH"
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_C_COMPILER="$(brew --prefix llvm@22)/bin/clang" \
+            -DCMAKE_CXX_COMPILER="$(brew --prefix llvm@22)/bin/clang++" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSTDLIB=libc++ \
+            -DSTDLIBX_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build
+
+      # The kqueue backend, and the Darwin header transcriptions its constants
+      # come from, exist only on this runner. A build-only job here would leave
+      # both unexercised, which is the state they were in until recently.
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-macos
+          path: |
+            build/CMakeFiles/*.log
+            build/compile_commands.json
+            build/Testing/**

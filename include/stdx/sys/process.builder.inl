@@ -30,7 +30,10 @@ namespace stdx::sys {
             if (handle == nullptr) {
                 return nullptr;
             }
-            JobObjectExtendedLimitInformation info{};
+            // Qualified: winnt.h also has a global enumerator of this exact name
+            // (JOBOBJECTINFOCLASS::JobObjectExtendedLimitInformation), so the bare
+            // spelling is either ambiguous with it or resolves to a value.
+            win32::JobObjectExtendedLimitInformation info{};
             info.BasicLimitInformation.LimitFlags = win32::JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE_FLAG;
             if (!win32::SetInformationJobObject(
                 handle, win32::JobObjectExtendedLimitInfoClass, &info, sizeof(info)
@@ -76,7 +79,7 @@ export namespace stdx::sys {
         bool _env_clr = false; ///< If true, start with an empty environment instead of inheriting the parent's.
         bool _kill_with_parent = false; ///< If true, ask the OS to kill the child when this process dies (Linux: PR_SET_PDEATHSIG).
 
-        #ifdef __unix__
+        #if defined(__unix__) || defined(__APPLE__)
         [[nodiscard]]
         Expected<Process, ErrorCode> spawn_unix() const {
             i32 in_r = -1;
@@ -191,12 +194,19 @@ export namespace stdx::sys {
                     }
                 }
 
-                if (_cwd && unix::chdir(_cwd->c_str()) == -1) {
+                if (_cwd.has_value() && unix::chdir(_cwd->c_str()) == -1) {
                     unix::_exit(127);
                 }
 
                 if (_env_clr) {
+                    #ifdef __APPLE__
+                    // Darwin has no clearenv(); emptying environ has the same
+                    // effect on the upcoming execvp.
+                    static char* empty_env[] = {nullptr};
+                    unix::environ = empty_env;
+                    #else
                     unix::clearenv();
+                    #endif
                 }
                 for (const String& key: _env_rem) {
                     unix::unsetenv(key.c_str());
@@ -231,7 +241,7 @@ export namespace stdx::sys {
         #ifdef _WIN32
         [[nodiscard]]
         Expected<Process, ErrorCode> spawn_win32() const {
-            SecurityAttributes sa(sizeof(sa), nullptr, TRUE);
+            win32::SecurityAttributes sa(sizeof(sa), nullptr, TRUE);
             win32::Handle in_r = INVALID_HANDLE_VALUE;
             win32::Handle in_w = INVALID_HANDLE_VALUE;
             win32::Handle out_r = INVALID_HANDLE_VALUE;
@@ -240,17 +250,17 @@ export namespace stdx::sys {
             win32::Handle err_w = INVALID_HANDLE_VALUE;
             win32::Handle null = INVALID_HANDLE_VALUE;
 
-            auto close_h = [](Handle& h) noexcept -> void {
+            auto close_h = [](win32::Handle& h) noexcept -> void {
                 if (h != INVALID_HANDLE_VALUE) {
                     win32::CloseHandle(h); h = INVALID_HANDLE_VALUE;
                 }
             };
             auto cleanup = [&] noexcept -> void {
-                for (Handle* h: {&in_r, &in_w, &out_r, &out_w, &err_r, &err_w, &null}) {
+                for (win32::Handle* h: {&in_r, &in_w, &out_r, &out_w, &err_r, &err_w, &null}) {
                     close_h(*h);
                 }
             };
-            auto make_pipe = [&](Handle& r, Handle& w, bool parent_is_r) -> bool {
+            auto make_pipe = [&](win32::Handle& r, win32::Handle& w, bool parent_is_r) -> bool {
                 if (!win32::CreatePipe(&r, &w, &sa, 0)) {
                     return false;
                 }
@@ -304,11 +314,11 @@ export namespace stdx::sys {
             }
 
             WideString wcwd;
-            if (_cwd) {
+            if (_cwd.has_value()) {
                 wcwd = _cwd->wstring();
             }
 
-            ProcessInformation pi;
+            win32::ProcessInformation pi;
             // When linking the child to our lifetime, start it suspended so it can
             // be placed in the kill-on-close job before it (or any of its own
             // children) runs - closing the create/assign race.
@@ -444,7 +454,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         Expected<Process, ErrorCode> spawn() const {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return spawn_unix();
             #elifdef _WIN32
             return spawn_win32();

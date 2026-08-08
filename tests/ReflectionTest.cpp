@@ -130,7 +130,7 @@ struct EnvRequired {
 // types, an unannotated function, and a callable type annotating its operator().
 // Real exception classes (not the std:: alias typedefs) are used so reflection
 // identity is unambiguous.
-[[=Throws<ArithmeticException, InvalidOperationException>()]]
+[[=Throws<ArithmeticException, InvalidOperationException>]]
 i32 annotated_thrower(i32 x) {
     return x;
 }
@@ -140,7 +140,7 @@ i32 unannotated_function(i32 x) {
 }
 
 struct AnnotatedCallable {
-    [[=Throws<ArithmeticException>()]]
+    [[=Throws<ArithmeticException>]]
     void operator()() const {}
 };
 
@@ -192,19 +192,19 @@ void test_argument_parser() {
 
     // A required field with no value supplied is an error.
     expect_throws<CommandLineParserException>(
-        [] -> void { (void)parse_tokens<BasicOptions>({"reftest"}); },
+        [] -> void { static_cast<void>(parse_tokens<BasicOptions>({"reftest"})); },
         "missing required argument throws"
     );
 
     // The same option in both spellings is ambiguous.
     expect_throws<CommandLineParserException>(
-        [] -> void { (void)parse_tokens<BasicOptions>({"reftest", "-i", "a", "--input", "b"}); },
+        [] -> void { static_cast<void>(parse_tokens<BasicOptions>({"reftest", "-i", "a", "--input", "b"})); },
         "one field via both spellings throws"
     );
 
     // A value-taking flag given without its value is an error.
     expect_throws<CommandLineParserException>(
-        [] -> void { (void)parse_tokens<BasicOptions>({"reftest", "-i", "x", "--count"}); },
+        [] -> void { static_cast<void>(parse_tokens<BasicOptions>({"reftest", "-i", "x", "--count"})); },
         "value flag missing its value throws"
     );
 
@@ -247,7 +247,7 @@ void test_argument_parser() {
     {
         Environment::unset("REFTEST_MISSING");
         expect_throws<CommandLineParserException>(
-            [] -> void { (void)parse_tokens<EnvRequired>({"reftest"}); },
+            [] -> void { static_cast<void>(parse_tokens<EnvRequired>({"reftest"})); },
             "required env-backed field unset throws"
         );
     }
@@ -484,7 +484,7 @@ void test_enum_map() {
     expect(!empty.contains(Suit::CLUBS), "a fresh map contains no keys");
     expect(empty.find(Suit::CLUBS) == nullptr, "find on an absent key is nullptr");
     expect_throws<OutOfRangeException>(
-        [&] -> void { (void)empty.at(Suit::CLUBS); },
+        [&] -> void { static_cast<void>(empty.at(Suit::CLUBS)); },
         "at on an absent key throws OutOfRangeException"
     );
 
@@ -501,7 +501,7 @@ void test_enum_map() {
     expect(m.contains(Suit::HEARTS), "contains finds a present key");
     expect_eq(m.at(Suit::HEARTS), 7, "at returns the mapped value");
     expect_throws<OutOfRangeException>(
-        [&] -> void { (void)m.at(Suit::SPADES); },
+        [&] -> void { static_cast<void>(m.at(Suit::SPADES)); },
         "at on an absent key throws OutOfRangeException"
     );
     require(m.find(Suit::HEARTS) != nullptr, "find returns a pointer to a present value");

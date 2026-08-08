@@ -11,14 +11,25 @@
 export namespace stdx::os::win32 {
     #if defined(_WIN32) && __has_include(<io.h>)
     using FSizeT = ::_fsize_t;
-    using FindDataA = ::_finddata_t;
-    using FindDataW = ::_wfinddata_t;
-    using FindData32 = ::_finddata32_t;
-    using FindData64 = ::_finddata64_t;
-    using FindDataI64 = ::_finddatai64_t;
-    using FindDataW32 = ::_wfinddata32_t;
-    using FindDataW64 = ::_wfinddata64_t;
-    using FindDataWI64 = ::_wfinddatai64_t;
+
+    // Prefixed Crt because Windows has two unrelated find-data families and both
+    // want the same name: the CRT's _wfinddata_t here, and fileapi.inl's
+    // WIN32_FIND_DATAW, which is a different struct reached through a different
+    // API. Unprefixed, the two FindDataW aliases were a redefinition error on
+    // MSVC. The whole family carries the prefix rather than only the one that
+    // collided, so the set stays spelled one way.
+    using CrtFindDataA = ::_finddata_t;
+    using CrtFindDataW = ::_wfinddata_t;
+    using CrtFindData32 = ::_finddata32_t;
+    // Two underscores, unlike every sibling: the CRT spells the 64-bit-time
+    // narrow struct __finddata64_t and has no _finddata64_t at all, while the
+    // wide one is _wfinddata64_t with one. _finddatai64_t below is a macro for
+    // this same struct, so the two aliases name one type.
+    using CrtFindData64 = ::__finddata64_t;
+    using CrtFindDataI64 = ::_finddatai64_t;
+    using CrtFindDataW32 = ::_wfinddata32_t;
+    using CrtFindDataW64 = ::_wfinddata64_t;
+    using CrtFindDataWI64 = ::_wfinddatai64_t;
 
     using ::_open;
     using ::_close;

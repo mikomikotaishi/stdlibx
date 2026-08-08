@@ -68,30 +68,30 @@ void test_iso_chronology() {
 
     // Era-based construction reckons year-of-era from 1; there is no year 0.
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(IsoEra::BCE, 0, 1, 1); }, "BCE year-of-era 0 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(IsoEra::BCE, 0, 1, 1)); }, "BCE year-of-era 0 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(IsoEra::CE, 0, 1, 1); }, "CE year-of-era 0 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(IsoEra::CE, 0, 1, 1)); }, "CE year-of-era 0 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(IsoEra::BCE, -5, 1, 1); }, "negative year-of-era is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(IsoEra::BCE, -5, 1, 1)); }, "negative year-of-era is rejected"
     );
 
     // Out-of-range months and days are rejected regardless of the year.
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2024, 0, 1); }, "month 0 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(2024, 0, 1)); }, "month 0 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2024, 13, 1); }, "month 13 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(2024, 13, 1)); }, "month 13 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2024, 1, 0); }, "day 0 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(2024, 1, 0)); }, "day 0 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2023, 2, 29); }, "2023-02-29 is rejected (2023 is not a leap year)"
+        [] -> void { static_cast<void>(IsoChronology::of(2023, 2, 29)); }, "2023-02-29 is rejected (2023 is not a leap year)"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2024, 4, 31); }, "April 31 is rejected (April has 30 days)"
+        [] -> void { static_cast<void>(IsoChronology::of(2024, 4, 31)); }, "April 31 is rejected (April has 30 days)"
     );
     // The leap-day boundary the rejection above hinges on is still accepted.
     expect(IsoChronology::of(2024, 2, 29).day() == 29, "2024-02-29 is accepted (2024 is a leap year)");
@@ -133,7 +133,7 @@ void test_hijrah_chronology() {
     );
 
     expect_throws<DateTimeException>(
-        [] -> void { (void)HijrahChronology::of(0, 1, 1); }, "Hijrah year 0 is rejected"
+        [] -> void { static_cast<void>(HijrahChronology::of(0, 1, 1)); }, "Hijrah year 0 is rejected"
     );
 
     expect_eq(HijrahChronology::of(1445, HijrahChronology::RAMADAN, 1), HijrahChronology::of(1445, 9, 1), "HijrahChronology::RAMADAN == month 9");
@@ -148,7 +148,7 @@ void test_japanese_chronology() {
     expect_eq(showa64.to_epoch_day(), IsoChronology::of(1989, 1, 7).to_epoch_day(), "Showa 64-01-07 is 1989-01-07");
 
     expect_throws<DateTimeException>(
-        [] -> void { (void)JapaneseChronology::of(1867, 12, 31); }, "pre-Meiji dates are rejected"
+        [] -> void { static_cast<void>(JapaneseChronology::of(1867, 12, 31)); }, "pre-Meiji dates are rejected"
     );
 
     Array<JapaneseEraCase, 3> boundary_cases = {{
@@ -158,7 +158,7 @@ void test_japanese_chronology() {
     }};
     for (const JapaneseEraCase& c: boundary_cases) {
         expect_throws<DateTimeException>(
-            [&] -> void { (void)JapaneseChronology::of(c.era, c.yoe, c.m, c.d); }, c.label
+            [&] -> void { static_cast<void>(JapaneseChronology::of(c.era, c.yoe, c.m, c.d)); }, c.label
         );
     }
 
@@ -190,7 +190,7 @@ void test_hebrew_chronology() {
     expect_eq(HebrewChronology::months_in_year(5785), 12, "common year 5785 has 12 months");
 
     expect_throws<DateTimeException>(
-        [] -> void { (void)HebrewChronology::of(0, 1, 1); }, "Hebrew year 0 is rejected"
+        [] -> void { static_cast<void>(HebrewChronology::of(0, 1, 1)); }, "Hebrew year 0 is rejected"
     );
 
     // Named Hebrew months resolve to a civil index that shifts with the leap
@@ -201,13 +201,13 @@ void test_hebrew_chronology() {
     expect_eq(HebrewChronology::of(5784, HebrewChronology::ADAR_II, 1), HebrewChronology::of(5784, 7, 1), "Adar II is month 7 in leap year 5784");
     expect_eq(HebrewChronology::of(5785, HebrewChronology::ADAR, 1), HebrewChronology::of(5785, 6, 1), "Adar is month 6 in common year 5785");
     expect_throws<DateTimeException>(
-        [] -> void { (void)HebrewChronology::of(5784, HebrewChronology::ADAR, 1); }, "bare Adar is rejected in leap year 5784 (ambiguous)"
+        [] -> void { static_cast<void>(HebrewChronology::of(5784, HebrewChronology::ADAR, 1)); }, "bare Adar is rejected in leap year 5784 (ambiguous)"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)HebrewChronology::of(5785, HebrewChronology::ADAR_II, 1); }, "Adar II is rejected in common year 5785"
+        [] -> void { static_cast<void>(HebrewChronology::of(5785, HebrewChronology::ADAR_II, 1)); }, "Adar II is rejected in common year 5785"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)HebrewChronology::of(5785, HebrewChronology::ADAR_I, 1); }, "Adar I is rejected in common year 5785"
+        [] -> void { static_cast<void>(HebrewChronology::of(5785, HebrewChronology::ADAR_I, 1)); }, "Adar I is rejected in common year 5785"
     );
 }
 

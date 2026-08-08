@@ -54,8 +54,5 @@ export namespace stdx::os::win32 {
     using WicPixelFormatGuid = ::WICPixelFormatGUID;
     using WicColor = ::WICColor;
     using WicBitmapPattern = ::WICBitmapPattern;
-
-    // Helper
-    using ::WICCreateImagingFactory_Proxy;
     #endif
 }

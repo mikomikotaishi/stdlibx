@@ -122,21 +122,21 @@ void test_socket_lifecycle() {
     expect(!released.is_open(), "release() gives up ownership");
     Socket adopted(taken);
     expect(adopted.is_open(), "the released descriptor is still usable");
-    expect_no_throw([&adopted] -> void { (void)adopted.local_endpoint(); }, "the adopted socket works");
+    expect_no_throw([&adopted] -> void { static_cast<void>(adopted.local_endpoint()); }, "the adopted socket works");
 }
 
 void test_socket_closed_operations() {
     Socket closed;
-    Array<byte, 4> buffer{};
+    Array<byte, 4> buffer = {};
 
     expect_throws<SocketException>(
         [&closed] -> void { closed.listen(); }, "listen on a closed socket throws"
     );
     expect_throws<SocketException>(
-        [&closed] -> void { (void)closed.local_endpoint(); }, "local_endpoint on a closed socket throws"
+        [&closed] -> void { static_cast<void>(closed.local_endpoint()); }, "local_endpoint on a closed socket throws"
     );
     expect_throws<SocketException>(
-        [&closed, &buffer] -> void { (void)closed.receive(buffer); }, "receive on a closed socket throws"
+        [&closed, &buffer] -> void { static_cast<void>(closed.receive(buffer)); }, "receive on a closed socket throws"
     );
     expect_throws<SocketException>(
         [&closed] -> void { closed.set_no_delay(true); }, "setting an option on a closed socket throws"
@@ -161,7 +161,7 @@ void test_tcp_roundtrip() {
     expect(server.local_endpoint() == bound, "the accepted socket keeps the listener's address");
 
     client.send_all(bytes_of("ping"));
-    Array<byte, 16> buffer{};
+    Array<byte, 16> buffer = {};
     const usize received = server.receive(buffer);
     expect_eq(received, 4u, "the server reads what the client wrote");
     expect_eq(text_of(Span<const byte>(buffer.data(), received)), "ping", "the bytes arrive intact");
@@ -210,7 +210,7 @@ void test_udp_roundtrip() {
 
     expect_eq(sender.send_to(bytes_of("datagram"), bound), 8u, "send_to writes the whole datagram");
 
-    Array<byte, 32> buffer{};
+    Array<byte, 32> buffer = {};
     const Socket::Received received = receiver.receive_from(buffer);
     expect_eq(received.length, 8u, "the datagram arrives whole");
     expect_eq(
@@ -257,7 +257,7 @@ void test_non_blocking() {
     require(server.has_value(), "a pending connection is accepted without blocking");
 
     server->set_blocking(false);
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     expect(!server->try_receive(buffer).has_value(), "a non-blocking receive with no data reports would-block");
 
     client.send_all(bytes_of("x"));
@@ -273,9 +273,9 @@ void test_receive_timeout() {
     Socket server = listener.accept();
 
     server.set_receive_timeout(50ms);
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     expect_throws<SocketTimeoutException>(
-        [&server, &buffer] -> void { (void)server.receive(buffer); },
+        [&server, &buffer] -> void { static_cast<void>(server.receive(buffer)); },
         "a receive that outlives its deadline throws SocketTimeoutException"
     );
 }
@@ -291,7 +291,7 @@ void test_connection_errors() {
     }
     const Endpoint dead(IPAddress(IPv4Address::LOOPBACK), dead_port);
     expect_throws<ConnectException>(
-        [&dead] -> void { (void)connected_socket(dead); }, "connecting to a dead port is refused"
+        [&dead] -> void { static_cast<void>(connected_socket(dead)); }, "connecting to a dead port is refused"
     );
 
     Socket listener = listening_socket(loopback_any_port(IPAddress::Family::IPV4));
@@ -343,7 +343,7 @@ void test_ipv6_roundtrip() {
     Socket server = listener->accept();
 
     client.send_all(bytes_of("v6"));
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     const usize received = server.receive(buffer);
     expect_eq(text_of(Span<const byte>(buffer.data(), received)), "v6", "IPv6 carries the payload");
     expect(server.remote_endpoint()->address().is_loopback(), "the peer is on the IPv6 loopback");
@@ -375,7 +375,7 @@ void test_dual_stack() {
     expect(mapped->to_ipv4() == IPv4Address::LOOPBACK, "the mapped address unwraps to the IPv4 peer");
 
     client.send_all(bytes_of("dual"));
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     expect_eq(server.receive(buffer), 4u, "the dual-stack socket carries IPv4 traffic");
 }
 
@@ -393,7 +393,7 @@ void test_resolve_literals() {
     // With numeric_host set, a name is not merely unresolved - it is rejected
     // without the resolver ever being consulted.
     expect_throws<UnknownHostException>(
-        [&resolver] -> void { (void)resolver.resolve("localhost", 80); },
+        [&resolver] -> void { static_cast<void>(resolver.resolve("localhost", 80)); },
         "a name is rejected when only literals are accepted"
     );
 }
@@ -422,7 +422,7 @@ void test_resolve_names() {
     const Optional<Endpoint> target = resolver.resolve_one("127.0.0.1", listener.local_endpoint().port());
     require(target.has_value(), "the listener's own address resolves");
     expect_no_throw(
-        [&target] -> void { (void)connected_socket(*target); }, "a resolved endpoint can be connected to"
+        [&target] -> void { static_cast<void>(connected_socket(*target)); }, "a resolved endpoint can be connected to"
     );
 }
 
@@ -430,7 +430,7 @@ void test_resolve_services_and_uris() {
     const Resolver resolver;
 
     const Optional<u16> http = resolver.service_port("http");
-    if (!http) {
+    if (!http.has_value()) {
         skip("this host has no service database to look http up in");
     }
     expect_eq(*http, 80, "http is port 80");
@@ -448,7 +448,7 @@ void test_resolve_services_and_uris() {
     expect_eq(explicit_port.front().port(), 8080, "an explicit port wins over the scheme");
 
     expect_throws<InvalidArgumentException>(
-        [&resolver] -> void { (void)resolver.resolve(Uri("/just/a/path")); },
+        [&resolver] -> void { static_cast<void>(resolver.resolve(Uri("/just/a/path"))); },
         "a URI with no authority cannot be resolved"
     );
 }
@@ -461,7 +461,7 @@ void test_resolve_reverse_and_host_name() {
 
     // A reverse record is optional, so this checks shape rather than content.
     const Optional<String> reverse = resolver.reverse(IPAddress(IPv4Address::LOOPBACK));
-    if (reverse) {
+    if (reverse.has_value()) {
         expect(!reverse->empty(), "a reverse lookup that succeeds returns a name");
     }
 

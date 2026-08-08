@@ -15,6 +15,7 @@ using stdx::net::Uri;
 using stdx::net::SocketException;
 using stdx::sql::Bindable;
 using stdx::sql::Connection;
+using stdx::sql::ConnectionOptions;
 using stdx::sql::DatabaseUrl;
 using stdx::sql::DriverManager;
 using stdx::sql::Encryption;
@@ -57,7 +58,6 @@ Connection& sql_connection() {
 /**
  * @brief Tests that attempting to connect with a bogus driver string throws SQLException,
  * rather than crashing or doing something else.
- * @param ctx TestContext to record pass/fail results.
  *
  * Negative-path tests: these run unconditionally because they don't need a
  * driver - they verify the API throws the right exception when the driver
@@ -82,7 +82,6 @@ void test_bad_connection() {
 /**
  * @brief Tests that an empty connection string throws SQLException, 
  * rather than crashing or doing something else.
- * @param ctx TestContext to record pass/fail results.
  */
 void test_empty_connection_string() {
     bool threw = false;
@@ -97,6 +96,8 @@ void test_empty_connection_string() {
 
 /**
  * @brief Whether something is accepting connections at @p endpoint right now.
+ * @param endpoint The address and port to probe.
+ * @return true if a TCP connection can be established, false if it is refused or times out.
  *
  * The connect is blocking, deliberately: a non-blocking one reports EINPROGRESS
  * rather than ECONNREFUSED even on loopback, so telling "refused" from "still
@@ -119,6 +120,7 @@ bool is_listening(const Endpoint& endpoint) noexcept {
 
 /**
  * @brief The SQL Server endpoint the live tests use.
+ * @return The address and port of the SQL Server to probe.
  */
 [[nodiscard]]
 Endpoint mssql_endpoint() noexcept {
@@ -127,11 +129,12 @@ Endpoint mssql_endpoint() noexcept {
 
 /**
  * @brief The password the live SQL Server is expected to accept.
+ * @return The password for the "sa" user, read from STDX_MSSQL_PASSWORD or a default.
  */
 [[nodiscard]]
-StringView mssql_password() noexcept {
-    const Optional<StringView> configured = Environment::get("STDX_MSSQL_PASSWORD");
-    return configured.has_value() ? *configured : "Stdx#Passw0rd"sv;
+String mssql_password() noexcept {
+    const Optional<String> configured = Environment::get("STDX_MSSQL_PASSWORD");
+    return configured.has_value() ? *configured : "Stdx#Passw0rd"s;
 }
 
 /**
@@ -179,7 +182,7 @@ Optional<Connection> try_open_live(const Path& dbfile) noexcept {
                 "master",
                 "sa",
                 mssql_password(),
-                {
+                ConnectionOptions {
                     .port = mssql.port(),
                     .login_timeout = PROBE_TIMEOUT,
                     .encryption = Encryption::TRUSTED,
@@ -212,6 +215,7 @@ Optional<Connection> try_open_live(const Path& dbfile) noexcept {
  * @brief Tests that we can connect to a live database and perform basic CRUD operations.
  * @param ctx TestContext to record pass/fail results.
  * @param c A live Connection to a test database.
+ *
  * The test creates and drops its own table, so the schema doesn't matter.
  */
 void test_crud() {
@@ -219,14 +223,14 @@ void test_crud() {
     // DDL goes through a plain Statement - there are no values to bind. The
     // VARCHAR(255) column type is portable across SQL Server and SQLite.
     Statement ddl = c.create_statement();
-    (void)ddl.execute("DROP TABLE IF EXISTS stdx_test_users;");
-    (void)ddl.execute(
+    static_cast<void>(ddl.execute("DROP TABLE IF EXISTS stdx_test_users;"));
+    static_cast<void>(ddl.execute(
         "CREATE TABLE stdx_test_users ("
         "  id INTEGER PRIMARY KEY,"
         "  name VARCHAR(255) NOT NULL,"
         "  age INTEGER"
         ");"
-    );
+    ));
 
     // Variadic parameter binding: prepare once, then execute with values.
     // Each argument is bound positionally to its `?` marker and dispatched on
@@ -292,7 +296,7 @@ void test_crud() {
     const i32 updated = bump.execute_update(1, 0);
     expect(updated == 2, "UPDATE affects 2 rows");
 
-    (void)ddl.execute("DROP TABLE stdx_test_users;");
+    static_cast<void>(ddl.execute("DROP TABLE stdx_test_users;"));
 }
 
 /**
@@ -307,10 +311,10 @@ void test_crud() {
 void test_sql_injection_safe() {
     Connection& c = sql_connection();
     Statement ddl = c.create_statement();
-    (void)ddl.execute("DROP TABLE IF EXISTS stdx_inj;");
-    (void)ddl.execute(
+    static_cast<void>(ddl.execute("DROP TABLE IF EXISTS stdx_inj;"));
+    static_cast<void>(ddl.execute(
         "CREATE TABLE stdx_inj (id INTEGER PRIMARY KEY, name VARCHAR(255));"
-    );
+    ));
 
     // The classic "Little Bobby Tables" payload, supplied as a bound parameter.
     static constexpr StringView PAYLOAD = "Robert'); DROP TABLE stdx_inj;--";
@@ -338,7 +342,7 @@ void test_sql_injection_safe() {
         }
     }
 
-    (void)ddl.execute("DROP TABLE stdx_inj;");
+    static_cast<void>(ddl.execute("DROP TABLE stdx_inj;"));
 }
 
 /**
@@ -358,13 +362,13 @@ void test_connection_components() {
     }
 
     static constexpr StringView DRIVER = "ODBC Driver 18 for SQL Server";
-    const StringView password = mssql_password();
+    const String password = mssql_password();
 
     expect_no_throw(
         [password] -> void {
             Connection c = DriverManager::connection(
                 DRIVER, "127.0.0.1", "master", "sa", password,
-                {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+                ConnectionOptions {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
             );
             c.close();
         },
@@ -379,7 +383,7 @@ void test_connection_components() {
         [password] -> void {
             Connection c = DriverManager::connection(
                 DRIVER, "127.0.0.1", "master", "sa", password,
-                {.port = 9999, .login_timeout = 1s, .encryption = Encryption::TRUSTED}
+                ConnectionOptions {.port = 9999, .login_timeout = 1s, .encryption = Encryption::TRUSTED}
             );
             c.close();
         },
@@ -392,7 +396,7 @@ void test_connection_components() {
     try {
         Connection c = DriverManager::connection(
             "Some Unknown Driver", "127.0.0.1", "db", "u", "p",
-            {.encryption = Encryption::VERIFIED}
+            ConnectionOptions {.encryption = Encryption::VERIFIED}
         );
         c.close();
     } catch (const SQLException& e) {
@@ -412,7 +416,7 @@ void test_connection_components() {
             [password] -> void {
                 Connection c = DriverManager::connection(
                     DRIVER, IPv6Address::LOOPBACK, "master", "sa", password,
-                    {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+                    ConnectionOptions {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
                 );
                 c.close();
             },
@@ -444,31 +448,31 @@ void test_connection_value_escaping() {
 
     Connection admin = DriverManager::connection(
         DRIVER, "127.0.0.1", "master", "sa", mssql_password(),
-        {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+        ConnectionOptions {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
     );
 
     try {
-        (void)admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN));
+        static_cast<void>(admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN)));
     } catch (const SQLException& _) {
         // The login is not expected to exist; this only cleans up after a
         // previous run that died before its own teardown.
     }
-    (void)admin.execute(Ops::fmt(
+    static_cast<void>(admin.execute(Ops::fmt(
         "CREATE LOGIN {} WITH PASSWORD = '{}', CHECK_POLICY = OFF;", LOGIN, AWKWARD
-    ));
+    )));
 
     expect_no_throw(
         [] -> void {
             Connection c = DriverManager::connection(
                 DRIVER, "127.0.0.1", "master", LOGIN, AWKWARD,
-                {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+                ConnectionOptions {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
             );
             c.close();
         },
         "a password holding ';' and '}' authenticates rather than being cut at the ';'"
     );
 
-    (void)admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN));
+    static_cast<void>(admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN)));
     admin.close();
 }
 
@@ -482,9 +486,7 @@ void test_connection_value_escaping() {
  * Decoding first would promote both to separators and divide in the wrong place.
  */
 void test_database_url_parsing() {
-    const DatabaseUrl url(
-        Uri("postgresql://us%3Aer:p%40ss%3B1@db.example.com:5432/my%20store?sslmode=require&opt=a%26b")
-    );
+    const DatabaseUrl url = Uri("postgresql://us%3Aer:p%40ss%3B1@db.example.com:5432/my%20store?sslmode=require&opt=a%26b");
 
     expect_eq(url.scheme(), "postgresql", "the scheme is reported as written");
     expect_eq(url.host(), "db.example.com", "the host is reported");
@@ -502,19 +504,19 @@ void test_database_url_parsing() {
 
     // A file-backed URL has no authority, and its leading slash is part of the
     // name rather than a separator - which is why path() exists beside database().
-    const DatabaseUrl file(Uri("sqlite:///tmp/store.db"));
+    const DatabaseUrl file = Uri("sqlite:///tmp/store.db");
     expect_eq(file.host(), "", "a file-backed URL has no host");
     expect(file.port() == 0, "an absent port reports 0, which ConnectionOptions reads as 'unspecified'");
     expect_eq(file.path(), "/tmp/store.db", "path() keeps the leading slash for a file name");
     expect_eq(file.database(), "tmp/store.db", "database() strips it, which is wrong for a file - hence both");
 
-    const DatabaseUrl bare(Uri("mssql://server/db"));
+    const DatabaseUrl bare = Uri("mssql://server/db");
     expect_eq(bare.username(), "", "an absent userinfo yields an empty user name");
     expect_eq(bare.password(), "", "an absent userinfo yields an empty password");
     expect(bare.parameters().empty(), "an absent query yields no parameters");
 
     // Userinfo with no ':' is all user name, no password.
-    expect_eq(DatabaseUrl(Uri("mssql://sa@server/db")).username(), "sa", "userinfo without ':' is the user name");
+    expect_eq(DatabaseUrl("mssql://sa@server/db").username(), "sa", "userinfo without ':' is the user name");
 
     expect(!DatabaseUrl::parse("//host/db").has_value(), "a relative reference is not a database URL");
     expect(!DatabaseUrl::parse("http://a/100%").has_value(), "a malformed escape is rejected");
@@ -544,34 +546,34 @@ void test_database_url_round_trip() {
 
     Connection admin = DriverManager::connection(
         DRIVER, "127.0.0.1", "master", "sa", mssql_password(),
-        {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+        ConnectionOptions {.port = 1433, .login_timeout = 2s, .encryption = Encryption::TRUSTED}
     );
     try {
-        (void)admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN));
+        static_cast<void>(admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN)));
     } catch (const SQLException& _) {
         // Only cleaning up after a run that died before its own teardown.
     }
-    (void)admin.execute(Ops::fmt(
+    static_cast<void>(admin.execute(Ops::fmt(
         "CREATE LOGIN {} WITH PASSWORD = '{}', CHECK_POLICY = OFF;", LOGIN, PLAIN
-    ));
-
-    const DatabaseUrl url(Uri(Ops::fmt(
-        "mssql://{}:{}@127.0.0.1:1433/master", LOGIN, ESCAPED
     )));
+
+    const DatabaseUrl url(Ops::fmt(
+        "mssql://{}:{}@127.0.0.1:1433/master", LOGIN, ESCAPED
+    ));
     expect_eq(url.password(), PLAIN, "the URL decodes back to the password the server was given");
 
     expect_no_throw(
         [&url] -> void {
             Connection c = DriverManager::connection(
                 DRIVER, url.host(), url.database(), url.username(), url.password(),
-                {.port = url.port(), .login_timeout = 2s, .encryption = Encryption::TRUSTED}
+                ConnectionOptions {.port = url.port(), .login_timeout = 2s, .encryption = Encryption::TRUSTED}
             );
             c.close();
         },
         "a URL's parts feed the component overload and authenticate"
     );
 
-    (void)admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN));
+    static_cast<void>(admin.execute(Ops::fmt("DROP LOGIN {};", LOGIN)));
     admin.close();
 }
 
@@ -589,7 +591,7 @@ void test_connection_reserved_server() {
     try {
         Connection c = DriverManager::connection(
             "ODBC Driver 18 for SQL Server", "127.0.0.1;Encrypt=no", "master", "sa", "pw",
-            {.port = 1433, .login_timeout = 1s}
+            ConnectionOptions {.port = 1433, .login_timeout = 1s}
         );
         c.close();
     } catch (const SQLException& e) {
@@ -615,7 +617,7 @@ void test_connection_bracketed_address() {
     try {
         Connection c = DriverManager::connection(
             "ODBC Driver 18 for SQL Server", "[::1]", "master", "sa", "pw",
-            {.port = 1433, .login_timeout = 1s, .encryption = Encryption::TRUSTED}
+            ConnectionOptions {.port = 1433, .login_timeout = 1s, .encryption = Encryption::TRUSTED}
         );
         c.close();
     } catch (const SQLException& e) {
@@ -641,8 +643,8 @@ void test_connection_bracketed_address() {
 void test_connection_convenience() {
     Connection& c = sql_connection();
     // execute() with no parameters runs DDL directly (SQLExecDirect path).
-    (void)c.execute("DROP TABLE IF EXISTS stdx_conv;");
-    (void)c.execute("CREATE TABLE stdx_conv (id INTEGER PRIMARY KEY, name VARCHAR(255));");
+    static_cast<void>(c.execute("DROP TABLE IF EXISTS stdx_conv;"));
+    static_cast<void>(c.execute("CREATE TABLE stdx_conv (id INTEGER PRIMARY KEY, name VARCHAR(255));"));
 
     // execute() with bound parameters - no PreparedStatement to juggle.
     const i32 n1 = c.execute("INSERT INTO stdx_conv (id, name) VALUES (?, ?);", 1, "Ada");
@@ -667,7 +669,7 @@ void test_connection_convenience() {
         expect(count.has_value() && *count == 2, "conn.query COUNT(*) == 2");
     }
 
-    (void)c.execute("DROP TABLE stdx_conv;");
+    static_cast<void>(c.execute("DROP TABLE stdx_conv;"));
 }
 
 /**
@@ -681,11 +683,11 @@ void test_connection_convenience() {
  */
 void test_result_set_range() {
     Connection& c = sql_connection();
-    (void)c.execute("DROP TABLE IF EXISTS stdx_range;");
-    (void)c.execute("CREATE TABLE stdx_range (id INTEGER PRIMARY KEY, name VARCHAR(255));");
-    (void)c.execute("INSERT INTO stdx_range (id, name) VALUES (?, ?);", 1, "Grace");
-    (void)c.execute("INSERT INTO stdx_range (id, name) VALUES (?, ?);", 2, "Edsger");
-    (void)c.execute("INSERT INTO stdx_range (id, name) VALUES (?, ?);", 3, "Barbara");
+    static_cast<void>(c.execute("DROP TABLE IF EXISTS stdx_range;"));
+    static_cast<void>(c.execute("CREATE TABLE stdx_range (id INTEGER PRIMARY KEY, name VARCHAR(255));"));
+    static_cast<void>(c.execute("INSERT INTO stdx_range (id, name) VALUES (?, ?);", 1, "Grace"));
+    static_cast<void>(c.execute("INSERT INTO stdx_range (id, name) VALUES (?, ?);", 2, "Edsger"));
+    static_cast<void>(c.execute("INSERT INTO stdx_range (id, name) VALUES (?, ?);", 3, "Barbara"));
 
     // Range-based for over an owning ResultSet temporary.
     {
@@ -701,6 +703,9 @@ void test_result_set_range() {
 
     // The rows() generator: a standalone lazy range over the same cursor. The
     // ResultSet is named so it outlives the generator that borrows it.
+    // std::generator is not implemented in libc++ yet, so rows() only exists
+    // where __cpp_lib_generator is advertised.
+    #ifdef __cpp_lib_generator
     {
         ResultSet rs = c.query("SELECT id, name FROM stdx_range ORDER BY id ASC;");
         i32 rows = 0;
@@ -712,6 +717,7 @@ void test_result_set_range() {
         expect(rows == 3, "rows() generator yielded all 3 rows");
         expect(id_sum == 6, "rows() generator summed ids (1+2+3 == 6)");
     }
+    #endif
 
     // LINQ over the live result set: filter (id >= 2) then project the name.
     {
@@ -735,7 +741,7 @@ void test_result_set_range() {
         );
     }
 
-    (void)c.execute("DROP TABLE stdx_range;");
+    static_cast<void>(c.execute("DROP TABLE stdx_range;"));
 }
 
 #ifdef __cpp_impl_reflection
@@ -763,12 +769,12 @@ struct UserRow {
  */
 void test_reflection_row_mapping() {
     Connection& c = sql_connection();
-    (void)c.execute("DROP TABLE IF EXISTS stdx_refl;");
-    (void)c.execute(
+    static_cast<void>(c.execute("DROP TABLE IF EXISTS stdx_refl;"));
+    static_cast<void>(c.execute(
         "CREATE TABLE stdx_refl (id INTEGER PRIMARY KEY, name VARCHAR(255), age INTEGER);"
-    );
-    (void)c.execute("INSERT INTO stdx_refl (id, name, age) VALUES (?, ?, ?);", 1, "Alan", 41);
-    (void)c.execute("INSERT INTO stdx_refl (id, name, age) VALUES (?, ?, ?);", 2, "Grace", 85);
+    ));
+    static_cast<void>(c.execute("INSERT INTO stdx_refl (id, name, age) VALUES (?, ?, ?);", 1, "Alan", 41));
+    static_cast<void>(c.execute("INSERT INTO stdx_refl (id, name, age) VALUES (?, ?, ?);", 2, "Grace", 85));
 
     Vector<UserRow> users = c.query<UserRow>(
         "SELECT id, name, age FROM stdx_refl ORDER BY id ASC;"
@@ -785,7 +791,7 @@ void test_reflection_row_mapping() {
         );
     }
 
-    (void)c.execute("DROP TABLE stdx_refl;");
+    static_cast<void>(c.execute("DROP TABLE stdx_refl;"));
 }
 #endif
 

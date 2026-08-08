@@ -68,7 +68,7 @@ export namespace stdx::io {
                 }
                 _line_consumed = true;
             }
-            while (_source && getline(*_source, _buffered_line)) {
+            while (_source != nullptr && getline(*_source, _buffered_line)) {
                 _line_stream = InputStringStream(_buffered_line);
                 _line_consumed = false;
                 return true;
@@ -133,8 +133,8 @@ export namespace stdx::io {
         }
 
         ~Scanner() = default;
-        Scanner(const Scanner&) = delete("Scanner is not copyable.");
-        Scanner& operator=(const Scanner&) = delete("Scanner is not copyable.");
+        Scanner(const Scanner&) = DELETE_METHOD("Scanner is not copyable.");
+        Scanner& operator=(const Scanner&) = DELETE_METHOD("Scanner is not copyable.");
         Scanner(Scanner&&) = default;
         Scanner& operator=(Scanner&&) = default;
 
@@ -207,7 +207,7 @@ export namespace stdx::io {
                 }
                 return ""s;
             }
-            if (_source && getline(*_source, _buffered_line)) {
+            if (_source != nullptr && getline(*_source, _buffered_line)) {
                 _line_consumed = true;
                 return _buffered_line;
             }

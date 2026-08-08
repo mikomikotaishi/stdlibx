@@ -10,7 +10,7 @@ using namespace stdx::os;
  * @brief Standard library system operations.
  */
 namespace stdx::sys {
-    #ifdef __unix__
+    #if defined(__unix__) || defined(__APPLE__)
     /**
      * @brief Read everything from fd into a buffer, then close it.
      * @param fd File descriptor to read from. Must be open for reading.
@@ -51,7 +51,7 @@ namespace stdx::sys {
     Vector<u8> drain_handle(win32::Handle h) noexcept {
         Vector<u8> buf;
         Array<u8, 4096> tmp;
-        win32::WinDWord n = 0;
+        win32::DWord n = 0;
         while (win32::ReadFile(h, tmp.data(), tmp.size(), &n, nullptr) && n > 0) {
             buf.insert(buf.end(), tmp.begin(), tmp.begin() + n);
         }
@@ -87,7 +87,7 @@ export namespace stdx::sys {
     public:
         class Builder;
     private:
-        #ifdef __unix__
+        #if defined(__unix__) || defined(__APPLE__)
         i32 _pid = -1; ///< The OS process ID (from fork).
         i32 _stdin_wr = -1; ///< The write end of the child's stdin pipe (or -1 if not piped).
         i32 _stdout_rd = -1; ///< The read end of the child's stdout pipe (or -1 if not piped).
@@ -102,7 +102,7 @@ export namespace stdx::sys {
 
         Process() = default;
 
-        #ifdef __unix__
+        #if defined(__unix__) || defined(__APPLE__)
         Process(i32 pid, i32 stdin_wr, i32 stdout_rd, i32 stderr_rd) noexcept:
             _pid{pid}, _stdin_wr{stdin_wr}, _stdout_rd{stdout_rd}, _stderr_rd{stderr_rd} {}
         #elifdef _WIN32
@@ -114,7 +114,7 @@ export namespace stdx::sys {
          * @brief Close any open handles/fds. Called by the destructor and move assignment operator.
          */
         void close_handles() noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             auto close_fd = [](i32& fd) noexcept -> void {
                 if (fd != -1) {
                     unix::close(fd); fd = -1;
@@ -140,11 +140,11 @@ export namespace stdx::sys {
         }
 
     public:
-        Process(const Process&) = delete("Process is not copyable.");
-        Process& operator=(const Process&) = delete("Process is not copyable.");
+        Process(const Process&) = DELETE_METHOD("Process is not copyable.");
+        Process& operator=(const Process&) = DELETE_METHOD("Process is not copyable.");
 
         Process(Process&& o) noexcept:
-        #ifdef __unix__
+        #if defined(__unix__) || defined(__APPLE__)
             _pid{Ops::exchange(o._pid, -1)},
             _stdin_wr{Ops::exchange(o._stdin_wr, -1)},
             _stdout_rd{Ops::exchange(o._stdout_rd, -1)},
@@ -176,7 +176,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         u32 id() const noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return static_cast<u32>(_pid);
             #elifdef _WIN32
             return win32::GetProcessId(static_cast<win32::Handle>(_process));
@@ -187,7 +187,7 @@ export namespace stdx::sys {
 
         [[nodiscard]]
         bool has_stdin()  const noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return _stdin_wr != -1;
             #elifdef _WIN32
             return _stdin_wr != nullptr;
@@ -198,7 +198,7 @@ export namespace stdx::sys {
 
         [[nodiscard]]
         bool has_stdout() const noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return _stdout_rd != -1;
             #elifdef _WIN32
             return _stdout_rd != nullptr;
@@ -209,7 +209,7 @@ export namespace stdx::sys {
 
         [[nodiscard]]
         bool has_stderr() const noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return _stderr_rd != -1;
             #elifdef _WIN32
             return _stderr_rd != nullptr;
@@ -218,7 +218,7 @@ export namespace stdx::sys {
             #endif
         }
 
-        #ifdef __unix__
+        #if defined(__unix__) || defined(__APPLE__)
         [[nodiscard]]
         i32 stdin_fd() const noexcept {
             return _stdin_wr;
@@ -241,7 +241,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         Expected<ExitStatus, ErrorCode> wait() {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             if (_pid == -1) {
                 return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
@@ -262,11 +262,11 @@ export namespace stdx::sys {
             if (win32::WaitForSingleObject(static_cast<win32::Handle>(_process), INFINITE) == win32::WAIT_FAILED) {
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
-            win32::WinDWord code = 0;
+            win32::DWord code = 0;
             win32::GetExitCodeProcess(static_cast<win32::Handle>(_process), &code);
             return win32::ExitStatus(static_cast<i32>(code));
             #else
-            return Unexpected(Ops::make_error_code(Errc::FUNCTION_NOT_SUPPORTED));
+            return Unexpected(Ops::error_code(Errc::FUNCTION_NOT_SUPPORTED));
             #endif
         }
 
@@ -277,7 +277,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         Expected<Optional<ExitStatus>, ErrorCode> try_wait() {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             if (_pid == -1) {
                 return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
@@ -295,15 +295,15 @@ export namespace stdx::sys {
             if (!_process) {
                 return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
             }
-            win32::WinDWord res = win32::WaitForSingleObject(static_cast<win32::Handle>(_process), 0);
+            win32::DWord res = win32::WaitForSingleObject(static_cast<win32::Handle>(_process), 0);
             if (res == win32::WAIT_TIMEOUT) {
                 return nullopt;
             }
             if (res == win32::WAIT_FAILED) {
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
-            win32::WinDWord code = 0;
-            win32::GetExitCodeProcess(static_cast<Handle>(_process), &code);
+            win32::DWord code = 0;
+            win32::GetExitCodeProcess(static_cast<win32::Handle>(_process), &code);
             return ExitStatus(static_cast<i32>(code));
             #else
             return nullopt;
@@ -316,7 +316,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         Expected<void, ErrorCode> kill() {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             if (_pid == -1) {
                 return {};
             }
@@ -328,7 +328,7 @@ export namespace stdx::sys {
             if (!_process) {
                 return {};
             }
-            if (!win32::TerminateProcess(static_cast<Handle>(_process), 1)) {
+            if (!win32::TerminateProcess(static_cast<win32::Handle>(_process), 1)) {
                 return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
             }
             return {};
@@ -349,7 +349,7 @@ export namespace stdx::sys {
             Thread out_thread;
             Thread err_thread;
 
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             i32 out_fd = Ops::exchange(_stdout_rd, -1);
             i32 err_fd = Ops::exchange(_stderr_rd, -1);
             if (out_fd != -1) {

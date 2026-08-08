@@ -199,7 +199,7 @@ void test_invalid_input() {
     inf.set_input(Span<const u8>(GARBAGE));
     bool threw = false;
     try {
-        (void)inf.inflate_all();
+        static_cast<void>(inf.inflate_all());
     } catch (const DataFormatException& _) {
         threw = true;
     }

@@ -343,5 +343,5 @@ namespace stdx::fmt {
 }
 
 template <typename T, typename Char>
-struct stdx::fmt::formatter<EnumSet<T>, Char> : public Formatter<EnumSet<T>, Char> {};
+struct stdx::fmt::formatter<EnumSet<T>, Char>: public Formatter<EnumSet<T>, Char> {};
 #endif

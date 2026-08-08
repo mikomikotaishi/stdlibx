@@ -68,10 +68,10 @@ void test_buffer_bounds() {
     );
 
     buffer.flip();
-    (void)buffer.get();
-    (void)buffer.get();
+    static_cast<void>(buffer.get());
+    static_cast<void>(buffer.get());
     expect_throws<OutOfRangeException>(
-        [&] -> void { (void)buffer.get(); },
+        [&] -> void { static_cast<void>(buffer.get()); },
         "reading past the limit underflows"
     );
 
@@ -171,12 +171,12 @@ void test_buffer_mark_and_reset() {
         "resetting without a mark is a programmer error, not a rewind"
     );
 
-    (void)buffer.get();
+    static_cast<void>(buffer.get());
     buffer.mark();
     expect(buffer.has_mark(), "mark records the position");
 
-    (void)buffer.get();
-    (void)buffer.get();
+    static_cast<void>(buffer.get());
+    static_cast<void>(buffer.get());
     expect_eq(buffer.position(), 3uz, "reads move on from it");
 
     buffer.reset();
@@ -226,7 +226,7 @@ void test_buffer_compact_edges() {
     ByteBuffer drained(4);
     drained.put(1);
     drained.flip();
-    (void)drained.get();
+    static_cast<void>(drained.get());
     drained.compact();
     expect_eq(drained.position(), 0uz, "compacting a fully-read buffer starts over at zero");
     expect_eq(drained.limit(), 4uz, "with all of the capacity available");
@@ -300,14 +300,14 @@ void test_buffer_integer_byte_order() {
 void test_buffer_integer_bounds() {
     ByteBuffer buffer{1, 2, 3};
     expect_throws<OutOfRangeException>(
-        [&] -> void { (void)buffer.get_u32(); },
+        [&] -> void { static_cast<void>(buffer.get_u32()); },
         "reading four bytes from three underflows"
     );
     expect_eq(buffer.position(), 0uz, "and consumes nothing when it fails");
 
     expect_eq(buffer.get_u16(), u16{0x0102}, "the bytes that are there still read");
     expect_throws<OutOfRangeException>(
-        [&] -> void { (void)buffer.get_u16(); },
+        [&] -> void { static_cast<void>(buffer.get_u16()); },
         "and the trailing single byte is not padded into a pair"
     );
 

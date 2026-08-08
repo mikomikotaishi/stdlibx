@@ -53,7 +53,7 @@ void test_cat_stdin_pipe() {
     expect(child.has_stdin(), "cat pipe: has stdin");
     expect(child.has_stdout(), "cat pipe: has stdout");
 
-    #ifdef __unix__
+    #if defined(__unix__) || defined(__APPLE__)
     StringView msg = "piped input\n";
     unix::write(child.stdin_fd(), msg.data(), msg.size());
     unix::close(child.stdin_fd());
@@ -351,6 +351,21 @@ void test_terminate_on_parent_exit() {
     // assertions, so it can't be the one that dies - fork an intermediate
     // "spawner" that launches `sleep`, reports the sleep PID up a pipe, then
     // _exit()s. The kernel should then SIGKILL the orphaned sleep.
+    //
+    // Becoming a subreaper first is what makes the answer readable. An orphan is
+    // normally adopted by init, and then nothing here can wait() for it - all this
+    // process could do is poll kill(pid, 0), which answers "does a process table
+    // entry exist", not "is it alive". Those differ exactly when nobody reaps:
+    // under an init that does not, a SIGKILLed orphan stays a zombie forever and
+    // the poll reports it alive for as long as the test cares to look. That is how
+    // this test failed in CI, where PID 1 is the container's idle command, while
+    // passing under systemd. As the subreaper this process adopts the orphan
+    // itself, so it can wait() for it and read the actual cause of death.
+    if (linux::sys::prctl(linux::sys::PR_SET_CHILD_SUBREAPER_OPTION, 1UL) == -1) {
+        expect(false, "terminate_on_parent_exit: became a subreaper");
+        return;
+    }
+
     i32 fds[2];
     if (unix::pipe(fds) == -1) {
         expect(false, "terminate_on_parent_exit: pipe created");
@@ -397,21 +412,44 @@ void test_terminate_on_parent_exit() {
         return;
     }
 
-    // The kernel delivers SIGKILL when the spawner dies; wait (up to ~2s) for the
-    // orphan to be reaped, after which kill(pid, 0) reports ESRCH (-1).
-    bool dead = false;
+    // The orphan is this process's child now, so waitpid can report how it died
+    // rather than merely whether a process table entry still exists. Polled with
+    // WNOHANG rather than waited on outright: a blocking wait would sit here for
+    // `sleep 60`'s full minute if PDEATHSIG never fired, turning a failure into a
+    // hang, while this reaches the assertion after ~2s and says what happened.
+    i32 sleeper_status = 0;
+    i32 waited = 0;
     for (i32 i = 0; i < 100; ++i) {
-        if (unix::kill(static_cast<i32>(sleeper_pid), 0) == -1) {
-            dead = true;
+        waited = static_cast<i32>(
+            unix::sys::waitpid(static_cast<i32>(sleeper_pid), &sleeper_status, unix::sys::WNOHANG)
+        );
+        if (waited != 0) {
             break;
         }
         Thread::sleep_for(20ms);
     }
-    if (!dead) {
+
+    // Either verdict means the child did not outlive its spawner. SIGKILL is the
+    // kernel delivering the parent-death signal, which is the path this test is
+    // named for. Exit code 127 is the race guard inside spawn() finding that the
+    // spawner had already died before the child could arm PDEATHSIG at all, so the
+    // child refused to run - a different mechanism reaching the same guarantee, and
+    // one it would be wrong to fail the build over.
+    const bool killed = waited == static_cast<i32>(sleeper_pid)
+        && unix::sys::WIFSIGNALED(sleeper_status)
+        && unix::sys::WTERMSIG(sleeper_status) == Signal::KILL;
+    const bool refused_to_start = waited == static_cast<i32>(sleeper_pid)
+        && unix::sys::WIFEXITED(sleeper_status)
+        && unix::sys::WEXITSTATUS(sleeper_status) == 127;
+
+    if (!killed && !refused_to_start) {
         // Don't leak the survivor if the assertion is about to fail.
         unix::kill(static_cast<i32>(sleeper_pid), Signal::KILL);
     }
-    expect(dead, "terminate_on_parent_exit: child killed when spawner died");
+    expect(
+        killed || refused_to_start,
+        "terminate_on_parent_exit: child killed when spawner died"
+    );
     #else
     expect(true, "terminate_on_parent_exit: skipped (non-Linux)");
     #endif

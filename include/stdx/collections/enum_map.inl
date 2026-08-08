@@ -139,7 +139,7 @@ export namespace stdx::collections {
          * @throws OutOfRangeException if @p key is absent.
          */
         [[nodiscard]]
-        [[=Throws<OutOfRangeException>()]]
+        [[=Throws<OutOfRangeException>]]
         constexpr V& at(K key) {
             usize i = index_of(key);
             if (i >= CAPACITY || !_slots[i].has_value()) {
@@ -149,7 +149,7 @@ export namespace stdx::collections {
         }
 
         [[nodiscard]]
-        [[=Throws<OutOfRangeException>()]]
+        [[=Throws<OutOfRangeException>]]
         constexpr const V& at(K key) const {
             usize i = index_of(key);
             if (i >= CAPACITY || !_slots[i].has_value()) {
@@ -380,5 +380,5 @@ namespace stdx::fmt {
 }
 
 template <typename K, typename V, typename Char>
-struct stdx::fmt::formatter<EnumMap<K, V>, Char> : public Formatter<EnumMap<K, V>, Char> {};
+struct stdx::fmt::formatter<EnumMap<K, V>, Char>: public Formatter<EnumMap<K, V>, Char> {};
 #endif

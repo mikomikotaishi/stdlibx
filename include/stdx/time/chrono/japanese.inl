@@ -41,7 +41,7 @@ export namespace stdx::time::chrono {
             SHIWASU = 12, ///< Shiwasu (師走), the twelfth month of the year (December)
         };
     public:
-        JapaneseChronology() = delete("JapaneseChronology is a static utility class and cannot be instantiated.");
+        JapaneseChronology() = DELETE_METHOD("JapaneseChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era

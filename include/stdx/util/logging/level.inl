@@ -1,5 +1,7 @@
 #pragma once
 
+using stdx::fmt::Formatter;
+
 /**
  * @namespace stdx::util::logging
  * @brief Standard library extension utility operations.
@@ -54,4 +56,4 @@ namespace stdx::fmt {
 }
 
 template <>
-struct stdx::fmt::formatter<Level> : stdx::fmt::Formatter<Level> {};
+struct stdx::fmt::formatter<Level>: public Formatter<Level> {};

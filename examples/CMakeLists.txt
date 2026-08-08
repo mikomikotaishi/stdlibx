@@ -8,8 +8,8 @@ foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
     
     # Create executable
     add_executable(${EXAMPLE_NAME} ${EXAMPLE_SOURCE})
-    
-    target_link_libraries(${EXAMPLE_NAME} PRIVATE stdlibx::stdx)
+
+    target_link_libraries(${EXAMPLE_NAME} PRIVATE stdlibx)
     
     # Force test to wait for stdx and its dependencies to be completely built
     add_dependencies(${EXAMPLE_NAME} stdlibx::stdx)
@@ -36,26 +36,6 @@ foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
     if(COMMAND add_sanitizers)
         add_sanitizers(${EXAMPLE_NAME})
     endif()
-
-    # Propagate the optional-extension flags so tests can #ifdef on them and
-    # become no-ops cleanly when the extension is not built into the library.
-    # The src/stdx/CMakeLists.txt already sets these PRIVATE on the library
-    # target itself; they're not propagated to consumers, so we re-apply here.
-    foreach(
-        EXT
-        STDLIBX_EXTENSIONS_COMPILE_ARCH_LIBRARY
-        STDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY
-        STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
-        STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY
-        STDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY
-        STDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY
-        STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY
-        STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY
-    )
-        if(${${EXT}})
-            target_compile_definitions(${EXAMPLE_NAME} PRIVATE ${EXT})
-        endif()
-    endforeach()
 
     # Add to CTest
     add_test(NAME ${EXAMPLE_NAME} COMMAND ${EXAMPLE_NAME})

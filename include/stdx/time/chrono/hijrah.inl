@@ -132,7 +132,7 @@ export namespace stdx::time::chrono {
             return {y, m, static_cast<u32>(rem + 1)};
         }
     public:
-        HijrahChronology() = delete("HijrahChronology is a static utility class and cannot be instantiated.");
+        HijrahChronology() = DELETE_METHOD("HijrahChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era

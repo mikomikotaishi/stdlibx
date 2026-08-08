@@ -407,6 +407,7 @@ export namespace stdx {
             using std::literals::chrono_literals::operator""h;
             using std::literals::chrono_literals::operator""min;
             using std::literals::chrono_literals::operator""ms;
+            using std::literals::chrono_literals::operator""ns;
             using std::literals::chrono_literals::operator""s;
             using std::literals::chrono_literals::operator""us;
             using std::literals::chrono_literals::operator""y;

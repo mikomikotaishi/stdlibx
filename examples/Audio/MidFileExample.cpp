@@ -4,6 +4,7 @@ using stdx::audio::midi::InvalidMidiDataException;
 using stdx::audio::midi::MetaMessage;
 using stdx::audio::midi::MidiDevice;
 using stdx::audio::midi::MidiDeviceInfo;
+using stdx::audio::midi::MidiEvent;
 using stdx::audio::midi::MidiException;
 using stdx::audio::midi::MidiMessage;
 using stdx::audio::midi::MidiSystem;
@@ -119,7 +120,7 @@ Optional<Process> maybe_spawn_fluidsynth() {
     }
 
     Thread::sleep_for(1500ms);
-    return Optional<Process>{Ops::move(*child)};
+    return Ops::move(*child);
 }
 
 struct EventCounts {
@@ -137,9 +138,9 @@ struct EventCounts {
 void count_events(const Sequence& seq, EventCounts& out) noexcept {
     for (usize ti = 0; ti < seq.track_count(); ++ti) {
         const Track& t = seq.track(ti);
-        for (usize ei = 0; ei < t.size(); ++ei) {
-            const MidiMessage* msg = t[ei].message.get();
-            if (!msg) {
+        for (const MidiEvent& event: t) {
+            const MidiMessage* msg = event.message.get();
+            if (msg == nullptr) {
                 continue;
             }
             if (const SysexMessage* _ = dynamic_cast<const SysexMessage*>(msg)) {
@@ -244,7 +245,7 @@ void play(const Path& path, i64 max_seconds) {
             break;
         }
     }
-    if (!target) {
+    if (target == nullptr) {
         System::out.println(
             "No real synth available - skipping playback. "
             "(The auto-launcher might have failed; check fluidsynth is installed.)"
@@ -269,14 +270,14 @@ void play(const Path& path, i64 max_seconds) {
     try {
         UniquePointer<MidiDevice> device = MidiSystem::open_device(*target);
         Receiver* rx = device->receiver();
-        if (!rx) {
+        if (rx == nullptr) {
             System::err.println("Device has no receiver.");
             return;
         }
         Sequencer& sequencer = MidiSystem::default_sequencer();
         sequencer.open();
         Transmitter* tx = sequencer.transmitter();
-        if (!tx) {
+        if (tx == nullptr) {
             System::err.println("Sequencer has no transmitter.");
             return;
         }

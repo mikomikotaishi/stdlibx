@@ -101,7 +101,53 @@ if(STDLIBX_EXTENSIONS_COMPILE_MICROSOFT_GUIDELINES_SUPPORT_LIBRARY)
     target_link_libraries(stdlibx_stdx PRIVATE Microsoft.GSL::GSL)
 endif()
 
+# Second line of defence behind the implicit-include-directory handling in the
+# top-level CMakeLists, which is where the SDK-shadowing problem is actually
+# solved. This exists because that fix needs the SDK's exact path to compare
+# against, and the first version of it needed CMAKE_OSX_SYSROOT specifically -
+# which a Homebrew clang leaves empty, so it matched nothing and silently did
+# nothing at all.
+#
+# These match on ".sdk/" instead, so they hold whether or not the SDK was located.
+# Any directory inside a .sdk is one the compiler already searches, in the order
+# it chose, so naming it on a command line can only move it too early.
+function(stdlibx_drop_sysroot_includes target)
+    if(NOT APPLE OR NOT TARGET ${target})
+        return()
+    endif()
+
+    get_target_property(_dirs ${target} INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT _dirs)
+        return()
+    endif()
+
+    set(_kept "")
+    foreach(_dir IN LISTS _dirs)
+        if(NOT _dir MATCHES "\\.sdk/")
+            list(APPEND _kept "${_dir}")
+        endif()
+    endforeach()
+
+    if(NOT _kept STREQUAL "${_dirs}")
+        message(STATUS "Dropping SDK-internal include directories from ${target}")
+        set_target_properties(${target} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${_kept}")
+    endif()
+endfunction()
+
+# The same directories, reached through a plain variable rather than a target.
+function(stdlibx_without_sysroot out)
+    set(_kept "")
+    foreach(_dir IN LISTS ARGN)
+        if(APPLE AND _dir MATCHES "\\.sdk/")
+            continue()
+        endif()
+        list(APPEND _kept "${_dir}")
+    endforeach()
+    set(${out} "${_kept}" PARENT_SCOPE)
+endfunction()
+
 find_package(ODBC QUIET)
+stdlibx_drop_sysroot_includes(ODBC::ODBC)
 if(STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY AND ODBC_FOUND)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY)
     target_link_libraries(stdlibx_stdx PUBLIC ODBC::ODBC)
@@ -144,9 +190,11 @@ if(STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY)
 
     if(ZLIB_FOUND)
-        target_include_directories(stdlibx_stdx PUBLIC ${ZLIB_INCLUDE_DIRS})
+        stdlibx_without_sysroot(_stdlibx_zlib_includes ${ZLIB_INCLUDE_DIRS})
+        target_include_directories(stdlibx_stdx PUBLIC ${_stdlibx_zlib_includes})
     endif()
 
+    stdlibx_drop_sysroot_includes(ZLIB::ZLIB)
     target_link_libraries(stdlibx_stdx PUBLIC ZLIB::ZLIB)
 endif()
 
@@ -234,4 +282,30 @@ if(STDLIBX_USE_RESERVED_STD_IDENTIFIERS)
         STDLIBX_NO_RESERVED_STD_MODULE
         STDLIBX_NO_RESERVED_STD_NAMESPACE
     )
+endif()
+
+# Says which dependency is responsible if an SDK-internal include directory is
+# still reaching the compiler. The failure it guards against is a compile error
+# thrown from inside the macOS SDK, on a type like __uint32_t, naming files this
+# project never mentions - so the connection back to a find_package() result is
+# not one anybody makes from the error alone. Better to name the target here, at
+# configure time, than to work it back from a build log.
+if(APPLE)
+    get_target_property(_stdlibx_linked stdlibx_stdx LINK_LIBRARIES)
+    foreach(_stdlibx_dep IN LISTS _stdlibx_linked)
+        if(NOT TARGET ${_stdlibx_dep})
+            continue()
+        endif()
+        get_target_property(_stdlibx_dep_dirs ${_stdlibx_dep} INTERFACE_INCLUDE_DIRECTORIES)
+        foreach(_stdlibx_dep_dir IN LISTS _stdlibx_dep_dirs)
+            if(_stdlibx_dep_dir MATCHES "\\.sdk/")
+                message(WARNING
+                    "${_stdlibx_dep} still contributes the SDK-internal include directory\n"
+                    "  ${_stdlibx_dep_dir}\n"
+                    "which shadows the compiler's own stddef.h and stdint.h. Add it to "
+                    "CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES, or strip it with "
+                    "stdlibx_drop_sysroot_includes(${_stdlibx_dep}).")
+            endif()
+        endforeach()
+    endforeach()
 endif()

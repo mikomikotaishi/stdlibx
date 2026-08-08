@@ -26,7 +26,7 @@ export namespace stdx::net {
     private:
         Socket _socket; ///< The connected descriptor.
     public:
-        TcpStream() = delete("A TcpStream is always connected; take one from connect() or TcpListener::accept().");
+        TcpStream() = DELETE_METHOD("A TcpStream is always connected; take one from connect() or TcpListener::accept().");
 
         /**
          * @brief Adopts a socket that is already connected.
@@ -76,6 +76,7 @@ export namespace stdx::net {
          * @return The number of bytes sent, which may be fewer than asked.
          * @throws SocketException if the send fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize send(Span<const byte> buffer) {
             return _socket.send(buffer);
@@ -87,6 +88,7 @@ export namespace stdx::net {
          * @return The number of bytes sent, or an empty Optional if the socket would block.
          * @throws SocketException if the send fails.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_send(Span<const byte> buffer) {
             return _socket.try_send(buffer);
@@ -108,6 +110,7 @@ export namespace stdx::net {
          * @return The number of bytes read; 0 means the peer has closed its writing half.
          * @throws SocketException if the receive fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         usize receive(Span<byte> buffer) {
             return _socket.receive(buffer);
@@ -122,6 +125,7 @@ export namespace stdx::net {
          * A returned 0 is end-of-stream and an empty Optional is "not yet"; they
          * are different answers and a reactor loop has to tell them apart.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         Optional<usize> try_receive(Span<byte> buffer) {
             return _socket.try_receive(buffer);
@@ -133,6 +137,7 @@ export namespace stdx::net {
          * @return true if the buffer was filled, false if the peer closed first.
          * @throws SocketException if the receive fails, or if the socket would block.
          */
+        [[nodiscard]]
         THROWS(SocketException)
         bool receive_exactly(Span<byte> buffer) {
             return _socket.receive_exactly(buffer);
@@ -266,7 +271,10 @@ export namespace stdx::net {
     private:
         Socket _socket; ///< The bound, listening descriptor.
     public:
-        TcpListener() = delete("A TcpListener is always bound and listening; take one from bind().");
+        /// What @ref try_accept yields. Naming it is how a listener opts in to Acceptor.
+        using Stream = TcpStream;
+
+        TcpListener() = DELETE_METHOD("A TcpListener is always bound and listening; take one from bind().");
 
         /**
          * @brief Adopts a socket that is already bound and listening.
@@ -366,7 +374,7 @@ export namespace stdx::net {
         THROWS(SocketException)
         Optional<TcpStream> try_accept() {
             Optional<Socket> accepted = _socket.try_accept();
-            if (!accepted) {
+            if (!accepted.has_value()) {
                 return nullopt;
             }
             return TcpStream(Ops::move(*accepted));

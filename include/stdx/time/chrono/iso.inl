@@ -13,7 +13,7 @@ export namespace stdx::time::chrono {
      */
     class IsoChronology final {
     public:
-        IsoChronology() = delete("IsoChronology is a static utility class and cannot be instantiated.");
+        IsoChronology() = DELETE_METHOD("IsoChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era

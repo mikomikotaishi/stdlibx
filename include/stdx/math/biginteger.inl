@@ -1,6 +1,7 @@
 #pragma once
 
 using stdx::collections::Vector;
+using stdx::fmt::Formatter;
 
 /**
  * @namespace stdx::math
@@ -603,13 +604,13 @@ export namespace stdx::math {
 
         /**
          * @brief Constructs a BigInteger from a built-in integral value.
-         * @tparam T The type of the value, must be an integral type.
+         * @tparam Int The type of the value, must be an integral type.
          * @param value The value to construct from.
          */
-        template <Integral T>
-        BigInteger(T value) {
+        template <Integral Int>
+        BigInteger(Int value) {
             u64 magnitude = 0;
-            if constexpr (SignedIntegral<T>) {
+            if constexpr (SignedIntegral<Int>) {
                 if (value < 0) {
                     _sign = -1;
                     magnitude = 0ull - static_cast<u64>(static_cast<i64>(value));
@@ -1859,10 +1860,10 @@ namespace stdx {
 }
 
 template <>
-struct stdx::core::hash<BigInteger> : public stdx::core::Hash<BigInteger> {};
+struct stdx::core::hash<BigInteger>: public Hash<BigInteger> {};
 
 template <>
-struct stdx::fmt::formatter<BigInteger> : public stdx::fmt::Formatter<BigInteger> {};
+struct stdx::fmt::formatter<BigInteger>: public Formatter<BigInteger> {};
 
 export namespace stdx::literals::inline math_literals {
     [[nodiscard]]

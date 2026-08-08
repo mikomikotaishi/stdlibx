@@ -13,7 +13,7 @@ export namespace stdx::core {
 
     class Compare final {
     public:
-        Compare() = delete("Compare is a static utility class and cannot be instantiated.");
+        Compare() = DELETE_METHOD("Compare is a static utility class and cannot be instantiated.");
 
         template <typename T, typename U>
         [[nodiscard]]

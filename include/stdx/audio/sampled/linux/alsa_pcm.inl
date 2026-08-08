@@ -188,7 +188,7 @@ namespace stdx::audio::sampled {
             if (_running.load()) {
                 return;
             }
-            if (!_pcm) {
+            if (_pcm == nullptr) {
                 throw LineUnavailableException("line closed");
             }
             if (i32 r = linux::alsa::snd_pcm_prepare(_pcm); r < 0) {
@@ -206,7 +206,7 @@ namespace stdx::audio::sampled {
             if (_worker.joinable()) {
                 _worker.join();
             }
-            if (_pcm) {
+            if (_pcm != nullptr) {
                 linux::alsa::snd_pcm_drain(_pcm);
             }
         }
@@ -216,7 +216,7 @@ namespace stdx::audio::sampled {
             if (_worker.joinable()) {
                 _worker.join();
             }
-            if (_pcm) {
+            if (_pcm != nullptr) {
                 linux::alsa::snd_pcm_close(_pcm);
                 _pcm = nullptr;
             }
@@ -299,7 +299,7 @@ namespace stdx::audio::sampled {
             if (_running.load()) {
                 return;
             }
-            if (!_pcm) {
+            if (_pcm == nullptr) {
                 throw LineUnavailableException("line closed");
             }
             if (i32 r = linux::alsa::snd_pcm_prepare(_pcm); r < 0) {
@@ -320,7 +320,7 @@ namespace stdx::audio::sampled {
             if (_worker.joinable()) {
                 _worker.join();
             }
-            if (_pcm) {
+            if (_pcm != nullptr) {
                 linux::alsa::snd_pcm_drop(_pcm);
             }
         }
@@ -330,7 +330,7 @@ namespace stdx::audio::sampled {
             if (_worker.joinable()) {
                 _worker.join();
             }
-            if (_pcm) {
+            if (_pcm != nullptr) {
                 linux::alsa::snd_pcm_close(_pcm);
                 _pcm = nullptr;
             }
@@ -432,12 +432,16 @@ namespace stdx::audio::sampled {
      */
     [[nodiscard]]
     inline String preferred_default_pcm_name() noexcept {
-        static StringView result = [] noexcept -> StringView {
+        // A String, not a StringView: the override's value comes from the
+        // environment, and a view would be cached here for the life of the
+        // process while getenv(3) permits any later setenv or unsetenv to modify
+        // the buffer it points at.
+        static const String result = [] noexcept -> String {
             if (
-                Optional<StringView> env = Environment::get("STDLIBX_AUDIO_DEFAULT_PCM");
+                Optional<String> env = Environment::get("STDLIBX_AUDIO_DEFAULT_PCM");
                 env.has_value() && !env->empty()
             ) {
-                return *env;
+                return *std::move(env);
             }
             linux::alsa::SoundPcm* probe = nullptr;
             const i32 r = linux::alsa::snd_pcm_open(
@@ -451,7 +455,7 @@ namespace stdx::audio::sampled {
             }
             return "default";
         }();
-        return String(result);
+        return result;
     }
 }
 

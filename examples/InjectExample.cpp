@@ -12,12 +12,12 @@ using stdx::mem::SharedPointer;
 using stdx::util::logging::Logger;
 using stdx::util::logging::LoggerFactory;
 
-class [[=Singleton()]] GreetingService {
+class [[=Singleton]] GreetingService {
 private:
     SharedPointer<Logger> logger;
     String greeting;
 public:
-    [[=Inject()]]
+    [[=Inject]]
     GreetingService(SharedPointer<Logger> logger, [[=Named("greeting")]] String greeting):
         logger{Ops::move(logger)}, greeting{Ops::move(greeting)} {}
 
@@ -26,13 +26,13 @@ public:
     }
 };
 
-class [[=Singleton()]] Application {
+class [[=Singleton]] Application {
 private:
     GreetingService& service;
     SharedPointer<Logger> logger;
     Provider<String> greeting_provider;
 public:
-    [[=Inject()]]
+    [[=Inject]]
     Application(
         GreetingService& service,
         SharedPointer<Logger> logger,

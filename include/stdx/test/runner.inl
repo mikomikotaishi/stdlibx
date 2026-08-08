@@ -12,6 +12,25 @@ using stdx::meta::reflect::Info;
  * @brief Minimal assertion-based unit-testing framework.
  */
 export namespace stdx::test {
+    #ifdef __cpp_impl_reflection
+    /**
+     * @concept ScannableScope
+     * @brief An Info that test discovery can scan: a namespace, or a class whose
+     * static member functions are the tests.
+     * @tparam Nsp The reflection to check, e.g. ^^tests or ^^Fixture.
+     *
+     * Spelled as a concept rather than repeated as a requires-clause at each use,
+     * for two reasons beyond brevity. A requires-clause takes a primary expression,
+     * so `requires reflect::is_namespace(Nsp) || ...` is ill-formed without an extra
+     * pair of parentheses, which is easy to omit; naming a concept is a primary
+     * expression and needs none. And the class case is not `is_class_type` alone -
+     * that is true of unions too, which have no meaningful tests to find.
+     */
+    template <Info Nsp>
+    concept ScannableScope = reflect::is_namespace(Nsp)
+        || (reflect::is_class_type(Nsp) && !reflect::is_union_type(Nsp));
+    #endif
+
     /**
      * @class Test
      * @brief A single named test: a function plus optional tags.
@@ -52,6 +71,7 @@ export namespace stdx::test {
          * discovery.inl, alongside the machinery it drives.
          */
         template <Info Nsp>
+            requires ScannableScope<Nsp>
         [[nodiscard]]
         static Suite of();
         #endif
@@ -122,20 +142,19 @@ namespace stdx::test {
 
     /**
      * @internal
-     * @brief Parses the runner options from argv.
-     * @param argc The argument count.
-     * @param argv The argument vector.
+     * @brief Parses the runner options from a command line.
+     * @param args The command line, argv[0] first - as Environment::args reports it.
      * @return The parsed options.
      */
     [[nodiscard]]
-    inline Options parse_options(int argc, char* argv[]) {
+    inline Options parse_options(Span<const StringView> args) {
         Options options;
-        for (usize i = 1; i < argc; ++i) {
-            const StringView arg = argv[i];
-            if (arg == "--filter" && i + 1 < argc) {
-                options.filter = argv[++i];
-            } else if (arg == "--tag" && i + 1 < argc) {
-                options.tag = argv[++i];
+        for (usize i = 1; i < args.size(); ++i) {
+            const StringView arg = args[i];
+            if (arg == "--filter" && i + 1 < args.size()) {
+                options.filter = args[++i];
+            } else if (arg == "--tag" && i + 1 < args.size()) {
+                options.tag = args[++i];
             } else if (arg == "--list") {
                 options.list = true;
             } else if (arg == "--verbose" || arg == "-v") {
@@ -145,6 +164,31 @@ namespace stdx::test {
             }
         }
         return options;
+    }
+
+    /**
+     * @internal
+     * @brief Adapts a main() argument vector to the Span form the runner uses.
+     * @param argc The argument count.
+     * @param argv The argument vector.
+     * @return The arguments as views, argv[0] first.
+     *
+     * The result owns the view array, so callers keep it alive for as long as they
+     * hold the span - the views themselves point into argv, which outlives them.
+     */
+    [[nodiscard]]
+    inline Vector<StringView> args_of(int argc, char* argv[]) {
+        Vector<StringView> args;
+        if (argv == nullptr || argc <= 0) {
+            return args;
+        }
+        args.reserve(static_cast<usize>(argc));
+        for (i32 i = 0; i < argc; ++i) {
+            if (argv[i] != nullptr) {
+                args.emplace_back(argv[i]);
+            }
+        }
+        return args;
     }
 
     /**
@@ -282,8 +326,8 @@ namespace stdx::test {
      * @return 0 if no test failed, 1 otherwise.
      */
     [[nodiscard]]
-    inline int run_impl(int argc, char* argv[], InitializerList<Suite> suites) {
-        const Options options = parse_options(argc, argv);
+    inline int run_impl(Span<const StringView> args, InitializerList<Suite> suites) {
+        const Options options = parse_options(args);
         Context::context().color(options.color);
         if (options.list) {
             for (const Suite& suite: suites) {
@@ -348,7 +392,20 @@ export namespace stdx::test {
      * @return 0 if no test failed, 1 otherwise.
      */
     int run(int argc, char* argv[], InitializerList<Test> tests) {
-        return run_impl(argc, argv, {Suite {.tests = Vector<Test>(tests)}});
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, {Suite {.tests = Vector<Test>(tests)}});
+    }
+
+    /**
+     * @brief Runs tests as an anonymous suite, taking the command line from the process.
+     * @param tests The tests to run.
+     * @return 0 if no test failed, 1 otherwise.
+     *
+     * Equivalent to the argc/argv overload with Environment::args(), which needs no
+     * cooperation from main - so `int main() { return run({...}); }` works.
+     */
+    int run(InitializerList<Test> tests) {
+        return run_impl(Environment::args(), {Suite {.tests = Vector<Test>(tests)}});
     }
 
     /**
@@ -365,7 +422,21 @@ export namespace stdx::test {
         Vector<Test> list;
         list.reserve(sizeof...(tests));
         (list.push_back(Ops::forward<decltype(tests)>(tests)), ...);
-        return run_impl(argc, argv, {Suite {.tests = Ops::move(list)}});
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, {Suite {.tests = Ops::move(list)}});
+    }
+
+    /**
+     * @brief Runs tests given as separate arguments, taking the command line from
+     * the process. See the argc/argv overload.
+     * @param tests The tests to run, each given as its own argument.
+     * @return 0 if no test failed, 1 otherwise.
+     */
+    int run(DecaysTo<Test> auto&&... tests) {
+        Vector<Test> list;
+        list.reserve(sizeof...(tests));
+        (list.push_back(Ops::forward<decltype(tests)>(tests)), ...);
+        return run_impl(Environment::args(), {Suite {.tests = Ops::move(list)}});
     }
 
     /**
@@ -379,7 +450,17 @@ export namespace stdx::test {
      * of {name, fn} entries selects the InitializerList<Test> overload instead.
      */
     int run(int argc, char* argv[], const Suite& suite) {
-        return run_impl(argc, argv, {suite});
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, {suite});
+    }
+
+    /**
+     * @brief Runs a single suite, taking the command line from the process.
+     * @param suite The suite to run.
+     * @return 0 if no test failed, 1 otherwise.
+     */
+    int run(const Suite& suite) {
+        return run_impl(Environment::args(), {suite});
     }
 
     /**
@@ -395,7 +476,17 @@ export namespace stdx::test {
      * ambiguous.
      */
     int run_suites(int argc, char* argv[], InitializerList<Suite> suites) {
-        return run_impl(argc, argv, suites);
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, suites);
+    }
+
+    /**
+     * @brief Runs several suites, taking the command line from the process.
+     * @param suites The suites to run.
+     * @return 0 if no test failed, 1 otherwise.
+     */
+    int run_suites(InitializerList<Suite> suites) {
+        return run_impl(Environment::args(), suites);
     }
 
     /**
@@ -409,6 +500,17 @@ export namespace stdx::test {
      * run(argc, argv, Suite {...}, Suite {...}).
      */
     int run(int argc, char* argv[], DecaysTo<Suite> auto&&... suites) {
-        return run_impl(argc, argv, {Ops::forward<decltype(suites)>(suites)...});
+        const Vector<StringView> args = args_of(argc, argv);
+        return run_impl(args, {Ops::forward<decltype(suites)>(suites)...});
+    }
+
+    /**
+     * @brief Runs suites given as separate arguments, taking the command line from
+     * the process. See the argc/argv overload.
+     * @param suites The suites to run, each given as its own argument.
+     * @return 0 if no test failed, 1 otherwise.
+     */
+    int run(DecaysTo<Suite> auto&&... suites) {
+        return run_impl(Environment::args(), {Ops::forward<decltype(suites)>(suites)...});
     }
 }

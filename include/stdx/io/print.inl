@@ -8,7 +8,6 @@ using stdx::meta::IsConvertibleValue;
 using stdx::meta::TypeIdentityType;
 
 using namespace stdx::os;
-using namespace stdx::os::win32;
 
 namespace stdx::io {
     [[nodiscard]]
@@ -18,12 +17,12 @@ namespace stdx::io {
             return false;
         }
 
-        Handle h = win32::GetStdHandle(win32::STD_OUTPUT_HANDLE);
+        win32::Handle h = win32::GetStdHandle(win32::STD_OUTPUT_HANDLE);
         if (h == win32::INVALID_HANDLE_VALUE) {
             return false;
         }
 
-        DWord mode = 0;
+        win32::DWord mode = 0;
         if (!win32::GetConsoleMode(h, &mode)) {
             return false;
         }
@@ -39,7 +38,7 @@ namespace stdx::io {
             return false;
         }
 
-        Optional<StringView> term = Environment::get("TERM");
+        Optional<String> term = Environment::get("TERM");
         return !term.has_value() || *term != "dumb";
         #endif
     }
@@ -670,4 +669,4 @@ namespace stdx::fmt {
 }
 
 template <>
-struct stdx::fmt::formatter<TextStyle> : stdx::fmt::Formatter<TextStyle> {};
+struct stdx::fmt::formatter<TextStyle>: public Formatter<TextStyle> {};

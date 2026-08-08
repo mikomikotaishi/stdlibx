@@ -156,7 +156,7 @@ namespace stdx::fs {
         if (p.empty()) {
             return p;
         }
-        Optional<StringView> home = Environment::get(HOME_VARIABLE);
+        Optional<String> home = Environment::get(HOME_VARIABLE);
         if (!home.has_value()) {
             return nullopt; // `~` could not be expanded due to HOME variable not being set
         }

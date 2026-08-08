@@ -1,9 +1,10 @@
+#include <version>
+
 import stdx;
 
 using stdx::collections::HashMap;
 using stdx::collections::TreeMap;
 using stdx::collections::Vector;
-using stdx::debug::StackTrace;
 using stdx::fs::DirectoryEntry;
 using stdx::fs::DirectoryIterator;
 using stdx::fs::Path;
@@ -18,6 +19,10 @@ using stdx::mem::UniquePointer;
 using stdx::thread::Thread;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
+
+#ifdef __cpp_lib_stacktrace
+using stdx::debug::StackTrace;
+#endif
 
 /**
  * @struct BasicOptions
@@ -72,7 +77,7 @@ int main(int argc, char* argv[]) {
     System::out.printf("Hello, world!%n");
     System::out.printf("Formatted number: %d, hex: %x, float: %.2f%n", 42, 255, 3.14159);
 
-    Vector<i32> v{1, 2, 3, 4, 5};
+    Vector<i32> v = {1, 2, 3, 4, 5};
     for (usize i = 0; i < v.size(); ++i) {
         System::out.println("v[{}] = {}", i, v[i]);
     }
@@ -86,7 +91,11 @@ int main(int argc, char* argv[]) {
         System::err.println("Operation failed");
     }
 
+    #ifdef __cpp_lib_math_special_functions
     System::out.println("sin(1) = {}, cos(1) = {}, ζ(2) = {}", Math::sin(1), Math::cos(1), Math::riemann_zeta(2));
+    #else
+    System::out.println("sin(1) = {}, cos(1) = {}", Math::sin(1), Math::cos(1));
+    #endif
 
     Random rng;
     stdx::io::println(TextStyle().fg(TextStyle::Color::GREEN), "Random integer between 1 and 10: {}", rng.next(1, 11));
@@ -129,10 +138,10 @@ int main(int argc, char* argv[]) {
     }
 
     System::out.printf(
-        "Files in current directory (%s)%n:%s%n", 
+        "Files in current directory (%s)%n:%s%n",
         dir,
         Query(files)
-            .select([](const DirectoryEntry& e) -> String { return e.path(); })
+            .select([](const DirectoryEntry& e) -> const Path& { return e.path(); })
             .to<Vector>()
     );
 
@@ -151,5 +160,7 @@ int main(int argc, char* argv[]) {
         System::local_timestamp()
     );
 
+    #ifdef __cpp_lib_stacktrace
     System::out.println(StackTrace::current());
+    #endif
 }

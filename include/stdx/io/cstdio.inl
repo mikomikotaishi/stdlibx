@@ -8,9 +8,15 @@ using stdx::fs::Path;
 using stdx::io::IOException;
 using stdx::mem::UniquePointer;
 
+#ifdef __APPLE__
+extern "C" std::FILE* __stdinp;
+extern "C" std::FILE* __stdoutp;
+extern "C" std::FILE* __stderrp;
+#else
 extern "C" std::FILE* stdin;
 extern "C" std::FILE* stdout;
 extern "C" std::FILE* stderr;
+#endif
 
 /**
  * @namespace stdx::io
@@ -92,7 +98,7 @@ export namespace stdx::io {
          */
         struct FileDeleter {
             void operator()(Handle* file) const noexcept {
-                if (file && file != stdin() && file != stdout() && file != stderr()) {
+                if (file != nullptr && file != stdin() && file != stdout() && file != stderr()) {
                     cstdio::fclose(file);
                 }
             }
@@ -124,8 +130,8 @@ export namespace stdx::io {
             handle{cstdio::fopen(path.c_str(), mode.data())}, file_path{path} {}
 
         ~File() = default;
-        File(const File&) = delete("File is not copyable.");
-        File& operator=(const File&) = delete("File is not copyable.");
+        File(const File&) = DELETE_METHOD("File is not copyable.");
+        File& operator=(const File&) = DELETE_METHOD("File is not copyable.");
         File(File&&) = default;
         File& operator=(File&&) = default;
 
@@ -136,7 +142,11 @@ export namespace stdx::io {
          */
         [[nodiscard]]
         static File& stdin() noexcept {
+            #ifdef __APPLE__
+            static File stdin_file(::__stdinp);
+            #else
             static File stdin_file(::stdin);
+            #endif
             return stdin_file;
         }
 
@@ -147,7 +157,11 @@ export namespace stdx::io {
          */
         [[nodiscard]]
         static File& stdout() noexcept {
+            #ifdef __APPLE__
+            static File stdout_file(::__stdoutp);
+            #else
             static File stdout_file(::stdout);
+            #endif
             return stdout_file;
         }
 
@@ -158,7 +172,11 @@ export namespace stdx::io {
          */
         [[nodiscard]]
         static File& stderr() noexcept {
+            #ifdef __APPLE__
+            static File stderr_file(::__stderrp);
+            #else
             static File stderr_file(::stderr);
+            #endif
             return stderr_file;
         }
 
@@ -315,11 +333,11 @@ export namespace stdx::io {
          */
         THROWS(IOException)
         void reopen(StringView mode) {
-            if (!file_path || !handle) {
+            if (!file_path.has_value() || !handle) {
                 throw IOException("File is not open or has no path.");
             }
             Handle* new_handle = cstdio::freopen(file_path->c_str(), mode.data(), handle.get());
-            if (!new_handle) {
+            if (new_handle == nullptr) {
                 handle.release();
                 handle.reset(new_handle);
                 throw IOException("Failed to reopen file.");
@@ -334,11 +352,11 @@ export namespace stdx::io {
          * @return True if the file was successfully reopened, false otherwise.
          */
         bool try_reopen(StringView mode) noexcept {
-            if (!file_path || !handle) {
+            if (!file_path.has_value() || !handle) {
                 return false;
             }
             Handle* new_handle = cstdio::freopen(file_path->c_str(), mode.data(), handle.get());
-            if (!new_handle) {
+            if (new_handle == nullptr) {
                 handle.release();
                 handle.reset(new_handle);
                 return true;
@@ -547,6 +565,6 @@ namespace stdx::fmt {
 }
 
 template <>
-struct stdx::fmt::formatter<File> : public Formatter<File> {};
+struct stdx::fmt::formatter<File>: public Formatter<File> {};
 #endif
 

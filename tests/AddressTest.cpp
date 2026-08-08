@@ -67,9 +67,9 @@ void test_ipv4_parse() {
     expect(!IPv4Address::parse("").has_value(), "the empty string is rejected");
 
     expect_throws<AddressSyntaxException>(
-        [] -> void { (void)IPv4Address("1.2.3.4.5"); }, "the ctor throws on a malformed literal"
+        [] -> void { static_cast<void>(IPv4Address("1.2.3.4.5")); }, "the ctor throws on a malformed literal"
     );
-    expect_no_throw([] -> void { (void)IPv4Address("1.2.3.4"); }, "the ctor accepts a valid literal");
+    expect_no_throw([] -> void { static_cast<void>(IPv4Address("1.2.3.4")); }, "the ctor accepts a valid literal");
 }
 
 void test_ipv4_to_string() {
@@ -169,9 +169,9 @@ void test_ipv6_parse() {
     expect(!IPv6Address::parse("").has_value(), "the empty string is rejected");
 
     expect_throws<AddressSyntaxException>(
-        [] -> void { (void)IPv6Address("1::2::3"); }, "the ctor throws on a malformed literal"
+        [] -> void { static_cast<void>(IPv6Address("1::2::3")); }, "the ctor throws on a malformed literal"
     );
-    expect_no_throw([] -> void { (void)IPv6Address("2001:db8::1"); }, "the ctor accepts a valid literal");
+    expect_no_throw([] -> void { static_cast<void>(IPv6Address("2001:db8::1")); }, "the ctor accepts a valid literal");
 }
 
 void test_ipv6_to_string() {
@@ -231,7 +231,7 @@ void test_ipv6_to_string() {
 }
 
 void test_ipv6_roundtrip() {
-    constexpr StringView literals[] = {
+    static constexpr Array<StringView, 9> LITERALS = {
         "::",
         "::1",
         "2001:db8::1",
@@ -242,7 +242,7 @@ void test_ipv6_roundtrip() {
         "::ffff:192.168.0.1",
         "fe80::1%3",
     };
-    for (const StringView literal: literals) {
+    for (const StringView literal: LITERALS) {
         const Optional<IPv6Address> address = IPv6Address::parse(literal);
         require(address.has_value(), Ops::fmt("{} parses", literal));
         expect_eq(address->to_string(), String(literal), "canonical text survives a round trip");
@@ -311,7 +311,7 @@ void test_ip_address() {
     expect(IPAddress(IPv4Address(1, 2, 3, 4)) < IPAddress(IPv4Address(1, 2, 3, 5)), "IPv4 sorts by value");
 
     expect_throws<AddressSyntaxException>(
-        [] -> void { (void)IPAddress("nonsense"); }, "the ctor throws on a malformed literal"
+        [] -> void { static_cast<void>(IPAddress("nonsense")); }, "the ctor throws on a malformed literal"
     );
 }
 
@@ -350,7 +350,7 @@ void test_endpoint() {
     expect(!Endpoint::parse("").has_value(), "the empty string is rejected");
 
     expect_throws<AddressSyntaxException>(
-        [] -> void { (void)Endpoint("127.0.0.1"); }, "the ctor throws on a missing port"
+        [] -> void { static_cast<void>(Endpoint("127.0.0.1")); }, "the ctor throws on a missing port"
     );
 
     // Endpoints sort by address, then by port.

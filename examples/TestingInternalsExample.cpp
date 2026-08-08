@@ -24,7 +24,7 @@ class RingBuffer {
 private:
     static constexpr usize CAPACITY = 4; ///< How many entries fit before wrapping.
 
-    i32 _slots[CAPACITY] = {}; ///< The storage, used as a circle.
+    Array<i32, CAPACITY> _slots = {}; ///< The storage, used as a circle.
     usize _head = 0; ///< Where the next push writes.
     usize _count = 0; ///< How many entries are live.
 
