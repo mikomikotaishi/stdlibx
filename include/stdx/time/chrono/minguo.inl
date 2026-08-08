@@ -13,7 +13,9 @@ export namespace stdx::time::chrono {
      */
     class MinguoChronology final {
     public:
-        MinguoChronology() = delete("MinguoChronology is a static utility class and cannot be instantiated.");
+        MinguoChronology() = DELETE_METHOD("MinguoChronology is a static utility class and cannot be instantiated.");
+
+        static constexpr StringView CALENDAR_TYPE = "roc"; ///< The CLDR/LDML calendar type.
 
         /**
          * @enum Era
@@ -27,24 +29,6 @@ export namespace stdx::time::chrono {
         using enum GregorianMonth;
 
         static constexpr i32 YEAR_OFFSET = 1911;
-
-        /**
-         * @brief Returns the chronology identifier.
-         * @return "Minguo"
-         */
-        [[nodiscard]]
-        static constexpr StringView id() noexcept {
-            return "Minguo";
-        }
-
-        /**
-         * @brief Returns the calendar type.
-         * @return "roc"
-         */
-        [[nodiscard]]
-        static constexpr StringView calendar_type() noexcept {
-            return "roc";
-        }
 
         /**
          * @brief Check if a year is a leap year.

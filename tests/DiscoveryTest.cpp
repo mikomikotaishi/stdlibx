@@ -15,7 +15,6 @@ namespace mmt::unit {
     i32 teardowns = 0;
     bool ran_once = false;
 
-    // Hooks are picked up by name, without an annotation.
     void before_all() {
         ran_once = true;
     }
@@ -63,8 +62,6 @@ namespace mmt::unit {
         expect_eq(setups - 1, teardowns, "after_each ran after each prior test");
     }
 
-    // Neither of these is a test: the first is not named test_*, the second takes
-    // an argument.
     void helper_is_not_a_test() {}
 
     void test_with_arguments_is_not_a_test(i32 _) {}
@@ -72,9 +69,6 @@ namespace mmt::unit {
 
 namespace mmt::empty {}
 
-// A class works as a discovery target too: its static member functions are scanned
-// in an unchecked access context, so private ones are reachable, while non-static
-// members are skipped because a Test::Callback has no object to call them on.
 class Fixture {
 private:
     static void test_private_static() {
@@ -90,7 +84,6 @@ public:
     }
 };
 
-// What discovery produced is itself checked, from a namespace of its own.
 namespace mmt::discovery {
     [[nodiscard]]
     Optional<Test> find(const Vector<Test>& tests, StringView name) {
@@ -163,9 +156,6 @@ namespace mmt::discovery {
     }
 
     void test_run_over_a_namespace_is_instantiable() {
-        // Taken, not called: running a nested suite here would print a second
-        // summary into the middle of this one. The address is enough to have the
-        // entry point compiled.
         constexpr int (*runner)(int, char*[]) = &run<^^mmt::unit>;
         expect(runner != nullptr, "run<Nsp> resolves to the discovery entry point");
     }
@@ -179,8 +169,7 @@ namespace mmt::discovery {
 
 int main(int argc, char* argv[]) {
     #ifdef __cpp_impl_reflection
-    // Try `--verbose` to see the reported names, or `--tag slow` to run only the
-    // tests tagged by annotation.
+    // `--verbose` for reported names, or `--tag slow` for tests tagged by annotation.
     return run_suites(argc, argv, {Suite::of<^^mmt::discovery>(), Suite::of<^^mmt::unit>()});
     #else
     System::out.println("[test] Test disabled (compiler does not support reflection).");

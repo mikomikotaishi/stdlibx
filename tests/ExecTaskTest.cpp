@@ -12,7 +12,6 @@ using stdx::thread::Thread;
 
 using namespace stdx::test;
 
-// A leaf coroutine task: co_return a value.
 Task<i32> answer() {
     co_return 42;
 }
@@ -21,15 +20,12 @@ Task<i32> increment(i32 x) {
     co_return x + 1;
 }
 
-// Composition: a task that co_awaits other tasks.
 Task<i32> composed() {
     i32 a = co_await answer();
     i32 b = co_await increment(a);
     co_return a + b;
 }
 
-// Sender interop: co_await a plain sender from inside a coroutine task
-// (via the task promise's with_awaitable_senders support).
 Task<i32> awaits_sender() {
     i32 v = co_await Just(20);
     co_return v + 1;

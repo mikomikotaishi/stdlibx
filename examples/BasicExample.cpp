@@ -1,9 +1,10 @@
+#include <version>
+
 import stdx;
 
 using stdx::collections::HashMap;
 using stdx::collections::TreeMap;
 using stdx::collections::Vector;
-using stdx::debug::StackTrace;
 using stdx::fs::DirectoryEntry;
 using stdx::fs::DirectoryIterator;
 using stdx::fs::Path;
@@ -19,26 +20,21 @@ using stdx::thread::Thread;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
-/**
- * @struct BasicOptions
- * @brief Example struct for command-line argument parsing.
- */
-enum class Status: u8 {
-    SUCCESS,
-    FAILURE,
-};
+#ifdef __cpp_lib_stacktrace
+using stdx::debug::StackTrace;
+#endif
 
 /**
  * @brief Example function to demonstrate Expected/Unexpected usage.
  * @param succeed Whether the operation should succeed or fail.
- * @return Expected containing the result if successful, or an Unexpected containing the error status if failed.
+ * @return Expected containing the result if successful, or an Unexpected containing the failure message.
  */
 [[nodiscard]]
-Expected<u32, Status> perform_operation(bool succeed) {
+Expected<u32, StringView> performOperation(bool succeed) noexcept {
     if (succeed) {
         return 42;
     } else {
-        return Unexpected(Status::FAILURE);
+        return Unexpected("I'm a teapot");
     }
 }
 
@@ -72,7 +68,7 @@ int main(int argc, char* argv[]) {
     System::out.printf("Hello, world!%n");
     System::out.printf("Formatted number: %d, hex: %x, float: %.2f%n", 42, 255, 3.14159);
 
-    Vector<i32> v{1, 2, 3, 4, 5};
+    Vector<i32> v = {1, 2, 3, 4, 5};
     for (usize i = 0; i < v.size(); ++i) {
         System::out.println("v[{}] = {}", i, v[i]);
     }
@@ -80,13 +76,17 @@ int main(int argc, char* argv[]) {
         System::out.println("i = {}", i);
     }
 
-    if (Expected<u32, Status> result = perform_operation(true)) {
-        System::out.println("Operation succeeded");
+    if (Expected<u32, StringView> result = performOperation(true)) {
+        System::out.println("Operation succeeded: {}", result.value());
     } else {
-        System::err.println("Operation failed");
+        System::err.println("Operation failed: {}", result.error());
     }
 
+    #ifdef __cpp_lib_math_special_functions
     System::out.println("sin(1) = {}, cos(1) = {}, ζ(2) = {}", Math::sin(1), Math::cos(1), Math::riemann_zeta(2));
+    #else
+    System::out.println("sin(1) = {}, cos(1) = {}", Math::sin(1), Math::cos(1));
+    #endif
 
     Random rng;
     stdx::io::println(TextStyle().fg(TextStyle::Color::GREEN), "Random integer between 1 and 10: {}", rng.next(1, 11));
@@ -129,19 +129,19 @@ int main(int argc, char* argv[]) {
     }
 
     System::out.printf(
-        "Files in current directory (%s)%n:%s%n", 
+        "Files in current directory (%s)%n:%s%n",
         dir,
         Query(files)
-            .select([](const DirectoryEntry& e) -> String { return e.path(); })
+            .select([](const DirectoryEntry& e) -> const Path& { return e.path(); })
             .to<Vector>()
     );
 
-    Vector<Path> cpp_sources = stdx::fs::glob("examples/**/*.cpp", true);
+    Vector<Path> cppSources = stdx::fs::glob("examples/**/*.cpp", true);
     System::out.println(
         "\nFound {} .cpp file(s) under examples/ (recursive):",
-        cpp_sources.size()
+        cppSources.size()
     );
-    for (const Path& src: cpp_sources) {
+    for (const Path& src: cppSources) {
         System::out.println("  {}", src);
     }
 
@@ -151,5 +151,7 @@ int main(int argc, char* argv[]) {
         System::local_timestamp()
     );
 
+    #ifdef __cpp_lib_stacktrace
     System::out.println(StackTrace::current());
+    #endif
 }

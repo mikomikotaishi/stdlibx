@@ -13,7 +13,7 @@ export namespace stdx::core {
 
     class Compare final {
     public:
-        Compare() = delete("Compare is a static utility class and cannot be instantiated.");
+        Compare() = DELETE_METHOD("Compare is a static utility class and cannot be instantiated.");
 
         template <typename T, typename U>
         [[nodiscard]]
@@ -73,6 +73,11 @@ export namespace stdx::core {
         /**
          * @brief Compares against the literal 0, as the standard comparison-category
          * types do, so this wrapper may be returned from a user-defined operator<=>.
+         *
+         * User-defined is the operative word: a *defaulted* operator<=> must
+         * name a standard comparison category type, so `= default` with this
+         * wrapper as the return type is ill-formed (MSVC diagnoses it; GCC and
+         * clang accept it). Write the comparison body out instead.
          */
         [[nodiscard]]
         friend constexpr bool operator==(PartialOrdering lhs, NullPointer _) noexcept {
@@ -128,6 +133,11 @@ export namespace stdx::core {
         /**
          * @brief Compares against the literal 0, as the standard comparison-category
          * types do, so this wrapper may be returned from a user-defined operator<=>.
+         *
+         * User-defined is the operative word: a *defaulted* operator<=> must
+         * name a standard comparison category type, so `= default` with this
+         * wrapper as the return type is ill-formed (MSVC diagnoses it; GCC and
+         * clang accept it). Write the comparison body out instead.
          */
         [[nodiscard]]
         friend constexpr bool operator==(WeakOrdering lhs, NullPointer _) noexcept {
@@ -192,6 +202,11 @@ export namespace stdx::core {
         /**
          * @brief Compares against the literal 0, as the standard comparison-category
          * types do, so this wrapper may be returned from a user-defined operator<=>.
+         *
+         * User-defined is the operative word: a *defaulted* operator<=> must
+         * name a standard comparison category type, so `= default` with this
+         * wrapper as the return type is ill-formed (MSVC diagnoses it; GCC and
+         * clang accept it). Write the comparison body out instead.
          */
         [[nodiscard]]
         friend constexpr bool operator==(StrongOrdering lhs, NullPointer _) noexcept {

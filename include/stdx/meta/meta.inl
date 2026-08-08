@@ -18,49 +18,49 @@ export namespace stdx::meta::reflect {
     public:
         using Self = std::meta::operators;
 
-        static constexpr Self NEW = std::meta::operators::op_new;
-        static constexpr Self DELETE = std::meta::operators::op_delete;
-        static constexpr Self ARRAY_NEW = std::meta::operators::op_array_new;
-        static constexpr Self ARRAY_DELETE = std::meta::operators::op_array_delete;
-        static constexpr Self CO_AWAIT = std::meta::operators::op_co_await;
-        static constexpr Self PARENTHESES = std::meta::operators::op_parentheses;
-        static constexpr Self ARROW = std::meta::operators::op_arrow;
-        static constexpr Self ARROW_STAR = std::meta::operators::op_arrow_star;
-        static constexpr Self TILDE = std::meta::operators::op_tilde;
-        static constexpr Self EXCLAMATION = std::meta::operators::op_exclamation;
-        static constexpr Self PLUS = std::meta::operators::op_plus;
-        static constexpr Self MINUS = std::meta::operators::op_minus;
-        static constexpr Self STAR = std::meta::operators::op_star;
-        static constexpr Self SLASH = std::meta::operators::op_slash;
-        static constexpr Self PERCENT = std::meta::operators::op_percent;
-        static constexpr Self CARET = std::meta::operators::op_caret;
-        static constexpr Self AMPERSAND = std::meta::operators::op_ampersand;
-        static constexpr Self EQUALS = std::meta::operators::op_equals;
-        static constexpr Self PIPE = std::meta::operators::op_pipe;
-        static constexpr Self PLUS_EQUALS = std::meta::operators::op_plus_equals;
-        static constexpr Self MINUS_EQUALS = std::meta::operators::op_minus_equals;
-        static constexpr Self STAR_EQUALS = std::meta::operators::op_star_equals;
-        static constexpr Self SLASH_EQUALS = std::meta::operators::op_slash_equals; 
-        static constexpr Self PERCENT_EQUALS = std::meta::operators::op_percent_equals;
-        static constexpr Self CARET_EQUALS = std::meta::operators::op_caret_equals;
-        static constexpr Self AMPERSAND_EQUALS = std::meta::operators::op_ampersand;
-        static constexpr Self PIPE_EQUALS = std::meta::operators::op_pipe_equals;
-        static constexpr Self EQUALS_EQUALS = std::meta::operators::op_equals_equals;
-        static constexpr Self EXCLAMATION_EQUALS = std::meta::operators::op_exclamation_equals;
-        static constexpr Self LESS = std::meta::operators::op_less;
-        static constexpr Self GREATER = std::meta::operators::op_greater;
-        static constexpr Self LESS_EQUALS = std::meta::operators::op_less_equals;
-        static constexpr Self GREATER_EQUALS = std::meta::operators::op_greater_equals;
-        static constexpr Self SPACESHIP = std::meta::operators::op_spaceship;
-        static constexpr Self AMPERSAND_AMPERSAND = std::meta::operators::op_ampersand_ampersand;
-        static constexpr Self PIPE_PIPE = std::meta::operators::op_pipe_pipe;
-        static constexpr Self LESS_LESS = std::meta::operators::op_less_less;
-        static constexpr Self GREATER_GREATER = std::meta::operators::op_greater_greater;
-        static constexpr Self LESS_LESS_EQUALS = std::meta::operators::op_less_less_equals;
-        static constexpr Self GREATER_GREATER_EQUALS = std::meta::operators::op_greater_greater_equals;
-        static constexpr Self PLUS_PLUS = std::meta::operators::op_plus_plus;
-        static constexpr Self MINUS_MINUS = std::meta::operators::op_minus_minus;
-        static constexpr Self COMMA = std::meta::operators::op_comma;
+        static constexpr Self NEW = std::meta::operators::op_new; ///< operator new
+        static constexpr Self DELETE = std::meta::operators::op_delete; ///< operator delete
+        static constexpr Self ARRAY_NEW = std::meta::operators::op_array_new; ///< operator new[]
+        static constexpr Self ARRAY_DELETE = std::meta::operators::op_array_delete; ///< operator delete[]
+        static constexpr Self CO_AWAIT = std::meta::operators::op_co_await; ///< operator co_await
+        static constexpr Self PARENTHESES = std::meta::operators::op_parentheses; ///< operator ()
+        static constexpr Self ARROW = std::meta::operators::op_arrow; ///< operator ->
+        static constexpr Self ARROW_STAR = std::meta::operators::op_arrow_star; ///< operator ->*
+        static constexpr Self TILDE = std::meta::operators::op_tilde; ///< operator ~
+        static constexpr Self EXCLAMATION = std::meta::operators::op_exclamation; ///< operator !
+        static constexpr Self PLUS = std::meta::operators::op_plus; ///< operator +
+        static constexpr Self MINUS = std::meta::operators::op_minus; ///< operator -
+        static constexpr Self STAR = std::meta::operators::op_star; ///< operator *
+        static constexpr Self SLASH = std::meta::operators::op_slash; ///< operator /
+        static constexpr Self PERCENT = std::meta::operators::op_percent; ///< operator %
+        static constexpr Self CARET = std::meta::operators::op_caret; ///< operator ^
+        static constexpr Self AMPERSAND = std::meta::operators::op_ampersand; ///< operator &
+        static constexpr Self EQUALS = std::meta::operators::op_equals; ///< operator =
+        static constexpr Self PIPE = std::meta::operators::op_pipe; ///< operator |
+        static constexpr Self PLUS_EQUALS = std::meta::operators::op_plus_equals; ///< operator +=
+        static constexpr Self MINUS_EQUALS = std::meta::operators::op_minus_equals; ///< operator -=
+        static constexpr Self STAR_EQUALS = std::meta::operators::op_star_equals; ///< operator *=
+        static constexpr Self SLASH_EQUALS = std::meta::operators::op_slash_equals; ///< operator /=
+        static constexpr Self PERCENT_EQUALS = std::meta::operators::op_percent_equals; ///< operator %=
+        static constexpr Self CARET_EQUALS = std::meta::operators::op_caret_equals; ///< operator ^=
+        static constexpr Self AMPERSAND_EQUALS = std::meta::operators::op_ampersand; ///< operator &=
+        static constexpr Self PIPE_EQUALS = std::meta::operators::op_pipe_equals; ///< operator |=
+        static constexpr Self EQUALS_EQUALS = std::meta::operators::op_equals_equals; ///< operator ==
+        static constexpr Self EXCLAMATION_EQUALS = std::meta::operators::op_exclamation_equals; ///< operator !=
+        static constexpr Self LESS = std::meta::operators::op_less; ///< operator <
+        static constexpr Self GREATER = std::meta::operators::op_greater; ///< operator >
+        static constexpr Self LESS_EQUALS = std::meta::operators::op_less_equals; ///< operator <=
+        static constexpr Self GREATER_EQUALS = std::meta::operators::op_greater_equals; ///< operator >=
+        static constexpr Self SPACESHIP = std::meta::operators::op_spaceship; ///< operator <=>
+        static constexpr Self AMPERSAND_AMPERSAND = std::meta::operators::op_ampersand_ampersand; ///< operator &&
+        static constexpr Self PIPE_PIPE = std::meta::operators::op_pipe_pipe; ///< operator ||
+        static constexpr Self LESS_LESS = std::meta::operators::op_less_less; ///< operator <<
+        static constexpr Self GREATER_GREATER = std::meta::operators::op_greater_greater; ///< operator >>
+        static constexpr Self LESS_LESS_EQUALS = std::meta::operators::op_less_less_equals; ///< operator <<=
+        static constexpr Self GREATER_GREATER_EQUALS = std::meta::operators::op_greater_greater_equals; ///< operator >>=
+        static constexpr Self PLUS_PLUS = std::meta::operators::op_plus_plus; ///< operator ++
+        static constexpr Self MINUS_MINUS = std::meta::operators::op_minus_minus; ///< operator --
+        static constexpr Self COMMA = std::meta::operators::op_comma; ///< operator ,
     private:
         const Self value;
     public:
@@ -421,7 +421,7 @@ namespace stdx::meta::reflect {
     consteval Array<E, count<E>()> values_impl() {
         Array<E, count<E>()> result;
         usize i = 0;
-        for (Info e : stdx::meta::reflect::enumerators_of(^^E)) {
+        for (Info e: stdx::meta::reflect::enumerators_of(^^E)) {
             result[i++] = stdx::meta::reflect::extract<E>(e);
         }
         return result;

@@ -10,19 +10,16 @@ using namespace stdx::test;
 void test_basic_operations() {
     Vector<i32> numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-    // where (filter) - using template template parameter syntax
     Vector<i32> evens = Query(numbers)
         .where([](i32 x) -> bool { return x % 2 == 0; })
         .to<Vector>();
     expect_eq(evens, Vector<i32>{2, 4, 6, 8, 10}, "where: even numbers");
 
-    // select (map/transform) - using explicit type syntax
     Vector<i32> squares = Query(numbers)
         .select([](i32 x) -> i32 { return x * x; })
         .to<Vector<i32>>();
     expect_eq(squares, Vector<i32>{1, 4, 9, 16, 25, 36, 49, 64, 81, 100}, "select: squares");
 
-    // select via from() method
     Vector<i32> incremented = Query<Vector<i32>>::from(numbers)
         .select([](i32 x) -> i32 { return x + 1; })
         .to<Vector>();
@@ -37,13 +34,11 @@ void test_basic_operations() {
         "select: to strings"
     );
 
-    // skip
     Vector<i32> skipped = Query(numbers)
         .skip(5)
         .to<Vector>();
     expect_eq(skipped, Vector<i32>{6, 7, 8, 9, 10}, "skip 5");
 
-    // take
     Vector<i32> taken = Query(numbers)
         .take(3)
         .to<Vector>();
@@ -53,7 +48,6 @@ void test_basic_operations() {
 void test_chaining() {
     Vector<i32> numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-    // Complex chain: filter evens, square them, take first 3
     Vector<i32> result = Query(numbers)
         .where([](i32 x) -> bool { return x % 2 == 0; })
         .select([](i32 x) -> i32 { return x * x; })
@@ -113,7 +107,6 @@ void test_sorting() {
         .to<Vector>();
     expect_eq(sorted_desc, Vector<i32>{9, 8, 5, 5, 3, 2, 2, 1}, "order_by_descending");
 
-    // distinct returns the unique elements in sorted order
     Vector<i32> unique = Query(numbers)
         .distinct()
         .to<Vector>();
@@ -130,25 +123,25 @@ void test_error_cases() {
     Vector<i32> multiple = {1, 2};
 
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).first(); }, "first() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).first()); }, "first() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).last(); }, "last() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).last()); }, "last() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).element_at(0); }, "element_at() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).element_at(0)); }, "element_at() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).single(); }, "single() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).single()); }, "single() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(multiple).single(); }, "single() on multiple elements throws"
+        [&] -> void { static_cast<void>(Query(multiple).single()); }, "single() on multiple elements throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).min(); }, "min() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).min()); }, "min() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).max(); }, "max() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).max()); }, "max() on empty throws"
     );
 }
 
@@ -246,7 +239,6 @@ void test_keys_values() {
         .to<Vector<String>>();
     expect_eq(top_students, Vector<String>{"Alice", "Carol"}, "keys where score >= 90");
 
-    // TreeMap iterates in sorted key order.
     TreeMap<String, i32> tree_scores = {{"alice", 90}, {"bob", 85}, {"carol", 92}};
 
     Vector<String> tree_keys = Query(tree_scores)
@@ -265,7 +257,6 @@ void test_keys_values() {
         .to<Vector<String>>();
     expect_eq(tree_top, Vector<String>{"alice", "carol"}, "TreeMap keys where score >= 90");
 
-    // HashMap iteration order is unspecified, so sort before comparing.
     HashMap<String, i32> hash_scores = {{"alice", 90}, {"bob", 85}, {"carol", 92}};
 
     Vector<String> hash_keys = Query(hash_scores)
@@ -334,7 +325,6 @@ void test_for_each() {
 void test_complex_chain() {
     Vector<i32> data = {9, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5};
 
-    // Deduplicate, sort ascending, skip smallest 2, take next 4, reverse
     Vector<i32> result = Query(data)
         .distinct()
         .order_by([](i32 x) -> i32 { return x; })
@@ -344,7 +334,6 @@ void test_complex_chain() {
         .to<Vector>();
     expect_eq(result, Vector<i32>{6, 5, 4, 3}, "complex chain");
 
-    // Count distinct evens
     usize n = Query(data)
         .where([](i32 x) -> bool { return x % 2 == 0; })
         .distinct()
@@ -353,17 +342,12 @@ void test_complex_chain() {
 }
 
 void test_split() {
-    // split<Into>(delim) materializes each piece as Into; the bare split(delim)
-    // mirrors std::views::split and yields the lazy subranges.
-
-    // StringView -> Vector<String>
     StringView csv = "alpha,beta,gamma";
     Vector<String> parts = Query(csv)
         .split<String>(',')
         .to<Vector>();
     expect_eq(parts, Vector<String>{"alpha", "beta", "gamma"}, "split StringView");
 
-    // String -> Vector<String>
     String sentence = "The quick brown fox jumps over the lazy dog";
     Vector<String> tokens = Query(sentence)
         .split<String>(' ')
@@ -374,20 +358,17 @@ void test_split() {
         "split String"
     );
 
-    // const char* -> wrap in StringView first
     const char* raw = "a/b/c/d";
     Vector<String> segments = Query(StringView(raw))
         .split<String>('/')
         .to<Vector>();
     expect_eq(segments, Vector<String>{"a", "b", "c", "d"}, "split const char*");
 
-    // Materialize into non-owning StringViews over the original buffer instead.
     Vector<StringView> views = Query(csv)
         .split<StringView>(',')
         .to<Vector>();
     expect_eq(views, Vector<StringView>{"alpha", "beta", "gamma"}, "split into StringViews");
 
-    // Multi-character C-string delimiter still has its trailing '\0' dropped.
     StringView log = "INFO :: load :: INFO :: ready";
     Vector<String> infos = Query(log)
         .split<String>(" :: ")
@@ -395,14 +376,11 @@ void test_split() {
         .to<Vector>();
     expect_eq(infos, Vector<String>{"load", "ready"}, "split + filter");
 
-    // Empty fields are preserved.
     Vector<String> empties = Query("x,,y"sv)
         .split<String>(',')
         .to<Vector>();
     expect_eq(empties, Vector<String>{"x", "", "y"}, "split keeps empty fields");
 
-    // Generality: any collection, not just strings. Split a Vector<i32> on an
-    // element value, materializing each piece into an owning Vector<i32>.
     Vector<i32> numbers = {1, 2, 0, 3, 4, 0, 0, 5};
     Vector<Vector<i32>> groups = Query(numbers)
         .split<Vector<i32>>(0)
@@ -413,8 +391,6 @@ void test_split() {
         "split Vector<i32> on 0"
     );
 
-    // The bare default yields the lazy subranges - consume them without
-    // materializing by summing each piece in place.
     Vector<i32> sums = Query(numbers)
         .split(0)
         .select([](auto&& piece) -> i32 {

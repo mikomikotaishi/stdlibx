@@ -8,6 +8,7 @@ using stdx::text::CharTraits;
  * @brief Standard library IO operations.
  */
 export namespace stdx::io {
+    #ifdef __cpp_lib_syncbuf
     template <typename Char, typename Traits = CharTraits<Char>, typename Alloc = Allocator<Char>>
     using BasicSyncBuffer = std::basic_syncbuf<Char, Traits, Alloc>;
 
@@ -18,4 +19,5 @@ export namespace stdx::io {
     using WideSyncBuffer = std::wsyncbuf;
     using OutputSyncStream = std::osyncstream;
     using WideOutputSyncStream = std::wosyncstream;
+    #endif
 }

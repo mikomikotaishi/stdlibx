@@ -28,6 +28,13 @@ Requires a minimum of C++26. This library is tested with libstdc++ (GCC) as the 
 
 Note that currently, Clang module support is far superior to that of GCC, and thus more features are supported on Clang due to certain bugs (such as compiler crashes and conflicting definition loads) on GCC. Many of these are beyond my ability to solve unfortunately.
 
+Because the library is built on `import std`, **Apple Clang cannot build it**. Apple's toolchain does not ship the `std` module sources. Configuration rejects Apple Clang with an error. Use one of:
+
+- **Upstream LLVM Clang + libc++** (supported): `brew install llvm cmake ninja`, then build with `CC=/opt/homebrew/opt/llvm/bin/clang CXX=/opt/homebrew/opt/llvm/bin/clang++ make`
+- **GCC 15+ + libstdc++** (experimental, untested): `brew install gcc`, then build with `CC=gcc-16 CXX=g++-16 make`
+
+`STDLIB=libstdc++` is rejected under Clang **on macOS only**: modern macOS does not ship GNU libstdc++ at all, so there is nothing to compile or link against.
+
 ### Comparison
 
 #### Pros
@@ -73,19 +80,18 @@ Some third-party libraries used here (as optional dependencies) include:
 import stdx;
 
 using stdx::collections::Vector;
-using stdx::fs::Begin;
 using stdx::fs::DirectoryEntry;
 using stdx::fs::DirectoryIterator;
-using stdx::fs::End;
 using stdx::fs::Path;
 using stdx::linq::Query;
 
 int main(int argc, char* argv[]) {
     Path dir = stdx::fs::current_path();
 
+    DirectoryIterator current_dir(dir);
     Vector<DirectoryEntry> files{
-        Begin(DirectoryIterator(dir)),
-        End(DirectoryIterator(dir)),
+        current_dir.begin(),
+        current_dir.end(),
         [](const DirectoryEntry& entry) -> bool { return stdx::fs::is_regular_file(entry); }
     };
 

@@ -2,22 +2,22 @@ import stdx;
 
 using namespace stdx::test;
 
-constexpr u64 MSB = 0x0123456789ABCDEFull;
-constexpr u64 LSB = 0xFEDCBA9876543210ull;
+static constexpr u64 MSB = 0x0123456789ABCDEFull;
+static constexpr u64 LSB = 0xFEDCBA9876543210ull;
 
-void test_nil_and_max() {
-    expect(Uuid::NIL.is_nil(), "NIL is nil");
-    expect(Uuid().is_nil(), "default-constructed UUID is nil");
-    expect(Uuid::NIL == Uuid(), "default-constructed UUID equals NIL");
-    expect(!Uuid::MAX.is_nil(), "MAX is not nil");
+static_assert(Uuid::NIL.is_nil(), "NIL is nil");
+static_assert(Uuid().is_nil(), "default-constructed UUID is nil");
+static_assert(Uuid::NIL == Uuid(), "default-constructed UUID equals NIL");
+static_assert(!Uuid::MAX.is_nil(), "MAX is not nil");
 
+static_assert(Uuid::NIL.most_significant_bits() == 0, "NIL has zero msb");
+static_assert(Uuid::NIL.least_significant_bits() == 0, "NIL has zero lsb");
+static_assert(Uuid::MAX.most_significant_bits() == ~0ull, "MAX has all-ones msb");
+static_assert(Uuid::MAX.least_significant_bits() == ~0ull, "MAX has all-ones lsb");
+
+void test_strings() {
     expect_eq(Uuid::NIL.to_string(), "00000000-0000-0000-0000-000000000000", "NIL string form");
     expect_eq(Uuid::MAX.to_string(), "ffffffff-ffff-ffff-ffff-ffffffffffff", "MAX string form");
-
-    expect_eq(Uuid::NIL.most_significant_bits(), 0, "NIL has zero msb");
-    expect_eq(Uuid::NIL.least_significant_bits(), 0, "NIL has zero lsb");
-    expect_eq(Uuid::MAX.most_significant_bits(), ~0ull, "MAX has all-ones msb");
-    expect_eq(Uuid::MAX.least_significant_bits(), ~0ull, "MAX has all-ones lsb");
 }
 
 void test_from_bits() {
@@ -37,7 +37,6 @@ void test_string_roundtrip() {
     expect_eq(parsed->most_significant_bits(), MSB, "parsed msb");
     expect_eq(parsed->least_significant_bits(), LSB, "parsed lsb");
 
-    // Uppercase hex is accepted and normalized to lowercase on output.
     Optional<Uuid> upper = Uuid::from_string("01234567-89AB-CDEF-FEDC-BA9876543210");
     require(upper.has_value(), "an uppercase string parses");
     expect_eq(upper->to_string(), CANONICAL, "uppercase normalizes to lowercase");
@@ -51,12 +50,10 @@ void test_from_string_invalid() {
         !Uuid::from_string("01234567-89ab-cdef-fedc-ba9876543210-extra").has_value(),
         "an over-long string is rejected"
     );
-    // Right length (36), but the separator at index 8 is missing.
     expect(
         !Uuid::from_string("01234567x89ab-cdef-fedc-ba9876543210").has_value(),
         "a misplaced separator is rejected"
     );
-    // Right shape, but a non-hex digit ('g') where a nibble is expected.
     expect(
         !Uuid::from_string("0123456g-89ab-cdef-fedc-ba9876543210").has_value(),
         "a non-hex digit is rejected"
@@ -65,15 +62,15 @@ void test_from_string_invalid() {
 
 void test_random_uuid() {
     Uuid u = Uuid::random_uuid();
-    expect(u.version() == 4, "random_uuid is version 4");
-    expect(u.variant() == 2, "random_uuid uses the RFC 9562 variant");
+    expect_eq(u.version(), 4, "random_uuid is version 4");
+    expect_eq(u.variant(), 2, "random_uuid uses the RFC 9562 variant");
     expect(!u.is_nil(), "random_uuid is not nil");
 
     Optional<Uuid> reparsed = Uuid::from_string(u.to_string());
     require(reparsed.has_value(), "a random UUID's string form parses");
-    expect(*reparsed == u, "a random UUID round-trips through its string form");
+    expect_eq(*reparsed, u, "a random UUID round-trips through its string form");
 
-    expect(Uuid::random_uuid() != Uuid::random_uuid(), "two random draws differ");
+    expect_ne(Uuid::random_uuid(), Uuid::random_uuid(), "two random draws differ");
 }
 
 void test_timestamp_uuid() {
@@ -81,11 +78,13 @@ void test_timestamp_uuid() {
     Uuid u = Uuid::timestamp_uuid();
     const u64 after = System::current_time_millis();
 
-    expect(u.version() == 7, "timestamp_uuid is version 7");
-    expect(u.variant() == 2, "timestamp_uuid uses the RFC 9562 variant");
+    expect_eq(u.version(), 7, "timestamp_uuid is version 7");
+    expect_eq(u.variant(), 2, "timestamp_uuid uses the RFC 9562 variant");
     expect(u.timestamp() >= before && u.timestamp() <= after, "the embedded timestamp is the current wall-clock time");
     expect(!u.is_nil(), "timestamp_uuid is not nil");
 }
+
+static_assert(Uuid::NIL < Uuid::MAX, "NIL orders before MAX");
 
 void test_comparison_and_ordering() {
     Uuid a(1, 2);
@@ -94,8 +93,7 @@ void test_comparison_and_ordering() {
 
     expect(a == b, "identical bit patterns compare equal");
     expect(a != c, "differing bit patterns compare unequal");
-    expect(Uuid(0, 1) < Uuid(1, 0), "ordering compares the most-significant bits first");
-    expect(Uuid::NIL < Uuid::MAX, "NIL orders before MAX");
+    expect_lt(Uuid(0, 1), Uuid(1, 0), "ordering compares the most-significant bits first");
 }
 
 void test_hash() {
@@ -119,7 +117,7 @@ void test_bytes() {
 
 int main(int argc, char* argv[]) {
     return run(argc, argv, {
-        {"Uuid.nil_and_max", test_nil_and_max},
+        {"Uuid.strings", test_strings},
         {"Uuid.from_bits", test_from_bits},
         {"Uuid.string_roundtrip", test_string_roundtrip},
         {"Uuid.from_string_invalid", test_from_string_invalid},

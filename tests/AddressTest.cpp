@@ -10,8 +10,6 @@ using stdx::net::IPv6Address;
 
 using namespace stdx::test;
 
-// Parsing is usable at compile time, which is the point of keeping the address
-// types free of any OS dependency.
 static_assert(*IPv4Address::parse("192.168.0.1") == IPv4Address(192, 168, 0, 1));
 static_assert(!IPv4Address::parse("192.168.0.256").has_value());
 static_assert(*IPv6Address::parse("::1") == IPv6Address::LOOPBACK);
@@ -52,8 +50,6 @@ void test_ipv4_parse() {
     expect_eq(*IPv4Address::parse("255.255.255.255"), IPv4Address::BROADCAST, "all-ones literal");
     expect_eq(*IPv4Address::parse("127.0.0.1"), IPv4Address::LOOPBACK, "loopback literal");
 
-    // Non-canonical and short forms are rejected: a resolver that reads "010" as
-    // octal and one that reads it as decimal disagree about the destination.
     expect(!IPv4Address::parse("010.1.1.1").has_value(), "leading zeros are rejected");
     expect(!IPv4Address::parse("1.1.1.01").has_value(), "trailing leading-zero octet is rejected");
     expect(!IPv4Address::parse("10.1").has_value(), "the two-part short form is rejected");
@@ -67,9 +63,9 @@ void test_ipv4_parse() {
     expect(!IPv4Address::parse("").has_value(), "the empty string is rejected");
 
     expect_throws<AddressSyntaxException>(
-        [] -> void { (void)IPv4Address("1.2.3.4.5"); }, "the ctor throws on a malformed literal"
+        [] -> void { static_cast<void>(IPv4Address("1.2.3.4.5")); }, "the ctor throws on a malformed literal"
     );
-    expect_no_throw([] -> void { (void)IPv4Address("1.2.3.4"); }, "the ctor accepts a valid literal");
+    expect_no_throw([] -> void { static_cast<void>(IPv4Address("1.2.3.4")); }, "the ctor accepts a valid literal");
 }
 
 void test_ipv4_to_string() {
@@ -135,7 +131,6 @@ void test_ipv6_parse() {
         "hex digits are case-insensitive"
     );
 
-    // An embedded IPv4 literal occupies the final two groups.
     expect_eq(
         *IPv6Address::parse("::ffff:192.168.0.1"),
         IPv4Address(192, 168, 0, 1).to_ipv6_mapped(),
@@ -169,9 +164,9 @@ void test_ipv6_parse() {
     expect(!IPv6Address::parse("").has_value(), "the empty string is rejected");
 
     expect_throws<AddressSyntaxException>(
-        [] -> void { (void)IPv6Address("1::2::3"); }, "the ctor throws on a malformed literal"
+        [] -> void { static_cast<void>(IPv6Address("1::2::3")); }, "the ctor throws on a malformed literal"
     );
-    expect_no_throw([] -> void { (void)IPv6Address("2001:db8::1"); }, "the ctor accepts a valid literal");
+    expect_no_throw([] -> void { static_cast<void>(IPv6Address("2001:db8::1")); }, "the ctor accepts a valid literal");
 }
 
 void test_ipv6_to_string() {
@@ -192,7 +187,6 @@ void test_ipv6_to_string() {
         "2001:db8::",
         "a trailing zero run is elided"
     );
-    // RFC 5952: elide the longest run, and the leftmost of two equal runs.
     expect_eq(
         IPv6Address(1, 0, 0, 0, 2, 0, 0, 3).to_string(),
         "1::2:0:0:3",
@@ -231,7 +225,7 @@ void test_ipv6_to_string() {
 }
 
 void test_ipv6_roundtrip() {
-    constexpr StringView literals[] = {
+    static constexpr Array<StringView, 9> LITERALS = {
         "::",
         "::1",
         "2001:db8::1",
@@ -242,7 +236,7 @@ void test_ipv6_roundtrip() {
         "::ffff:192.168.0.1",
         "fe80::1%3",
     };
-    for (const StringView literal: literals) {
+    for (const StringView literal: LITERALS) {
         const Optional<IPv6Address> address = IPv6Address::parse(literal);
         require(address.has_value(), Ops::fmt("{} parses", literal));
         expect_eq(address->to_string(), String(literal), "canonical text survives a round trip");
@@ -306,12 +300,11 @@ void test_ip_address() {
     );
     expect_eq(v6.to_v6_mapped(), IPv6Address::LOOPBACK, "an IPv6 address maps to itself");
 
-    // Ordering puts every IPv4 address before every IPv6 address.
     expect(IPAddress(IPv4Address::BROADCAST) < IPAddress(IPv6Address::ANY), "IPv4 sorts first");
     expect(IPAddress(IPv4Address(1, 2, 3, 4)) < IPAddress(IPv4Address(1, 2, 3, 5)), "IPv4 sorts by value");
 
     expect_throws<AddressSyntaxException>(
-        [] -> void { (void)IPAddress("nonsense"); }, "the ctor throws on a malformed literal"
+        [] -> void { static_cast<void>(IPAddress("nonsense")); }, "the ctor throws on a malformed literal"
     );
 }
 
@@ -350,10 +343,9 @@ void test_endpoint() {
     expect(!Endpoint::parse("").has_value(), "the empty string is rejected");
 
     expect_throws<AddressSyntaxException>(
-        [] -> void { (void)Endpoint("127.0.0.1"); }, "the ctor throws on a missing port"
+        [] -> void { static_cast<void>(Endpoint("127.0.0.1")); }, "the ctor throws on a missing port"
     );
 
-    // Endpoints sort by address, then by port.
     expect(Endpoint(IPv4Address::LOOPBACK, 80) < Endpoint(IPv4Address::LOOPBACK, 443), "port breaks ties");
     expect(Endpoint(IPv4Address(1, 1, 1, 1), 443) < Endpoint(IPv4Address(1, 1, 1, 2), 80), "address wins");
 }

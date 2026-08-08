@@ -20,7 +20,7 @@ export namespace stdx::time::chrono {
      */
     class HebrewChronology final {
     private:
-        static inline constexpr i64 HEBREW_EPOCH_OFFSET = 2092591; ///< Offset such that epoch_day = hebrew_elapsed_days(y) - HEBREW_EPOCH_OFFSET gives 1 Tishri of year y.
+        static constexpr i64 HEBREW_EPOCH_OFFSET = 2092591; ///< Offset such that epoch_day = hebrew_elapsed_days(y) - HEBREW_EPOCH_OFFSET gives 1 Tishri of year y.
 
         /**
          * @internal
@@ -210,7 +210,9 @@ export namespace stdx::time::chrono {
             return {y, m, static_cast<u32>(day_in_year + 1)};
         }
     public:
-        HebrewChronology() = delete("HebrewChronology is a static utility class and cannot be instantiated.");
+        HebrewChronology() = DELETE_METHOD("HebrewChronology is a static utility class and cannot be instantiated.");
+
+        static constexpr StringView CALENDAR_TYPE = "hebrew"; ///< The CLDR/LDML calendar type.
 
         /**
          * @enum Era
@@ -221,24 +223,6 @@ export namespace stdx::time::chrono {
         };
 
         using enum HebrewMonth;
-
-        /**
-         * @brief Returns the chronology identifier.
-         * @return "Hebrew"
-         */
-        [[nodiscard]]
-        static constexpr StringView id() noexcept {
-            return "Hebrew";
-        }
-
-        /**
-         * @brief Returns the calendar type.
-         * @return "hebrew"
-         */
-        [[nodiscard]]
-        static constexpr StringView calendar_type() noexcept {
-            return "hebrew";
-        }
 
         /**
          * @brief Check if a Hebrew year is a leap year.

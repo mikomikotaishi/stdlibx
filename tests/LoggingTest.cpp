@@ -5,6 +5,7 @@ import stdx;
 using stdx::collections::Vector;
 using stdx::debug::SourceLocation;
 using stdx::fs::Path;
+using stdx::io::InputFileStream;
 using stdx::io::OpenMode;
 using stdx::mem::Pointers;
 using stdx::mem::SharedPointer;
@@ -13,6 +14,7 @@ using stdx::util::logging::Level;
 using stdx::util::logging::LogSink;
 using stdx::util::logging::Logger;
 using stdx::util::logging::LoggerFactory;
+using stdx::util::logging::SourceLocationFormat;
 
 using namespace stdx::test;
 
@@ -25,7 +27,7 @@ struct Entry {
     Level level; ///< The level it was logged at.
     String logger; ///< The name of the logger that produced it.
     String message; ///< The formatted message.
-    bool located = false; ///< Whether source location was requested.
+    SourceLocationFormat format = SourceLocationFormat::NONE; ///< The format to present the source location as.
     String file; ///< The file the location named.
     u32 line = 0; ///< The line the location named.
     bool raw = false; ///< Whether it arrived through write_raw.
@@ -50,25 +52,26 @@ public:
         Level level,
         StringView logger_name,
         StringView message,
-        bool enable_source_location = false,
+        SourceLocationFormat format = SourceLocationFormat::NONE,
         const SourceLocation& location = SourceLocation::current()
     ) override {
-        _entries.push_back(Entry{
-            String(timestamp),
-            level,
-            String(logger_name),
-            String(message),
-            enable_source_location,
-            String(location.file_name()),
-            location.line(),
-            false
+        _entries.push_back(Entry {
+            .timestamp = String(timestamp),
+            .level = level,
+            .logger = String(logger_name),
+            .message = String(message),
+            .format = format,
+            .file = String(location.file_name()),
+            .line = location.line(),
+            .raw = false,
         });
     }
 
     void write_raw(StringView message) override {
-        Entry entry;
-        entry.message = String(message);
-        entry.raw = true;
+        Entry entry {
+            .message = String(message),
+            .raw = true,
+        };
         _entries.push_back(Ops::move(entry));
     }
 
@@ -96,11 +99,14 @@ struct Rig {
 };
 
 [[nodiscard]]
-static Rig rig(Level minimum = Level::TRACE, bool locate = false) {
+static Rig rig(Level minimum = Level::TRACE, SourceLocationFormat format = SourceLocationFormat::NONE) {
     SharedPointer<MemorySink> sink = Pointers::shared<MemorySink>();
-    Logger logger("test", minimum, locate);
+    Logger logger("test", minimum, format);
     logger.add_sink(sink);
-    return Rig{Ops::move(sink), Ops::move(logger)};
+    return Rig {
+        .sink = Ops::move(sink),
+        .logger = Ops::move(logger),
+    };
 }
 
 /**
@@ -121,8 +127,8 @@ void test_logging_level_filtering() {
     const Vector<Entry>& got = r.sink->entries();
     expect_eq(got.size(), 2uz, "only WARNING and above survive a WARNING minimum");
     if (got.size() == 2) {
-        expect(got[0].level == Level::WARNING, "the warning is kept");
-        expect(got[1].level == Level::ERROR, "and the error");
+        expect_eq(got[0].level, Level::WARNING, "the warning is kept");
+        expect_eq(got[1].level, Level::ERROR, "and the error");
     }
 
     Rig all = rig(Level::TRACE);
@@ -144,11 +150,11 @@ void test_logging_levels_are_distinct() {
 
     const Vector<Entry>& got = r.sink->entries();
     require_eq(got.size(), 5uz, "every level reaches the sink");
-    expect(got[0].level == Level::TRACE, "trace() logs at TRACE");
-    expect(got[1].level == Level::DEBUG, "debug() logs at DEBUG");
-    expect(got[2].level == Level::INFO, "info() logs at INFO");
-    expect(got[3].level == Level::WARNING, "warn() logs at WARNING");
-    expect(got[4].level == Level::ERROR, "error() logs at ERROR");
+    expect_eq(got[0].level, Level::TRACE, "trace() logs at TRACE");
+    expect_eq(got[1].level, Level::DEBUG, "debug() logs at DEBUG");
+    expect_eq(got[2].level, Level::INFO, "info() logs at INFO");
+    expect_eq(got[3].level, Level::WARNING, "warn() logs at WARNING");
+    expect_eq(got[4].level, Level::ERROR, "error() logs at ERROR");
 }
 
 /**
@@ -220,27 +226,25 @@ void test_logging_no_sinks() {
  * it looks like an answer.
  */
 void test_logging_source_location() {
-    Rig off = rig(Level::TRACE, false);
+    Rig off = rig(Level::TRACE, SourceLocationFormat::NONE);
     off.logger.info("no location");
     require_eq(off.sink->entries().size(), 1uz, "the message arrives");
-    expect(!off.sink->entries()[0].located, "location is off by default");
+    expect(off.sink->entries()[0].format == SourceLocationFormat::NONE, "location is NONE by default");
 
-    Rig on = rig(Level::TRACE, true);
+    Rig on = rig(Level::TRACE, SourceLocationFormat::FULL);
     const SourceLocation here = SourceLocation::current();
     on.logger.info("with location");
 
     require_eq(on.sink->entries().size(), 1uz, "the message arrives");
     const Entry& entry = on.sink->entries()[0];
-    expect(entry.located, "location is reported as enabled");
+    expect(entry.format != SourceLocationFormat::NONE, "location is reported not as NONE");
     expect_eq(
-        Path(entry.file).filename().string(),
-        Path(here.file_name()).filename().string(),
+        Path(entry.file).filename(),
+        Path(here.file_name()).filename(),
         "the location names the calling file, not the logging library"
     );
 
-    // Passing the location explicitly must work too, and is the escape hatch
-    // for a wrapper that logs on someone else's behalf.
-    Rig explicitly = rig(Level::TRACE, true);
+    Rig explicitly = rig(Level::TRACE, SourceLocationFormat::FULL);
     explicitly.logger.info(here, "forwarded");
     require_eq(explicitly.sink->entries().size(), 1uz, "the forwarded message arrives");
     expect_eq(
@@ -251,30 +255,50 @@ void test_logging_source_location() {
 }
 
 /**
- * @brief Tests that Level formats to a padded, bracketed name.
+ * @brief Tests that Level formats to its short display name by default, and
+ * to its qualified enumerator name under the '?' flag, and that standard
+ * fill/align/width still apply in either case.
  */
 void test_logging_level_formatting() {
-    expect_eq(Ops::fmt("{}", Level::INFO), "[INFO]:    ", "INFO renders padded to a fixed width");
-    expect_eq(Ops::fmt("{}", Level::WARNING), "[WARNING]: ", "so does the longest name");
-    expect_eq(Ops::fmt("{}", Level::TRACE), "[TRACE]:   ", "and the rest");
+    expect_eq(Ops::fmt("{}", Level::TRACE), "Trace", "TRACE's short name is Trace");
+    expect_eq(Ops::fmt("{}", Level::DEBUG), "Debug", "DEBUG's short name is Debug");
+    expect_eq(Ops::fmt("{}", Level::INFO), "Info", "INFO's short name is Info");
+    expect_eq(Ops::fmt("{}", Level::WARNING), "Warning", "WARNING's short name is Warning");
+    expect_eq(Ops::fmt("{}", Level::ERROR), "Error", "ERROR's short name is Error");
+
+    expect_eq(Ops::fmt("{:?}", Level::TRACE), "Level::TRACE", "'?' renders the qualified enumerator name");
+    expect_eq(Ops::fmt("{:?}", Level::WARNING), "Level::WARNING", "including WARNING");
+
+    expect_eq(Ops::fmt("{:!}", Level::INFO), "[INFO]:", "'!' renders the original bracketed, all-caps form");
+    expect_eq(Ops::fmt("{:!}", Level::WARNING), "[WARNING]:", "including WARNING");
+
+    expect_eq(Ops::fmt("{:_>10}", Level::INFO), "______Info", "plain fill/align/width still applies to the short name");
     expect_eq(
-        Ops::fmt("{}", Level::INFO).size(),
-        Ops::fmt("{}", Level::WARNING).size(),
-        "every level renders to the same width, so log lines align"
+        Ops::fmt("{:_>17?}", Level::WARNING), "___Level::WARNING",
+        "fill/align/width composes with '?' too"
     );
+    expect_eq(
+        Ops::fmt("{:_>10!}", Level::INFO), "___[INFO]:",
+        "fill/align/width composes with '!' too - this is what every sink actually uses"
+    );
+
+    // The point of the exercise: Level now formats without a bespoke path, so
+    // it participates in the comparison assertions like any other type.
+    expect_lt(Level::TRACE, Level::DEBUG, "Level orders by its declaration order");
+    expect_ge(Level::ERROR, Level::ERROR, "and compares equal to itself");
 }
 
 /**
  * @brief Tests that the factory hands back the same logger for the same name.
  */
 void test_logging_factory_caches() {
-    LoggerFactory factory = LoggerFactory::Builder()
+    LoggerFactory logging = LoggerFactory::Builder()
         .of_default_level(Level::WARNING)
         .build();
 
-    SharedPointer<Logger> first = factory.of("alpha");
-    SharedPointer<Logger> again = factory.of("alpha");
-    SharedPointer<Logger> other = factory.of("beta");
+    SharedPointer<Logger> first = logging.of("alpha");
+    SharedPointer<Logger> again = logging.of("alpha");
+    SharedPointer<Logger> other = logging.of("beta");
 
     expect(first.get() == again.get(), "the same name yields the same logger");
     expect(first.get() != other.get(), "a different name yields a different one");
@@ -286,12 +310,12 @@ void test_logging_factory_caches() {
  */
 void test_logging_factory_applies_settings() {
     SharedPointer<MemorySink> sink = Pointers::shared<MemorySink>();
-    LoggerFactory factory = LoggerFactory::Builder()
+    LoggerFactory logging = LoggerFactory::Builder()
         .of_default_level(Level::ERROR)
         .with_sink(sink)
         .build();
 
-    SharedPointer<Logger> logger = factory.of("configured");
+    SharedPointer<Logger> logger = logging.of("configured");
     logger->info("dropped");
     logger->error("kept");
 
@@ -302,7 +326,7 @@ void test_logging_factory_applies_settings() {
         expect_eq(got[0].logger, "configured", "under the requested name");
     }
 
-    factory.flush_all();
+    logging.flush_all();
     expect_eq(sink->flushes(), 1uz, "flush_all reaches the global sinks");
 }
 
@@ -311,7 +335,9 @@ void test_logging_factory_applies_settings() {
  */
 void test_logging_factory_banner() {
     SharedPointer<MemorySink> quiet = Pointers::shared<MemorySink>();
-    LoggerFactory without = LoggerFactory::Builder().with_sink(quiet).build();
+    LoggerFactory without = LoggerFactory::Builder()
+        .with_sink(quiet)
+        .build();
     expect(quiet->entries().empty(), "no banner is written unless asked for");
 
     SharedPointer<MemorySink> loud = Pointers::shared<MemorySink>();
@@ -340,25 +366,118 @@ void test_logging_factory_file_sink() {
     stdx::fs::remove_all(root);
 
     {
-        LoggerFactory factory = LoggerFactory::Builder()
-            .with_file(log, OpenMode::TRUNCATE)
+        LoggerFactory logging = LoggerFactory::Builder()
+            .to_file(log, OpenMode::TRUNCATE)
             .of_default_level(Level::TRACE)
+            .of_source_location_format(SourceLocationFormat::FILE_LINE)
             .build();
 
         expect(stdx::fs::exists(log), "build() creates missing parent directories and opens the file");
 
-        SharedPointer<Logger> logger = factory.of("file");
+        SharedPointer<Logger> logger = logging.of("file");
         logger->warn("to disk {}", 1);
-        factory.flush_all();
+        logging.flush_all();
     }
 
-    using stdx::core::InputStreamBufferIterator;
-    stdx::io::InputFileStream input(log);
+    InputFileStream input(log);
     String contents((InputStreamBufferIterator<char>(input)), InputStreamBufferIterator<char>());
 
     expect(contents.find("to disk 1") != String::npos, "the message reaches the file");
-    expect(contents.find("[WARNING]") != String::npos, "with its level");
+    expect(contents.find("[WARNING]:") != String::npos, "with its level, bracketed and in caps");
     expect(contents.find("[file]") != String::npos, "and its logger name");
+    expect(
+        contents.find("[LoggingTest.cpp:") != String::npos,
+        "compact source locations keep the file name and line"
+    );
+    expect(
+        contents.find("test_logging_factory_file_sink") == String::npos,
+        "compact source locations omit the verbose function name"
+    );
+
+    stdx::fs::remove_all(root);
+}
+
+/**
+ * @brief Tests that a sink prints Level in its original bracketed, all-caps
+ * form ("[INFO]:"), padded so every level lines up regardless of name
+ * length - independent of how Level formats on its own (see
+ * test_logging_level_formatting), which sinks do not use.
+ *
+ * "[INFO]:" (7 characters) and "[WARNING]:" (10 characters) are logged back
+ * to back; both lines must place the following logger-name bracket at the
+ * same column, which only holds if the shorter one was padded out to match
+ * the longest ("[WARNING]:").
+ */
+void test_logging_pads_level_column() {
+    const Path root = stdx::fs::temp_directory_path() / "stdx_logging_pad_test";
+    const Path log = root / "run.log";
+    stdx::fs::remove_all(root);
+
+    {
+        LoggerFactory logging = LoggerFactory::Builder()
+            .to_file(log, OpenMode::TRUNCATE)
+            .of_default_level(Level::TRACE)
+            .of_source_location_format(SourceLocationFormat::NONE)
+            .build();
+
+        SharedPointer<Logger> logger = logging.of("pad");
+        logger->info("short level name");
+        logger->warn("longest level name");
+        logging.flush_all();
+    }
+
+    InputFileStream input(log);
+    String contents((InputStreamBufferIterator<char>(input)), InputStreamBufferIterator<char>());
+
+    const usize info_line = contents.find("short level name");
+    const usize warn_line = contents.find("longest level name");
+    require(info_line != String::npos && warn_line != String::npos, "both lines were written");
+
+    const usize info_bracket = contents.rfind('[', info_line);
+    const usize warn_bracket = contents.rfind('[', warn_line);
+    require(info_bracket != String::npos && warn_bracket != String::npos, "both lines have a logger-name bracket");
+
+    expect_eq(
+        info_line - info_bracket, warn_line - warn_bracket,
+        "the message starts the same distance after '[pad]' on both lines, so [INFO]: was padded out to [WARNING]:'s width"
+    );
+    expect(
+        contents.find("[INFO]:    [pad]") != String::npos,
+        "[INFO]: (7 characters) is padded to 10 columns before the logger-name bracket"
+    );
+    expect(
+        contents.find("[WARNING]: [pad]") != String::npos,
+        "[WARNING]: (10 characters) needs no padding and is followed directly by a space and the bracket"
+    );
+
+    stdx::fs::remove_all(root);
+}
+
+/**
+ * @brief Tests that a log line reaches the file as it is written, not only
+ * once the sink is flushed or destroyed.
+ */
+void test_logging_file_sink_writes_without_explicit_flush() {
+    const Path root = stdx::fs::temp_directory_path() / "stdx_logging_autoflush_test";
+    const Path log = root / "run.log";
+    stdx::fs::remove_all(root);
+
+    LoggerFactory logging = LoggerFactory::Builder()
+        .to_file(log, OpenMode::TRUNCATE)
+        .of_default_level(Level::TRACE)
+        .of_source_location_format(SourceLocationFormat::NONE)
+        .build();
+
+    SharedPointer<Logger> logger = logging.of("live");
+    logger->info("visible while still running");
+
+    InputFileStream input(log);
+    String contents((InputStreamBufferIterator<char>(input)), InputStreamBufferIterator<char>());
+
+    expect(
+        contents.find("visible while still running") != String::npos,
+        "the line is visible through a separate file handle before any explicit flush"
+    );
 
     stdx::fs::remove_all(root);
 }
@@ -379,12 +498,12 @@ void test_logging_factory_reflected_name() {
     #ifdef __cpp_impl_reflection
     struct Widget {};
 
-    LoggerFactory factory = LoggerFactory::Builder().build();
-    SharedPointer<Logger> logger = factory.of<Widget>();
+    LoggerFactory logging = LoggerFactory::Builder().build();
+    SharedPointer<Logger> logger = logging.of<Widget>();
 
     expect_eq(String(logger->name()), "Widget", "the logger is named after the type's own identifier");
     expect(
-        factory.of("Widget").get() == logger.get(),
+        logging.of("Widget").get() == logger.get(),
         "and shares the cache entry with the string spelling"
     );
     #else
@@ -406,6 +525,8 @@ int main(int argc, char* argv[]) {
         {"Logging.factory_applies_settings", test_logging_factory_applies_settings},
         {"Logging.factory_banner", test_logging_factory_banner},
         {"Logging.factory_file_sink", test_logging_factory_file_sink},
+        {"Logging.pads_level_column", test_logging_pads_level_column},
+        {"Logging.file_sink_writes_without_explicit_flush", test_logging_file_sink_writes_without_explicit_flush},
         {"Logging.console_sink", test_logging_console_sink},
         {"Logging.factory_reflected_name", test_logging_factory_reflected_name},
     });

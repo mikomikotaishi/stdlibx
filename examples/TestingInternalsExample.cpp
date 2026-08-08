@@ -24,7 +24,7 @@ class RingBuffer {
 private:
     static constexpr usize CAPACITY = 4; ///< How many entries fit before wrapping.
 
-    i32 _slots[CAPACITY] = {}; ///< The storage, used as a circle.
+    Array<i32, CAPACITY> _slots = {}; ///< The storage, used as a circle.
     usize _head = 0; ///< Where the next push writes.
     usize _count = 0; ///< How many entries are live.
 
@@ -34,7 +34,7 @@ private:
      * @return The next index.
      */
     [[nodiscard]]
-    static usize next_index(usize index) noexcept {
+    static usize nextIndex(usize index) noexcept {
         return (index + 1) % CAPACITY;
     }
 
@@ -53,7 +53,7 @@ public:
      */
     void push(i32 value) noexcept {
         _slots[_head] = value;
-        _head = next_index(_head);
+        _head = nextIndex(_head);
         if (_count < CAPACITY) {
             ++_count;
         }
@@ -93,7 +93,7 @@ public:
  * alongside public ones.
  */
 [[nodiscard]]
-consteval Info member_named(Info clazz, StringView name) {
+consteval Info memberNamed(Info clazz, StringView name) {
     for (const Info member: reflect::members_of(clazz, AccessContext::unchecked())) {
         if (reflect::has_identifier(member) && reflect::identifier_of(member) == name) {
             return member;
@@ -110,7 +110,7 @@ consteval Info member_named(Info clazz, StringView name) {
  * @return True if the member is visible in that context.
  */
 [[nodiscard]]
-consteval bool has_member(Info clazz, StringView name, AccessContext ctx) {
+consteval bool hasMember(Info clazz, StringView name, AccessContext ctx) {
     for (const Info member: reflect::members_of(clazz, ctx)) {
         if (reflect::has_identifier(member) && reflect::identifier_of(member) == name) {
             return true;
@@ -126,16 +126,16 @@ using NextIndexFn = usize (*)(usize) noexcept; ///< The type of the private next
 // directly; a private *function* cannot - GCC rejects `(buffer.[:TAIL:])()` with "is
 // private within this context" - so its address is pulled out with extract(), which
 // is not access-checked.
-constexpr Info HEAD = member_named(^^RingBuffer, "_head");
-constexpr Info COUNT = member_named(^^RingBuffer, "_count");
-constexpr Info SLOTS = member_named(^^RingBuffer, "_slots");
-constexpr TailFn TAIL = reflect::extract<TailFn>(member_named(^^RingBuffer, "tail"));
+constexpr Info HEAD = memberNamed(^^RingBuffer, "_head");
+constexpr Info COUNT = memberNamed(^^RingBuffer, "_count");
+constexpr Info SLOTS = memberNamed(^^RingBuffer, "_slots");
+constexpr TailFn TAIL = reflect::extract<TailFn>(memberNamed(^^RingBuffer, "tail"));
 constexpr NextIndexFn NEXT_INDEX = reflect::extract<NextIndexFn>(
-    member_named(^^RingBuffer, "next_index")
+    memberNamed(^^RingBuffer, "nextIndex")
 );
 
 namespace mmt::internals {
-    void test_reads_the_private_indices() {
+    void testReadsThePrivateIndices() {
         RingBuffer buffer;
         expect_eq(buffer.[:HEAD:], 0uz, "a fresh buffer writes at index 0");
         buffer.push(1);
@@ -144,7 +144,7 @@ namespace mmt::internals {
         expect_eq(buffer.[:COUNT:], 2uz, "and so did the live count");
     }
 
-    void test_observes_the_wrap_around() {
+    void testObservesTheWrapAround() {
         RingBuffer buffer;
         for (i32 value = 1; value <= 5; ++value) {
             buffer.push(value);
@@ -155,7 +155,7 @@ namespace mmt::internals {
         expect_eq(buffer.[:SLOTS:][0], 5, "and overwrote the oldest slot in place");
     }
 
-    void test_writes_a_state_that_is_awkward_to_reach() {
+    void testWritesAStateThatIsAwkwardToReach() {
         // Rather than pushing three values to walk the write index up to the
         // boundary, put it there and test only the transition that matters.
         RingBuffer buffer;
@@ -167,7 +167,7 @@ namespace mmt::internals {
         expect_eq(*buffer.pop(), 20, "then the one written after the wrap");
     }
 
-    void test_calls_the_private_helpers() {
+    void testCallsThePrivateHelpers() {
         RingBuffer buffer;
         buffer.push(1);
         buffer.push(2);
@@ -176,13 +176,13 @@ namespace mmt::internals {
         expect_eq(NEXT_INDEX(0uz), 1uz);
     }
 
-    void test_the_access_context_decides_what_is_visible() {
-        constexpr bool head_when_checked = has_member(^^RingBuffer, "_head", AccessContext::current());
-        constexpr bool head_when_unchecked = has_member(^^RingBuffer, "_head", AccessContext::unchecked());
-        constexpr bool size_when_checked = has_member(^^RingBuffer, "size", AccessContext::current());
-        expect(!head_when_checked, "a private member is hidden from a checked context");
-        expect(head_when_unchecked, "and revealed by an unchecked one");
-        expect(size_when_checked, "public members show up either way");
+    void testTheAccessContextDecidesWhatIsVisible() {
+        constexpr bool headWhenChecked = hasMember(^^RingBuffer, "_head", AccessContext::current());
+        constexpr bool headWhenUnchecked = hasMember(^^RingBuffer, "_head", AccessContext::unchecked());
+        constexpr bool sizeWhenChecked = hasMember(^^RingBuffer, "size", AccessContext::current());
+        expect(!headWhenChecked, "a private member is hidden from a checked context");
+        expect(headWhenUnchecked, "and revealed by an unchecked one");
+        expect(sizeWhenChecked, "public members show up either way");
         expect(reflect::is_private(HEAD), "_head reports its own access");
     }
 }
@@ -198,17 +198,17 @@ namespace mmt::internals {
  */
 class BufferFixture {
 private:
-    static void test_a_private_static_is_discovered() {
+    static void testAPrivateStaticIsDiscovered() {
         RingBuffer buffer;
         buffer.push(7);
         expect_eq(buffer.[:COUNT:], 1uz, "and it can reach the internals as well");
     }
 public:
-    static void test_a_public_static_is_discovered() {
+    static void testAPublicStaticIsDiscovered() {
         expect(true, "static member functions become tests");
     }
 
-    void test_a_non_static_member_is_not() {
+    void testANonStaticMemberIsNot() {
         expect(false, "never discovered, so never run");
     }
 };
