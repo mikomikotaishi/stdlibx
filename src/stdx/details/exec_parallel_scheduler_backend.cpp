@@ -1,7 +1,7 @@
 /**
  * @file exec_parallel_scheduler_backend.cpp
  * @brief Single translation unit providing NVIDIA stdexec's default
- *        parallel-scheduler backend.
+ * parallel-scheduler backend.
  *
  * This lives in its own plain (non-module) TU on purpose: the alternative,
  * STDEXEC_PARALLEL_SCHEDULER_HEADER_ONLY in exec.cppm, bakes the same backend
@@ -9,6 +9,9 @@
  * forces every consumer to emit the backend inline. Isolating it here keeps
  * the heavy static_thread_pool machinery out of the module entirely.
  */
+
+#include <vector>
+
 #include <stdexec/execution.hpp>
 
 #define STDEXEC_PARALLEL_SCHEDULER_INLINE

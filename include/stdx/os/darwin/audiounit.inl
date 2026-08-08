@@ -3,7 +3,7 @@
 /**
  * @namespace stdx::os::darwin::audiounit
  * @brief AudioUnit - <AudioUnit/AudioUnit.h>, AUComponent.h,
- *        AudioComponent.h, AudioOutputUnit.h, AUAudioUnit.h.
+ * AudioComponent.h, AudioOutputUnit.h, AUAudioUnit.h.
  *
  * Apple's plugin/render-graph API for audio processing units. Use for
  * low-latency output (kAudioUnitSubType_DefaultOutput / HALOutput) or
@@ -63,7 +63,6 @@ export namespace stdx::os::darwin::audiounit {
     using ::AudioUnitGetProperty;
     using ::AudioUnitSetProperty;
     using ::AudioUnitAddPropertyListener;
-    using ::AudioUnitRemovePropertyListener;
     using ::AudioUnitRemovePropertyListenerWithUserData;
     using ::AudioUnitAddRenderNotify;
     using ::AudioUnitRemoveRenderNotify;

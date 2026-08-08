@@ -1,5 +1,7 @@
 #pragma once
 
+using stdx::fmt::Formatter;
+
 /**
  * @namespace stdx::net
  * @brief Standard library networking operations.
@@ -36,7 +38,7 @@ export namespace stdx::net {
         static const IPv4Address LOOPBACK; ///< The loopback address 127.0.0.1.
         static const IPv4Address BROADCAST; ///< The limited broadcast address 255.255.255.255.
     private:
-        Array<u8, 4> _bytes{}; ///< Big-endian octets of the IPv4 address.
+        Array<u8, 4> _bytes = {}; ///< Big-endian octets of the IPv4 address.
     public:
         constexpr IPv4Address() noexcept = default;
 
@@ -62,7 +64,7 @@ export namespace stdx::net {
         THROWS(AddressSyntaxException)
         constexpr explicit IPv4Address(StringView text) {
             const Optional<IPv4Address> parsed = parse(text);
-            if (!parsed) {
+            if (!parsed.has_value()) {
                 throw AddressSyntaxException("invalid IPv4 literal");
             }
             this->_bytes = parsed->_bytes;
@@ -81,7 +83,7 @@ export namespace stdx::net {
          */
         [[nodiscard]]
         static constexpr Optional<IPv4Address> parse(StringView text) noexcept {
-            Array<u8, 4> bytes{};
+            Array<u8, 4> bytes = {};
             usize index = 0;
             usize position = 0;
 
@@ -251,7 +253,7 @@ export namespace stdx::net {
         static const IPv6Address ANY; ///< The unspecified address ::, which binds every local interface.
         static const IPv6Address LOOPBACK; ///< The loopback address ::1.
     private:
-        Array<u8, 16> _bytes{}; ///< Big-endian bytes of the IPv6 address.
+        Array<u8, 16> _bytes = {}; ///< Big-endian bytes of the IPv6 address.
         u32 _scope_id = 0; ///< The RFC 4007 zone index, or 0 for none.
 
         /**
@@ -327,7 +329,7 @@ export namespace stdx::net {
         THROWS(AddressSyntaxException)
         constexpr explicit IPv6Address(StringView text) {
             const Optional<IPv6Address> parsed = parse(text);
-            if (!parsed) {
+            if (!parsed.has_value()) {
                 throw AddressSyntaxException("invalid IPv6 literal");
             }
             this->_bytes = parsed->_bytes;
@@ -370,7 +372,7 @@ export namespace stdx::net {
                 scope = static_cast<u32>(value);
             }
 
-            Array<u8, 16> bytes{};
+            Array<u8, 16> bytes = {};
             usize filled = 0;
             usize gap = 0;
             bool has_gap = false;
@@ -400,7 +402,7 @@ export namespace stdx::net {
                 // IPv4 literal, which occupies the final two groups.
                 if (position < s.size() && s[position] == '.') {
                     const Optional<IPv4Address> embedded = IPv4Address::parse(s.substr(start));
-                    if (!embedded || filled + 4 > 16) {
+                    if (!embedded.has_value() || filled + 4 > 16) {
                         return nullopt;
                     }
                     for (const u8 octet: embedded->octets()) {
@@ -470,7 +472,7 @@ export namespace stdx::net {
          */
         [[nodiscard]]
         constexpr Array<u16, 8> groups() const noexcept {
-            Array<u16, 8> out{};
+            Array<u16, 8> out = {};
             for (usize i = 0; i < 8; ++i) {
                 out[i] = static_cast<u16>((static_cast<u16>(_bytes[i * 2]) << 8) | _bytes[i * 2 + 1]);
             }
@@ -551,7 +553,7 @@ export namespace stdx::net {
          * @brief Whether this address is in the RFC 4193 unique-local range fc00::/7.
          * @return true if the address is unique-local, false otherwise.
          * @details The unique-local range is used for private networks and is not routable on
-            * the public Internet. Unique-local addresses are similar to IPv4 private addresses (RFC 1918).
+         * the public Internet. Unique-local addresses are similar to IPv4 private addresses (RFC 1918).
          */
         [[nodiscard]]
         constexpr bool is_unique_local() const noexcept {
@@ -945,7 +947,7 @@ export namespace stdx::net {
      */
     class [[nodiscard]] Endpoint {
     private:
-        IPAddress _address{}; ///< The address of this endpoint.
+        IPAddress _address; ///< The address of this endpoint.
         u16 _port = 0; ///< The transport port, in host order.
 
         /**
@@ -1002,7 +1004,7 @@ export namespace stdx::net {
                 }
                 const Optional<IPv6Address> address = IPv6Address::parse(text.substr(1, close - 1));
                 const Optional<u16> port = parse_port(text.substr(close + 2));
-                if (!address || !port) {
+                if (!address.has_value() || !port.has_value()) {
                     throw AddressSyntaxException("invalid endpoint literal");
                 }
                 this->_address = *address;
@@ -1016,7 +1018,7 @@ export namespace stdx::net {
             }
             const Optional<IPv4Address> address = IPv4Address::parse(text.substr(0, colon));
             const Optional<u16> port = parse_port(text.substr(colon + 1));
-            if (!address || !port) {
+            if (!address.has_value() || !port.has_value()) {
                 throw AddressSyntaxException("invalid endpoint literal");
             }
             this->_address = *address;
@@ -1154,16 +1156,16 @@ namespace stdx::core {
 }
 
 template <>
-struct stdx::core::hash<IPv4Address> : public stdx::core::Hash<IPv4Address> {};
+struct stdx::core::hash<IPv4Address>: public Hash<IPv4Address> {};
 
 template <>
-struct stdx::core::hash<IPv6Address> : public stdx::core::Hash<IPv6Address> {};
+struct stdx::core::hash<IPv6Address>: public Hash<IPv6Address> {};
 
 template <>
-struct stdx::core::hash<IPAddress> : public stdx::core::Hash<IPAddress> {};
+struct stdx::core::hash<IPAddress>: public Hash<IPAddress> {};
 
 template <>
-struct stdx::core::hash<Endpoint> : public stdx::core::Hash<Endpoint> {};
+struct stdx::core::hash<Endpoint>: public Hash<Endpoint> {};
 
 namespace stdx::fmt {
     template <>
@@ -1232,16 +1234,16 @@ namespace stdx::fmt {
 }
 
 template <>
-struct stdx::fmt::formatter<IPv4Address> : public stdx::fmt::Formatter<IPv4Address> {};
+struct stdx::fmt::formatter<IPv4Address>: public Formatter<IPv4Address> {};
 
 template <>
-struct stdx::fmt::formatter<IPv6Address> : public stdx::fmt::Formatter<IPv6Address> {};
+struct stdx::fmt::formatter<IPv6Address>: public Formatter<IPv6Address> {};
 
 template <>
-struct stdx::fmt::formatter<IPAddress> : public stdx::fmt::Formatter<IPAddress> {};
+struct stdx::fmt::formatter<IPAddress>: public Formatter<IPAddress> {};
 
 template <>
-struct stdx::fmt::formatter<IPAddress::Family> : public stdx::fmt::Formatter<IPAddress::Family> {};
+struct stdx::fmt::formatter<IPAddress::Family>: public Formatter<IPAddress::Family> {};
 
 template <>
-struct stdx::fmt::formatter<Endpoint> : public stdx::fmt::Formatter<Endpoint> {};
+struct stdx::fmt::formatter<Endpoint>: public Formatter<Endpoint> {};

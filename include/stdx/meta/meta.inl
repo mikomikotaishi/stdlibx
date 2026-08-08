@@ -421,7 +421,7 @@ namespace stdx::meta::reflect {
     consteval Array<E, count<E>()> values_impl() {
         Array<E, count<E>()> result;
         usize i = 0;
-        for (Info e : stdx::meta::reflect::enumerators_of(^^E)) {
+        for (Info e: stdx::meta::reflect::enumerators_of(^^E)) {
             result[i++] = stdx::meta::reflect::extract<E>(e);
         }
         return result;

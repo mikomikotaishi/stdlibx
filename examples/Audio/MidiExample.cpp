@@ -23,7 +23,7 @@ using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
 [[nodiscard]]
-StringView backend_name(MidiBackend b) noexcept {
+StringView backendName(MidiBackend b) noexcept {
     switch (b) {
         case MidiBackend::NONE:
             return "none";
@@ -41,7 +41,7 @@ StringView backend_name(MidiBackend b) noexcept {
     Ops::unreachable();
 }
 
-void list_devices() {
+void listDevices() {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
@@ -56,7 +56,7 @@ void list_devices() {
             "  - {} (id={}, backend={}, in={}, out={})",
             d.name,
             d.id,
-            backend_name(d.backend),
+            backendName(d.backend),
             d.is_input ? "yes" : "no",
             d.is_output ? "yes" : "no"
         );
@@ -64,22 +64,23 @@ void list_devices() {
 }
 
 [[nodiscard]]
-bool is_passthrough_port(const MidiDeviceInfo& d) noexcept {
-    return d.name.starts_with("Midi Through") || d.name.starts_with("System");
+bool isPassthroughPort(const MidiDeviceInfo& d) noexcept {
+    return d.name.starts_with("Midi Through")
+        || d.name.starts_with("System");
 }
 
 [[nodiscard]]
-bool has_real_output(const Vector<MidiDeviceInfo>& devices) noexcept {
+bool hasRealOutput(const Vector<MidiDeviceInfo>& devices) noexcept {
     for (const MidiDeviceInfo& d: devices) {
-        if (d.is_output && !is_passthrough_port(d)) {
+        if (d.is_output && !isPassthroughPort(d)) {
             return true;
         }
     }
     return false;
 }
 
-// Common system soundfont locations across distros. First hit wins.
-Optional<Path> find_soundfont() noexcept {
+// Common system SoundFont locations across distros. First hit wins.
+Optional<Path> findSoundFont() noexcept {
     static constexpr Array<StringView, 6> CANDIDATES = {
         "/usr/share/soundfonts/Arachno.sf2",
         "/usr/share/soundfonts/FluidR3_GM.sf2",
@@ -98,31 +99,31 @@ Optional<Path> find_soundfont() noexcept {
 }
 
 // On Linux, MIDI without an external synth produces no sound - the kernel and
-// ALSA only move bytes, they don't synthesize audio. If the user has fluidsynth
+// ALSA only move bytes, they don't synthesize audio. If the user has FluidSynth
 // installed but no synth is currently serving an ALSA-seq port, spawn one for
 // the duration of the test. Returns the Process handle so main() can reap it.
-Optional<Process> maybe_spawn_fluidsynth() {
+Optional<Process> maybeSpawnFluidSynth() {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
     } catch (const MidiException& _) {
         return nullopt;
     }
-    if (has_real_output(devices)) {
+    if (hasRealOutput(devices)) {
         return nullopt;
     }
 
-    Optional<Path> sf2 = find_soundfont();
+    Optional<Path> sf2 = findSoundFont();
     if (!sf2.has_value()) {
         System::out.println(
-            "No soft synth running and no system soundfont found. Install one "
+            "No soft synth running and no system SoundFont found. Install one "
             "(e.g. `pacman -S soundfont-fluid` or `apt install fluid-soundfont-gm`) "
             "to enable MIDI playback."
         );
         return nullopt;
     }
 
-    System::out.println("Auto-launching fluidsynth with {}", sf2.value());
+    System::out.println("Auto-launching FluidSynth with {}", sf2.value());
 
     Expected<Process, ErrorCode> child = Process::Builder("fluidsynth")
         .arg("-s")
@@ -139,7 +140,7 @@ Optional<Process> maybe_spawn_fluidsynth() {
         .spawn();
     if (!child.has_value()) {
         System::out.println(
-            "Failed to launch fluidsynth - is it installed and on PATH?"
+            "Failed to launch FluidSynth - is it installed and on PATH?"
         );
         return nullopt;
     }
@@ -149,7 +150,7 @@ Optional<Process> maybe_spawn_fluidsynth() {
     return Optional<Process>{Ops::move(*child)};
 }
 
-void play_arpeggio(const String& requested_id) {
+void playArpeggio(const String& requestedId) {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
@@ -159,28 +160,28 @@ void play_arpeggio(const String& requested_id) {
     }
 
     const MidiDeviceInfo* target = nullptr;
-    if (!requested_id.empty()) {
+    if (!requestedId.empty()) {
         for (const MidiDeviceInfo& d: devices) {
-            if (d.is_output && d.id == requested_id) {
+            if (d.is_output && d.id == requestedId) {
                 target = &d;
                 break;
             }
         }
-        if (!target) {
+        if (target == nullptr) {
             System::out.println(
                 "Requested device id={} is not an output-capable MIDI port.",
-                requested_id
+                requestedId
             );
             return;
         }
     } else {
         for (const MidiDeviceInfo& d: devices) {
-            if (d.is_output && !is_passthrough_port(d)) {
+            if (d.is_output && !isPassthroughPort(d)) {
                 target = &d;
                 break;
             }
         }
-        if (!target) {
+        if (target == nullptr) {
             for (const MidiDeviceInfo& d: devices) {
                 if (d.is_output) {
                     target = &d;
@@ -198,7 +199,7 @@ void play_arpeggio(const String& requested_id) {
             }
         }
     }
-    if (!target) {
+    if (target == nullptr) {
         System::out.println("No output-capable MIDI device available - skipping.");
         return;
     }
@@ -208,23 +209,23 @@ void play_arpeggio(const String& requested_id) {
     try {
         UniquePointer<MidiDevice> device = MidiSystem::open_device(*target);
         Receiver* rx = device->receiver();
-        if (!rx) {
+        if (rx == nullptr) {
             System::out.println("Device has no receiver - nothing to do.");
             return;
         }
 
         // C major arpeggio: C4, E4, G4, C5
-        static constexpr Array<u8, 4> C_MAJOR_ARPEGGIO{60, 64, 67, 72};
+        static constexpr Array<u8, 4> C_MAJOR_ARPEGGIO = {60, 64, 67, 72};
         static constexpr u8 CHANNEL = 0;
         static constexpr u8 VELOCITY = 100;
 
         for (u8 note: C_MAJOR_ARPEGGIO) {
-            ShortMessage on{Status::NOTE_ON, CHANNEL, note, VELOCITY};
+            ShortMessage on(Status::NOTE_ON, CHANNEL, note, VELOCITY);
             rx->send(on, 0);
             System::out.println("  NoteOn  ch={} note={} vel={}", CHANNEL, note, VELOCITY);
             Thread::sleep_for(200ms);
 
-            ShortMessage off{Status::NOTE_OFF, CHANNEL, note, 0};
+            ShortMessage off(Status::NOTE_OFF, CHANNEL, note, 0);
             rx->send(off, 0);
             Thread::sleep_for(50ms);
         }
@@ -235,7 +236,7 @@ void play_arpeggio(const String& requested_id) {
     }
 }
 
-void play_smf(const String& file_path, const String& requested_id) {
+void play_smf(const Path& file, const String& requestedId) {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
@@ -246,29 +247,29 @@ void play_smf(const String& file_path, const String& requested_id) {
 
     // Pick the destination Receiver - same logic as play_arpeggio.
     const MidiDeviceInfo* target = nullptr;
-    if (!requested_id.empty()) {
+    if (!requestedId.empty()) {
         for (const MidiDeviceInfo& d: devices) {
-            if (d.is_output && d.id == requested_id) {
+            if (d.is_output && d.id == requestedId) {
                 target = &d;
                 break;
             }
         }
-        if (!target) {
+        if (target == nullptr) {
             System::out.println(
                 "Requested device id={} is not an output-capable MIDI port.",
-                requested_id
+                requestedId
             );
             return;
         }
     } else {
         for (const MidiDeviceInfo& d: devices) {
-            if (d.is_output && !is_passthrough_port(d)) {
+            if (d.is_output && !isPassthroughPort(d)) {
                 target = &d;
                 break;
             }
         }
     }
-    if (!target) {
+    if (target == nullptr) {
         System::out.println(
             "No non-pass-through output found. Start a soft synth (e.g. "
             "`fluidsynth -a alsa -m alsa_seq /usr/share/soundfonts/Arachno.sf2`)."
@@ -278,20 +279,20 @@ void play_smf(const String& file_path, const String& requested_id) {
 
     UniquePointer<Sequence> seq;
     try {
-        seq = MidiSystem::open_sequence(Path{file_path});
+        seq = MidiSystem::open_sequence(file);
     } catch (const InvalidMidiDataException& e) {
-        System::err.println("Cannot parse {}: {}", file_path, e.what());
+        System::err.println("Cannot parse {}: {}", file, e.what());
         return;
     }
     System::out.println(
         "Parsed {}: {} track(s), last tick = {}",
-        file_path, seq->track_count(), seq->last_tick()
+        file, seq->track_count(), seq->last_tick()
     );
 
     try {
         UniquePointer<MidiDevice> device = MidiSystem::open_device(*target);
         Receiver* rx = device->receiver();
-        if (!rx) {
+        if (rx == nullptr) {
             System::out.println("Device has no receiver - nothing to do.");
             return;
         }
@@ -299,7 +300,7 @@ void play_smf(const String& file_path, const String& requested_id) {
         Sequencer& sequencer = MidiSystem::default_sequencer();
         sequencer.open();
         Transmitter* tx = sequencer.transmitter();
-        if (!tx) {
+        if (tx == nullptr) {
             System::out.println("Sequencer has no transmitter - nothing to do.");
             return;
         }
@@ -346,24 +347,24 @@ int main(int argc, char* argv[]) {
     parser.parse_args(argc, argv);
 
     // If the user already specified a device or didn't ask to play anything,
-    // skip the auto-spawn step. Otherwise spawn fluidsynth so MidiTest is
+    // skip the auto-spawn step. Otherwise spawn FluidSynth so MidiTest is
     // self-contained when no synth is running on the system.
-    const String device_arg = parser.get("--device");
-    const String file_arg = parser.get("--file");
-    const bool wants_to_play = !file_arg.empty() || parser.get<bool>("--play");
-    Optional<Process> auto_synth;
-    if (wants_to_play && device_arg.empty()) {
-        auto_synth = maybe_spawn_fluidsynth();
+    const String deviceArg = parser.get("--device");
+    const String fileArg = parser.get("--file");
+    const bool wantsToPlay = !fileArg.empty() || parser.get<bool>("--play");
+    Optional<Process> autoSynth;
+    if (wantsToPlay && deviceArg.empty()) {
+        autoSynth = maybeSpawnFluidSynth();
     }
 
-    list_devices();
+    listDevices();
 
-    if (!file_arg.empty()) {
-        System::out.println("\nPlaying SMF: {}", file_arg);
-        play_smf(file_arg, device_arg);
+    if (!fileArg.empty()) {
+        System::out.println("\nPlaying SMF: {}", fileArg);
+        play_smf(fileArg, deviceArg);
     } else if (parser.get<bool>("--play")) {
         System::out.println("\nSending a C-major arpeggio...");
-        play_arpeggio(device_arg);
+        playArpeggio(deviceArg);
     } else {
         System::out.println(
             "\n(Pass --play for an arpeggio or --file <path> to play an SMF.)"
@@ -373,15 +374,15 @@ int main(int argc, char* argv[]) {
     // Reap the synth we spawned. kill() sends SIGTERM; wait() reaps the zombie.
     // Dropping a Process without wait() per the API contract leaves the process
     // unreaped, so this is required even if kill() reports an error.
-    if (auto_synth.has_value()) {
-        if (Expected<void, ErrorCode> kill_result = auto_synth->kill(); kill_result.error()) {
-            System::err.println("Failed to kill fluidsynth: {}", kill_result.error().message());
+    if (autoSynth.has_value()) {
+        if (Expected<void, ErrorCode> killResult = autoSynth->kill(); killResult.error()) {
+            System::err.println("Failed to kill FluidSynth: {}", killResult.error().message());
         }
 
-        if (Expected<ExitStatus, ErrorCode> wait_result = auto_synth->wait(); wait_result) {
-            System::out.println("fluidsynth exited successfully.");
+        if (Expected<ExitStatus, ErrorCode> waitResult = autoSynth->wait(); waitResult) {
+            System::out.println("FluidSynth exited successfully.");
         } else {
-            System::err.println("Failed to wait for fluidsynth: {}", wait_result.error().message());
+            System::err.println("Failed to wait for FluidSynth: {}", waitResult.error().message());
         }
     }
 }

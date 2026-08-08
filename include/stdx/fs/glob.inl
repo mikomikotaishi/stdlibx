@@ -156,7 +156,7 @@ namespace stdx::fs {
         if (p.empty()) {
             return p;
         }
-        Optional<StringView> home = Environment::get(HOME_VARIABLE);
+        Optional<String> home = Environment::get(HOME_VARIABLE);
         if (!home.has_value()) {
             return nullopt; // `~` could not be expanded due to HOME variable not being set
         }
@@ -284,9 +284,9 @@ namespace stdx::fs {
         }
         if (dir.empty()) {
             if (recursive && is_recursive(base.string())) {
-                return glob_relative_pathnames(dir, base, dironly);
+                return glob_relative_pathnames(dir, base.string(), dironly);
             } else {
-                return glob_over_pattern(dir, base, dironly);
+                return glob_over_pattern(dir, base.string(), dironly);
             }
         }
 
@@ -309,7 +309,7 @@ namespace stdx::fs {
         }
 
         for (Path& d: dirs) {
-            for (Path& name: glob_in_dir(d, base, dironly)) {
+            for (Path& name: glob_in_dir(d, base.string(), dironly)) {
                 Path subresult = name;
                 if (name.parent_path().empty()) {
                     subresult = d / name;

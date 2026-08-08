@@ -64,7 +64,7 @@ export namespace stdx::time::chrono {
             return {static_cast<i32>(y + (m <= 2)), m, d};
         }
     public:
-        JulianChronology() = delete("JulianChronology is a static utility class and cannot be instantiated.");
+        JulianChronology() = DELETE_METHOD("JulianChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era
@@ -113,7 +113,7 @@ export namespace stdx::time::chrono {
          */
         [[nodiscard]]
         static constexpr u32 days_in_month(i32 y, u32 m) noexcept {
-            static constexpr Array<u32, 12> TABLE{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+            static constexpr Array<u32, 12> TABLE = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
             if (m == 2 && is_leap_year(y)) {
                 return 29;
             }

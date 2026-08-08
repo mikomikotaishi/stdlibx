@@ -65,6 +65,39 @@ namespace stdx::util {
     }
 
     /**
+     * @brief The same, from a command line already held as views: element 0 dropped.
+     * @param command_line The whole command line, program name first.
+     */
+    [[nodiscard]]
+    Vector<StringView> collect_args(Span<const StringView> command_line) {
+        Vector<StringView> result;
+        for (usize i = 1; i < command_line.size(); ++i) {
+            result.emplace_back(command_line[i]);
+        }
+        return result;
+    }
+
+    /**
+     * @brief argv as views, program name included, for handing to the Span overloads.
+     * @param argc The argument count.
+     * @param argv The argument vector.
+     */
+    [[nodiscard]]
+    Vector<StringView> whole_command_line(int argc, char* argv[]) {
+        Vector<StringView> result;
+        if (argv == nullptr || argc <= 0) {
+            return result;
+        }
+        result.reserve(static_cast<usize>(argc));
+        for (i32 i = 0; i < argc; ++i) {
+            if (argv[i] != nullptr) {
+                result.emplace_back(argv[i]);
+            }
+        }
+        return result;
+    }
+
+    /**
      * @brief Index of an exact long-flag token (e.g. "--input") in the argument
      * list, or nullopt if it was not passed.
      */
@@ -135,13 +168,13 @@ namespace stdx::util {
 
     template <typename T>
         requires (Integral<T> && !IsSameValue<T, bool>)
-    [[=Throws<InvalidArgumentException, InvalidRangeException>()]]
+    [[=Throws<InvalidArgumentException, InvalidRangeException>]]
     T convert_value(StringView value) {
-        return perform_from_chars<T, 10uz>(value);
+        return from_chars<T, 10uz>(value);
     }
 
     template <IsOptional T>
-    [[=Throws<InvalidArgumentException, InvalidRangeException>()]]
+    [[=Throws<InvalidArgumentException, InvalidRangeException>]]
     typename OptionalValueType<T>::Value convert_value(StringView value) {
         return convert_value<typename OptionalValueType<T>::Value>(value);
     }
@@ -250,15 +283,28 @@ export namespace stdx::util {
         && IsSameValue<RemoveConstVolatileReferenceType<T>, Env<T::descriptor()>>;
 
     template <ReflectableAsClass T>
-    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>()]]
+    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>]]
     T ArgumentParser::parse(int argc, char* argv[]) {
+        const Vector<StringView> command_line = whole_command_line(argc, argv);
+        return parse<T>(Span<const StringView>(command_line));
+    }
+
+    template <ReflectableAsClass T>
+    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>]]
+    T ArgumentParser::parse() {
+        return parse<T>(Environment::args());
+    }
+
+    template <ReflectableAsClass T>
+    [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>]]
+    T ArgumentParser::parse(Span<const StringView> command_line) {
         static_assert(
             Ops::class_of<T>().is_default_constructible(),
             "ArgumentParser::parse<T> requires T to be default-constructible"
         );
 
         constexpr AccessContext ctx = AccessContext::unchecked();
-        const Vector<StringView> arguments = collect_args(argc, argv);
+        const Vector<StringView> arguments = collect_args(command_line);
 
         T result;
 
@@ -312,7 +358,7 @@ export namespace stdx::util {
                     }
                     result.[:field.value():] = convert_value<MemberType>(arguments[*index + 1]);
                 } else if (env_name.has_value()) {
-                    if (Optional<StringView> env_value = Environment::get(*env_name); env_value.has_value()) {
+                    if (Optional<String> env_value = Environment::get(*env_name); env_value.has_value()) {
                         result.[:field.value():] = convert_value<MemberType>(*env_value);
                     } else if (!optional_field && !defaulted_field) {
                         throw CommandLineParserException(Ops::fmt(
@@ -333,6 +379,17 @@ export namespace stdx::util {
 
     template <ReflectableAsClass T>
     String ArgumentParser::help(int argc, char* argv[]) {
+        const Vector<StringView> command_line = whole_command_line(argc, argv);
+        return help<T>(Span<const StringView>(command_line));
+    }
+
+    template <ReflectableAsClass T>
+    String ArgumentParser::help() {
+        return help<T>(Environment::args());
+    }
+
+    template <ReflectableAsClass T>
+    String ArgumentParser::help(Span<const StringView> command_line) {
         static_assert(
             Ops::class_of<T>().is_default_constructible(),
             "ArgumentParser::help<T> requires T to be default-constructible"
@@ -340,7 +397,7 @@ export namespace stdx::util {
 
         constexpr AccessContext ctx = AccessContext::unchecked();
         String out = Ops::fmt(
-            "{}\n\n", argc > 0 ? StringView(argv[0]) : "program"sv
+            "{}\n\n", command_line.empty() ? "program"sv : command_line.front()
         );
 
         template for (constexpr Field field: Ops::define_static_array(Ops::class_of<T>().fields(ctx))) {

@@ -13,7 +13,7 @@
 #endif
 
 #ifdef __cpp_lib_reflection
-#define THROWS(...) [[=Throws<__VA_ARGS__>()]]
+#define THROWS(...) [[=Throws<__VA_ARGS__>]]
 #else
 #define THROWS(...)
 #endif
@@ -27,37 +27,15 @@
 #define THROWS_DISABLED(...)
 
 /**
- * @brief Utility macro to import the stdx::core namespace within the module.
- */
-#define STDLIBX_PREPARE_IMPORT_CORE() \
-    namespace stdx::core {} \
-    using namespace stdx::core;
-
-/**
- * @brief Utility macro to import the stdx::literals namespace within the module.
- */
-#define STDLIBX_PREPARE_IMPORT_LITERALS() \
-    namespace stdx::literals {} \
-    using namespace stdx::literals;
-
-/**
- * @brief A utility to specialize a type in std::formatter. 
- * @param Typename The type to specialize into the formatter.
+ * @brief A deleted-function definition that carries the reason it is deleted.
+ * @param ... The reason, as a string literal.
  *
- * Requires that Formatter is imported into the current scope.
- * Used as a hack to allow stdx::fmt::Formatter to be used by stdx::fmt::format().
+ * Guarded on __cpp_deleted_function because it is a compiler feature-test macro
+ * rather than a library one, and so is visible inside a module translation unit
+ * where <version> has not been included. GCC 16 and clang 22 both report 202403.
  */
-#define SPECIALIZE_FORMATTER(Typename) \
-    template <> \
-    struct stdx::fmt::formatter<Typename> : public Formatter<Typename> {};
-
-/**
- * @brief A utility to specialize a type in std::hash. 
- * @param Typename The type to specialize into the hash.
- *
- * Requires that Hash is imported into the current scope.
- * Used as a hack to allow stdx::core::Hash to be used by hash().
- */
-#define SPECIALIZE_HASH(Typename) \
-    template <> \
-    struct stdx::core::hash<Typename> : public Hash<Typename> {};
+#ifdef __cpp_deleted_function
+#define DELETE_METHOD(...) delete(__VA_ARGS__)
+#else
+#define DELETE_METHOD(...) delete
+#endif

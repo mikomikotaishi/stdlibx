@@ -51,5 +51,7 @@ namespace stdx::os::darwin::captured {
     constexpr auto EV_DISPATCH_VALUE = EV_DISPATCH;
     constexpr auto EV_ERROR_VALUE = EV_ERROR;
     constexpr auto EV_EOF_VALUE = EV_EOF;
+
+    constexpr auto NOTE_TRIGGER_VALUE = NOTE_TRIGGER;
     #endif
 }

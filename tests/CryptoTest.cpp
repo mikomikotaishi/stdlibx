@@ -79,7 +79,7 @@ void test_secure_random() {
     expect(u >= 0.0 && u < 1.0, "next_unit is in [0, 1)");
 
     expect_throws<InvalidArgumentException>(
-        [&] -> void { (void)rng.next<i32>(5, 5); }, "next with min == max throws"
+        [&] -> void { static_cast<void>(rng.next<i32>(5, 5)); }, "next with min == max throws"
     );
 }
 
@@ -126,7 +126,7 @@ void test_message_digest() {
     );
 
     expect_throws<NoSuchAlgorithmException>(
-        [] -> void { (void)MessageDigest::instance("MD5"); }, "an unknown algorithm throws"
+        [] -> void { static_cast<void>(MessageDigest::instance("MD5")); }, "an unknown algorithm throws"
     );
 }
 
@@ -163,7 +163,7 @@ void test_signature() {
     Signature uninitialized = Signature::instance(Signature::Algorithm::ED25519);
     uninitialized.update(span_of(MESSAGE));
     expect_throws<InvalidKeyException>(
-        [&] -> void { (void)uninitialized.sign(); }, "sign() without init_sign() throws"
+        [&] -> void { static_cast<void>(uninitialized.sign()); }, "sign() without init_sign() throws"
     );
 }
 
@@ -197,21 +197,21 @@ void test_cipher() {
     Cipher wrong = Cipher::instance("SecretBox");
     wrong.init(CipherMode::DECRYPT_MODE, other);
     expect_throws<AEADBadTagException>(
-        [&] -> void { (void)wrong.do_final(bytes_of(ciphertext)); },
+        [&] -> void { static_cast<void>(wrong.do_final(bytes_of(ciphertext))); },
         "decrypting with the wrong key fails the tag check"
     );
 
     // do_final() before init() is an error.
     Cipher uninitialized = Cipher::instance("SecretBox");
     expect_throws<IllegalStateException>(
-        [&] -> void { (void)uninitialized.do_final(span_of(PLAINTEXT)); }, "do_final() before init() throws"
+        [&] -> void { static_cast<void>(uninitialized.do_final(span_of(PLAINTEXT))); }, "do_final() before init() throws"
     );
 
     // A ciphertext shorter than nonce + MAC is rejected.
     expect_throws<InvalidArgumentException>(
         [&] -> void {
             ByteBuffer tiny(8, 0);
-            (void)decipher.do_final(bytes_of(tiny));
+            static_cast<void>(decipher.do_final(bytes_of(tiny)));
         },
         "a too-short ciphertext throws"
     );

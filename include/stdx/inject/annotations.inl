@@ -49,46 +49,67 @@ export namespace stdx::inject {
     };
 
     /**
-     * @struct Qualifier
+     * @struct QualifierAnnotation
      * @brief Meta-annotation marking an annotation type as a binding qualifier.
      *
-     * Apply as {@code [[=Qualifier()]]} on the annotation type itself. Only
-     * qualifier-marked annotations on a constructor parameter participate in
-     * binding selection; all other annotations are ignored by the injector.
+     * Spell it {@code [[=Qualifier]]} on the annotation type itself; this is the
+     * type behind that object, named apart from it the way C# pairs
+     * {@code ObsoleteAttribute} with {@code [Obsolete]}. Only qualifier-marked
+     * annotations on a constructor parameter participate in binding selection;
+     * all other annotations are ignored by the injector.
      */
-    struct Qualifier {};
+    struct QualifierAnnotation {};
 
     /**
-     * @struct Scope
+     * @brief The {@code [[=Qualifier]]} annotation.
+     */
+    inline constexpr QualifierAnnotation Qualifier{};
+
+    /**
+     * @struct ScopeAnnotation
      * @brief Meta-annotation marking an annotation type as a scope.
      *
-     * Apply as {@code [[=Scope()]]} on the annotation type itself. The only
-     * scope the injector currently implements is {@code Singleton}; a class
-     * annotated with any other scope-marked annotation is rejected at
-     * compile time.
+     * Spell it {@code [[=Scope]]} on the annotation type itself. The only scope
+     * the injector currently implements is {@code Singleton}; a class annotated
+     * with any other scope-marked annotation is rejected at compile time.
      */
-    struct Scope {};
+    struct ScopeAnnotation {};
 
     /**
-     * @struct Inject
+     * @brief The {@code [[=Scope]]} annotation.
+     */
+    inline constexpr ScopeAnnotation Scope{};
+
+    /**
+     * @struct InjectAnnotation
      * @brief Annotation type marking the constructor the injector should use.
      *
-     * Apply as {@code [[=Inject()]]} on exactly one constructor.
+     * Spell it {@code [[=Inject]]} on exactly one constructor.
      */
-    struct Inject {};
+    struct InjectAnnotation {};
 
     /**
-     * @struct Singleton
+     * @brief The {@code [[=Inject]]} annotation.
+     */
+    inline constexpr InjectAnnotation Inject{};
+
+    /**
+     * @struct SingletonAnnotation
      * @brief Scope annotation marking a class as singleton-scoped.
      *
-     * Apply as {@code [[=Singleton()]]} on the class. The injector creates one
+     * Spell it {@code [[=Singleton]]} on the class. The injector creates one
      * shared instance on first resolution and returns it thereafter.
      */
     #ifdef __cpp_impl_reflection
-    struct [[=Scope()]] Singleton {};
+    struct [[=Scope]] SingletonAnnotation {};
     #else
-    struct Singleton {};
+    struct SingletonAnnotation {};
     #endif
+
+    /**
+     * @brief The {@code [[=Singleton]]} annotation.
+     */
+    inline constexpr SingletonAnnotation Singleton{};
 
     #ifdef __cpp_impl_reflection
     /**
@@ -98,10 +119,10 @@ export namespace stdx::inject {
      * Apply to constructor parameters as {@code [[=Named("key")]]} and bind with
      * {@code binder.bind<T>().annotated_with(Named("key"))}.
      */
-    struct [[=Qualifier()]] Named {
+    struct [[=Qualifier]] Named {
         const char* value; ///< The annotation string, in static storage.
 
-        consteval Named(StringView name):
+        consteval explicit Named(StringView name):
             value{Ops::define_static_string(name)} {}
     };
     #endif
@@ -121,5 +142,5 @@ namespace stdx::core {
 }
 
 template <>
-struct stdx::core::hash<Named> : public Hash<Named> {};
+struct stdx::core::hash<Named>: public Hash<Named> {};
 #endif

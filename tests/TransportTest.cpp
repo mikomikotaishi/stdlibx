@@ -125,10 +125,10 @@ template <ByteReader S>
 [[nodiscard]]
 static String drain(S& stream) {
     String out;
-    Array<byte, 64> buffer{};
+    Array<byte, 64> buffer = {};
     while (true) {
         const Optional<usize> read = stream.try_receive(Span<byte>(buffer));
-        if (!read || *read == 0) {
+        if (!read.has_value() || *read == 0) {
             return out;
         }
         out += text_of(Span<const byte>(buffer.data(), *read));
@@ -186,7 +186,7 @@ void test_tcp_accept_yields_a_stream() {
         "accept() is typed as the connection it returns, not as a bare Socket"
     );
 
-    if (server) {
+    if (server.has_value()) {
         expect(server->is_open(), "the accepted stream is open");
         const Optional<Endpoint> peer = client.remote_endpoint();
         expect(peer.has_value() && *peer == bound, "the client is connected to the listener");
@@ -205,7 +205,7 @@ void test_tcp_round_trip() {
     client.set_no_delay(true);
     client.send_all(bytes_of("ping"));
 
-    Array<byte, 16> buffer{};
+    Array<byte, 16> buffer = {};
     const usize read = server.receive(Span<byte>(buffer));
     expect_eq(text_of(Span<const byte>(buffer.data(), read)), "ping", "bytes arrive");
 
@@ -228,9 +228,9 @@ void test_udp_round_trip() {
     UdpSocket sender = UdpSocket::unbound();
     const Endpoint bound = listener.local_endpoint();
 
-    sender.send_to(bytes_of("datagram"), bound);
+    static_cast<void>(sender.send_to(bytes_of("datagram"), bound));
 
-    Array<byte, 32> buffer{};
+    Array<byte, 32> buffer = {};
     const UdpSocket::Received received = listener.receive_from(Span<byte>(buffer));
     expect_eq(
         text_of(Span<const byte>(buffer.data(), received.length)),
@@ -239,7 +239,7 @@ void test_udp_round_trip() {
     );
     expect(received.from.port() != 0, "the sender's ephemeral port is reported");
 
-    listener.send_to(bytes_of("reply"), received.from);
+    static_cast<void>(listener.send_to(bytes_of("reply"), received.from));
     const UdpSocket::Received back = sender.receive_from(Span<byte>(buffer));
     expect_eq(
         text_of(Span<const byte>(buffer.data(), back.length)),
@@ -261,9 +261,9 @@ void test_udp_connected() {
     const Endpoint server_address = server.local_endpoint();
 
     client.connect(server_address);
-    client.send(bytes_of("bound"));
+    static_cast<void>(client.send(bytes_of("bound")));
 
-    Array<byte, 16> buffer{};
+    Array<byte, 16> buffer = {};
     const UdpSocket::Received received = server.receive_from(Span<byte>(buffer));
     expect_eq(
         text_of(Span<const byte>(buffer.data(), received.length)),
@@ -271,7 +271,7 @@ void test_udp_connected() {
         "a connected datagram socket sends without naming the peer each time"
     );
 
-    server.send_to(bytes_of("back"), received.from);
+    static_cast<void>(server.send_to(bytes_of("back"), received.from));
     const usize read = client.receive(Span<byte>(buffer));
     expect_eq(text_of(Span<const byte>(buffer.data(), read)), "back", "and receives from it");
 }
@@ -285,7 +285,6 @@ void test_udp_connected() {
  * unreachable.
  */
 void test_typed_sockets_drive_a_poller() {
-    #if defined(_WIN32) || defined(__linux__)
     TcpListener listener = TcpListener::bind(loopback_any_port());
     listener.socket().set_blocking(false);
 
@@ -299,10 +298,10 @@ void test_typed_sockets_drive_a_poller() {
         for (const Event& event: poller.wait(50ms)) {
             if (event.token == 1 && event.readable) {
                 Optional<TcpStream> server = listener.try_accept();
-                if (server) {
+                if (server.has_value()) {
                     accepted = true;
                     client.send_all(bytes_of("through the reactor"));
-                    Array<byte, 32> buffer{};
+                    Array<byte, 32> buffer = {};
                     const usize read = server->receive(Span<byte>(buffer));
                     expect_eq(
                         text_of(Span<const byte>(buffer.data(), read)),
@@ -314,9 +313,6 @@ void test_typed_sockets_drive_a_poller() {
         }
     }
     expect(accepted, "the listener's readiness reached the poller through socket()");
-    #else
-    skip("the Poller has no backend for this platform (only epoll and WSAPoll exist)");
-    #endif
 }
 
 /**
@@ -351,7 +347,7 @@ void test_dual_stack_listener() {
     expect(mapped->to_ipv4() == IPv4Address::LOOPBACK, "the mapping unwraps to the IPv4 client");
 
     client.send_all(bytes_of("dual"));
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     expect_eq(server.receive(buffer), 4u, "the dual-stack listener carries IPv4 traffic");
 }
 
@@ -379,7 +375,7 @@ void test_adopting_a_foreign_descriptor() {
 
     TcpStream server = listener.accept();
     adopted.send_all(bytes_of("adopted"));
-    Array<byte, 16> buffer{};
+    Array<byte, 16> buffer = {};
     expect_eq(server.receive(buffer), 7u, "the adopted descriptor still carries traffic");
 
     // The listener's own descriptor round-trips the same way.
@@ -492,9 +488,9 @@ void test_the_socket_view_borrows_without_owning() {
 
     // A setting made through the view reaches the kernel, not just the wrapper.
     server.socket().set_receive_timeout(50ms);
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     expect_throws<SocketTimeoutException>(
-        [&server, &buffer] -> void { (void)server.receive(buffer); },
+        [&server, &buffer] -> void { static_cast<void>(server.receive(buffer)); },
         "a deadline set through the view is the one the receive obeys"
     );
 }

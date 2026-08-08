@@ -54,7 +54,7 @@ export namespace stdx::core {
      */
     class Ops final {
     public:
-        Ops() = delete("Ops is a static utility class and cannot be instantiated.");
+        Ops() = DELETE_METHOD("Ops is a static utility class and cannot be instantiated.");
 
         /**
         * @brief Extracts the type of the parameter of a function type.
@@ -185,7 +185,7 @@ export namespace stdx::core {
         }
 
         template <typename T>
-        static void as_const(const T&&) = delete("as_const is not callable with an rvalue reference.");
+        static void as_const(const T&&) = DELETE_METHOD("as_const is not callable with an rvalue reference.");
 
         template <typename T>
         [[nodiscard]]
@@ -214,7 +214,7 @@ export namespace stdx::core {
         }
 
         template <typename T>
-        static void ref(const T&&) = delete("ref is not callable with an rvalue reference.");
+        static void ref(const T&&) = DELETE_METHOD("ref is not callable with an rvalue reference.");
 
         template <typename T>
         static ReferenceWrapper<const T> cref(const T& t) noexcept {
@@ -227,7 +227,7 @@ export namespace stdx::core {
         }
 
         template <typename T>
-        static void cref(const T&&) = delete("cref is not callable with an rvalue reference.");
+        static void cref(const T&&) = DELETE_METHOD("cref is not callable with an rvalue reference.");
 
         template <typename F, typename... Args>
         static constexpr InvokeResultType<F, Args...> invoke(F&& f, Args&&... args)
@@ -291,6 +291,12 @@ export namespace stdx::core {
         static constexpr decltype(auto) apply(F&& f, Tpl&& tpl)
             noexcept(noexcept(std::apply(forward<F>(f), forward<Tpl>(tpl)))) {
             return std::apply(forward<F>(f), forward<Tpl>(tpl));
+        }
+
+        template <typename E>
+        [[nodiscard]]
+        static constexpr ExceptionPointer exception_pointer(E e) noexcept {
+            return std::make_exception_ptr(e);
         }
 
         [[nodiscard]]

@@ -210,7 +210,7 @@ export namespace stdx::time::chrono {
             return {y, m, static_cast<u32>(day_in_year + 1)};
         }
     public:
-        HebrewChronology() = delete("HebrewChronology is a static utility class and cannot be instantiated.");
+        HebrewChronology() = DELETE_METHOD("HebrewChronology is a static utility class and cannot be instantiated.");
 
         /**
          * @enum Era

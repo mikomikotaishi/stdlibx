@@ -4,6 +4,7 @@ using stdx::audio::midi::InvalidMidiDataException;
 using stdx::audio::midi::MetaMessage;
 using stdx::audio::midi::MidiDevice;
 using stdx::audio::midi::MidiDeviceInfo;
+using stdx::audio::midi::MidiEvent;
 using stdx::audio::midi::MidiException;
 using stdx::audio::midi::MidiMessage;
 using stdx::audio::midi::MidiSystem;
@@ -25,12 +26,13 @@ using stdx::sys::Process;
 using stdx::thread::Thread;
 using stdx::time::Duration;
 using stdx::time::Instant;
+using stdx::time::Seconds;
 using stdx::time::SteadyClock;
 using stdx::util::ArgumentParser;
 using stdx::util::DefaultArguments;
 
 [[nodiscard]]
-Optional<Path> resolve_default_sample() noexcept {
+Optional<Path> resolveDefaultSample() noexcept {
     static constexpr Array<StringView, 4> CANDIDATES = {
         "examples/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
         "../examples/Audio/audio/midi/th06/th06_01-SD90_440Hz.mid",
@@ -47,12 +49,13 @@ Optional<Path> resolve_default_sample() noexcept {
 }
 
 [[nodiscard]]
-bool is_passthrough_port(const MidiDeviceInfo& d) noexcept {
-    return d.name.starts_with("Midi Through") || d.name.starts_with("System");
+bool isPassthroughPort(const MidiDeviceInfo& d) noexcept {
+    return d.name.starts_with("Midi Through")
+        || d.name.starts_with("System");
 }
 
 [[nodiscard]]
-Optional<Path> find_soundfont() noexcept {
+Optional<Path> findSoundFont() noexcept {
     static constexpr Array<StringView, 6> CANDIDATES = {
         "/usr/share/soundfonts/Arachno.sf2",
         "/usr/share/soundfonts/FluidR3_GM.sf2",
@@ -72,8 +75,8 @@ Optional<Path> find_soundfont() noexcept {
 
 // See MidiTest.cpp for the rationale - MIDI is just messages; on Linux you
 // need a synthesizer process to turn them into audio. If none is running and
-// a soundfont is installed, fork fluidsynth for the duration of the test.
-Optional<Process> maybe_spawn_fluidsynth() {
+// a SoundFont is installed, fork FluidSynth for the duration of the test.
+Optional<Process> maybeSpawnFluidSynth() {
     Vector<MidiDeviceInfo> devices;
     try {
         devices = MidiSystem::devices();
@@ -81,21 +84,21 @@ Optional<Process> maybe_spawn_fluidsynth() {
         return nullopt;
     }
     for (const MidiDeviceInfo& d: devices) {
-        if (d.is_output && !is_passthrough_port(d)) {
+        if (d.is_output && !isPassthroughPort(d)) {
             return nullopt;
         }
     }
 
-    Optional<Path> sf2 = find_soundfont();
+    Optional<Path> sf2 = findSoundFont();
     if (!sf2.has_value()) {
         System::out.println(
-            "No soft synth running and no system soundfont found. Install one "
+            "No soft synth running and no system SoundFont found. Install one "
             "(e.g. `pacman -S soundfont-fluid`) to enable MIDI playback."
         );
         return nullopt;
     }
 
-    System::out.println("Auto-launching fluidsynth with {}", sf2.value());
+    System::out.println("Auto-launching FluidSynth with {}", sf2.value());
 
     Expected<Process, ErrorCode> child = Process::Builder("fluidsynth")
         .arg("-s")
@@ -113,33 +116,33 @@ Optional<Process> maybe_spawn_fluidsynth() {
         .spawn();
     if (!child.has_value()) {
         System::out.println(
-            "Failed to launch fluidsynth - is it installed and on PATH?"
+            "Failed to launch FluidSynth - is it installed and on PATH?"
         );
         return nullopt;
     }
 
     Thread::sleep_for(1500ms);
-    return Optional<Process>{Ops::move(*child)};
+    return Ops::move(*child);
 }
 
 struct EventCounts {
-    u64 note_on = 0;
-    u64 note_off = 0;
-    u64 control_change = 0;
-    u64 program_change = 0;
-    u64 pitch_bend = 0;
-    u64 other_short = 0;
+    u64 noteOn = 0;
+    u64 noteOff = 0;
+    u64 controlChange = 0;
+    u64 programChange = 0;
+    u64 pitchBend = 0;
+    u64 otherShort = 0;
     u64 sysex = 0;
     u64 meta = 0;
-    u64 tempo_meta = 0;
+    u64 tempoMeta = 0;
 };
 
-void count_events(const Sequence& seq, EventCounts& out) noexcept {
+void countEvents(const Sequence& seq, EventCounts& out) noexcept {
     for (usize ti = 0; ti < seq.track_count(); ++ti) {
         const Track& t = seq.track(ti);
-        for (usize ei = 0; ei < t.size(); ++ei) {
-            const MidiMessage* msg = t[ei].message.get();
-            if (!msg) {
+        for (const MidiEvent& event: t) {
+            const MidiMessage* msg = event.message.get();
+            if (msg == nullptr) {
                 continue;
             }
             if (const SysexMessage* _ = dynamic_cast<const SysexMessage*>(msg)) {
@@ -147,27 +150,27 @@ void count_events(const Sequence& seq, EventCounts& out) noexcept {
             } else if (const MetaMessage* m = dynamic_cast<const MetaMessage*>(msg)) {
                 ++out.meta;
                 if (m->type() == 0x51) {
-                    ++out.tempo_meta;
+                    ++out.tempoMeta;
                 }
             } else if (const ShortMessage* s = dynamic_cast<const ShortMessage*>(msg)) {
                 switch (s->command()) {
                     case Status::NOTE_ON:
-                        ++out.note_on;
+                        ++out.noteOn;
                         break;
                     case Status::NOTE_OFF:
-                        ++out.note_off;
+                        ++out.noteOff;
                         break;
                     case Status::CONTROL_CHANGE:
-                        ++out.control_change;
+                        ++out.controlChange;
                         break;
                     case Status::PROGRAM_CHANGE:
-                        ++out.program_change;
+                        ++out.programChange;
                         break;
                     case Status::PITCH_BEND:
-                        ++out.pitch_bend;
+                        ++out.pitchBend;
                         break;
                     default:
-                        ++out.other_short;
+                        ++out.otherShort;
                         break;
                 }
             }
@@ -205,23 +208,27 @@ void describe(const Path& path) {
     System::out.println("{}: {}", "non-zero last tick", seq->last_tick() > 0);
 
     EventCounts counts;
-    count_events(*seq, counts);
+    countEvents(*seq, counts);
     System::out.println(
         "       events: NoteOn={}, NoteOff={}, CC={}, PC={}, PB={}, "
         "OtherShort={}, Sysex={}, Meta={} (Tempo={})",
-        counts.note_on, counts.note_off, counts.control_change,
-        counts.program_change, counts.pitch_bend, counts.other_short,
-        counts.sysex, counts.meta, counts.tempo_meta
+        counts.noteOn, counts.noteOff, counts.controlChange,
+        counts.programChange, counts.pitchBend, counts.otherShort,
+        counts.sysex, counts.meta, counts.tempoMeta
     );
 
-    System::out.println("{}: {}", "has Note On events", counts.note_on > 0);
+    System::out.println("{}: {}", "has Note On events", counts.noteOn > 0);
     // SMF spec requires every track to end with End-of-Track meta (type 0x2F),
     // so meta count must be >= track count.
     System::out.println("{}: {}", "meta count >= track count", counts.meta >= seq->track_count());
 }
 
-// @p max_seconds caps playback at the first N seconds; 0 plays in full.
-void play(const Path& path, i64 max_seconds) {
+/** 
+ * @brief @p seconds caps playback at the first N seconds; 0 plays in full.
+ * @param path The path to play
+ * @param seconds The maximum duration to play
+ */
+void play(const Path& path, Seconds seconds) {
     UniquePointer<Sequence> seq;
     try {
         seq = MidiSystem::open_sequence(path);
@@ -239,12 +246,12 @@ void play(const Path& path, i64 max_seconds) {
     }
     const MidiDeviceInfo* target = nullptr;
     for (const MidiDeviceInfo& d: devices) {
-        if (d.is_output && !is_passthrough_port(d)) {
+        if (d.is_output && !isPassthroughPort(d)) {
             target = &d;
             break;
         }
     }
-    if (!target) {
+    if (target == nullptr) {
         System::out.println(
             "No real synth available - skipping playback. "
             "(The auto-launcher might have failed; check fluidsynth is installed.)"
@@ -252,11 +259,12 @@ void play(const Path& path, i64 max_seconds) {
         return;
     }
 
-    if (max_seconds > 0) {
+    if (seconds > 0s) {
         System::out.println(
             "Playing {} -> {} (first {}s)",
             path.filename(),
-            target->name, max_seconds
+            target->name,
+            seconds
         );
     } else {
         System::out.println(
@@ -269,14 +277,14 @@ void play(const Path& path, i64 max_seconds) {
     try {
         UniquePointer<MidiDevice> device = MidiSystem::open_device(*target);
         Receiver* rx = device->receiver();
-        if (!rx) {
+        if (rx == nullptr) {
             System::err.println("Device has no receiver.");
             return;
         }
         Sequencer& sequencer = MidiSystem::default_sequencer();
         sequencer.open();
         Transmitter* tx = sequencer.transmitter();
-        if (!tx) {
+        if (tx == nullptr) {
             System::err.println("Sequencer has no transmitter.");
             return;
         }
@@ -286,15 +294,14 @@ void play(const Path& path, i64 max_seconds) {
         // sequencer before the sequence ends. chrono's non-member operators
         // aren't reachable across the `import stdx;` boundary, so diff raw tick
         // counts (member fns only) using the clock's compile-time tick period.
-        constexpr i64 TICKS_PER_SECOND =
+        static constexpr i64 TICKS_PER_SECOND =
             SteadyClock::period::den / SteadyClock::period::num;
-        const i64 start_ticks = SteadyClock::now().time_since_epoch().count();
+        const i64 startTicks = SteadyClock::now().time_since_epoch().count();
         sequencer.start();
 
         while (sequencer.is_running()) {
-            const i64 elapsed_ticks =
-                SteadyClock::now().time_since_epoch().count() - start_ticks;
-            if (max_seconds > 0 && elapsed_ticks >= max_seconds * TICKS_PER_SECOND) {
+            const i64 elapsedTicks = SteadyClock::now().time_since_epoch().count() - startTicks;
+            if (seconds > 0s && elapsedTicks >= seconds.count() * TICKS_PER_SECOND) {
                 break;
             }
             Thread::sleep_for(50ms);
@@ -329,16 +336,16 @@ int main(int argc, char* argv[]) {
 
     parser.parse_args(argc, argv);
 
-    const String file_arg = parser.get("--file");
+    const String fileArg = parser.get("--file");
     Path path;
-    if (!file_arg.empty()) {
-        path = Path{file_arg};
+    if (!fileArg.empty()) {
+        path = Path{fileArg};
         if (!stdx::fs::exists(path)) {
-            System::err.println("File not found: {}", file_arg);
+            System::err.println("File not found: {}", fileArg);
             return System::EXIT_FAILURE;
         }
     } else {
-        Optional<Path> resolved = resolve_default_sample();
+        Optional<Path> resolved = resolveDefaultSample();
         if (!resolved.has_value()) {
             System::err.println(
                 "Could not locate the bundled sample. Pass --file <path> or "
@@ -351,28 +358,28 @@ int main(int argc, char* argv[]) {
 
     // Only spawn a synth if the user actually wants playback - pure parsing
     // doesn't need any audio path.
-    const bool wants_play = parser.get<bool>("--play");
-    Optional<Process> auto_synth;
-    if (wants_play) {
-        auto_synth = maybe_spawn_fluidsynth();
+    const bool wantsPlay = parser.get<bool>("--play");
+    Optional<Process> autoSynth;
+    if (wantsPlay) {
+        autoSynth = maybeSpawnFluidSynth();
     }
 
     describe(path);
 
-    if (wants_play) {
+    if (wantsPlay) {
         System::out.println("");
-        play(path, parser.get<i64>("--abridge"));
+        play(path, Seconds(parser.get<i64>("--abridge")));
     }
 
-    if (auto_synth.has_value()) {
-        if (Expected<void, ErrorCode> kill_result = auto_synth->kill(); kill_result.error()) {
-            System::err.println("Failed to kill fluidsynth: {}", kill_result.error().message());
+    if (autoSynth.has_value()) {
+        if (Expected<void, ErrorCode> killResult = autoSynth->kill(); killResult.error()) {
+            System::err.println("Failed to kill FluidSynth: {}", killResult.error().message());
         }
 
-        if (Expected<ExitStatus, ErrorCode> wait_result = auto_synth->wait(); wait_result) {
-            System::out.println("fluidsynth exited successfully.");
+        if (Expected<ExitStatus, ErrorCode> waitResult = autoSynth->wait(); waitResult) {
+            System::out.println("FluidSynth exited successfully.");
         } else {
-            System::err.println("Failed to wait for fluidsynth: {}", wait_result.error().message());
+            System::err.println("Failed to wait for FluidSynth: {}", waitResult.error().message());
         }
     }
 

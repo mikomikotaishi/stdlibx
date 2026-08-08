@@ -12,12 +12,12 @@ using stdx::mem::SharedPointer;
 using stdx::util::logging::Logger;
 using stdx::util::logging::LoggerFactory;
 
-class [[=Singleton()]] GreetingService {
+class [[=Singleton]] GreetingService {
 private:
     SharedPointer<Logger> logger;
     String greeting;
 public:
-    [[=Inject()]]
+    [[=Inject]]
     GreetingService(SharedPointer<Logger> logger, [[=Named("greeting")]] String greeting):
         logger{Ops::move(logger)}, greeting{Ops::move(greeting)} {}
 
@@ -26,25 +26,25 @@ public:
     }
 };
 
-class [[=Singleton()]] Application {
+class [[=Singleton]] Application {
 private:
     GreetingService& service;
     SharedPointer<Logger> logger;
-    Provider<String> greeting_provider;
+    Provider<String> greetingProvider;
 public:
-    [[=Inject()]]
+    [[=Inject]]
     Application(
         GreetingService& service,
         SharedPointer<Logger> logger,
-        [[=Named("greeting")]] Provider<String> greeting_provider
+        [[=Named("greeting")]] Provider<String> greetingProvider
     ):
-        service{service}, logger{Ops::move(logger)}, greeting_provider{Ops::move(greeting_provider)} {}
+        service{service}, logger{Ops::move(logger)}, greetingProvider{Ops::move(greetingProvider)} {}
 
     void run() {
         logger->info("Application starting");
         service.greet("world");
         service.greet("dependency injection");
-        logger->info("Lazily resolved greeting: {}", greeting_provider.get());
+        logger->info("Lazily resolved greeting: {}", greetingProvider.get());
         logger->info("Application done");
     }
 };

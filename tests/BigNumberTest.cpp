@@ -33,11 +33,11 @@ void test_biginteger_basic() {
 }
 
 void test_biginteger_cross_check() {
-    static constexpr Array<i64, 24> VALUES{
+    static constexpr Array<i64, 24> VALUES = {
         -2147483648LL, -100000007, -129, -128, -100, -9, -8, -7, -3, -2, -1,
         0, 1, 2, 3, 7, 8, 9, 100, 127, 128, 129, 100000007, 2147483647
     };
-    static constexpr Array<i32, 4> SHIFTS{0, 1, 7, 13};
+    static constexpr Array<i32, 4> SHIFTS = {0, 1, 7, 13};
     for (i64 a: VALUES) {
         const BigInteger big_a(a);
         expect(big_a.long_value() == a, "long_value round trip");
@@ -212,7 +212,7 @@ void test_biginteger_conversions() {
     expect(BigInteger(-128).byte_value_exact() == -128, "byte_value_exact at minimum");
     bool threw = false;
     try {
-        (void)BigInteger(128).byte_value_exact();
+        static_cast<void>(BigInteger(128).byte_value_exact());
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -228,7 +228,7 @@ void test_biginteger_conversions() {
     expect((BigInteger::ONE << 1100).double_value() == Double::POSITIVE_INFINITY, "double_value overflow");
     expect(BigInteger(16777217).float_value() == 16777216.0f, "float_value rounds half to even");
 
-    static constexpr Array<i64, 10> VALUES{0, 1, -1, 127, 128, -128, -129, 255, 65535, -1000000};
+    static constexpr Array<i64, 10> VALUES = {0, 1, -1, 127, 128, -128, -129, 255, 65535, -1000000};
     for (i64 value: VALUES) {
         const BigInteger original(value);
         expect(BigInteger(original.to_byte_array()) == original, "byte array round trip");
@@ -315,7 +315,7 @@ void test_bigdecimal_divide() {
     expect_eq((BigDecimal("2.00") / BigDecimal("0.1")).to_string(), "20.0", "preferred scale");
     bool threw = false;
     try {
-        (void)(BigDecimal(1) / BigDecimal(3));
+        static_cast<void>((BigDecimal(1) / BigDecimal(3)));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -375,7 +375,7 @@ void test_bigdecimal_rounding() {
     expect_eq(BigDecimal("2.5").set_scale(3).to_string(), "2.500", "set_scale extends exactly");
     bool threw = false;
     try {
-        (void)BigDecimal("1.1").set_scale(0);
+        static_cast<void>(BigDecimal("1.1").set_scale(0));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -428,7 +428,7 @@ void test_bigdecimal_conversions() {
     expect_eq(BigDecimal::value_of(123456789, 4).to_string(), "12345.6789", "value_of with scale");
     bool threw = false;
     try {
-        (void)BigDecimal(Double::POSITIVE_INFINITY);
+        static_cast<void>(BigDecimal(Double::POSITIVE_INFINITY));
     } catch (const NumberFormatException& _) {
         threw = true;
     }
@@ -439,7 +439,7 @@ void test_bigdecimal_conversions() {
     expect(BigDecimal("5.00").to_big_integer_exact() == BigInteger(5), "to_big_integer_exact");
     threw = false;
     try {
-        (void)BigDecimal("5.5").to_big_integer_exact();
+        static_cast<void>(BigDecimal("5.5").to_big_integer_exact());
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -460,7 +460,7 @@ void test_bigdecimal_conversions() {
 void test_exceptions() {
     bool threw = false;
     try {
-        (void)(BigInteger(1) / BigInteger::ZERO);
+        static_cast<void>((BigInteger(1) / BigInteger::ZERO));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -468,7 +468,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)(BigDecimal(1) / BigDecimal());
+        static_cast<void>((BigDecimal(1) / BigDecimal()));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -476,7 +476,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger("123", 37);
+        static_cast<void>(BigInteger("123", 37));
     } catch (const NumberFormatException& _) {
         threw = true;
     }
@@ -484,7 +484,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger("");
+        static_cast<void>(BigInteger(""));
     } catch (const NumberFormatException& _) {
         threw = true;
     }
@@ -492,7 +492,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(-4).sqrt();
+        static_cast<void>(BigInteger(-4).sqrt());
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -500,7 +500,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(3).pow(-1);
+        static_cast<void>(BigInteger(3).pow(-1));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -508,7 +508,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(3).mod(BigInteger(-5));
+        static_cast<void>(BigInteger(3).mod(BigInteger(-5)));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -516,7 +516,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(4).mod_inverse(BigInteger(8));
+        static_cast<void>(BigInteger(4).mod_inverse(BigInteger(8)));
     } catch (const ArithmeticException& _) {
         threw = true;
     }
@@ -524,7 +524,7 @@ void test_exceptions() {
 
     threw = false;
     try {
-        (void)BigInteger(5).test_bit(-1);
+        static_cast<void>(BigInteger(5).test_bit(-1));
     } catch (const ArithmeticException& _) {
         threw = true;
     }

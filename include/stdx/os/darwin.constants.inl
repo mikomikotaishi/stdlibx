@@ -50,6 +50,15 @@ export namespace stdx::os::darwin {
         inline constexpr u16 EV_EOF = 0x8000; ///< End of stream; kqueue's answer to EPOLLRDHUP.
 
         /**
+         * @brief Fires an EVFILT_USER event that was registered earlier.
+         *
+         * An fflags value rather than a flags one, and the reason a kqueue needs
+         * no self-pipe to be woken by hand: Darwin has no eventfd, but EVFILT_USER
+         * is a queue entry the caller triggers directly.
+         */
+        inline constexpr u32 NOTE_TRIGGER = 0x01000000;
+
+        /**
          * <sys/socket.h> constants, Apple extensions
          */
 
@@ -102,6 +111,8 @@ export namespace stdx::os::darwin {
     static_assert(sys::EV_DISPATCH == captured::EV_DISPATCH_VALUE);
     static_assert(sys::EV_ERROR == captured::EV_ERROR_VALUE);
     static_assert(sys::EV_EOF == captured::EV_EOF_VALUE);
+
+    static_assert(sys::NOTE_TRIGGER == captured::NOTE_TRIGGER_VALUE);
 
     static_assert(sys::SO_NOSIGPIPE == captured::SO_NOSIGPIPE_VALUE);
     static_assert(sys::SO_NREAD == captured::SO_NREAD_VALUE);

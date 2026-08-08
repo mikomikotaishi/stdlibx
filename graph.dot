@@ -1,6 +1,7 @@
 digraph {
-	20 [label=<std.compat<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=lightskyblue];
-	19 [label=<std<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=mediumspringgreen];
+	21 [label=<std.compat<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=lightskyblue];
+	20 [label=<std<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=mediumspringgreen];
+	19 [label=<stdx:jni<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=lightskyblue];
 	18 [label=<stdx:zip<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=lightgrey];
 	17 [label=<stdx:xml<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=mediumspringgreen];
 	16 [label=<stdx:lua<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=lightgrey];
@@ -20,13 +21,13 @@ digraph {
 	10 [label=<stdx:foundation<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=lightgrey];
 	11 [label=<stdx:csv<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=mediumspringgreen];
 	12 [label=<stdx:exec<br/>>, fontname=Monospace, shape=box, style="rounded,filled", fillcolor=lightgrey];
-	20 -> 19 [style=solid, penwidth=1, color=gray, fontcolor=gray];
+	21 -> 20 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	18 -> 2 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 14 [style=solid, penwidth=1, color=gray, fontcolor=gray];
-	9 -> 5 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 13 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	2 -> 12 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 2 [style=solid, penwidth=1, color=gray, fontcolor=gray];
+	19 -> 2 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 10 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 12 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	5 -> 2 [style=solid, penwidth=1, color=gray, fontcolor=gray];
@@ -36,18 +37,19 @@ digraph {
 	9 -> 16 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 1 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 4 [style=solid, penwidth=1, color=gray, fontcolor=gray];
-	2 -> 19 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 3 [style=solid, penwidth=1, color=gray, fontcolor=gray];
+	9 -> 5 [style=solid, penwidth=1, color=gray, fontcolor=gray];
+	2 -> 20 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 17 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 11 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	8 -> 7 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	2 -> 10 [style=solid, penwidth=1, color=gray, fontcolor=gray];
+	10 -> 20 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 18 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	16 -> 2 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	12 -> 10 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	1 -> 2 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	9 -> 15 [style=solid, penwidth=1, color=gray, fontcolor=gray];
-	10 -> 19 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	2 -> 14 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	2 -> 0 [style=solid, penwidth=1, color=gray, fontcolor=gray];
 	2 -> 4 [style=solid, penwidth=1, color=gray, fontcolor=gray];

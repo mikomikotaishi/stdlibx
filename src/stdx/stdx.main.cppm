@@ -8,8 +8,12 @@
 
 module;
 
-// Needed for feature testing macros
 #include <version>
+
+#ifdef _MSC_VER
+#include <chrono>
+#include <charconv>
+#endif
 
 #include "Macros.hpp"
 
@@ -28,16 +32,13 @@ import :exec;
 import :gsl;
 import :os;
 
-extern "C" {
-    #ifdef __unix__
-    extern char** environ;
-    #elifdef _WIN32
-    extern char** _environ;
-    #endif
+namespace stdx {
+    namespace core {}
+    namespace literals {}
 }
 
-STDLIBX_PREPARE_IMPORT_CORE();
-STDLIBX_PREPARE_IMPORT_LITERALS();
+using namespace stdx::core;
+using namespace stdx::literals;
 
 #include "stdx/meta/type_traits.inl"
 #include "stdx/meta/typeindex.inl"
@@ -166,6 +167,7 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/text/regex.inl"
 #include "stdx/text/string/cstring.inl"
 #include "stdx/text/string/string.inl"
+#include "stdx/text/wide.inl"
 
 #include "stdx/mem/cstring.inl"
 #include "stdx/mem/cwchar.inl"
@@ -267,6 +269,8 @@ STDLIBX_PREPARE_IMPORT_LITERALS();
 #include "stdx/net/stream.inl"
 #include "stdx/net/tcp.inl"
 #include "stdx/net/udp.inl"
+#include "stdx/net/reactor.inl"
+#include "stdx/net/async.inl"
 
 #include "stdx/util/argparse.inl"
 #include "stdx/util/argparse.annotations.inl"

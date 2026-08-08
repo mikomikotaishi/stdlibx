@@ -15,7 +15,7 @@ using namespace stdx::test;
 // A coroutine task that awaits a Flow's raw sender via unwrap() - the
 // co_await-in-Task-safe endpoint.
 Task<i32> via_unwrap() {
-    i32 v = co_await Flow(Just(10))
+    i32 v = co_await Flow<>::just(10)
         .then([](i32 x) -> i32 { return x * 2; })
         .unwrap();
     co_return v + 1;
@@ -36,7 +36,7 @@ Task<void> bump_twice(i32& counter) {
 }
 
 void test_then_value() {
-    Optional<i32> result = Flow(Just(6))
+    Optional<i32> result = Flow<>::just(6)
         .then([](i32 x) -> i32 { return x * 7; })
         .value();
     require(result.has_value(), "value() over a completed pipeline yields a value");
@@ -44,7 +44,7 @@ void test_then_value() {
 }
 
 void test_chained_then() {
-    Optional<i32> result = Flow(Just(1))
+    Optional<i32> result = Flow<>::just(1)
         .then([](i32 x) -> i32 { return x + 10; })
         .then([](i32 x) -> i32 { return x * 2; })
         .value();
@@ -62,7 +62,7 @@ void test_on_schedule() {
 }
 
 void test_let() {
-    Optional<i32> result = Flow(Just(41))
+    Optional<i32> result = Flow<>::just(41)
         .let([](i32 x) { return Just(x + 1); })
         .value();
     require(result.has_value(), "let() pipeline completes");
@@ -70,7 +70,7 @@ void test_let() {
 }
 
 void test_when_all() {
-    Optional<Tuple<i32, i32>> result = Flow(Just(3))
+    Optional<Tuple<i32, i32>> result = Flow<>::just(3)
         .when_all(Just(4))
         .wait();
     require(result.has_value(), "when_all pipeline completes");
@@ -79,8 +79,8 @@ void test_when_all() {
 }
 
 void test_catch_error() {
-    Optional<i32> result = Flow(Just(10))
-        .then([](i32 _) -> i32 { throw RuntimeException("boom"); })
+    Optional<i32> result = Flow<>::just(10)
+        .then([] [[noreturn]] (i32 _) -> i32 { throw RuntimeException("boom"); })
         .catch_error([](ExceptionPointer _) -> i32 { return -1; })
         .value();
     require(result.has_value(), "catch_error recovers into a value");
@@ -91,7 +91,7 @@ void test_as_task() {
     // Regression guard: as_task() returns a lazy Task that outlives the temporary
     // Flow. It must own its sender (by-value coroutine parameter), or resuming it
     // here reads freed stack - caught by AddressSanitizer as stack-use-after-scope.
-    Task<i32> task = Flow(Just(20))
+    Task<i32> task = Flow<>::just(20)
         .then([](i32 x) -> i32 { return x + 1; })
         .as_task();
     Optional<Tuple<i32>> result = Thread::sync_wait(Ops::move(task));

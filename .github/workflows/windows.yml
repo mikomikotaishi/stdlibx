@@ -1,0 +1,72 @@
+name: Windows
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-2025
+    name: msvc-stl
+
+    # Non-blocking on purpose, and this should be removed the day it first goes
+    # green. No Windows code in this library has ever been executed: the WSAPoll
+    # backend, the win32 os wrappers and the MSVC STL path are all written and
+    # entirely unverified. Until then a red X here would train everyone to
+    # ignore a red X, which costs more than the signal is worth.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Report toolchain
+        shell: cmd
+        run: |
+          cmake --version
+          ninja --version
+          cl
+
+      # The optional extensions are off for now, and not because they cannot
+      # work: libsodium, GMP, Lua and ODBC all have Windows builds. They are off
+      # because the first thing this job needs to answer is whether the core
+      # module graph and the win32 wrappers compile at all, and a vcpkg failure
+      # would answer a different question. Turn them on one at a time once the
+      # core is green.
+      - name: Configure
+        shell: cmd
+        run: |
+          cmake -S . -B build -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DSTDLIBX_BUILD_TESTS=ON ^
+            -DSTDLIBX_EXTENSIONS_COMPILE_CRYPTO_LIBSODIUM_LIBRARY=OFF ^
+            -DSTDLIBX_EXTENSIONS_COMPILE_LUA_LIBRARY=OFF ^
+            -DSTDLIBX_EXTENSIONS_COMPILE_MATH_GMP_LIBRARY=OFF ^
+            -DSTDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY=OFF ^
+            -DSTDLIBX_EXTENSIONS_COMPILE_ZIP_LIBRARY=OFF ^
+            -DSTDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY=OFF
+
+      - name: Build
+        shell: cmd
+        run: cmake --build build
+
+      - name: Test
+        shell: cmd
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-windows
+          path: |
+            build/CMakeFiles/*.log
+            build/compile_commands.json
+            build/Testing/**

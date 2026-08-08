@@ -21,13 +21,13 @@ export namespace stdx::os::win32 {
      */
     class ProcessorArchitecture final {
     public:
-        static constexpr WinWord AMD64 = PROCESSOR_ARCHITECTURE_AMD64;
-        static constexpr WinWord ARM = PROCESSOR_ARCHITECTURE_ARM;
-        static constexpr WinWord ARM64 = PROCESSOR_ARCHITECTURE_ARM64;
-        static constexpr WinWord INTEL = PROCESSOR_ARCHITECTURE_INTEL;
-        static constexpr WinWord UNKNOWN = PROCESSOR_ARCHITECTURE_UNKNOWN;
+        static constexpr Word AMD64 = PROCESSOR_ARCHITECTURE_AMD64;
+        static constexpr Word ARM = PROCESSOR_ARCHITECTURE_ARM;
+        static constexpr Word ARM64 = PROCESSOR_ARCHITECTURE_ARM64;
+        static constexpr Word INTEL = PROCESSOR_ARCHITECTURE_INTEL;
+        static constexpr Word UNKNOWN = PROCESSOR_ARCHITECTURE_UNKNOWN;
 
-        ProcessorArchitecture() noexcept = delete("ProcessorArchitecture is a static utility class and cannot be instantiated.");
+        ProcessorArchitecture() noexcept = DELETE_METHOD("ProcessorArchitecture is a static utility class and cannot be instantiated.");
     };
 
     // Computer name

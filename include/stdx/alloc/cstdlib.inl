@@ -6,8 +6,11 @@
  */
 export namespace stdx::alloc {
     using std::malloc;
-    using std::aligned_alloc;
     using std::calloc;
     using std::realloc;
     using std::free;
+
+    #ifndef _WIN32
+    using std::aligned_alloc;
+    #endif
 }

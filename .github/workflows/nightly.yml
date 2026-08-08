@@ -1,0 +1,172 @@
+name: Nightly
+
+# Everything here is either slower or less certain than the per-push matrix, and
+# none of it needs to gate a merge. Findings from these jobs are the kind you
+# want within a day, not within a minute: a new compiler regressed, a new SDK
+# changed a constant this library transcribes by hand, or an older standard
+# library stopped building.
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+env:
+  CMAKE_VERSION: 4.4.2
+  # See linux.yml: no Debian or Ubuntu release ships the Lua 5.5 that stdx::lua is
+  # written against, so it is built from source rather than left out of the build.
+  LUA_VERSION: 5.5.1
+
+jobs:
+  # Forward-looking, and the job with the clearest payoff here. This library
+  # lives close enough to the compiler frontends that their regressions arrive
+  # as its bugs: a Clang release once crashed on constraint satisfaction while
+  # compiling an unrelated translation unit in this repository, and the first
+  # hypothesis was a fault in the library. Learning that from a nightly labelled
+  # "next toolchain" is much cheaper than learning it from a bisect.
+  next-clang:
+    name: clang-next (non-blocking)
+    runs-on: ubuntu-24.04
+    container: gcc:16.1.0-trixie
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CMake, Ninja and dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ninja-build wget gnupg lsb-release ca-certificates \
+            unixodbc unixodbc-dev libgmp-dev libsodium-dev zlib1g-dev
+          wget -q "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          tar -xzf "cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          mv "cmake-${CMAKE_VERSION}-linux-x86_64" /opt/cmake
+          echo "/opt/cmake/bin" >> "$GITHUB_PATH"
+          wget -q "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
+          tar -xzf "lua-${LUA_VERSION}.tar.gz"
+          make -C "lua-${LUA_VERSION}" all MYCFLAGS=-fPIC
+          make -C "lua-${LUA_VERSION}" install INSTALL_TOP=/usr/local
+
+      - name: Install the LLVM development branch
+        run: |
+          # No version argument installs whatever is current on the development
+          # branch, which is the entire point of this job.
+          wget -q https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh
+          LLVM_DIR="$(ls -d /usr/lib/llvm-* | sort -V | tail -1)"
+          LLVM_MAJOR="$(basename "${LLVM_DIR}" | cut -d- -f2)"
+          apt-get install -y "libc++-${LLVM_MAJOR}-dev" "libc++abi-${LLVM_MAJOR}-dev"
+          echo "LLVM_DIR=${LLVM_DIR}" >> "$GITHUB_ENV"
+
+      - name: Build and test with libc++
+        run: |
+          "${LLVM_DIR}/bin/clang++" --version
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_C_COMPILER="${LLVM_DIR}/bin/clang" \
+            -DCMAKE_CXX_COMPILER="${LLVM_DIR}/bin/clang++" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSTDLIB=libc++ \
+            -DSTDLIBX_BUILD_TESTS=ON
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+
+  # Backward-looking, and the one backward job worth having. Almost every
+  # feature-test guard in this library currently gets both of its arms compiled
+  # only because libc++ lacks what libstdc++ has - which is coverage on loan from
+  # someone else's release schedule. As libc++ implements those papers, the
+  # fallback arms lose their only home and start to rot unnoticed. An older
+  # libstdc++ keeps a second set of arms alive: 15 has no text_encoding or
+  # submdspan, so the guards around those stay exercised.
+  old-libstdcxx:
+    name: clang-libstdc++-15 (non-blocking)
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CMake, Ninja and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build wget software-properties-common \
+            unixodbc unixodbc-dev libgmp-dev libsodium-dev zlib1g-dev
+          wget -q "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          tar -xzf "cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          sudo mv "cmake-${CMAKE_VERSION}-linux-x86_64" /opt/cmake
+          echo "/opt/cmake/bin" >> "$GITHUB_PATH"
+          wget -q "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
+          tar -xzf "lua-${LUA_VERSION}.tar.gz"
+          make -C "lua-${LUA_VERSION}" all MYCFLAGS=-fPIC
+          sudo make -C "lua-${LUA_VERSION}" install INSTALL_TOP=/usr/local
+
+      - name: Install Clang and libstdc++ 15
+        run: |
+          # 15 is the oldest libstdc++ that ships the std module sources, so it is
+          # also the oldest one 'import std' can be pointed at.
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt-get update
+          sudo apt-get install -y libstdc++-15-dev gcc-15 g++-15
+          wget -q https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 22
+
+      - name: Build and test
+        run: |
+          clang++-22 --version
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_C_COMPILER=clang-22 \
+            -DCMAKE_CXX_COMPILER=clang++-22 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSTDLIB=libstdc++ \
+            -DSTDLIBX_BUILD_TESTS=ON
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+
+  # The one place an image version genuinely matters. unix.constants.inl and
+  # darwin.constants.inl hardcode platform numbers and static_assert them against
+  # the real headers, so a changed SDK breaks the build rather than misbehaving at
+  # runtime. A second macOS image is how that gets noticed before a user finds it.
+  macos-sdk-drift:
+    name: macOS ${{ matrix.image }} (non-blocking)
+    runs-on: ${{ matrix.image }}
+    continue-on-error: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [macos-14, macos-15]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain and dependencies
+        run: |
+          brew update
+          brew install llvm@22 ninja cmake libsodium gmp lua unixodbc
+
+      - name: Build and test
+        run: |
+          export PATH="$(brew --prefix llvm@22)/bin:$PATH"
+          clang++ --version
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_C_COMPILER="$(brew --prefix llvm@22)/bin/clang" \
+            -DCMAKE_CXX_COMPILER="$(brew --prefix llvm@22)/bin/clang++" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSTDLIB=libc++ \
+            -DSTDLIBX_BUILD_TESTS=ON
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.image }}
+          path: |
+            build/CMakeFiles/*.log
+            build/Testing/**

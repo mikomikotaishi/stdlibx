@@ -60,12 +60,15 @@ export namespace stdx::net {
 namespace stdx::net {
     /**
      * @internal
-     * @brief The wait timeout, in the milliseconds both backends take.
+     * @brief The wait timeout, in milliseconds.
      * @param timeout How long to block, or an empty Optional to block indefinitely.
      * @return -1 to block indefinitely, otherwise a non-negative count of milliseconds.
      *
      * epoll_wait and WSAPoll both take an int, so a duration past its range is
      * clamped rather than allowed to wrap into a short wait or an accidental -1.
+     * kqueue takes a timespec instead, and the Darwin backend converts; the
+     * clamping still matters there, because the same wrap would land in the
+     * seconds field.
      */
     [[nodiscard]]
     inline i32 wait_timeout(const Optional<Milliseconds>& timeout) noexcept {
@@ -141,6 +144,91 @@ namespace stdx::net {
         }
         Ops::unreachable();
     }
+    #elifdef __APPLE__
+    /**
+     * @internal
+     * @brief Whether @p interest asks to be told about reading.
+     *
+     * There is no mask to build for kqueue the way there is for epoll and
+     * WSAPoll. A filter is a separate registration per direction, so an Interest
+     * is decomposed into up to two changes rather than folded into one field -
+     * which is also why an interest that loses a direction has to delete that
+     * filter by name instead of overwriting a mask.
+     */
+    [[nodiscard]]
+    inline constexpr bool wants_read(Interest interest) noexcept {
+        return (Ops::to_underlying(interest) & Ops::to_underlying(Interest::READ)) != 0;
+    }
+
+    /**
+     * @internal
+     * @brief Whether @p interest asks to be told about writing.
+     */
+    [[nodiscard]]
+    inline constexpr bool wants_write(Interest interest) noexcept {
+        return (Ops::to_underlying(interest) & Ops::to_underlying(Interest::WRITE)) != 0;
+    }
+
+    /**
+     * @internal
+     * @brief Fills in one kqueue change.
+     * @param change The entry to overwrite.
+     * @param ident What the filter is attached to: a descriptor, or the wake-up identifier.
+     * @param filter Which filter to act on.
+     * @param flags What to do with it - EV_ADD, EV_DELETE, or nothing but the fflags.
+     * @param fflags Filter-specific bits; only the wake-up path uses them.
+     * @param token The value to report back, carried in udata.
+     *
+     * Hand-filled rather than built with EV_SET, which is a macro and so does not
+     * survive the trip across `import :os`.
+     */
+    inline void set_change(
+        darwin::sys::KEvent& change,
+        usize ident,
+        i16 filter,
+        u16 flags,
+        u32 fflags,
+        u64 token
+    ) noexcept {
+        change = darwin::sys::KEvent{
+            .ident = ident,
+            .filter = filter,
+            .flags = flags,
+            .fflags = fflags,
+            .data = 0,
+            .udata = reinterpret_cast<void*>(static_cast<usize>(token))
+        };
+    }
+
+    /**
+     * @internal
+     * @brief The token a reported event was registered under.
+     * @param event The event kevent wrote.
+     * @return The caller's token.
+     */
+    [[nodiscard]]
+    inline u64 token_of(const darwin::sys::KEvent& event) noexcept {
+        return static_cast<u64>(reinterpret_cast<usize>(event.udata));
+    }
+
+    /**
+     * @internal
+     * @brief The kqueue deadline standing for @p milliseconds.
+     * @param milliseconds A non-negative wait, which -1 never reaches: that is a null timeout instead.
+     * @return The deadline to hand to kevent.
+     *
+     * Both fields are cast rather than assigned: tv_sec and tv_nsec are
+     * implementation-defined types, and a braced initializer from a value that is
+     * not a constant expression is ill-formed the moment one of them is narrower
+     * than the arithmetic feeding it.
+     */
+    [[nodiscard]]
+    inline unix::TimeSpec wait_deadline(i32 milliseconds) noexcept {
+        return unix::TimeSpec{
+            .tv_sec = static_cast<decltype(unix::TimeSpec::tv_sec)>(milliseconds / 1000),
+            .tv_nsec = static_cast<decltype(unix::TimeSpec::tv_nsec)>((milliseconds % 1000) * 1000000)
+        };
+    }
     #endif
 
     /**
@@ -159,7 +247,7 @@ namespace stdx::net {
 }
 
 export namespace stdx::net {
-    #if defined(_WIN32) || defined(__linux__)
+    #if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
     /**
      * @class Poller
      * @brief Waits on many descriptors at once and reports which are ready.
@@ -176,6 +264,9 @@ export namespace stdx::net {
      * it.** On Linux, closing removes the registration only when the last
      * descriptor referring to the open file description goes away, so a
      * `dup`-ed socket that is closed keeps firing events under the old token.
+     * Darwin drops a closed descriptor's filters for you, but the poller's own
+     * table still lists it, and @ref remove afterwards then fails against a
+     * kernel that has already forgotten it - so the rule is the same one.
      *
      * Readiness is level-triggered. A descriptor that stays readable is
      * reported by every @ref wait until it is drained, which is the forgiving
@@ -202,7 +293,7 @@ export namespace stdx::net {
         static constexpr u64 WAKE_TOKEN = ~static_cast<u64>(0);
     private:
         #ifdef _WIN32
-        using NativeEvent = win32::WinPollFd; ///< The array element WSAPoll reads and writes.
+        using NativeEvent = win32::PollFd; ///< The array element WSAPoll reads and writes.
 
         /**
          * @internal
@@ -222,15 +313,45 @@ export namespace stdx::net {
         Vector<Registration> _registrations; ///< Every descriptor the caller has added, in registration order.
         Socket _wake; ///< A loopback datagram socket that @ref wake sends to, standing in for the eventfd Windows lacks.
         Endpoint _wake_endpoint; ///< The wake socket's own address, which is where @ref wake sends.
-        #else
+        #elifdef __linux__
         using NativeEvent = linux::sys::EpollEvent; ///< The array element epoll_wait writes.
-
-        static constexpr usize INITIAL_CAPACITY = 16; ///< How many events a single wait can report before the buffer grows.
-        static constexpr usize MAXIMUM_CAPACITY = 1024; ///< The ceiling on that growth; a wait reporting this many simply reports the rest next time.
 
         i32 _epoll = -1; ///< The epoll instance, or -1 once moved from.
         i32 _wake = -1; ///< The eventfd @ref wake writes to, or -1 once moved from.
         usize _registered = 0; ///< How many descriptors the caller has added.
+        #elifdef __APPLE__
+        using NativeEvent = darwin::sys::KEvent; ///< The array element kevent writes.
+
+        /**
+         * @internal
+         * @struct Registration
+         * @brief One caller registration.
+         *
+         * kqueue holds its own state, but not in a form that can be read back:
+         * there is no call that answers "what is this descriptor registered
+         * for", and dropping a direction means naming the filter to delete. So
+         * the table exists for the same reason as the Windows one, though the
+         * kernel here is doing the watching.
+         */
+        struct Registration {
+            NativeHandle handle; ///< The watched descriptor.
+            Interest interest; ///< The readiness it was registered for, and so which filters are live.
+            u64 token; ///< The value to report it under.
+        };
+
+        /**
+         * @internal
+         * @brief What the wake-up filter is attached to.
+         *
+         * Zero, which is also a plausible descriptor number, and harmless: an
+         * EVFILT_USER entry and an EVFILT_READ entry are distinct registrations
+         * even when their idents agree.
+         */
+        static constexpr usize WAKE_IDENT = 0;
+
+        i32 _kqueue = -1; ///< The kernel event queue, or -1 once moved from.
+        Vector<Registration> _registrations; ///< Every descriptor the caller has added, in registration order.
+        Vector<NativeHandle> _reported; ///< Which descriptor each entry of @ref _events came from, so one descriptor's two filters coalesce.
         #endif
 
         Vector<NativeEvent> _native; ///< The buffer handed to the operating system, reused across waits.
@@ -248,6 +369,34 @@ export namespace stdx::net {
                 throw PollerException("Poller::WAKE_TOKEN is reserved for the internal wake-up descriptor");
             }
         }
+
+        #ifndef _WIN32
+        static constexpr usize INITIAL_CAPACITY = 16; ///< How many events a single wait can report before the buffer grows.
+        static constexpr usize MAXIMUM_CAPACITY = 1024; ///< The ceiling on that growth; a wait reporting this many simply reports the rest next time.
+
+        /**
+         * @internal
+         * @brief Enlarges the output buffer when a wait filled it.
+         * @param count How many events the last wait reported.
+         *
+         * A saturated buffer means there were probably more ready descriptors
+         * than room to report them. They are not lost - level-triggered
+         * readiness redelivers them on the next wait - but a buffer that keeps
+         * filling turns one wait into several.
+         *
+         * Shared by both kernel-side backends: epoll and kqueue each write into a
+         * buffer the caller sizes, where WSAPoll rebuilds its array every wait and
+         * so can never overflow it.
+         */
+        void grow_if_saturated(i32 count) {
+            const usize reported = static_cast<usize>(count);
+            if (reported < _native.size() || _native.size() >= MAXIMUM_CAPACITY) {
+                return;
+            }
+            const usize doubled = _native.size() * 2;
+            _native.resize(doubled < MAXIMUM_CAPACITY ? doubled : MAXIMUM_CAPACITY);
+        }
+        #endif
 
         #ifdef _WIN32
         /**
@@ -359,11 +508,11 @@ export namespace stdx::net {
          */
         THROWS(PollerException)
         void signal_wake() {
-            static constexpr Array<byte, 1> PAYLOAD{};
+            static constexpr Array<byte, 1> PAYLOAD = {};
             try {
                 // An empty Optional means the send buffer is full, which means a
                 // datagram is already queued - the state the caller wanted.
-                (void)_wake.try_send_to(Span<const byte>(PAYLOAD), _wake_endpoint);
+                static_cast<void>(_wake.try_send_to(Span<const byte>(PAYLOAD), _wake_endpoint));
             } catch (const SocketException& cause) {
                 throw PollerException(Ops::fmt("the poller could not be woken: {}", cause.what()));
             }
@@ -449,7 +598,7 @@ export namespace stdx::net {
                 });
             }
         }
-        #else
+        #elifdef __linux__
         /**
          * @internal
          * @brief Creates the epoll instance and its wake-up descriptor.
@@ -609,25 +758,6 @@ export namespace stdx::net {
 
         /**
          * @internal
-         * @brief Enlarges the output buffer when a wait filled it.
-         * @param count How many events the last wait reported.
-         *
-         * A saturated buffer means there were probably more ready descriptors
-         * than room to report them. They are not lost - level-triggered
-         * readiness redelivers them on the next wait - but a buffer that keeps
-         * filling turns one wait into several.
-         */
-        void grow_if_saturated(i32 count) {
-            const usize reported = static_cast<usize>(count);
-            if (reported < _native.size() || _native.size() >= MAXIMUM_CAPACITY) {
-                return;
-            }
-            const usize doubled = _native.size() * 2;
-            _native.resize(doubled < MAXIMUM_CAPACITY ? doubled : MAXIMUM_CAPACITY);
-        }
-
-        /**
-         * @internal
          * @brief Waits on the epoll instance and fills @ref _events.
          * @param milliseconds How long to block, or -1 to block indefinitely.
          * @throws PollerException if the wait itself fails.
@@ -665,6 +795,315 @@ export namespace stdx::net {
             }
             grow_if_saturated(count);
         }
+        #elifdef __APPLE__
+        /**
+         * @internal
+         * @brief The registration for @p handle.
+         * @param handle The descriptor to look for.
+         * @return A pointer to the entry, or nullptr if it is not registered.
+         */
+        [[nodiscard]]
+        Registration* find_registration(NativeHandle handle) noexcept {
+            for (Registration& entry: _registrations) {
+                if (entry.handle == handle) {
+                    return &entry;
+                }
+            }
+            return nullptr;
+        }
+
+        /**
+         * @internal
+         * @brief Submits @p count changes and reports the first the kernel refused.
+         * @param changes The changes to apply; each is marked for a receipt in place.
+         * @param count How many, never more than the two filters one descriptor has.
+         * @param what The name of the operation, for the message.
+         * @throws PollerException if the call fails, or if any single change was rejected.
+         *
+         * kevent reports a bad change by writing it back into the event list
+         * rather than by failing, and it does that only for changes marked
+         * EV_RECEIPT. Without the flag a rejected registration is silent, and the
+         * descriptor is simply never reported - which is the same class of bug the
+         * epoll backend avoids by applying one change per syscall.
+         */
+        THROWS(PollerException)
+        void apply(NativeEvent* changes, usize count, StringView what) {
+            if (count == 0) {
+                return;
+            }
+            for (usize index = 0; index < count; ++index) {
+                changes[index].flags |= darwin::sys::EV_RECEIPT;
+            }
+            Array<NativeEvent, 2> receipts = {};
+            const unix::TimeSpec immediately{};
+            const i32 reported = darwin::sys::kevent(
+                _kqueue,
+                changes,
+                static_cast<i32>(count),
+                receipts.data(),
+                static_cast<i32>(count),
+                &immediately
+            );
+            if (reported < 0) {
+                raise_poller_error(unix::errnov(), what);
+            }
+            for (usize index = 0; index < static_cast<usize>(reported); ++index) {
+                // EV_RECEIPT gives every change an EV_ERROR entry; a successful
+                // one carries zero, so only a non-zero data field is a failure.
+                const i32 error = static_cast<i32>(receipts[index].data);
+                if (error != 0) {
+                    raise_poller_error(error, what);
+                }
+            }
+        }
+
+        /**
+         * @internal
+         * @brief Creates the kernel event queue and its wake-up filter.
+         * @throws PollerException if either cannot be created.
+         */
+        THROWS(PollerException)
+        void open_backend() {
+            _native.resize(INITIAL_CAPACITY);
+            _kqueue = darwin::sys::kqueue();
+            if (_kqueue < 0) {
+                raise_poller_error(unix::errnov(), "kqueue");
+            }
+
+            // kqueue has no CLOEXEC-setting variant the way epoll_create1 does,
+            // so the flag goes on afterwards. Not tidiness: a queue descriptor
+            // that survives an exec is one a child holds open behind the
+            // reactor's back, and it is not inherited across fork either way.
+            const i32 descriptor_flags = unix::fcntl(_kqueue, unix::F_GETFD, 0);
+            if (descriptor_flags >= 0) {
+                static_cast<void>(unix::fcntl(_kqueue, unix::F_SETFD, descriptor_flags | unix::FD_CLOEXEC));
+            }
+
+            // EV_CLEAR is what makes repeated wakes collapse: the trigger stays
+            // pending until a wait reports it and resets as it is reported, so
+            // there is no count left behind of the kind an eventfd accumulates.
+            NativeEvent registration{};
+            set_change(
+                registration,
+                WAKE_IDENT,
+                darwin::sys::EVFILT_USER,
+                static_cast<u16>(darwin::sys::EV_ADD | darwin::sys::EV_CLEAR),
+                0,
+                WAKE_TOKEN
+            );
+            try {
+                apply(&registration, 1, "kevent(EV_ADD, EVFILT_USER)");
+            } catch (const PollerException& _) {
+                close_backend();
+                throw;
+            }
+        }
+
+        /**
+         * @internal
+         * @brief Closes the queue descriptor and marks it absent.
+         */
+        void close_backend() noexcept {
+            if (_kqueue >= 0) {
+                unix::close(_kqueue);
+                _kqueue = -1;
+            }
+        }
+
+        /**
+         * @internal
+         * @brief Registers @p handle's filters with the queue.
+         * @param handle The descriptor to watch.
+         * @param interest The readiness to report on.
+         * @param token The value to report it under.
+         * @throws PollerException if @p handle is already registered, or the kernel refuses it.
+         */
+        THROWS(PollerException)
+        void register_handle(NativeHandle handle, Interest interest, u64 token) {
+            if (find_registration(handle) != nullptr) {
+                throw PollerException("the descriptor is already registered with this poller");
+            }
+            Array<NativeEvent, 2> changes = {};
+            usize count = 0;
+            const usize ident = static_cast<usize>(handle);
+            if (wants_read(interest)) {
+                set_change(changes[count++], ident, darwin::sys::EVFILT_READ, darwin::sys::EV_ADD, 0, token);
+            }
+            if (wants_write(interest)) {
+                set_change(changes[count++], ident, darwin::sys::EVFILT_WRITE, darwin::sys::EV_ADD, 0, token);
+            }
+            apply(changes.data(), count, "kevent(EV_ADD)");
+            _registrations.push_back(Registration{handle, interest, token});
+        }
+
+        /**
+         * @internal
+         * @brief Replaces @p handle's filters, interest and token.
+         * @param handle A registered descriptor.
+         * @param interest The readiness to report on from now on.
+         * @param token The value to report it under from now on.
+         * @throws PollerException if @p handle is not registered, or the kernel refuses a change.
+         *
+         * A direction that is still wanted is re-added rather than left alone,
+         * because EV_ADD on a live filter is how kqueue replaces its udata, and
+         * the udata is the token. A direction that has been dropped is deleted by
+         * name - there is no mask to clear it out of.
+         */
+        THROWS(PollerException)
+        void reregister_handle(NativeHandle handle, Interest interest, u64 token) {
+            Registration* const entry = find_registration(handle);
+            if (entry == nullptr) {
+                throw PollerException("the descriptor is not registered with this poller");
+            }
+            Array<NativeEvent, 2> changes = {};
+            usize count = 0;
+            const usize ident = static_cast<usize>(handle);
+            if (wants_read(interest)) {
+                set_change(changes[count++], ident, darwin::sys::EVFILT_READ, darwin::sys::EV_ADD, 0, token);
+            } else if (wants_read(entry->interest)) {
+                set_change(changes[count++], ident, darwin::sys::EVFILT_READ, darwin::sys::EV_DELETE, 0, token);
+            }
+            if (wants_write(interest)) {
+                set_change(changes[count++], ident, darwin::sys::EVFILT_WRITE, darwin::sys::EV_ADD, 0, token);
+            } else if (wants_write(entry->interest)) {
+                set_change(changes[count++], ident, darwin::sys::EVFILT_WRITE, darwin::sys::EV_DELETE, 0, token);
+            }
+            apply(changes.data(), count, "kevent(EV_ADD/EV_DELETE)");
+            entry->interest = interest;
+            entry->token = token;
+        }
+
+        /**
+         * @internal
+         * @brief Deletes @p handle's filters from the queue.
+         * @param handle A registered descriptor.
+         * @throws PollerException if @p handle is not registered, or the kernel refuses a change.
+         */
+        THROWS(PollerException)
+        void deregister_handle(NativeHandle handle) {
+            for (usize index = 0; index < _registrations.size(); ++index) {
+                if (_registrations[index].handle != handle) {
+                    continue;
+                }
+                const Interest interest = _registrations[index].interest;
+                Array<NativeEvent, 2> changes = {};
+                usize count = 0;
+                const usize ident = static_cast<usize>(handle);
+                if (wants_read(interest)) {
+                    set_change(changes[count++], ident, darwin::sys::EVFILT_READ, darwin::sys::EV_DELETE, 0, 0);
+                }
+                if (wants_write(interest)) {
+                    set_change(changes[count++], ident, darwin::sys::EVFILT_WRITE, darwin::sys::EV_DELETE, 0, 0);
+                }
+                apply(changes.data(), count, "kevent(EV_DELETE)");
+                _registrations.erase(_registrations.begin() + static_cast<isize>(index));
+                return;
+            }
+            throw PollerException("the descriptor is not registered with this poller");
+        }
+
+        /**
+         * @internal
+         * @brief Fires the wake-up filter.
+         */
+        THROWS(PollerException)
+        void signal_wake() {
+            // No EV_ADD: the filter is already registered, and the whole change
+            // is the NOTE_TRIGGER in fflags.
+            NativeEvent trigger{};
+            set_change(trigger, WAKE_IDENT, darwin::sys::EVFILT_USER, 0, darwin::sys::NOTE_TRIGGER, WAKE_TOKEN);
+            apply(&trigger, 1, "kevent(NOTE_TRIGGER)");
+        }
+
+        /**
+         * @internal
+         * @brief Consumes a delivered wake-up.
+         *
+         * Nothing to do. EV_CLEAR resets the trigger as the event is reported,
+         * where an eventfd leaves a count behind that has to be read away.
+         */
+        void drain_wake() noexcept {
+        }
+
+        /**
+         * @internal
+         * @brief Folds one filter's report into the Event for its descriptor.
+         * @param handle The descriptor the report is about.
+         * @param token The value it was registered under.
+         * @param raw The event kevent wrote.
+         *
+         * kqueue reports per filter, so a descriptor that is both readable and
+         * writable arrives as two entries. epoll and WSAPoll both report one event
+         * per descriptor with the flags combined, and Event is documented as flags
+         * to be tested rather than a state to be switched on, so the entries are
+         * merged here instead of reaching the caller as two events sharing a
+         * token.
+         */
+        void merge(NativeHandle handle, u64 token, const NativeEvent& raw) {
+            Event* target = nullptr;
+            for (usize index = 0; index < _reported.size(); ++index) {
+                if (_reported[index] == handle) {
+                    target = &_events[index];
+                    break;
+                }
+            }
+            if (target == nullptr) {
+                _events.push_back(Event{.token = token});
+                _reported.push_back(handle);
+                target = &_events.back();
+            }
+
+            const bool ended = (raw.flags & darwin::sys::EV_EOF) != 0;
+            if (raw.filter == darwin::sys::EVFILT_READ) {
+                target->readable = true;
+                // EV_EOF on the read filter is the peer having shut down its
+                // writing half, which is what EPOLLRDHUP means. It is not a full
+                // hang-up: this end may still have a write half worth using.
+                target->read_hangup = target->read_hangup || ended;
+            } else {
+                target->writable = true;
+                // On the write filter there is no direction left to hold open.
+                target->hangup = target->hangup || ended;
+            }
+            target->error = target->error || (raw.flags & darwin::sys::EV_ERROR) != 0;
+        }
+
+        /**
+         * @internal
+         * @brief Waits on the queue and fills @ref _events.
+         * @param milliseconds How long to block, or -1 to block indefinitely.
+         * @throws PollerException if the wait itself fails.
+         */
+        THROWS(PollerException)
+        void collect(i32 milliseconds) {
+            _reported.clear();
+            const unix::TimeSpec deadline = wait_deadline(milliseconds < 0 ? 0 : milliseconds);
+            const i32 count = darwin::sys::kevent(
+                _kqueue,
+                nullptr,
+                0,
+                _native.data(),
+                static_cast<i32>(_native.size()),
+                milliseconds < 0 ? nullptr : &deadline
+            );
+            if (count < 0) {
+                const i32 error = unix::errnov();
+                if (is_interrupted(error)) {
+                    return;
+                }
+                raise_poller_error(error, "kevent");
+            }
+            for (usize index = 0; index < static_cast<usize>(count); ++index) {
+                const NativeEvent& raw = _native[index];
+                const u64 token = token_of(raw);
+                if (raw.filter == darwin::sys::EVFILT_USER && token == WAKE_TOKEN) {
+                    drain_wake();
+                    continue;
+                }
+                merge(static_cast<NativeHandle>(raw.ident), token, raw);
+            }
+            grow_if_saturated(count);
+        }
         #endif
     public:
         /**
@@ -676,9 +1115,9 @@ export namespace stdx::net {
             open_backend();
         }
 
-        Poller(const Poller&) = delete("Poller owns its descriptors and cannot be copied.");
+        Poller(const Poller&) = DELETE_METHOD("Poller owns its descriptors and cannot be copied.");
 
-        Poller& operator=(const Poller&) = delete("Poller owns its descriptors and cannot be copied.");
+        Poller& operator=(const Poller&) = DELETE_METHOD("Poller owns its descriptors and cannot be copied.");
 
         #ifdef _WIN32
         Poller(Poller&& other) noexcept:
@@ -698,7 +1137,7 @@ export namespace stdx::net {
             }
             return *this;
         }
-        #else
+        #elifdef __linux__
         Poller(Poller&& other) noexcept:
             _epoll{Ops::exchange(other._epoll, -1)},
             _wake{Ops::exchange(other._wake, -1)},
@@ -712,6 +1151,25 @@ export namespace stdx::net {
                 _epoll = Ops::exchange(other._epoll, -1);
                 _wake = Ops::exchange(other._wake, -1);
                 _registered = Ops::exchange(other._registered, 0);
+                _native = Ops::move(other._native);
+                _events = Ops::move(other._events);
+            }
+            return *this;
+        }
+        #elifdef __APPLE__
+        Poller(Poller&& other) noexcept:
+            _kqueue{Ops::exchange(other._kqueue, -1)},
+            _registrations{Ops::move(other._registrations)},
+            _reported{Ops::move(other._reported)},
+            _native{Ops::move(other._native)},
+            _events{Ops::move(other._events)} {}
+
+        Poller& operator=(Poller&& other) noexcept {
+            if (this != &other) {
+                close_backend();
+                _kqueue = Ops::exchange(other._kqueue, -1);
+                _registrations = Ops::move(other._registrations);
+                _reported = Ops::move(other._reported);
                 _native = Ops::move(other._native);
                 _events = Ops::move(other._events);
             }
@@ -821,10 +1279,10 @@ export namespace stdx::net {
          */
         [[nodiscard]]
         usize registered() const noexcept {
-            #ifdef _WIN32
-            return _registrations.size();
-            #else
+            #ifdef __linux__
             return _registered;
+            #else
+            return _registrations.size();
             #endif
         }
 
@@ -836,23 +1294,29 @@ export namespace stdx::net {
         bool is_open() const noexcept {
             #ifdef _WIN32
             return _wake.is_open();
-            #else
+            #elifdef __linux__
             return _epoll >= 0;
+            #else
+            return _kqueue >= 0;
             #endif
         }
 
         #ifndef _WIN32
         /**
-         * @brief The epoll descriptor itself, for handing to a foreign API.
+         * @brief The readiness descriptor itself, for handing to a foreign API.
          * @return The descriptor, or -1 once moved from.
          *
-         * An epoll instance is itself pollable, which is how a Poller nests
-         * inside somebody else's event loop. Absent on Windows, where WSAPoll
-         * has no handle to nest.
+         * An epoll instance and a kqueue are both themselves pollable, which is
+         * how a Poller nests inside somebody else's event loop. Absent on
+         * Windows, where WSAPoll has no handle to nest.
          */
         [[nodiscard]]
         constexpr NativeHandle native_handle() const noexcept {
+            #ifdef __linux__
             return _epoll;
+            #else
+            return _kqueue;
+            #endif
         }
         #endif
     };

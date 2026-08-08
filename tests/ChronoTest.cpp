@@ -68,30 +68,30 @@ void test_iso_chronology() {
 
     // Era-based construction reckons year-of-era from 1; there is no year 0.
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(IsoEra::BCE, 0, 1, 1); }, "BCE year-of-era 0 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(IsoEra::BCE, 0, 1, 1)); }, "BCE year-of-era 0 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(IsoEra::CE, 0, 1, 1); }, "CE year-of-era 0 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(IsoEra::CE, 0, 1, 1)); }, "CE year-of-era 0 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(IsoEra::BCE, -5, 1, 1); }, "negative year-of-era is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(IsoEra::BCE, -5, 1, 1)); }, "negative year-of-era is rejected"
     );
 
     // Out-of-range months and days are rejected regardless of the year.
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2024, 0, 1); }, "month 0 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(2024, 0, 1)); }, "month 0 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2024, 13, 1); }, "month 13 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(2024, 13, 1)); }, "month 13 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2024, 1, 0); }, "day 0 is rejected"
+        [] -> void { static_cast<void>(IsoChronology::of(2024, 1, 0)); }, "day 0 is rejected"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2023, 2, 29); }, "2023-02-29 is rejected (2023 is not a leap year)"
+        [] -> void { static_cast<void>(IsoChronology::of(2023, 2, 29)); }, "2023-02-29 is rejected (2023 is not a leap year)"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)IsoChronology::of(2024, 4, 31); }, "April 31 is rejected (April has 30 days)"
+        [] -> void { static_cast<void>(IsoChronology::of(2024, 4, 31)); }, "April 31 is rejected (April has 30 days)"
     );
     // The leap-day boundary the rejection above hinges on is still accepted.
     expect(IsoChronology::of(2024, 2, 29).day() == 29, "2024-02-29 is accepted (2024 is a leap year)");
@@ -133,7 +133,7 @@ void test_hijrah_chronology() {
     );
 
     expect_throws<DateTimeException>(
-        [] -> void { (void)HijrahChronology::of(0, 1, 1); }, "Hijrah year 0 is rejected"
+        [] -> void { static_cast<void>(HijrahChronology::of(0, 1, 1)); }, "Hijrah year 0 is rejected"
     );
 
     expect_eq(HijrahChronology::of(1445, HijrahChronology::RAMADAN, 1), HijrahChronology::of(1445, 9, 1), "HijrahChronology::RAMADAN == month 9");
@@ -148,7 +148,7 @@ void test_japanese_chronology() {
     expect_eq(showa64.to_epoch_day(), IsoChronology::of(1989, 1, 7).to_epoch_day(), "Showa 64-01-07 is 1989-01-07");
 
     expect_throws<DateTimeException>(
-        [] -> void { (void)JapaneseChronology::of(1867, 12, 31); }, "pre-Meiji dates are rejected"
+        [] -> void { static_cast<void>(JapaneseChronology::of(1867, 12, 31)); }, "pre-Meiji dates are rejected"
     );
 
     Array<JapaneseEraCase, 3> boundary_cases = {{
@@ -158,7 +158,7 @@ void test_japanese_chronology() {
     }};
     for (const JapaneseEraCase& c: boundary_cases) {
         expect_throws<DateTimeException>(
-            [&] -> void { (void)JapaneseChronology::of(c.era, c.yoe, c.m, c.d); }, c.label
+            [&] -> void { static_cast<void>(JapaneseChronology::of(c.era, c.yoe, c.m, c.d)); }, c.label
         );
     }
 
@@ -190,7 +190,7 @@ void test_hebrew_chronology() {
     expect_eq(HebrewChronology::months_in_year(5785), 12, "common year 5785 has 12 months");
 
     expect_throws<DateTimeException>(
-        [] -> void { (void)HebrewChronology::of(0, 1, 1); }, "Hebrew year 0 is rejected"
+        [] -> void { static_cast<void>(HebrewChronology::of(0, 1, 1)); }, "Hebrew year 0 is rejected"
     );
 
     // Named Hebrew months resolve to a civil index that shifts with the leap
@@ -201,13 +201,13 @@ void test_hebrew_chronology() {
     expect_eq(HebrewChronology::of(5784, HebrewChronology::ADAR_II, 1), HebrewChronology::of(5784, 7, 1), "Adar II is month 7 in leap year 5784");
     expect_eq(HebrewChronology::of(5785, HebrewChronology::ADAR, 1), HebrewChronology::of(5785, 6, 1), "Adar is month 6 in common year 5785");
     expect_throws<DateTimeException>(
-        [] -> void { (void)HebrewChronology::of(5784, HebrewChronology::ADAR, 1); }, "bare Adar is rejected in leap year 5784 (ambiguous)"
+        [] -> void { static_cast<void>(HebrewChronology::of(5784, HebrewChronology::ADAR, 1)); }, "bare Adar is rejected in leap year 5784 (ambiguous)"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)HebrewChronology::of(5785, HebrewChronology::ADAR_II, 1); }, "Adar II is rejected in common year 5785"
+        [] -> void { static_cast<void>(HebrewChronology::of(5785, HebrewChronology::ADAR_II, 1)); }, "Adar II is rejected in common year 5785"
     );
     expect_throws<DateTimeException>(
-        [] -> void { (void)HebrewChronology::of(5785, HebrewChronology::ADAR_I, 1); }, "Adar I is rejected in common year 5785"
+        [] -> void { static_cast<void>(HebrewChronology::of(5785, HebrewChronology::ADAR_I, 1)); }, "Adar I is rejected in common year 5785"
     );
 }
 
@@ -313,6 +313,38 @@ void test_day_of_week() {
     expect(same_weekday(caesar.day_of_week(), Weekday::WEDNESDAY), "Ides of March BC 44 is a Wednesday (Julian)");
 }
 
+void test_date_ordering() {
+    const IsoDate earlier = IsoChronology::of(2024, 3, 14);
+    const IsoDate later = IsoChronology::of(2024, 3, 15);
+
+    expect(earlier < later, "an earlier date orders before a later one");
+    expect(later > earlier, "and the reverse holds");
+    expect(earlier <= IsoChronology::of(2024, 3, 14), "<= holds between equal dates");
+    expect(!(earlier < IsoChronology::of(2024, 3, 14)), "but < does not");
+
+    // Ordering agrees with the epoch day across a month and a year boundary,
+    // which is where a memberwise comparison would diverge from a date-line one
+    // if the members were ever compared in the wrong order.
+    const IsoDate end_of_month = IsoChronology::of(2024, 1, 31);
+    const IsoDate start_of_next = IsoChronology::of(2024, 2, 1);
+    const IsoDate end_of_year = IsoChronology::of(2024, 12, 31);
+    const IsoDate start_of_next_year = IsoChronology::of(2025, 1, 1);
+
+    expect(end_of_month < start_of_next, "the last day of a month precedes the first of the next");
+    expect(end_of_year < start_of_next_year, "the last day of a year precedes the first of the next");
+    expect(
+        IsoChronology::of(2023, 12, 31) < IsoChronology::of(2024, 1, 1),
+        "a later year outranks a smaller month and day"
+    );
+
+    // Components validate on construction, so no two valid dates of one
+    // chronology share an epoch day - ordering and the date line agree.
+    expect(
+        (end_of_month < start_of_next) == (end_of_month.to_epoch_day() < start_of_next.to_epoch_day()),
+        "ordering matches the epoch-day ordering"
+    );
+}
+
 void test_date_arithmetic() {
     IsoDate start = IsoChronology::of(2024, 1, 1);
     IsoDate later = start.plus_days(100);
@@ -340,6 +372,7 @@ int main(int argc, char* argv[]) {
         {"Chrono.chinese", test_chinese_chronology},
         {"Chrono.cross_chronology_conversions", test_cross_chronology_conversions},
         {"Chrono.day_of_week", test_day_of_week},
+        {"Chrono.date_ordering", test_date_ordering},
         {"Chrono.date_arithmetic", test_date_arithmetic},
     });
 }

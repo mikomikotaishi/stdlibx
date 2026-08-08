@@ -40,6 +40,7 @@ export namespace stdx::audio::midi {
      * @brief Ordered (by tick) list of MidiEvent. A Track owns its events.
      */
     class Track final {
+    private:
         Vector<MidiEvent> _events;
     public:
         Track() = default;
@@ -99,6 +100,7 @@ export namespace stdx::audio::midi {
      * @brief A sequence of tracks plus a timing-division descriptor.
      */
     class Sequence final {
+    private:
         TimingType _type;
         i32 _division; ///< PPQ value, or encoded SMPTE division.
         Vector<UniquePointer<Track>> _tracks;
@@ -171,7 +173,8 @@ export namespace stdx::audio::midi {
         bool delete_track(Track& t) {
             for (auto it = _tracks.begin(); it != _tracks.end(); ++it) {
                 if (it->get() == &t) {
-                    _tracks.erase(it); return true;
+                    _tracks.erase(it);
+                    return true;
                 }
             }
             return false;

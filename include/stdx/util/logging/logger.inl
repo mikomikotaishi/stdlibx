@@ -463,10 +463,10 @@ export namespace stdx::util::logging {
     public:
         ~LoggerFactory() = default;
 
-        LoggerFactory(const LoggerFactory&) = delete("LoggerFactory is not copyable.");
-        LoggerFactory& operator=(const LoggerFactory&) = delete("LoggerFactory is not copyable.");
-        LoggerFactory(LoggerFactory&&) = delete("LoggerFactory is not movable.");
-        LoggerFactory& operator=(LoggerFactory&&) = delete("LoggerFactory is not movable.");
+        LoggerFactory(const LoggerFactory&) = DELETE_METHOD("LoggerFactory is not copyable.");
+        LoggerFactory& operator=(const LoggerFactory&) = DELETE_METHOD("LoggerFactory is not copyable.");
+        LoggerFactory(LoggerFactory&&) = DELETE_METHOD("LoggerFactory is not movable.");
+        LoggerFactory& operator=(LoggerFactory&&) = DELETE_METHOD("LoggerFactory is not movable.");
 
         /**
          * @brief Get or create a logger with the given name.

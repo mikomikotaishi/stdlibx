@@ -1,0 +1,180 @@
+name: Linux
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# A push that supersedes an in-flight run cancels it: these are full module
+# builds, and there is no value in finishing one for a commit nobody will read.
+concurrency:
+  group: linux-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CMAKE_VERSION: 4.4.2
+  # No Debian or Ubuntu release ships Lua 5.5, and stdx::lua is written against
+  # its API - the GC-parameter constants, and the three-argument lua_newstate.
+  # Against 5.4 the module does not compile at all, so the choice is between
+  # building Lua here and configuring with the extension switched off. Building it
+  # takes a few seconds and keeps the code covered instead of silently skipped.
+  LUA_VERSION: 5.5.1
+
+jobs:
+  # Every Linux job runs in the same container, and the reason starts with GCC:
+  # GCC 16 is packaged for no Ubuntu release, and GNU publishes no binaries for
+  # Linux, so there is nothing to apt-get and nothing trustworthy to download.
+  # The official image is the only pinned option - pinned to a patch version,
+  # because plain "gcc:16" would roll forward on its own.
+  #
+  # Once the container is there, the Clang jobs may as well use it too. On a
+  # noble runner the newest libstdc++ available is 15 (from a PPA; Ubuntu itself
+  # has 14), and 'import std' needs the module sources that only 15+ ships - so
+  # the alternative was pinning Clang against a different, older libstdc++ than
+  # the one GCC is tested with. One image means all three configurations sit on
+  # one known standard library instead of on whatever a runner and a PPA happen
+  # to agree on that week.
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    container: gcc:16.1.0-trixie
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # GCC has no -stdlib flag, so its standard library is "default" by
+          # necessity rather than by choice.
+          - { name: gcc-libstdc++,   cc: gcc,      cxx: g++,        stdlib: default,   clang: false }
+          - { name: clang-libstdc++, cc: clang-22, cxx: clang++-22, stdlib: libstdc++, clang: true }
+          - { name: clang-libc++,    cc: clang-22, cxx: clang++-22, stdlib: libc++,    clang: true }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Debian inside the container, running as root: no sudo, and package names
+      # differ from Ubuntu's.
+      - name: Install CMake, Ninja and dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ninja-build wget gnupg lsb-release ca-certificates \
+            unixodbc unixodbc-dev libgmp-dev libsodium-dev zlib1g-dev
+          wget -q "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          tar -xzf "cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          mv "cmake-${CMAKE_VERSION}-linux-x86_64" /opt/cmake
+          echo "/opt/cmake/bin" >> "$GITHUB_PATH"
+
+      # -fPIC because this static archive is linked into a shared library.
+      - name: Build Lua
+        run: |
+          wget -q "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
+          tar -xzf "lua-${LUA_VERSION}.tar.gz"
+          make -C "lua-${LUA_VERSION}" all MYCFLAGS=-fPIC
+          make -C "lua-${LUA_VERSION}" install INSTALL_TOP=/usr/local
+
+      - name: Install Clang
+        if: matrix.clang
+        run: |
+          wget -q https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 22
+
+      - name: Install libc++
+        if: matrix.stdlib == 'libc++'
+        run: apt-get install -y libc++-22-dev libc++abi-22-dev
+
+      - name: Report toolchain
+        run: |
+          /opt/cmake/bin/cmake --version
+          ninja --version
+          ${{ matrix.cxx }} --version
+
+      # Only clang against this image's libstdc++ needs help, and it needs two
+      # things. The image builds GCC 16 into /usr/local, while apt.llvm.org's
+      # clang detects Debian's own GCC 14 - so without --gcc-install-dir it would
+      # compile GCC 16's std.cc against GCC 14's headers. And CMake's `import std`
+      # probe runs the compiler with none of the flags this build sets, so it
+      # would look for libstdc++.modules.json under the GCC it detected, where
+      # there is none. Both answers come from GCC itself rather than from a
+      # version written down here, which would go stale the day the image moves.
+      - name: Locate the standard library clang will be pointed at
+        if: matrix.clang && matrix.stdlib == 'libstdc++'
+        run: |
+          echo "GCC_INSTALL_DIR=$(dirname "$(g++ -print-libgcc-file-name)")" >> "$GITHUB_ENV"
+          echo "STDLIB_MODULES_JSON=$(g++ -print-file-name=libstdc++.modules.json)" >> "$GITHUB_ENV"
+
+      # libc++ needs nothing here: apt.llvm.org ships libc++.modules.json twice
+      # and clang finds the broken copy first, which CMakeLists.txt works around
+      # by pinning the copy that sits next to the compiler.
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            ${GCC_INSTALL_DIR:+-DCMAKE_C_FLAGS=--gcc-install-dir=$GCC_INSTALL_DIR} \
+            ${GCC_INSTALL_DIR:+-DCMAKE_CXX_FLAGS=--gcc-install-dir=$GCC_INSTALL_DIR} \
+            ${STDLIB_MODULES_JSON:+-DCMAKE_CXX_STDLIB_MODULES_JSON=$STDLIB_MODULES_JSON} \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSTDLIB=${{ matrix.stdlib }} \
+            -DSTDLIBX_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build
+
+      # The step the previous workflow was missing. A green compile proves the
+      # module graph resolves; it says nothing about whether epoll reports a
+      # half-close or whether a reactor dispatches to the right handler.
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.name }}
+          path: |
+            build/CMakeFiles/*.log
+            build/compile_commands.json
+            build/Testing/**
+
+  sanitizers:
+    # One sanitized configuration rather than a sanitized copy of the matrix.
+    # ASan and UBSan find lifetime and arithmetic faults that are properties of
+    # the code, not of the toolchain, so a second toolchain would mostly re-find
+    # the same ones at twice the cost. libc++ is chosen because it is the library
+    # macOS forces, so it is the one whose behaviour is least covered elsewhere.
+    name: clang-libc++ sanitizers
+    runs-on: ubuntu-24.04
+    container: gcc:16.1.0-trixie
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain and dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ninja-build wget gnupg lsb-release ca-certificates make \
+            unixodbc unixodbc-dev libgmp-dev libsodium-dev zlib1g-dev
+          wget -q "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          tar -xzf "cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          mv "cmake-${CMAKE_VERSION}-linux-x86_64" /opt/cmake
+          echo "/opt/cmake/bin" >> "$GITHUB_PATH"
+          wget -q https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 22
+          apt-get install -y libc++-22-dev libc++abi-22-dev
+          wget -q "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
+          tar -xzf "lua-${LUA_VERSION}.tar.gz"
+          make -C "lua-${LUA_VERSION}" all MYCFLAGS=-fPIC
+          make -C "lua-${LUA_VERSION}" install INSTALL_TOP=/usr/local
+
+      # SANITIZERS forces Debug in the Makefile, and CMakeLists refuses
+      # sanitizers in Release, so this cannot silently become an unsanitized run.
+      - name: Build with ASan, UBSan and LSan
+        run: make build SANITIZERS=all STDLIB=libc++ CXX=clang++-22
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure

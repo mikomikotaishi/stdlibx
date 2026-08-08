@@ -173,7 +173,7 @@ namespace stdx::audio::midi {
                 } else {
                     // ShortMessage or SysexMessage - forward to the wired Receiver.
                     Receiver* r = _tx.receiver();
-                    if (r) {
+                    if (r != nullptr) {
                         try {
                             r->send(*msg, 0);
                         } catch (...) {

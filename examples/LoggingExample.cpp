@@ -9,7 +9,7 @@ using stdx::util::logging::Level;
 using stdx::util::logging::Logger;
 using stdx::util::logging::LoggerFactory;
 
-void simple_logging(LoggerFactory& logging) {
+void simpleLogging(LoggerFactory& logging) {
     SharedPointer<Logger> logger = logging.of("TestLogger");
 
     logger->trace("This is a TRACE message with value: {}", 42);
@@ -21,33 +21,33 @@ void simple_logging(LoggerFactory& logging) {
     logger->flush();
 }
 
-void filtered_logging(LoggerFactory& logging) {
-    SharedPointer<Logger> filtered_logger = logging.of("FilteredLogger");
-    filtered_logger->of_level(Level::WARNING);
+void filteredLogging(LoggerFactory& logging) {
+    SharedPointer<Logger> filteredLogger = logging.of("FilteredLogger");
+    filteredLogger->of_level(Level::WARNING);
 
-    filtered_logger->debug("This DEBUG should NOT appear");
-    filtered_logger->info("This INFO should NOT appear");
-    filtered_logger->warn("This WARNING SHOULD appear");
-    filtered_logger->error("This ERROR SHOULD appear");
+    filteredLogger->debug("This DEBUG should NOT appear");
+    filteredLogger->info("This INFO should NOT appear");
+    filteredLogger->warn("This WARNING SHOULD appear");
+    filteredLogger->error("This ERROR SHOULD appear");
 }
 
-void console_only_logging(LoggerFactory& logging) {
-    SharedPointer<Logger> console_logger = logging.of("ConsoleOnly");
-    SharedPointer<ConsoleSink> console_sink = Pointers::shared<ConsoleSink>(false);
-    console_logger->add_sink(console_sink);
+void consoleOnlyLogging(LoggerFactory& logging) {
+    SharedPointer<Logger> consoleLogger = logging.of("ConsoleOnly");
+    SharedPointer<ConsoleSink> consoleSink = Pointers::shared<ConsoleSink>(false);
+    consoleLogger->add_sink(consoleSink);
 
-    console_logger->info("This message should appear on stdout");
-    console_logger->error("This error should appear on stdout (not stderr)");
+    consoleLogger->info("This message should appear on stdout");
+    consoleLogger->error("This error should appear on stdout (not stderr)");
 }
 
-void custom_logging(LoggerFactory& logging) {
-    SharedPointer<Logger> custom_logger = logging.of("CustomLogger");
-    SharedPointer<FileSink> custom_sink = Pointers::shared<FileSink>("./userdata/custom_log.txt", OpenMode::TRUNCATE);
-    custom_logger->add_sink(custom_sink);
+void customLogging(LoggerFactory& logging) {
+    SharedPointer<Logger> customLogger = logging.of("CustomLogger");
+    SharedPointer<FileSink> customSink = Pointers::shared<FileSink>("./userdata/custom_log.txt", OpenMode::TRUNCATE);
+    customLogger->add_sink(customSink);
 
-    custom_logger->info("This message goes to both global and custom sinks");
-    custom_logger->debug("Custom sink test with value: {}", 99);
-    custom_sink->flush();
+    customLogger->info("This message goes to both global and custom sinks");
+    customLogger->debug("Custom sink test with value: {}", 99);
+    customSink->flush();
 }
 
 #ifdef __cpp_impl_reflection
@@ -67,16 +67,28 @@ namespace mmt::foo {
             logger->info("Bar destroyed");
         }
 
-        void do_something() {
+        void doSomething() {
             logger->info("Bar is doing something");
         }
 
-        void change_name(const String& s) {
+        [[nodiscard]]
+        String getName() const noexcept {
+            logger->info("Returning name: '{}'", name);
+            return name;
+        }
+
+        void setName(const String& s) {
             logger->info("Changing name from '{}' to '{}'", name, s);
             name = s;
         }
 
-        void change_address(const String& s) {
+        [[nodiscard]]
+        String getAddress() const noexcept {
+            logger->info("Returning address: '{}'", address);
+            return address;
+        }
+
+        void setAddress(const String& s) {
             logger->info("Changing address from '{}' to '{}'", address, s);
             address = s;
         }
@@ -93,16 +105,20 @@ int main(int argc, char* argv[]) {
         .with_banner()
         .build();
 
-    simple_logging(logging);
-    filtered_logging(logging);
-    console_only_logging(logging);
-    custom_logging(logging);
+    simpleLogging(logging);
+    filteredLogging(logging);
+    consoleOnlyLogging(logging);
+    customLogging(logging);
 
     #ifdef __cpp_impl_reflection
     Bar bar(logging, "John Doe", "123 Main St");
-    bar.do_something();
-    bar.change_name("Jane Smith");
-    bar.change_address("456 Elm St");
+    bar.doSomething();
+    System::out.println("Bar({}, {})", bar.getName(), bar.getAddress());
+
+    bar.setName("Jane Smith");
+    bar.setAddress("456 Elm St");
+
+    System::out.println("Bar({}, {})", bar.getName(), bar.getAddress());
     #endif
 
     logging.flush_all();

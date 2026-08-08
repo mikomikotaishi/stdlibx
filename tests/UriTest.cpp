@@ -83,13 +83,13 @@ void test_uri_roundtrip() {
 
 void test_uri_malformed() {
     expect_throws<UriSyntaxException>(
-        [] -> void { (void)Uri("http://[::1/"); }, "unterminated IPv6 literal is rejected"
+        [] -> void { static_cast<void>(Uri("http://[::1/")); }, "unterminated IPv6 literal is rejected"
     );
     expect_throws<UriSyntaxException>(
-        [] -> void { (void)Uri("http://host:99999/"); }, "out-of-range port is rejected"
+        [] -> void { static_cast<void>(Uri("http://host:99999/")); }, "out-of-range port is rejected"
     );
     expect_throws<UriSyntaxException>(
-        [] -> void { (void)Uri("http://host:80x/"); }, "non-numeric port is rejected"
+        [] -> void { static_cast<void>(Uri("http://host:80x/")); }, "non-numeric port is rejected"
     );
     // parse reports the same failures without throwing.
     expect(!Uri::parse("http://[::1/").has_value(), "parse returns empty on malformed input");

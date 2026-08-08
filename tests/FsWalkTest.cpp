@@ -1,3 +1,5 @@
+#include <version>
+
 import stdx;
 
 using stdx::collections::Vector;
@@ -6,6 +8,7 @@ using stdx::io::OutputFileStream;
 
 using namespace stdx::test;
 
+#ifdef __cpp_lib_generator
 // A scratch directory tree, rebuilt fresh for the suite:
 //
 //   <tmp>/stdx_fs_walk_test/
@@ -81,8 +84,48 @@ void test_walk_missing_directory_is_empty() {
     }
     expect_eq(seen, 0uz, "walking a nonexistent directory yields nothing");
 }
+#endif
+
+/**
+ * @brief Tests that a Path formats the same way whichever library supplies it.
+ *
+ * libstdc++ has shipped the C++26 formatter since GCC 15; libc++ has not, so
+ * fs.inl supplies one behind __cpp_lib_format_path. The two must be
+ * indistinguishable, which is what this pins.
+ *
+ * The range case is the one that regressed: a formatter whose format() names a
+ * single concrete context does not satisfy `formattable`, and a Vector<Path>
+ * then finds no formatter at all rather than a plain-looking one. Formatting a
+ * Path on its own keeps working, so nothing else notices.
+ */
+void test_path_formats_like_a_string() {
+    const Path path = "/tmp/a b/c.txt";
+    expect_eq(Ops::fmt("{}", path), "/tmp/a b/c.txt", "a path formats as its string");
+    expect_eq(Ops::fmt("{:>20}", path), "      /tmp/a b/c.txt", "width and alignment apply");
+    expect_eq(Ops::fmt("{:*^24}", path), "*****/tmp/a b/c.txt*****", "an explicit fill applies");
+    expect_eq(Ops::fmt("{:>{}}", path, 20), "      /tmp/a b/c.txt", "a dynamic width applies");
+    expect_eq(Ops::fmt("{:?}", path), "\"/tmp/a b/c.txt\"", "the debug format quotes");
+
+    const Path awkward = "/tmp/he said \"hi\"/back\\slash";
+    expect_eq(
+        Ops::fmt("{:?}", awkward),
+        "\"/tmp/he said \\\"hi\\\"/back\\\\slash\"",
+        "the debug format escapes quotes and backslashes"
+    );
+
+    const Path wide = "/tmp/日本語/file.txt";
+    expect_eq(
+        Ops::fmt("{:*>30}", wide),
+        "**********/tmp/日本語/file.txt",
+        "an east-asian character counts as two columns"
+    );
+
+    const Vector<Path> paths{path, "x"};
+    expect_eq(Ops::fmt("{}", paths), "[\"/tmp/a b/c.txt\", \"x\"]", "a Vector of paths formats");
+}
 
 int main(int argc, char* argv[]) {
+    #ifdef __cpp_lib_generator
     g_root = stdx::fs::temp_directory_path() / "stdx_fs_walk_test";
     stdx::fs::remove_all(g_root);
     stdx::fs::create_directories(g_root / "alpha" / "deep");
@@ -95,8 +138,17 @@ int main(int argc, char* argv[]) {
         {"FsWalk.dironly_skips_files", test_walk_dironly_skips_files},
         {"FsWalk.lazily_consumable", test_walk_is_lazily_consumable},
         {"FsWalk.missing_directory_is_empty", test_walk_missing_directory_is_empty},
+        {"FsWalk.path_formats_like_a_string", test_path_formats_like_a_string},
     });
 
     stdx::fs::remove_all(g_root);
     return result;
+    #else
+    // The walk itself needs std::generator, which libc++ does not have; the
+    // path formatter does not, and is exactly what needs covering there.
+    System::out.println("[test] Directory walking disabled (standard library does not support generators).");
+    return run(argc, argv, {
+        {"Fs.path_formats_like_a_string", test_path_formats_like_a_string},
+    });
+    #endif
 }

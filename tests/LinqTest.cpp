@@ -130,25 +130,25 @@ void test_error_cases() {
     Vector<i32> multiple = {1, 2};
 
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).first(); }, "first() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).first()); }, "first() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).last(); }, "last() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).last()); }, "last() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).element_at(0); }, "element_at() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).element_at(0)); }, "element_at() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).single(); }, "single() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).single()); }, "single() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(multiple).single(); }, "single() on multiple elements throws"
+        [&] -> void { static_cast<void>(Query(multiple).single()); }, "single() on multiple elements throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).min(); }, "min() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).min()); }, "min() on empty throws"
     );
     expect_throws<InvalidOperationException>(
-        [&] -> void { (void)Query(empty).max(); }, "max() on empty throws"
+        [&] -> void { static_cast<void>(Query(empty).max()); }, "max() on empty throws"
     );
 }
 

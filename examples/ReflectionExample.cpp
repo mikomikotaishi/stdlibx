@@ -198,19 +198,19 @@ int main(int argc, char* argv[]) {
         .where([](Info m) -> bool { return reflect::has_identifier(m); })
         .to_array();
 
-    static constinit Array<Pair<StringView, f64>, MATH_CONSTANTS.size()> math_constants;
+    static constinit Array<Pair<StringView, f64>, MATH_CONSTANTS.size()> mathConstants;
     static constinit usize index = 0;
     template for (constexpr Info mem: MATH_CONSTANTS) {
-        math_constants[index++] = Ops::pair(reflect::identifier_of(mem), [:mem:]);
+        mathConstants[index++] = Ops::pair(reflect::identifier_of(mem), [:mem:]);
     }
 
-    static constinit Vector<StringView> system_members;
+    static constinit Vector<StringView> systemMembers;
     template for (constexpr Info mem: SYSTEM_MEMBERS) {
-        system_members.push_back(reflect::identifier_of(mem));
+        systemMembers.push_back(reflect::identifier_of(mem));
     }
 
-    System::out.println("Constants of Math class: {}", math_constants);
-    System::out.println("Members of System class: {}", system_members);
+    System::out.println("Constants of Math class: {}", mathConstants);
+    System::out.println("Members of System class: {}", systemMembers);
 
     System::out.println();
     System::out.println("Class<Vec2>:");
@@ -226,10 +226,10 @@ int main(int argc, char* argv[]) {
     System::out.println("Fields:");
     template for (constexpr Field f: VEC2_FIELDS) {
         constexpr StringView name = f.name().value_or("unnamed field");
-        constexpr StringView type_name = f.type().display_name();
+        constexpr StringView typeName = f.type().display_name();
         constexpr usize offset = f.offset().bytes;
         constexpr usize access = Ops::to_underlying(f.access());
-        System::out.println("  {} : {} at +{} (access={})", name, type_name, offset, access);
+        System::out.println("  {} : {} at +{} (access={})", name, typeName, offset, access);
     }
 
     static constexpr Span<const Method> VEC2_METHODS = Query(Ops::define_static_array(VEC2_CLASS.methods(ctx)))
@@ -242,9 +242,9 @@ int main(int argc, char* argv[]) {
             constexpr StringView sym = m.operator_symbol();
             System::out.println("  {} -> operator '{}'", name, sym);
         } else {
-            constexpr bool const_qualified = m.cv_qualifiers().contains(CvQualifier::CONST);
-            constexpr bool noexcept_marked = m.specifiers().contains(FunctionSpecifier::NOEXCEPT);
-            System::out.println("  {} (const: {}, noexcept: {})", name, const_qualified, noexcept_marked);
+            constexpr bool constQualified = m.cv_qualifiers().contains(CvQualifier::CONST);
+            constexpr bool noexceptMarked = m.specifiers().contains(FunctionSpecifier::NOEXCEPT);
+            System::out.println("  {} (const: {}, noexcept: {})", name, constQualified, noexceptMarked);
         }
     }
 
@@ -284,10 +284,10 @@ int main(int argc, char* argv[]) {
         Ops::define_static_array(Ops::class_of<Circle>().bases(ctx));
     constexpr Class<Shape> clazz = Ops::class_of<CIRCLE_BASES[0].type()>();
     static_assert(Class<Shape>::VALUE == ^^Shape);
-    constexpr StringView shape_name = clazz.name().value_or("");
-    constexpr usize shape_fields = clazz.fields(ctx).size();
+    constexpr StringView shapeName = clazz.name().value_or("");
+    constexpr usize shapeFields = clazz.fields(ctx).size();
 
-    System::out.println("Shape: {} ({} fields)", shape_name, shape_fields);
+    System::out.println("Shape: {} ({} fields)", shapeName, shapeFields);
     #else
     System::out.println("Example disabled (compiler does not support reflection).");
     #endif

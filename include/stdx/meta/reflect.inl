@@ -551,7 +551,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Type() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Type(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_type(i)) {
@@ -1032,7 +1032,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> template_arguments() const {
             Vector<Mirror> result;
-            for (Info a : reflect::template_arguments_of(_info)) {
+            for (Info a: reflect::template_arguments_of(_info)) {
                 result.emplace_back(a);
             }
             return result;
@@ -1063,7 +1063,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Parameter() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Parameter(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_function_parameter(i)) {
@@ -1103,7 +1103,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Callback() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Callback(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_function(i)) {
@@ -1119,7 +1119,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Parameter> parameters() const {
             Vector<Parameter> result;
-            for (Info p : reflect::parameters_of(_info)) {
+            for (Info p: reflect::parameters_of(_info)) {
                 result.emplace_back(p);
             }
             return result;
@@ -1195,7 +1195,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Method() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Method(Info i):
             Callback(i)
         {
@@ -1357,7 +1357,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Field() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Field(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_nonstatic_data_member(i)) {
@@ -1430,7 +1430,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Variable() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Variable(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_variable(i)) {
@@ -1554,7 +1554,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Constructor() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Constructor(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_constructor(i)) {
@@ -1570,7 +1570,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Parameter> parameters() const {
             Vector<Parameter> result;
-            for (Info p : reflect::parameters_of(_info)) {
+            for (Info p: reflect::parameters_of(_info)) {
                 result.emplace_back(p);
             }
             return result;
@@ -1654,7 +1654,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Destructor() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Destructor(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_destructor(i)) {
@@ -1738,7 +1738,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Base() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Base(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_base(i)) {
@@ -1781,7 +1781,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Enumerator() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Enumerator(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_enumerator(i)) {
@@ -1810,7 +1810,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Namespace() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Namespace(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_namespace(i)) {
@@ -1833,7 +1833,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> members(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Mirror> result;
-            for (Info m : reflect::members_of(_info, ctx)) {
+            for (Info m: reflect::members_of(_info, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -1849,7 +1849,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval NamespaceAlias() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit NamespaceAlias(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_namespace_alias(i)) {
@@ -1872,7 +1872,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval TypeAlias() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit TypeAlias(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_type_alias(i)) {
@@ -1900,7 +1900,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Concept() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Concept(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_concept(i)) {
@@ -1930,7 +1930,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Template() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Template(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_template(i)) {
@@ -2000,7 +2000,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval Annotation() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit Annotation(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_annotation(i)) {
@@ -2029,7 +2029,7 @@ export namespace stdx::meta::reflect {
     public:
         consteval StructuredBinding() noexcept = default;
 
-        [[=Throws<ReflectiveOperationException>()]]
+        [[=Throws<ReflectiveOperationException>]]
         consteval explicit StructuredBinding(Info i):
             Mirror(i) {
             if (i != Info{} && !reflect::is_structured_binding(i)) {
@@ -2061,7 +2061,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Field> fields(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Field> result;
-            for (Info m : reflect::nonstatic_data_members_of(^^T, ctx)) {
+            for (Info m: reflect::nonstatic_data_members_of(^^T, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2070,7 +2070,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Variable> static_fields(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Variable> result;
-            for (Info m : reflect::static_data_members_of(^^T, ctx)) {
+            for (Info m: reflect::static_data_members_of(^^T, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2079,7 +2079,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Method> methods(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Method> result;
-            for (Info m : reflect::members_of(^^T, ctx)) {
+            for (Info m: reflect::members_of(^^T, ctx)) {
                 if (reflect::is_function(m)
                     && reflect::is_class_member(m)
                     && !reflect::is_constructor(m)
@@ -2094,7 +2094,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Constructor> constructors(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Constructor> result;
-            for (Info m : reflect::members_of(^^T, ctx)) {
+            for (Info m: reflect::members_of(^^T, ctx)) {
                 if (reflect::is_constructor(m)) {
                     result.emplace_back(m);
                 }
@@ -2104,7 +2104,7 @@ export namespace stdx::meta::reflect {
 
         [[nodiscard]]
         consteval Destructor destructor(AccessContext ctx = AccessContext::unchecked()) const {
-            for (Info m : reflect::members_of(^^T, ctx)) {
+            for (Info m: reflect::members_of(^^T, ctx)) {
                 if (reflect::is_destructor(m)) {
                     return Destructor(m);
                 }
@@ -2115,7 +2115,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Base> bases(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Base> result;
-            for (Info b : reflect::bases_of(^^T, ctx)) {
+            for (Info b: reflect::bases_of(^^T, ctx)) {
                 result.emplace_back(b);
             }
             return result;
@@ -2124,7 +2124,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> subobjects(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Mirror> result;
-            for (Info s : reflect::subobjects_of(^^T, ctx)) {
+            for (Info s: reflect::subobjects_of(^^T, ctx)) {
                 result.emplace_back(s);
             }
             return result;
@@ -2133,7 +2133,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> members(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Mirror> result;
-            for (Info m : reflect::members_of(^^T, ctx)) {
+            for (Info m: reflect::members_of(^^T, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2173,7 +2173,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Enumerator> enumerators() const {
             Vector<Enumerator> result;
-            for (Info e : reflect::enumerators_of(^^E)) {
+            for (Info e: reflect::enumerators_of(^^E)) {
                 result.emplace_back(e);
             }
             return result;
@@ -2208,7 +2208,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Field> fields(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Field> result;
-            for (Info m : reflect::nonstatic_data_members_of(^^U, ctx)) {
+            for (Info m: reflect::nonstatic_data_members_of(^^U, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2217,7 +2217,7 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval Vector<Mirror> members(AccessContext ctx = AccessContext::unchecked()) const {
             Vector<Mirror> result;
-            for (Info m : reflect::members_of(^^U, ctx)) {
+            for (Info m: reflect::members_of(^^U, ctx)) {
                 result.emplace_back(m);
             }
             return result;
@@ -2226,7 +2226,7 @@ export namespace stdx::meta::reflect {
 
     consteval Vector<Annotation> Mirror::annotations() const {
         Vector<Annotation> result;
-        for (Info a : reflect::annotations_of(_info)) {
+        for (Info a: reflect::annotations_of(_info)) {
             result.emplace_back(a);
         }
         return result;
@@ -2235,7 +2235,7 @@ export namespace stdx::meta::reflect {
     template <typename T>
     consteval Vector<Annotation> Mirror::annotations_with_type() const {
         Vector<Annotation> result;
-        for (Info a : reflect::annotations_of_with_type(_info, ^^T)) {
+        for (Info a: reflect::annotations_of_with_type(_info, ^^T)) {
             result.emplace_back(a);
         }
         return result;

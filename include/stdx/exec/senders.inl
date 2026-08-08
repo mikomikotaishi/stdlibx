@@ -59,7 +59,24 @@ export namespace stdx::exec {
     // Core classes
     using RunLoop = std::execution::run_loop;
     using DefaultDomain = std::execution::default_domain;
-    using ForwardProgressGuarantee = std::execution::forward_progress_guarantee;
+
+    class [[nodiscard]] ForwardProgressGuarantee final {
+    public:
+        using Self = std::execution::forward_progress_guarantee;
+
+        static constexpr Self CONCURRENT = std::execution::forward_progress_guarantee::concurrent;
+        static constexpr Self PARALLEL = std::execution::forward_progress_guarantee::parallel;
+        static constexpr Self WEAKLY_PARALLEL = std::execution::forward_progress_guarantee::weakly_parallel;
+    private:
+        const Self value;
+    public:
+        constexpr Endian(Self value) noexcept:
+            value{value} {}
+
+        constexpr operator Self() const noexcept {
+            return value;
+        }
+    };
 
     template <typename Derived>
     using SenderAdaptorClosure = std::execution::sender_adaptor_closure<Derived>;

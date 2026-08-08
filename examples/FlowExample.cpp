@@ -19,7 +19,7 @@ Task<void> announce(StringView label) {
 
 // A driver task that just co_awaits two void tasks in sequence. Awaiting a
 // Task<void> yields nothing - there is no value to bind.
-Task<void> run_steps() {
+Task<void> runSteps() {
     co_await announce("first");
     co_await announce("second");
 }
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     #ifdef STDLIBX_EXECUTION_AVAILABLE
     // A simple value pipeline: wrap a value sender, map it, unwrap the result.
     // value() yields the lone value directly instead of a Tuple.
-    Optional<i32> answer = Flow(Just(6))
+    Optional<i32> answer = Flow<>::just(6)
         .then([](i32 x) -> i32 { return x * 7; })
         .value();
     System::out.println("[flow] 6 * 7 = {}", *answer);
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     // Run two pipelines concurrently and collect both results.
     // Multi-value pipelines use wait() + destructuring rather than value().
-    Optional<Tuple<i32, i32>> both = Flow(Just(3))
+    Optional<Tuple<i32, i32>> both = Flow<>::just(3)
         .when_all(Just(4))
         .wait();
     auto [a, b] = *both;
@@ -52,21 +52,21 @@ int main(int argc, char* argv[]) {
 
     // Materialize a pipeline as a coroutine Task, then run it. as_task() is the
     // hand-off point: the Task can be co_awaited or composed under when_all.
-    Task<i32> task = Flow(Just(20))
+    Task<i32> task = Flow<>::just(20)
         .then([](i32 x) -> i32 { return x + 1; })
         .as_task();
     auto [t] = *Thread::sync_wait(Ops::move(task));
     System::out.println("[flow] as_task -> {}", t);
 
     // Recover from an error raised on the value channel.
-    Optional<i32> recovered = Flow(Just(10))
-        .then([](i32 _) -> i32 { throw RuntimeException("boom"); })
+    Optional<i32> recovered = Flow<>::just(10)
+        .then([] [[noreturn]] (i32 _) -> i32 { throw RuntimeException("boom"); })
         .catch_error([](ExceptionPointer _) -> i32 { return -1; })
         .value();
     System::out.println("[flow] recovered from error -> {}", *recovered);
 
     // co_await is legal only inside a coroutine, which main() cannot be
-    Optional<Tuple<>> _ = Thread::sync_wait(run_steps());
+    Optional<Tuple<>> _ = Thread::sync_wait(runSteps());
     System::out.println("[flow] void task sequence complete");
     #else
     System::out.println(

@@ -1,9 +1,5 @@
 import stdx;
 
-// Matches the guard on Poller itself. The Windows backend is written but has
-// never been executed - no Windows host, no CI runner - so this file is the
-// thing that would produce the first evidence either way.
-#if defined(_WIN32) || defined(__linux__)
 using stdx::collections::Vector;
 using stdx::net::Endpoint;
 using stdx::net::Event;
@@ -171,17 +167,17 @@ void test_poller_readable() {
         "a quiet connection reports no readiness"
     );
 
-    pair.client.send(bytes_of("ping"));
+    pair.client.send_all(bytes_of("ping"));
 
     const Optional<Event> event = poll_for(poller, 42, 500ms);
     expect(event.has_value(), "data on the peer makes the socket readable");
-    if (event) {
+    if (event.has_value()) {
         expect(event->readable, "the event reports readability");
         expect(!event->writable, "an Interest in reading alone reports no writability");
         expect(!event->error, "an ordinary read carries no error");
     }
 
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     const Optional<usize> read = pair.server.try_receive(Span<byte>(buffer));
     expect(read.has_value() && *read == 4, "the readiness was real - the bytes are there");
 }
@@ -198,7 +194,7 @@ void test_poller_level_triggered() {
     Poller poller;
     poller.add(pair.server.native_handle(), Interest::READ, 5);
 
-    pair.client.send(bytes_of("payload"));
+    pair.client.send_all(bytes_of("payload"));
     expect(poll_for(poller, 5, 500ms).has_value(), "the first wait reports the data");
 
     // Deliberately no read in between.
@@ -226,7 +222,7 @@ void test_poller_writable_and_modify() {
     const Optional<Event> event = poll_for(poller, 11, 500ms);
     expect(event.has_value(), "modify() takes effect, under the new token");
     expect(!find(poller.wait(20ms), 10).has_value(), "the old token is not reported again");
-    if (event) {
+    if (event.has_value()) {
         expect(event->writable, "an empty send buffer is writable");
     }
 }
@@ -248,7 +244,7 @@ void test_poller_read_hangup() {
 
     const Optional<Event> event = poll_for(poller, 77, 500ms);
     expect(event.has_value(), "a peer's half-close wakes the wait");
-    if (event) {
+    if (event.has_value()) {
         #ifdef _WIN32
         // WSAPoll has no EPOLLRDHUP, so read_hangup is documented as always
         // false there. The half-close still has to surface as readability, or a
@@ -261,7 +257,7 @@ void test_poller_read_hangup() {
         expect(!event->hangup, "one direction closing is not a full hang-up");
     }
 
-    Array<byte, 8> buffer{};
+    Array<byte, 8> buffer = {};
     const Optional<usize> read = pair.server.try_receive(Span<byte>(buffer));
     expect(read.has_value() && *read == 0, "the read that follows reports end-of-stream");
 }
@@ -275,7 +271,7 @@ void test_poller_remove() {
     poller.add(pair.server.native_handle(), Interest::READ, 3);
     poller.remove(pair.server.native_handle());
 
-    pair.client.send(bytes_of("ignored"));
+    pair.client.send_all(bytes_of("ignored"));
 
     expect(
         !poll_for(poller, 3, 100ms).has_value(),
@@ -302,7 +298,7 @@ void test_poller_wake() {
     expect(woken < 1000ms, "a pending wake ends the wait rather than the deadline");
 
     const Milliseconds after = elapsed_of([&poller] -> void {
-        (void)poller.wait(80ms);
+        static_cast<void>(poller.wait(80ms));
     });
     expect(after >= 50ms, "the wake-up was drained and does not wake every later wait");
 }
@@ -356,7 +352,7 @@ void test_poller_many_sockets() {
     expect(poller.registered() == COUNT, "every connection is registered");
 
     for (LoopbackPair& pair: pairs) {
-        pair.client.send(bytes_of("x"));
+        pair.client.send_all(bytes_of("x"));
     }
 
     Vector<bool> seen(COUNT, false);
@@ -374,10 +370,8 @@ void test_poller_many_sockets() {
 
     expect(remaining == 0, "one thread in one wait loop serves every connection");
 }
-#endif
 
 int main(int argc, char* argv[]) {
-    #if defined(_WIN32) || defined(__linux__)
     return run(argc, argv, {
         {"Poller.lifecycle", test_poller_lifecycle},
         {"Poller.timeout", test_poller_timeout},
@@ -390,9 +384,4 @@ int main(int argc, char* argv[]) {
         {"Poller.misuse", test_poller_misuse},
         {"Poller.many_sockets", test_poller_many_sockets},
     });
-    #else
-    (void)argc;
-    (void)argv;
-    return 0;
-    #endif
 }
