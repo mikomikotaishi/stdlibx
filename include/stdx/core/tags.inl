@@ -34,7 +34,7 @@ export namespace stdx::core {
         using ExplicitDiagonal = std::linalg::explicit_diagonal_t;
         #endif
 
-        #ifdef __cpp_lib_mdspan
+        #ifdef __cpp_lib_submdspan
         using FullExtent = std::full_extent_t;
         #endif
 
@@ -70,7 +70,7 @@ export namespace stdx::core {
         static constexpr ImplicitUnitDiagonal IMPLICIT_UNIT_DIAGONAL = std::linalg::implicit_unit_diagonal;
         static constexpr ExplicitDiagonal EXPLICIT_DIAGONAL = std::linalg::explicit_diagonal;
         #endif
-        #ifdef __cpp_lib_mdspan
+        #ifdef __cpp_lib_submdspan
         static constexpr FullExtent FULL_EXTENT = std::full_extent;
         #endif
         #ifdef __cpp_lib_flat_map

@@ -85,11 +85,11 @@ export namespace stdx::net {
 
 namespace stdx::net {
     #ifdef _WIN32
-    using SocketAddress = win32::WinSockAddr;
-    using SocketAddressStorage = win32::WinSockAddrStorage;
-    using SocketLength = win32::WinSocketLength;
-    using InternetSocketAddress = win32::WinSockAddrIn;
-    using Internet6SocketAddress = win32::WinSockAddrIn6;
+    using SocketAddress = win32::SockAddr;
+    using SocketAddressStorage = win32::SockAddrStorage;
+    using SocketLength = win32::SocketLength;
+    using InternetSocketAddress = win32::SockAddrIn;
+    using Internet6SocketAddress = win32::SockAddrIn6;
 
     inline constexpr i32 NATIVE_AF_UNSPEC = win32::AF_UNSPEC;
     inline constexpr i32 NATIVE_AF_INET = win32::AF_INET;
@@ -412,7 +412,7 @@ export namespace stdx::net {
          * @brief The platform's socket descriptor type.
          */
         #ifdef _WIN32
-        using NativeHandle = win32::WinSocket;
+        using NativeHandle = win32::Socket;
         #else
         using NativeHandle = i32;
         #endif

@@ -3,7 +3,6 @@ import stdx;
 // Matches the guard on Poller itself. The Windows backend is written but has
 // never been executed - no Windows host, no CI runner - so this file is the
 // thing that would produce the first evidence either way.
-#if defined(_WIN32) || defined(__linux__)
 using stdx::collections::Vector;
 using stdx::net::Endpoint;
 using stdx::net::Event;
@@ -374,10 +373,8 @@ void test_poller_many_sockets() {
 
     expect(remaining == 0, "one thread in one wait loop serves every connection");
 }
-#endif
 
 int main(int argc, char* argv[]) {
-    #if defined(_WIN32) || defined(__linux__)
     return run(argc, argv, {
         {"Poller.lifecycle", test_poller_lifecycle},
         {"Poller.timeout", test_poller_timeout},
@@ -390,9 +387,4 @@ int main(int argc, char* argv[]) {
         {"Poller.misuse", test_poller_misuse},
         {"Poller.many_sockets", test_poller_many_sockets},
     });
-    #else
-    (void)argc;
-    (void)argv;
-    return 0;
-    #endif
 }

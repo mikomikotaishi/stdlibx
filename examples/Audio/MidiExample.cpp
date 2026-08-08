@@ -122,7 +122,7 @@ Optional<Process> maybe_spawn_fluidsynth() {
         return nullopt;
     }
 
-    System::out.println("Auto-launching fluidsynth with {}", sf2.value());
+    System::out.println("Auto-launching fluidsynth with {}", sf2.value().string());
 
     Expected<Process, ErrorCode> child = Process::Builder("fluidsynth")
         .arg("-s")

@@ -53,7 +53,7 @@ void test_cat_stdin_pipe() {
     expect(child.has_stdin(), "cat pipe: has stdin");
     expect(child.has_stdout(), "cat pipe: has stdout");
 
-    #ifdef __unix__
+    #if defined(__unix__) || defined(__APPLE__)
     StringView msg = "piped input\n";
     unix::write(child.stdin_fd(), msg.data(), msg.size());
     unix::close(child.stdin_fd());

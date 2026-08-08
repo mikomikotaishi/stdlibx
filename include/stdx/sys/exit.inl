@@ -40,7 +40,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         bool success() const noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             return unix::sys::WIFEXITED(raw_value) && unix::sys::WEXITSTATUS(raw_value) == 0;
             #else
             return raw_value == 0;
@@ -53,7 +53,7 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         Optional<i32> code() const noexcept {
-            #ifdef __unix__
+            #if defined(__unix__) || defined(__APPLE__)
             if (unix::sys::WIFEXITED(raw_value)) {
                 return static_cast<i32>(unix::sys::WEXITSTATUS(raw_value));
             }
@@ -63,7 +63,7 @@ export namespace stdx::sys {
             #endif
         }
 
-        #ifdef __unix__
+        #if defined(__unix__) || defined(__APPLE__)
         /** 
          * @brief The signal number that killed the process, if it was signal-terminated.
          * @return Optional<i32> The signal number if the process was signal-terminated, otherwise nullopt.

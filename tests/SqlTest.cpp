@@ -199,7 +199,7 @@ Optional<Connection> try_open_live(const Path& dbfile) noexcept {
     for (StringView driver: SQLITE_DRIVERS) {
         try {
             return DriverManager::connection(
-                Ops::fmt("Driver={{{}}};Database={};", driver, dbfile), PROBE_TIMEOUT
+                Ops::fmt("Driver={{{}}};Database={};", driver, dbfile.string()), PROBE_TIMEOUT
             );
         } catch (const SQLException& _) {
             // Try the next candidate.
@@ -701,6 +701,9 @@ void test_result_set_range() {
 
     // The rows() generator: a standalone lazy range over the same cursor. The
     // ResultSet is named so it outlives the generator that borrows it.
+    // std::generator is not implemented in libc++ yet, so rows() only exists
+    // where __cpp_lib_generator is advertised.
+    #ifdef __cpp_lib_generator
     {
         ResultSet rs = c.query("SELECT id, name FROM stdx_range ORDER BY id ASC;");
         i32 rows = 0;
@@ -712,6 +715,7 @@ void test_result_set_range() {
         expect(rows == 3, "rows() generator yielded all 3 rows");
         expect(id_sum == 6, "rows() generator summed ids (1+2+3 == 6)");
     }
+    #endif
 
     // LINQ over the live result set: filter (id >= 2) then project the name.
     {

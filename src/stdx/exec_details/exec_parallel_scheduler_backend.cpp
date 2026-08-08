@@ -9,6 +9,11 @@
  * forces every consumer to emit the backend inline. Isolating it here keeps
  * the heavy static_thread_pool machinery out of the module entirely.
  */
+// stdexec's Apple libdispatch backend (exec/libdispatch_queue.hpp) uses
+// std::vector without including <vector>; libc++ 22's leaner transitive
+// includes no longer paper over that. Include it first until fixed upstream.
+#include <vector>
+
 #include <stdexec/execution.hpp>
 
 #define STDEXEC_PARALLEL_SCHEDULER_INLINE

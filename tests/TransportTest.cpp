@@ -11,7 +11,13 @@ using stdx::net::IPAddress;
 using stdx::net::IPv4Address;
 using stdx::net::IPv6Address;
 using stdx::net::Interest;
+// Poller exists only where a backend does, so a platform without one must not
+// name it. Darwin belongs in the list now that kqueue is implemented; it was
+// excluded when the macOS build was first made to work, and only epoll and
+// WSAPoll existed.
+#if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
 using stdx::net::Poller;
+#endif
 using stdx::net::Socket;
 using stdx::net::SocketException;
 using stdx::net::SocketTimeoutException;
@@ -285,7 +291,6 @@ void test_udp_connected() {
  * unreachable.
  */
 void test_typed_sockets_drive_a_poller() {
-    #if defined(_WIN32) || defined(__linux__)
     TcpListener listener = TcpListener::bind(loopback_any_port());
     listener.socket().set_blocking(false);
 
@@ -314,9 +319,6 @@ void test_typed_sockets_drive_a_poller() {
         }
     }
     expect(accepted, "the listener's readiness reached the poller through socket()");
-    #else
-    skip("the Poller has no backend for this platform (only epoll and WSAPoll exist)");
-    #endif
 }
 
 /**

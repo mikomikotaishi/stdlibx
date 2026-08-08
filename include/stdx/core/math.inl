@@ -125,36 +125,51 @@ export namespace stdx::core {
         template <typename T>
         [[nodiscard]]
         static constexpr T saturating_add(T a, T b) noexcept {
-            using std::saturating_add;
-            return saturating_add(a, b);
+            #ifdef __GLIBCXX__
+            return std::saturating_add(a, b);
+            #else
+            return std::add_sat(a, b);
+            #endif
         }
 
         template <typename T>
         [[nodiscard]]
         static constexpr T saturating_sub(T a, T b) noexcept {
-            using std::saturating_sub;
-            return saturating_sub(a, b);
+            #ifdef __GLIBCXX__
+            return std::saturating_sub(a, b);
+            #else
+            return std::sub_sat(a, b);
+            #endif
         }
 
         template <typename T>
         [[nodiscard]]
         static constexpr T saturating_mul(T a, T b) noexcept {
-            using std::saturating_mul;
-            return saturating_mul(a, b);
+            #ifdef __GLIBCXX__
+            return std::saturating_mul(a, b);
+            #else
+            return std::mul_sat(a, b);
+            #endif
         }
 
         template <typename T>
         [[nodiscard]]
         static constexpr T saturating_div(T a, T b) noexcept {
-            using std::saturating_div;
-            return saturating_div(a, b);
+            #ifdef __GLIBCXX__
+            return std::saturating_div(a, b);
+            #else
+            return std::div_sat(a, b);
+            #endif
         }
 
         template <typename T, typename U>
         [[nodiscard]]
         static constexpr T saturating_cast(U value) noexcept {
-            using std::saturating_cast;
-            return saturating_cast<T>(value);
+            #ifdef __GLIBCXX__
+            return std::saturating_cast<T>(value);
+            #else
+            return std::saturate_cast<T>(value);
+            #endif
         }
         #endif
 

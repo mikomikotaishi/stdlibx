@@ -3,7 +3,7 @@
 /**
  * @namespace stdx::os::darwin::coreaudio
  * @brief CoreAudio HAL - <CoreAudio/CoreAudio.h>, <CoreAudio/CoreAudioTypes.h>,
- *        <CoreAudio/AudioHardware.h>, <CoreAudio/HostTime.h>.
+ * <CoreAudio/AudioHardware.h>, <CoreAudio/HostTime.h>.
  *
  * Low-level access to audio devices, streams, and the property-based
  * Hardware Abstraction Layer.

@@ -6,16 +6,10 @@
  *
  * Type aliases drop Win32 Hungarian notation:
  *   - HXxx (handles)         -> XxxHandle               (HWND -> WindowHandle)
- *   - PT / LPT (pointer-to)  -> WinTPointer / TPointer  (PVOID -> WinVoidPointer)
- *   - T_PTR (ptr-sized int)  -> WinTPtr                 (INT_PTR -> WinIntPtr)
- *   - LPSTR / LPWSTR / ...   -> WinAString / WinWString / ...
+ *   - PT / LPT (pointer-to)  -> TPointer / TPointer  (PVOID -> VoidPointer)
+ *   - T_PTR (ptr-sized int)  -> TPtr                 (INT_PTR -> IntPtr)
+ *   - LPSTR / LPWSTR / ...   -> AString / WString / ...
  *   - Cryptic abbreviations  expanded (Wnd, Dc, Glrc, ...)
- *
- * Convention for the Win prefix:
- *   - Primitives, explicit-width ints, pointer-sized ints, raw-pointer
- *     aliases, and raw-string aliases all carry Win to disambiguate from
- *     stdx::core wrapper classes (Boolean, Byte, Short, Long, Float, ...)
- *     and from generic spellings (AString, IntPtr, VoidPointer).
  *   - Handles, callbacks, MSG/security/structure aliases stay unprefixed
  *     since their names (WindowHandle, Overlapped, FileTime, WindowProc, ...)
  *     already self-identify as Win32.
@@ -48,89 +42,89 @@ export namespace stdx::os::win32 {
 
     #if defined(_WIN32) && __has_include(<windows.h>)
     // Primitive integers and characters
-    using WinBool = ::BOOL;
-    using WinBoolean = ::BOOLEAN;
-    using WinChar = ::CHAR;
-    using WinShort = ::SHORT;
-    using WinInt = ::INT;
-    using WinLong = ::LONG;
-    using WinLongLong = ::LONGLONG;
-    using WinUChar = ::UCHAR;
-    using WinUShort = ::USHORT;
-    using WinUInt = ::UINT;
-    using WinULong = ::ULONG;
-    using WinULongLong = ::ULONGLONG;
-    using WinByte = ::BYTE;
-    using WinWord = ::WORD;
-    using WinDWord = ::DWORD;
-    using WinDWordLong = ::DWORDLONG;
-    using WinQWord = ::DWORDLONG;
-    using WinWChar = ::WCHAR;
-    using WinFloat = ::FLOAT;
-    using WinAtom = ::ATOM;
-    using WinVoid = ::VOID;
+    using Bool = ::BOOL;
+    using Boolean = ::BOOLEAN;
+    using Char = ::CHAR;
+    using Short = ::SHORT;
+    using Int = ::INT;
+    using Long = ::LONG;
+    using LongLong = ::LONGLONG;
+    using UChar = ::UCHAR;
+    using UShort = ::USHORT;
+    using UInt = ::UINT;
+    using ULong = ::ULONG;
+    using ULongLong = ::ULONGLONG;
+    using Byte = ::BYTE;
+    using Word = ::WORD;
+    using DWord = ::DWORD;
+    using DWordLong = ::DWORDLONG;
+    using QWord = ::DWORDLONG;
+    using WChar = ::WCHAR;
+    using Float = ::FLOAT;
+    using Atom = ::ATOM;
+    using Void = ::VOID;
 
     // Explicit-width integers
-    using WinInt8 = ::INT8;
-    using WinInt16 = ::INT16;
-    using WinInt32 = ::INT32;
-    using WinInt64 = ::INT64;
-    using WinUInt8 = ::UINT8;
-    using WinUInt16 = ::UINT16;
-    using WinUInt32 = ::UINT32;
-    using WinUInt64 = ::UINT64;
-    using WinLong32 = ::LONG32;
-    using WinLong64 = ::LONG64;
-    using WinULong32 = ::ULONG32;
-    using WinULong64 = ::ULONG64;
-    using WinDWord32 = ::DWORD32;
-    using WinDWord64 = ::DWORD64;
+    using Int8 = ::INT8;
+    using Int16 = ::INT16;
+    using Int32 = ::INT32;
+    using Int64 = ::INT64;
+    using UInt8 = ::UINT8;
+    using UInt16 = ::UINT16;
+    using UInt32 = ::UINT32;
+    using UInt64 = ::UINT64;
+    using Long32 = ::LONG32;
+    using Long64 = ::LONG64;
+    using ULong32 = ::ULONG32;
+    using ULong64 = ::ULONG64;
+    using DWord32 = ::DWORD32;
+    using DWord64 = ::DWORD64;
 
     // Pointer-sized integers (Win32 _PTR types; matches C# IntPtr convention)
-    using WinIntPtr = ::INT_PTR;
-    using WinUIntPtr = ::UINT_PTR;
-    using WinLongPtr = ::LONG_PTR;
-    using WinULongPtr = ::ULONG_PTR;
-    using WinDWordPtr = ::DWORD_PTR;
-    using WinHalfPtr = ::HALF_PTR;
-    using WinUHalfPtr = ::UHALF_PTR;
-    using WinSizeT = ::SIZE_T;
-    using WinSSizeT = ::SSIZE_T;
+    using IntPtr = ::INT_PTR;
+    using UIntPtr = ::UINT_PTR;
+    using LongPtr = ::LONG_PTR;
+    using ULongPtr = ::ULONG_PTR;
+    using DWordPtr = ::DWORD_PTR;
+    using HalfPtr = ::HALF_PTR;
+    using UHalfPtr = ::UHALF_PTR;
+    using SizeT = ::SIZE_T;
+    using SSizeT = ::SSIZE_T;
 
     // Pointer-to-T (collapsed PXxx / LPXxx aliases)
-    using WinVoidPointer = ::PVOID;
-    using WinConstVoidPointer = ::LPCVOID;
-    using WinBoolPointer = ::PBOOL;
-    using WinBooleanPointer = ::PBOOLEAN;
-    using WinBytePointer = ::PBYTE;
-    using WinCharPointer = ::PCHAR;
-    using WinWCharPointer = ::PWCHAR;
-    using WinShortPointer = ::PSHORT;
-    using WinIntPointer = ::PINT;
-    using WinUIntPointer = ::PUINT;
-    using WinLongPointer = ::PLONG;
-    using WinULongPointer = ::PULONG;
-    using WinLongLongPointer = ::PLONGLONG;
-    using WinULongLongPointer = ::PULONGLONG;
-    using WinWordPointer = ::PWORD;
-    using WinDWordPointer = ::PDWORD;
-    using WinDWord64Pointer = ::PDWORD64;
-    using WinULong64Pointer = ::PULONG64;
-    using WinDWordLongPointer = ::PDWORDLONG;
-    using WinFloatPointer = ::PFLOAT;
-    using WinHandlePointer = ::PHANDLE;
-    using WinDWordPtrPointer = ::PDWORD_PTR;
-    using WinSizeTPointer = ::PSIZE_T;
+    using VoidPointer = ::PVOID;
+    using ConstVoidPointer = ::LPCVOID;
+    using BoolPointer = ::PBOOL;
+    using BooleanPointer = ::PBOOLEAN;
+    using BytePointer = ::PBYTE;
+    using CharPointer = ::PCHAR;
+    using WCharPointer = ::PWCHAR;
+    using ShortPointer = ::PSHORT;
+    using IntPointer = ::PINT;
+    using UIntPointer = ::PUINT;
+    using LongPointer = ::PLONG;
+    using ULongPointer = ::PULONG;
+    using LongLongPointer = ::PLONGLONG;
+    using ULongLongPointer = ::PULONGLONG;
+    using WordPointer = ::PWORD;
+    using DWordPointer = ::PDWORD;
+    using DWord64Pointer = ::PDWORD64;
+    using ULong64Pointer = ::PULONG64;
+    using DWordLongPointer = ::PDWORDLONG;
+    using FloatPointer = ::PFLOAT;
+    using HandlePointer = ::PHANDLE;
+    using DWordPtrPointer = ::PDWORD_PTR;
+    using SizeTPointer = ::PSIZE_T;
 
     // Null-terminated raw string buffers
-    using WinAString = ::LPSTR;
-    using WinConstAString = ::LPCSTR;
-    using WinWString = ::LPWSTR;
-    using WinConstWString = ::LPCWSTR;
-    using WinTString = ::LPTSTR;
-    using WinConstTString = ::LPCTSTR;
-    using WinTChar = ::TCHAR;
-    using WinTByte = ::TBYTE;
+    using AString = ::LPSTR;
+    using ConstAString = ::LPCSTR;
+    using WString = ::LPWSTR;
+    using ConstWString = ::LPCWSTR;
+    using TString = ::LPTSTR;
+    using ConstTString = ::LPCTSTR;
+    using TChar = ::TCHAR;
+    using TByte = ::TBYTE;
 
     // Handles
     using Handle = ::HANDLE;

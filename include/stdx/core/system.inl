@@ -41,7 +41,11 @@ export namespace stdx::core {
         static constexpr auto HUGE_VALL = ::stdx::core::HUGE_VALL;
         static constexpr auto INFINITY = ::stdx::core::INFINITY;
         static constexpr auto NAN = ::stdx::core::NAN;
+        #ifdef __APPLE__
+        static inline const int MATH_ERRHANDLING = ::stdx::core::MATH_ERRHANDLING;
+        #else
         static constexpr auto MATH_ERRHANDLING = ::stdx::core::MATH_ERRHANDLING;
+        #endif
         static constexpr auto MATH_ERRNO = ::stdx::core::MATH_ERRNO;
         static constexpr auto MATH_ERREXCEPT = ::stdx::core::MATH_ERREXCEPT;
         static constexpr auto FP_NORMAL = ::stdx::core::FP_NORMAL;
@@ -284,9 +288,18 @@ export namespace stdx::core {
         [[nodiscard]]
         static String local_timestamp() {
             Instant<SystemClock> now = SystemClock::now();
+            #if __cpp_lib_chrono >= 201907L
             LocalTime<Seconds> currentTime = stdx::time::current_zone()
                 ->to_local(stdx::time::floor<Seconds>(now));
             return Ops::fmt("{:%Y-%m-%d %H:%M:%S}", currentTime);
+            #else
+            // libc++ ships no time-zone database yet; fall back to the C
+            // library's local-time conversion.
+            std::time_t time = SystemClock::to_time_t(now);
+            char buffer[32]{};
+            std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
+            return String{buffer};
+            #endif
         }
 
         [[nodiscard]]

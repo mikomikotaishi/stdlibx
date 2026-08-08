@@ -1,3 +1,5 @@
+#include <version>
+
 import stdx;
 
 using stdx::collections::Vector;
@@ -6,6 +8,7 @@ using stdx::io::Scanner;
 
 using namespace stdx::test;
 
+#ifdef __cpp_lib_generator
 void test_lines_splits_input() {
     InputStringStream in("line one\nline two\nline three");
     Scanner sc(in);
@@ -66,12 +69,17 @@ void test_empty_input_yields_nothing() {
     }
     expect_eq(token_count, 0uz, "tokens() over empty input yields nothing");
 }
+#endif
 
 int main(int argc, char* argv[]) {
+    #ifdef __cpp_lib_generator
     return run(argc, argv, {
         {"Scanner.lines_splits_input", test_lines_splits_input},
         {"Scanner.tokens_splits_on_whitespace", test_tokens_splits_on_whitespace},
         {"Scanner.tokens_lazily_consumable", test_tokens_is_lazily_consumable},
         {"Scanner.empty_input_yields_nothing", test_empty_input_yields_nothing},
     });
+    #else
+
+    #endif
 }

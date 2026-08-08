@@ -42,15 +42,15 @@ void describe(const Path& path) {
     try {
         stream = AudioSystem::open_audio_file(path);
     } catch (const UnsupportedAudioFileException& e) {
-        System::out.println("decodes {}: failed", path);
+        System::out.println("decodes {}: failed", path.string());
         System::err.println("       reason: {}", e.what());
         return;
     } catch (const AudioException& e) {
-        System::out.println("opens {}: failed", path);
+        System::out.println("opens {}: failed", path.string());
         System::err.println("       reason: {}", e.what());
         return;
     }
-    System::out.println("opens {}: ok", path);
+    System::out.println("opens {}: ok", path.string());
 
     const AudioFormat fmt = stream->format();
     const u64 total = stream->total_frames();
@@ -92,7 +92,7 @@ void play(const Path& path, i64 max_seconds) {
     try {
         stream = AudioSystem::open_audio_file(path);
     } catch (const AudioException& e) {
-        System::err.println("Cannot decode {}: {}", path, e.what());
+        System::err.println("Cannot decode {}: {}", path.string(), e.what());
         return;
     }
     const u64 total = stream->total_frames();
@@ -100,10 +100,10 @@ void play(const Path& path, i64 max_seconds) {
     const f64 length = static_cast<f64>(total) / static_cast<f64>(rate);
     if (max_seconds > 0 && static_cast<f64>(max_seconds) < length) {
         System::out.println(
-            "Playing {} (first {}s of {:.2f}s)…", path, max_seconds, length
+            "Playing {} (first {}s of {:.2f}s)…", path.string(), max_seconds, length
         );
     } else {
-        System::out.println("Playing {} ({:.2f}s)…", path, length);
+        System::out.println("Playing {} ({:.2f}s)…", path.string(), length);
     }
     try {
         Clip clip{Ops::move(stream)};
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     Path path(parser.get("--file"));
     if (!path.empty()) {
         if (!stdx::fs::exists(path)) {
-            System::err.println("File not found: {}", path);
+            System::err.println("File not found: {}", path.string());
             return System::EXIT_FAILURE;
         }
     } else {
