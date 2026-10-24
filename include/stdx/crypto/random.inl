@@ -32,7 +32,7 @@ export namespace stdx::crypto {
          * is used directly with appropriate scaling.
          */
         template <Numeric T>
-            requires (!SameAs<T, bool>)
+            requires (NotSameAs<T, bool>)
         [[nodiscard]]
         THROWS(InvalidArgumentException)
         T next(T min, T max) {
@@ -82,7 +82,7 @@ export namespace stdx::crypto {
          * @throws InvalidArgumentException if {@code max <= 0}.
          */
         template <Integral Int>
-            requires (!SameAs<Int, bool>)
+            requires (NotSameAs<Int, bool>)
         [[nodiscard]]
         THROWS(InvalidArgumentException)
         Int next(Int max = NumericLimits<Int>::max()) {

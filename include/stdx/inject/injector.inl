@@ -242,15 +242,15 @@ namespace stdx::inject {
      */
     consteval Optional<Annotation> find_qualifier(const Parameter& parameter) {
         Optional<Annotation> found;
-        for (Annotation annotation: parameter.annotations()) {
-            if (reflect::annotations_of_with_type(reflect::remove_cv(annotation.type()), ^^QualifierAnnotation).empty()) {
+        for (Annotation ann: parameter.annotations()) {
+            if (reflect::annotations_of_with_type(reflect::remove_cv(ann.type()), ^^QualifierAnnotation).empty()) {
                 continue;
             }
             if (found.has_value()) {
                 throw ReflectiveOperationException("Multiple qualifier annotations on parameter", parameter);
             }
             // Annotation's const Info member deletes assignment; construct in place.
-            found.emplace(annotation);
+            found.emplace(ann);
         }
         return found;
     }
@@ -268,15 +268,15 @@ namespace stdx::inject {
     template <typename T>
     consteval bool is_singleton_scoped() {
         bool found = false;
-        for (Annotation annotation: Class<T>().annotations()) {
-            if (reflect::annotations_of_with_type(reflect::remove_cv(annotation.type()), ^^ScopeAnnotation).empty()) {
+        for (Annotation ann: Class<T>().annotations()) {
+            if (reflect::annotations_of_with_type(reflect::remove_cv(ann.type()), ^^ScopeAnnotation).empty()) {
                 continue;
             }
             if (found) {
                 throw ReflectiveOperationException("Multiple scope annotations on class", ^^T);
             }
             found = true;
-            if (reflect::remove_cv(annotation.type()) != ^^SingletonAnnotation) {
+            if (reflect::remove_cv(ann.type()) != ^^SingletonAnnotation) {
                 throw ReflectiveOperationException("Unsupported scope annotation", ^^T);
             }
         }
@@ -365,8 +365,8 @@ namespace stdx::inject {
                 // Rebuild the wrapper from its scalar Info: copying the wrapper
                 // straight out of the transient Optional is not a constant expression.
                 constexpr Annotation annotation = Annotation(find_qualifier(p)->value());
-                using AnnotationType = [:reflect::remove_cv(annotation.type()):];
-                constexpr AnnotationType value = annotation.as<AnnotationType>();
+                using Ann = [:reflect::remove_cv(annotation.type()):];
+                constexpr Ann value = annotation.as<Ann>();
                 annotations[i] = AnnotationKey(value);
             }
             ++i;

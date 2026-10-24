@@ -258,7 +258,7 @@ export namespace stdx::core {
         }
 
         template <typename T, typename U>
-            requires (!SameAs<T, U>) && CompatibleNumeric<T, U>
+            requires (NotSameAs<T, U>) && CompatibleNumeric<T, U>
         [[nodiscard]]
         static constexpr CommonTypeType<T, U> max(T a, U b) noexcept {
             using Common = CommonTypeType<T, U>;
@@ -296,7 +296,7 @@ export namespace stdx::core {
         }
 
         template <typename T, typename U>
-            requires (!SameAs<T, U>) && CompatibleNumeric<T, U>
+            requires (NotSameAs<T, U>) && CompatibleNumeric<T, U>
         [[nodiscard]]
         static constexpr CommonTypeType<T, U> min(T a, U b) noexcept {
             using Common = CommonTypeType<T, U>;
@@ -334,7 +334,7 @@ export namespace stdx::core {
         }
 
         template <typename T, typename U>
-            requires (!SameAs<T, U>) && CompatibleNumeric<T, U>
+            requires (NotSameAs<T, U>) && CompatibleNumeric<T, U>
         [[nodiscard]]
         static constexpr Pair<CommonTypeType<T, U>, CommonTypeType<T, U>> minmax(T a, U b) noexcept {
             using Common = CommonTypeType<T, U>;

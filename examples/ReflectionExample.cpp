@@ -24,7 +24,7 @@ using stdx::meta::reflect::Type;
 using stdx::util::ArgumentParser;
 using stdx::util::CommandLineParserException;
 using stdx::util::Description;
-using stdx::util::Env;
+using stdx::util::EnvVar;
 using stdx::util::ShortName;
 
 namespace reflect = stdx::meta::reflect;
@@ -133,7 +133,7 @@ struct BasicOptions {
  * @brief Options with environment variable fallbacks.
  */
 struct EnvOptions {
-    [[=Env<"REFTEST_TOKEN">()]]
+    [[=EnvVar<"REFTEST_TOKEN">()]]
     String token = "default-token";
 };
 
@@ -142,7 +142,7 @@ struct EnvOptions {
  * @brief Options with a required environment variable (no default value).
  */
 struct EnvRequired {
-    [[=Env<"REFTEST_MISSING">()]]
+    [[=EnvVar<"REFTEST_MISSING">()]]
     String value;
 };
 #endif

@@ -331,8 +331,8 @@ export namespace stdx::sql {
                 T row{};
                 i32 column = 1;
                 template for (constexpr Field field: Ops::static_array(Class<T>().fields(ctx))) {
-                    using MemberType = typename [:field.type().value():];
-                    if (Optional<MemberType> value = rs.get<MemberType>(column); value.has_value()) {
+                    using Mem = typename [:field.type().value():];
+                    if (Optional<Mem> value = rs.get<Mem>(column); value.has_value()) {
                         row.[:field.value():] = *value;
                     }
                     ++column;

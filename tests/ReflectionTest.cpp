@@ -37,7 +37,7 @@ using stdx::meta::reflect::Variable;
 using stdx::util::ArgumentParser;
 using stdx::util::CommandLineParserException;
 using stdx::util::Description;
-using stdx::util::Env;
+using stdx::util::EnvVar;
 using stdx::util::ShortName;
 
 namespace reflect = stdx::meta::reflect;
@@ -195,12 +195,12 @@ struct BasicOptions {
 };
 
 struct EnvOptions {
-    [[=Env<"REFTEST_TOKEN">()]]
+    [[=EnvVar<"REFTEST_TOKEN">()]]
     String token = "default-token";
 };
 
 struct EnvRequired {
-    [[=Env<"REFTEST_MISSING">()]]
+    [[=EnvVar<"REFTEST_MISSING">()]]
     String value;
 };
 

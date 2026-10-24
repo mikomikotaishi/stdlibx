@@ -41,6 +41,8 @@ using namespace stdx::core;
 using namespace stdx::literals;
 
 #include "stdx/meta/type_traits.inl"
+#include "stdx/meta/fixed_string.inl"
+#include "stdx/meta/specialization.inl"
 #include "stdx/meta/typeindex.inl"
 #include "stdx/meta/typeinfo.inl"
 
@@ -276,6 +278,15 @@ using namespace stdx::literals;
 #include "stdx/util/logging/level.inl"
 #include "stdx/util/logging/sinks.inl"
 #include "stdx/util/logging/logger.inl"
+
+#include "stdx/json/exceptions.inl"
+#include "stdx/json/value.inl"
+#include "stdx/json/parser.inl"
+#include "stdx/json/serializer.inl"
+#include "stdx/json/pointer.inl"
+#include "stdx/json/serde.inl"
+#include "stdx/json/builder.inl"
+#include "stdx/json/formatter.inl"
 
 #include "stdx/test/assertions.inl"
 #include "stdx/test/runner.inl"

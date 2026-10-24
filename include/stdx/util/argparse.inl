@@ -33,9 +33,7 @@ using namespace stdx::literals;
 
 namespace stdx::util {
     template <typename T>
-    concept Collection = !SameAs<T, String> 
-        && !SameAs<T, StringView>
-        && requires (T t) {
+    concept Collection = NotAnyOf<T, String, StringView> && requires (T t) {
         typename T::value_type;
         { t.begin() } -> InputIterator;
         { t.end() } -> InputIterator;
@@ -2010,7 +2008,7 @@ export namespace stdx::util {
          * fresh instance - the declarative counterpart to parse_args().
          *
          * Describe the arguments as the fields of @p T, optionally decorating them
-         * with the ShortName / Description / Env annotations; see
+         * with the ShortName / Description / EnvVar annotations; see
          * argparse.annotations.inl for the field-to-flag and annotation conventions.
          *
          * @tparam T A reflectable, default-constructible struct describing the args.

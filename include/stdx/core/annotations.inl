@@ -42,5 +42,5 @@ export namespace stdx::core {
      * is wanted and {@code Throws<Es...>} where the annotation is.
      */
     template <Extends<Exception>... Es>
-    inline constexpr ThrowsAnnotation<Es...> Throws{};
+    inline constexpr ThrowsAnnotation<Es...> Throws = {};
 }

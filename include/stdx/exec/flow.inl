@@ -72,7 +72,7 @@ namespace stdx::exec {
      * @tparam S The Sender type.
      */
     template <typename S>
-    concept SingleValued = Sender<S> && !SameAs<SingleValueType<S>, NoSingleValue>;
+    concept SingleValued = Sender<S> && NotSameAs<SingleValueType<S>, NoSingleValue>;
 
     /**
      * @concept Thenable
