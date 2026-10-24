@@ -1,7 +1,17 @@
 import stdx;
 
 using stdx::time::DateTimeException;
+using stdx::time::Day;
+using stdx::time::January;
+using stdx::time::Last;
+using stdx::time::Month;
+using stdx::time::MonthDay;
+using stdx::time::SystemDays;
 using stdx::time::Weekday;
+using stdx::time::Year;
+using stdx::time::YearMonth;
+using stdx::time::YearMonthDay;
+using stdx::time::YearMonthDayLast;
 using stdx::time::chrono::ChineseChronology;
 using stdx::time::chrono::ChineseDate;
 using stdx::time::chrono::ChineseDateComponents;
@@ -333,6 +343,62 @@ void test_date_arithmetic() {
     expect(a.to_epoch_day() < b.plus_days(1).to_epoch_day(), "ISO date precedes its Hijrah conversion + 1 day");
 }
 
+void test_operator_slash() {
+    const YearMonthDay ymd = 2024y / Month::OCTOBER / 27;
+    expect(ymd.ok(), "2024y/October/27 is a valid date");
+    expect_eq(static_cast<i32>(ymd.year()), 2024, "the year component is 2024");
+    expect_eq(static_cast<u32>(ymd.month()), 10u, "the month component is October");
+    expect_eq(static_cast<u32>(ymd.day()), 27u, "the day component is 27");
+
+    const YearMonthDay year_first = 2024y / Month::OCTOBER / 27d;
+    const YearMonthDay month_first = Month::OCTOBER / 27 / 2024;
+    const YearMonthDay day_first = 27d / Month::OCTOBER / 2024;
+    expect_eq(year_first, month_first, "y/m/d equals m/d/y");
+    expect_eq(year_first, day_first, "y/m/d equals d/m/y");
+
+    const YearMonth ym = 2024y / Month::OCTOBER;
+    const MonthDay md = Month::OCTOBER / 27;
+    expect_eq(ym / 27, year_first, "a YearMonth finished with a day matches the whole date");
+    expect_eq(ym / 27d, year_first, "a YearMonth finished with a Day literal matches too");
+    expect_eq(static_cast<u32>(md.month()), 10u, "a MonthDay keeps its month");
+    expect_eq(static_cast<u32>(md.day()), 27u, "a MonthDay keeps its day");
+
+    const YearMonthDayLast ymdl = 2024y / Month::FEBRUARY / Last;
+    const YearMonthDay leap_eom(ymdl);
+    expect_eq(static_cast<u32>(leap_eom.day()), 29u, "February 2024 ends on the 29th (leap year)");
+    expect_eq(static_cast<u32>((2023y / Month::FEBRUARY / Last).day()), 28u, "February 2023 ends on the 28th");
+
+    const IsoDate from_slash = IsoDate::from_sys_days(SystemDays(2024y / Month::OCTOBER / 27));
+    expect_eq(from_slash, IsoChronology::of(2024, 10, 27), "2024y/October/27 round-trips to an IsoDate");
+    expect_eq(from_slash.to_ymd(), year_first, "IsoDate::to_ymd round-trips back to the operator/ date");
+
+    expect_eq(2025y / January / 1, 2025y / Month::JANUARY / 1, "free January equals scoped Month::JANUARY");
+}
+
+void test_factory_month_constants() {
+    expect_eq(IsoChronology::of(2025y, January, 1d), IsoChronology::of(2025, 1, 1), "free January feeds the Iso factory");
+    expect_eq(
+        IsoChronology::of(2025y, January, 1d),
+        IsoChronology::of(2025y, Month::JANUARY, 1d),
+        "free January and scoped Month::JANUARY produce equal Iso dates"
+    );
+
+    expect_eq(
+        HijrahChronology::of(1445y, Month::SEPTEMBER, 1d),
+        HijrahChronology::of(1445, 9, 1),
+        "the typed factory matches the integer factory for Hijrah"
+    );
+
+    expect(
+        same_weekday(IsoChronology::of(2025, 1, 1).day_of_week(), Weekday::WEDNESDAY),
+        "2025-01-01 falls on a Wednesday"
+    );
+    expect(
+        same_weekday(IsoChronology::of(2024, 10, 27).day_of_week(), Weekday::SUNDAY),
+        "2024-10-27 falls on a Sunday"
+    );
+}
+
 int main(int argc, char* argv[]) {
     return run(argc, argv, {
         {"Chrono.iso", test_iso_chronology},
@@ -347,5 +413,7 @@ int main(int argc, char* argv[]) {
         {"Chrono.day_of_week", test_day_of_week},
         {"Chrono.date_ordering", test_date_ordering},
         {"Chrono.date_arithmetic", test_date_arithmetic},
+        {"Chrono.operator_slash", test_operator_slash},
+        {"Chrono.factory_month_constants", test_factory_month_constants},
     });
 }

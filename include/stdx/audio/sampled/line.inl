@@ -7,7 +7,7 @@
 export namespace stdx::audio::sampled {
     /**
      * @brief Render callback invoked by the backend each time more output
-     *        frames are needed. Fill @p out with interleaved float samples.
+     * frames are needed. Fill @p out with interleaved float samples.
      *
      * The callback runs on the backend's audio thread (CoreAudio HAL thread /
      * WASAPI event thread / ALSA poll thread). Do not block, allocate, or
@@ -17,7 +17,7 @@ export namespace stdx::audio::sampled {
 
     /**
      * @brief Capture callback. @p in contains the most recently captured
-     *        interleaved float frames.
+     * interleaved float frames.
      */
     using CaptureCallback = Function<void(Span<const f32> in, AudioTime time)>;
 

@@ -82,9 +82,9 @@ export namespace stdx::sql {
         explicit ResultSet(SQLHSTMT stmt, bool scrollable = false):
             _stmt{stmt}, _last_indicator{0}, _column_count{0}, _scrollable{scrollable}, _closed{false} {
             SQLSMALLINT col_count;
-            SQLRETURN ret = SQLNumResultCols(this->_stmt, &col_count);
+            SQLRETURN ret = SQLNumResultCols(_stmt, &col_count);
             if (!SQL_SUCCEEDED(ret)) {
-                throw_sql_exception(SQL_HANDLE_STMT, this->_stmt, "Failed to get column count");
+                throw_sql_exception(SQL_HANDLE_STMT, _stmt, "Failed to get column count");
             }
             _column_count = static_cast<i16>(col_count);
         }

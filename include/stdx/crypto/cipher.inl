@@ -162,8 +162,8 @@ export namespace stdx::crypto {
                 throw InvalidKeyException("Invalid SecretBox key size");
             }
 
-            this->_mode = mode;
-            this->_key = key;
+            _mode = mode;
+            _key = key;
             _initialized = true;
         }
 

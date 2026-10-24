@@ -135,15 +135,8 @@ export namespace stdx::core {
     using RandomAccessIteratorTag = std::random_access_iterator_tag;
     using ContiguousIteratorTag = std::contiguous_iterator_tag;
 
-    template <typename Iterable>
-        requires
-            (requires { typename Iterable::iterator; }) ||
-            (requires { typename Iterable::Iterator; })
-    using Iterator = ::stdx::meta::ConditionalType<
-        (requires { typename Iterable::Iterator; }),
-        typename Iterable::Iterator,
-        typename Iterable::iterator
-    >;
+    template <typename Iter>
+    using Iterator = std::ranges::iterator_t<Iter>;
 
     template <typename Iter>
     using ReverseIterator = std::reverse_iterator<Iter>;

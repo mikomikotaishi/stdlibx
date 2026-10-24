@@ -14,16 +14,13 @@ export import :foundation;
 export import :main;
 export import :arch;
 export import :crypto;
-export import :csv;
 export import :exec;
 export import :ffi;
 export import :gsl;
-export import :json;
 export import :lua;
 export import :math.gmp;
 export import :os;
 export import :sql;
-export import :xml;
 export import :zip;
 
 #if defined(STDLIBX_IMPLICIT_USING_CORE)

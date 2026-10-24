@@ -422,6 +422,44 @@ export namespace stdx::time {
         return static_cast<Weekday::Self>(w1) - static_cast<Weekday::Self>(w2);
     }
 
+    // Calendar construction via operator/, mirroring std::chrono's syntax
+    // (e.g. 2024y/October/27d, October/27/2024, 2024y/October/Last).
+    //
+    // These overloads exist because stdx::time::Month is a wrapper class, not
+    // a plain alias to std::chrono::month, so std's own operator/ set (pulled
+    // in below) does not accept it directly. Each overload unwraps the Month
+    // to its std::chrono::month Self and defers to the standard operators,
+    // which already produce YearMonth / MonthDay / YearMonthDay and their
+    // *Last variants.
+
+    // Year-first forms: y / m, then / d (or / last).
+    [[nodiscard]]
+    constexpr YearMonth operator/(const Year& y, const Month& m) noexcept {
+        return y / static_cast<Month::Self>(m);
+    }
+
+    // Month-first forms: m / d, then / y.
+    [[nodiscard]]
+    constexpr MonthDay operator/(const Month& m, const Day& d) noexcept {
+        return static_cast<Month::Self>(m) / d;
+    }
+
+    [[nodiscard]]
+    constexpr MonthDay operator/(const Month& m, int d) noexcept {
+        return static_cast<Month::Self>(m) / d;
+    }
+
+    [[nodiscard]]
+    constexpr MonthDayLast operator/(const Month& m, LastSpecifier last) noexcept {
+        return static_cast<Month::Self>(m) / last;
+    }
+
+    // Day-first forms: d / m, then / y.
+    [[nodiscard]]
+    constexpr MonthDay operator/(const Day& d, const Month& m) noexcept {
+        return d / static_cast<Month::Self>(m);
+    }
+
     using std::chrono::operator+;
     using std::chrono::operator-;
     using std::chrono::operator*;
@@ -434,6 +472,18 @@ export namespace stdx::time {
     using std::chrono::operator>=;
     using std::chrono::operator<=>;
     using std::chrono::operator<<;
+
+    // Calendar literals: 2024y is a Year, 27d is a Day. We re-export the
+    // standard library's chrono literals, which already return
+    // std::chrono::year and std::chrono::day -- exactly the types our Year and
+    // Day aliases name. Re-exporting (rather than defining new _y / _d
+    // suffixes) keeps the spelling identical to std::chrono.
+    inline namespace literals {
+        inline namespace chrono_literals {
+            using std::literals::chrono_literals::operator""d;
+            using std::literals::chrono_literals::operator""y;
+        }
+    }
 }
 
 using stdx::time::Month;
@@ -441,26 +491,10 @@ using stdx::time::Weekday;
 
 namespace stdx::fmt {
     template <>
-    struct Formatter<Month> {
-        constexpr auto parse(FormatParseContext& ctx) noexcept {
-            return ctx.begin();
-        }
-
-        auto format(const Month& m, FormatContext& ctx) const {
-            return format_to(ctx.out(), "{}", static_cast<Month::Self>(m));
-        }
-    };
+    struct Formatter<Month>: public formatter<Month::Self> {};
 
     template <>
-    struct Formatter<Weekday> {
-        constexpr auto parse(FormatParseContext& ctx) noexcept {
-            return ctx.begin();
-        }
-
-        auto format(const Weekday& w, FormatContext& ctx) const {
-            return format_to(ctx.out(), "{}", static_cast<Weekday::Self>(w));
-        }
-    };
+    struct Formatter<Weekday>: public formatter<Weekday::Self> {};
 }
 
 template <>

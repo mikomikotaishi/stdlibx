@@ -1,7 +1,11 @@
 #pragma once
 
+using stdx::meta::FixedString;
+
 #ifdef __cpp_lib_reflection
 using stdx::collections::Vector;
+using stdx::meta::IsOptional;
+using stdx::meta::OptionalValueType;
 using stdx::meta::RemoveConstVolatileReferenceType;
 using stdx::meta::reflect::AccessContext;
 using stdx::meta::reflect::Annotation;
@@ -10,49 +14,6 @@ using stdx::meta::reflect::Field;
 using stdx::meta::reflect::ReflectableAsClass;
 
 namespace stdx::util {
-    /**
-     * @brief Compile-time string usable as a non-type template parameter, so a
-     * string literal can ride along in an annotation (e.g. Description<"...">).
-     * @tparam N Length of the source literal, including its terminating NUL.
-     */
-    template <usize N>
-    struct FixedString {
-        char data[N] = {};
-
-        consteval FixedString(const char (&str)[N]) noexcept {
-            for (usize i = 0; i < N; ++i) {
-                data[i] = str[i];
-            }
-        }
-
-        [[nodiscard]]
-        consteval StringView view() const noexcept {
-            return StringView(data, N - 1);
-        }
-    };
-
-    template <typename T>
-    constexpr bool IsOptionalValue = false;
-
-    template <typename U>
-    constexpr bool IsOptionalValue<Optional<U>> = true;
-
-    /**
-     * @concept IsOptional
-     * @brief Satisfied by stdx::Optional specializations. Such fields are left
-     * empty (rather than required) when the argument is absent.
-     */
-    template <typename T>
-    concept IsOptional = IsOptionalValue<T>;
-
-    template <typename T>
-    struct OptionalValueType {};
-
-    template <typename U>
-    struct OptionalValueType<Optional<U>> {
-        using Value = U;
-    };
-
     /**
      * @brief argv[1..] as a list of views. argv[0] (the program name) is dropped.
      */
@@ -166,8 +127,8 @@ namespace stdx::util {
         return String(value);
     }
 
-    template <typename T>
-        requires (Integral<T> && !SameAs<T, bool>)
+    template <Integral T>
+        requires (NotSameAs<T, bool>)
     [[=Throws<InvalidArgumentException, InvalidRangeException>]]
     T convert_value(StringView value) {
         return from_chars<T, 10uz>(value);
@@ -189,8 +150,8 @@ namespace stdx::util {
         return "string";
     }
 
-    template <typename T>
-        requires (Integral<T> && !SameAs<T, bool>)
+    template <Integral T>
+        requires (NotSameAs<T, bool>)
     constexpr StringView friendly_type_name() noexcept {
         return "number";
     }
@@ -245,13 +206,13 @@ export namespace stdx::util {
     struct Description: TextAnnotation<S> {};
 
     /**
-     * @struct Env
+     * @struct EnvVar
      * @brief An annotation to name an environment variable to consult when the
      * argument is not passed on the command line.
      * @tparam S The environment variable name as a compile-time string.
      */
     template <FixedString S>
-    struct Env: TextAnnotation<S> {};
+    struct EnvVar: TextAnnotation<S> {};
 
     /**
      * @concept IsShortName
@@ -272,13 +233,13 @@ export namespace stdx::util {
         && SameAs<RemoveConstVolatileReferenceType<T>, Description<T::descriptor()>>;
 
     /**
-     * @concept IsEnv
-     * @brief Satisfied by any Env specialization.
+     * @concept IsEnvVar
+     * @brief Satisfied by any EnvVar specialization.
      * @tparam T The annotation type to check.
      */
     template <typename T>
-    concept IsEnv = requires { T::descriptor(); }
-        && SameAs<RemoveConstVolatileReferenceType<T>, Env<T::descriptor()>>;
+    concept IsEnvVar = requires { T::descriptor(); }
+        && SameAs<RemoveConstVolatileReferenceType<T>, EnvVar<T::descriptor()>>;
 
     template <ReflectableAsClass T>
     [[=Throws<CommandLineParserException, InvalidArgumentException, InvalidRangeException>]]
@@ -307,20 +268,20 @@ export namespace stdx::util {
         T result;
 
         template for (constexpr Field field: Ops::static_array(Class<T>().fields(ctx))) {
-            using MemberType = typename [:field.type().value():];
+            using Mem = typename [:field.type().value():];
 
             Optional<String> short_flag;
             Optional<String> env_name;
 
             template for (constexpr Annotation ann: Ops::static_array(field.annotations())) {
-                using AnnotationType = typename [:ann.type().value():];
-                if constexpr (IsShortName<AnnotationType>) {
+                using Ann = typename [:ann.type().value():];
+                if constexpr (IsShortName<Ann>) {
                     if (short_flag.has_value()) {
                         throw CommandLineParserException("an argument may have at most one ShortName");
                     }
-                    short_flag = Ops::fmt("-{}", AnnotationType::letter);
-                } else if constexpr (IsEnv<AnnotationType>) {
-                    env_name = String(AnnotationType::str());
+                    short_flag = Ops::fmt("-{}", Ann::letter);
+                } else if constexpr (IsEnvVar<Ann>) {
+                    env_name = String(Ann::str());
                 }
             }
 
@@ -336,10 +297,10 @@ export namespace stdx::util {
                 );
             }
 
-            if constexpr (SameAs<MemberType, bool>) {
+            if constexpr (SameAs<Mem, bool>) {
                 result.[:field.value():] = long_index.has_value() || short_index.has_value();
             } else {
-                constexpr bool optional_field = IsOptional<MemberType>;
+                constexpr bool optional_field = IsOptional<Mem>;
                 constexpr bool defaulted_field = field.has_default_initializer();
                 static_assert(
                     !(optional_field && defaulted_field),
@@ -354,10 +315,10 @@ export namespace stdx::util {
                             Ops::fmt("missing value for {}", long_flag)
                         );
                     }
-                    result.[:field.value():] = convert_value<MemberType>(arguments[*index + 1]);
+                    result.[:field.value():] = convert_value<Mem>(arguments[*index + 1]);
                 } else if (env_name.has_value()) {
                     if (Optional<String> env_value = Environment::get(*env_name); env_value.has_value()) {
-                        result.[:field.value():] = convert_value<MemberType>(*env_value);
+                        result.[:field.value():] = convert_value<Mem>(*env_value);
                     } else if (!optional_field && !defaulted_field) {
                         throw CommandLineParserException(Ops::fmt(
                             "missing {} (environment variable {} is unset)", long_flag, *env_name
@@ -399,17 +360,17 @@ export namespace stdx::util {
         );
 
         template for (constexpr Field field: Ops::static_array(Class<T>().fields(ctx))) {
-            using MemberType = typename [:field.type().value():];
+            using Mem = typename [:field.type().value():];
 
             Optional<String> short_flag;
             Optional<StringView> description;
 
             template for (constexpr Annotation ann: Ops::static_array(field.annotations())) {
-                using AnnotationType = typename [:ann.type().value():];
-                if constexpr (IsShortName<AnnotationType>) {
-                    short_flag = Ops::fmt("-{}", AnnotationType::letter);
-                } else if constexpr (IsDescription<AnnotationType>) {
-                    description = AnnotationType::str();
+                using Ann = typename [:ann.type().value():];
+                if constexpr (IsShortName<Ann>) {
+                    short_flag = Ops::fmt("-{}", Ann::letter);
+                } else if constexpr (IsDescription<Ann>) {
+                    description = Ann::str();
                 }
             }
 
@@ -420,13 +381,13 @@ export namespace stdx::util {
                 out += Ops::fmt("  {}", long_flag);
             }
             out += Ops::fmt("\n      {}", description.value_or(""));
-            out += Ops::fmt("\n      [type: {}]", friendly_type_name<MemberType>());
+            out += Ops::fmt("\n      [type: {}]", friendly_type_name<Mem>());
 
-            if constexpr (IsOptional<MemberType>) {
+            if constexpr (IsOptional<Mem>) {
                 out += "\n      [optional]";
             }
             if constexpr (field.has_default_initializer()) {
-                if constexpr (requires (MemberType m) { Ops::fmt("{}", m); }) {
+                if constexpr (requires (Mem m) { Ops::fmt("{}", m); }) {
                     out += Ops::fmt("\n      [default: {}]", T().[:field.value():]);
                 } else {
                     out += "\n      [has default]";

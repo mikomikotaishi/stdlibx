@@ -13,6 +13,7 @@ using stdx::ranges::EmptyView;
 using stdx::ranges::ForwardRange;
 using stdx::ranges::RangeDifference;
 using stdx::ranges::RangeValue;
+using stdx::ranges::Subrange;
 using stdx::ranges::ViewableRange;
 
 using namespace stdx::ranges::views;
@@ -254,6 +255,10 @@ export namespace stdx::linq {
          */
         constexpr explicit Query(DecaysTo<Ran> auto&& r) noexcept:
             _range{Ops::forward<decltype(r)>(r)} {}
+
+        template <ContiguousIterator It>
+        constexpr explicit Query(It begin, It end) noexcept requires ConstructibleFrom<Ran, Subrange<It, It>>:
+            _range{Subrange{begin, end}} {}
 
         /**
          * @brief Returns an iterator to the beginning of the range.
@@ -957,12 +962,33 @@ export namespace stdx::linq {
                 return Query<RemoveConstVolatileReferenceType<T>>(Ops::forward<T>(t));
             }
         }
+
+        /**
+         * @brief Creates a Query from a pair of pointers or iterators.
+         * @tparam It The type of the iterator/pointer.
+         * @param begin The starting iterator/pointer.
+         * @param end The ending iterator/pointer.
+         * @return A Query wrapping a subrange of the given iterators.
+         */
+        template <ContiguousIterator It>
+        [[nodiscard]]
+        static constexpr auto from(It begin, It end) noexcept {
+            return Query<Subrange<It, It>>(Subrange{begin, end});
+        }
     };
 
-    // Deduction guides for Query CTAD
     template <typename T>
     Query(T&) -> Query<T&>;
 
     template <typename T>
     Query(T&&) -> Query<RemoveConstVolatileReferenceType<T>>;
+
+    template <ContiguousIterator It>
+    Query(It, It) -> Query<Subrange<It, It>>;
+
+    template <typename T>
+    Query(const T&) -> Query<const T&>;
+
+    template <typename T, usize N>
+    Query(T(&)[N]) -> Query<T(&)[N]>;
 }

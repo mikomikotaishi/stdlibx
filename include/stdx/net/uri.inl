@@ -170,11 +170,11 @@ export namespace stdx::net {
             // RFC 3986 Appendix B decomposition, peeled right-to-left so each
             // delimiter is unambiguous by the time we look for it.
             if (const auto hash = s.find('#'); hash != StringView::npos) {
-                this->_fragment = String(s.substr(hash + 1));
+                _fragment = String(s.substr(hash + 1));
                 s = s.substr(0, hash);
             }
             if (const auto question = s.find('?'); question != StringView::npos) {
-                this->_query = String(s.substr(question + 1));
+                _query = String(s.substr(question + 1));
                 s = s.substr(0, question);
             }
 
@@ -190,7 +190,7 @@ export namespace stdx::net {
 
             // authority: introduced by "//", runs to the next '/' (or the end).
             if (s.size() >= 2 && s[0] == '/' && s[1] == '/') {
-                this->_has_authority = true;
+                _has_authority = true;
                 s = s.substr(2);
                 const auto slash = s.find('/');
                 StringView authority = (slash == StringView::npos) ? s : s.substr(0, slash);
@@ -204,7 +204,7 @@ export namespace stdx::net {
                 // reading a host differently from every other client is how a
                 // link that looks like one server reaches another.
                 if (const auto at = authority.rfind('@'); at != StringView::npos) {
-                    this->_userinfo = String(authority.substr(0, at));
+                    _userinfo = String(authority.substr(0, at));
                     authority = authority.substr(at + 1);
                 }
 
@@ -216,7 +216,7 @@ export namespace stdx::net {
                     if (close == StringView::npos) {
                         throw UriSyntaxException("unterminated IPv6 literal");
                     }
-                    this->_host = String(authority.substr(1, close - 1));
+                    _host = String(authority.substr(1, close - 1));
                     const StringView after = authority.substr(close + 1);
                     if (!after.empty()) {
                         if (after.front() != ':') {
@@ -226,11 +226,11 @@ export namespace stdx::net {
                         has_port = true;
                     }
                 } else if (const auto colon = authority.find(':'); colon != StringView::npos) {
-                    this->_host = String(authority.substr(0, colon));
+                    _host = String(authority.substr(0, colon));
                     port_text = authority.substr(colon + 1);
                     has_port = true;
                 } else {
-                    this->_host = String(authority);
+                    _host = String(authority);
                 }
 
                 // An empty port ("host:") is permitted and means "no explicit port".
@@ -245,11 +245,11 @@ export namespace stdx::net {
                             throw UriSyntaxException("port number out of range");
                         }
                     }
-                    this->_port = static_cast<u16>(value);
+                    _port = static_cast<u16>(value);
                 }
             }
 
-            this->_path = String(s);
+            _path = String(s);
 
             // Checked after the split and never before it: decoding first would
             // manufacture delimiters out of "%2F" and "%3F" and change where the
@@ -257,16 +257,16 @@ export namespace stdx::net {
             // the same URI. Validating here means every component of a
             // constructed Uri is known decodable, so the decoding accessors
             // cannot fail.
-            if (this->_userinfo) {
-                require_valid_encoding(*this->_userinfo, "userinfo");
+            if (_userinfo.has_value()) {
+                require_valid_encoding(*_userinfo, "userinfo");
             }
-            require_valid_encoding(this->_host, "host");
-            require_valid_encoding(this->_path, "path");
-            if (this->_query) {
-                require_valid_encoding(*this->_query, "query");
+            require_valid_encoding(_host, "host");
+            require_valid_encoding(_path, "path");
+            if (_query.has_value()) {
+                require_valid_encoding(*_query, "query");
             }
-            if (this->_fragment) {
-                require_valid_encoding(*this->_fragment, "fragment");
+            if (_fragment.has_value()) {
+                require_valid_encoding(*_fragment, "fragment");
             }
         }
 

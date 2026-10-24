@@ -147,6 +147,7 @@ export namespace stdx::meta::reflect {
 
     class Mirror;
     class Type;
+    class Member;
     class Field;
     class Variable;
     class Callback;
@@ -204,6 +205,27 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval operator Info() const noexcept {
             return _info;
+        }
+
+        /**
+         * @brief Whether the entity has an identifier. False for unnamed
+         * entities (anonymous namespaces/structs, unnamed bit-fields, etc.).
+         * @return Whether the entity is named.
+         */
+        [[nodiscard]]
+        consteval bool has_identifier() const {
+            return reflect::has_identifier(_info);
+        }
+
+        /**
+         * @brief The entity's identifier. Precondition: has_identifier() is
+         * true; otherwise the call is ill-formed. Prefer name() when the
+         * entity may be unnamed.
+         * @return The identifier.
+         */
+        [[nodiscard]]
+        consteval StringView identifier_of() const {
+            return reflect::identifier_of(_info);
         }
 
         /**
@@ -382,6 +404,9 @@ export namespace stdx::meta::reflect {
          *
          * For stdx::time::Duration::operator+, returns 4 (operator+ -> Duration
          * -> time -> stdx -> global). For the global namespace itself, returns 0.
+         *
+         * Anonymous and inline namespaces are ordinary scopes here and are
+         * counted like any other enclosing scope.
          */
         [[nodiscard]]
         consteval usize scope_depth() const {
@@ -401,6 +426,11 @@ export namespace stdx::meta::reflect {
          * excluding the global namespace.
          *
          * For stdx::meta::reflect::Mirror, returns 3 (reflect, meta, stdx).
+         *
+         * Anonymous and inline namespaces are still namespaces and are
+         * counted. An inline namespace is transparent to name lookup but not
+         * to this count, so a member of an inline namespace reports one more
+         * level than its user-visible qualified name suggests.
          */
         [[nodiscard]]
         consteval usize namespace_depth() const {
@@ -552,6 +582,147 @@ export namespace stdx::meta::reflect {
     inline constexpr Mirror Mirror::NONE{Info{}};
 
     /**
+     * @interface Templated
+     * @brief Stateless interface for entities that carry template arguments and
+     * name an underlying template: class/variable/etc. specializations (Type)
+     * and concept-ids (Concept).
+     *
+     * Grants has_template_arguments(), template_arguments(), and template_of().
+     * An empty, non-virtual base mixed in alongside a wrapper's Mirror branch;
+     * it reaches the reflection through the final type's _info via a deduced
+     * explicit object parameter. template_of() returns Template by value, so it
+     * is declared here and defined out of line once Template is complete.
+     */
+    class Templated {
+    public:
+        /**
+         * @brief Whether the entity has template arguments.
+         * @return Whether template arguments are present.
+         */
+        [[nodiscard]]
+        consteval bool has_template_arguments(this const auto& self) {
+            return reflect::has_template_arguments(self._info);
+        }
+
+        /**
+         * @brief The template arguments, outermost first.
+         * @return The arguments, each as a Mirror.
+         */
+        [[nodiscard]]
+        consteval Vector<Mirror> template_arguments(this const auto& self) {
+            Vector<Mirror> result;
+            for (Info a: reflect::template_arguments_of(self._info)) {
+                result.emplace_back(a);
+            }
+            return result;
+        }
+
+        /**
+         * @brief The template this entity specializes.
+         * @return The underlying template.
+         */
+        [[nodiscard]]
+        consteval Template template_of(this const auto& self);
+    };
+
+    /**
+     * @interface Substitutable
+     * @brief Stateless CRTP interface for entities a type argument list can be
+     * substituted into: concepts and templates.
+     * @tparam Self The concrete wrapper mixing this in. Must expose a public
+     * {@code Info _info}.
+     */
+    template <typename Self>
+    class Substitutable {
+    public:
+        /**
+         * @brief Whether the given arguments can be substituted without a hard
+         * error.
+         * @tparam Args The argument types.
+         * @return Whether substitution succeeds.
+         */
+        template <typename... Args>
+        [[nodiscard]]
+        consteval bool can_substitute() const {
+            return reflect::can_substitute(self(), Vector<Info>{^^Args...});
+        }
+
+        /**
+         * @brief The result of substituting the given arguments.
+         * @tparam Args The argument types.
+         * @return The substituted reflection.
+         */
+        template <typename... Args>
+        [[nodiscard]]
+        consteval Info substitute() const {
+            return reflect::substitute(self(), Vector<Info>{^^Args...});
+        }
+    private:
+        [[nodiscard]]
+        consteval Info self() const noexcept {
+            return static_cast<const Self*>(this)->_info;
+        }
+    };
+
+    /**
+     * @interface OperatorOf
+     * @brief Stateless interface for functions that may be operator overloads.
+     */
+    class OperatorOf {
+    public:
+        /**
+         * @brief Whether the function is an operator overload.
+         * @return Whether it is an operator.
+         */
+        [[nodiscard]]
+        consteval bool is_operator(this const auto& self) {
+            return reflect::is_operator_function(self._info);
+        }
+
+        /**
+         * @brief Whether the function is a literal operator (operator"").
+         * @return Whether it is a literal operator.
+         */
+        [[nodiscard]]
+        consteval bool is_literal_operator(this const auto& self) {
+            return reflect::is_literal_operator(self._info);
+        }
+
+        /**
+         * @brief The operator this function overloads, or nullopt if it is not
+         * an operator. The safe counterpart to operator_symbol().
+         * @return The operator kind, or nullopt.
+         */
+        [[nodiscard]]
+        consteval Optional<Operators> operator_kind(this const auto& self) {
+            if (!reflect::is_operator_function(self._info)) {
+                return nullopt;
+            }
+            return Operators(reflect::operator_of(self._info));
+        }
+
+        /**
+         * @brief The operator's symbol (e.g. "+"). Precondition: is_operator()
+         * is true; otherwise the call is ill-formed. Prefer operator_kind()
+         * when the function may not be an operator.
+         * @return The operator symbol.
+         */
+        [[nodiscard]]
+        consteval StringView operator_symbol(this const auto& self) {
+            return reflect::symbol_of(reflect::operator_of(self._info));
+        }
+
+        /**
+         * @brief UTF-8 form of operator_symbol(), under the same precondition.
+         * @return The operator symbol as UTF-8.
+         */
+        [[nodiscard]]
+        consteval Utf8StringView u8operator_symbol(this const auto& self) {
+            return reflect::u8symbol_of(reflect::operator_of(self._info));
+        }
+    };
+
+    /**
      * @class Type
      * @brief Wraps the reflection of a type.
      * @extends Mirror
@@ -561,13 +732,21 @@ export namespace stdx::meta::reflect {
      * Class<T>, Enum<E>, and Union<U> for entities whose type is
      * known statically.
      */
-    class Type: public Mirror {
+    class Type: public Mirror, public Templated {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Type(Info i):
             Mirror(i) {
             if (i != Mirror::NONE.value() && !reflect::is_type(i)) {
                 throw ReflectiveOperationException("Provided Info is not a type", ^^Type);
+            }
+        }
+
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Type(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_type()) {
+                throw ReflectiveOperationException("Provided Mirror is not a type", ^^Type);
             }
         }
 
@@ -1044,20 +1223,6 @@ export namespace stdx::meta::reflect {
         }
 
         [[nodiscard]]
-        consteval bool has_template_arguments() const {
-            return reflect::has_template_arguments(_info);
-        }
-
-        [[nodiscard]]
-        consteval Vector<Mirror> template_arguments() const {
-            Vector<Mirror> result;
-            for (Info a: reflect::template_arguments_of(_info)) {
-                result.emplace_back(a);
-            }
-            return result;
-        }
-
-        [[nodiscard]]
         consteval EnumSet<CvQualifier> cv_qualifiers() const {
             EnumSet<CvQualifier> result;
             if (reflect::is_const_type(_info)) {
@@ -1068,17 +1233,135 @@ export namespace stdx::meta::reflect {
             }
             return result;
         }
+    };
 
+    /**
+     * @interface Typed
+     * @brief Stateless interface for entities that have an associated type:
+     * data members, parameters, variables, bases, enumerators, annotations,
+     * and structured bindings.
+     *
+     * Grants type() (the entity's type) and a cv_qualifiers() default derived
+     * from that type. An empty, non-virtual base that holds no data and does
+     * not derive from Mirror, so it composes freely with a wrapper's own Mirror
+     * branch, reaching the reflection through the final type's _info via a
+     * deduced explicit object parameter. Note this is distinct from a type
+     * alias, whose "type" is a dealias rather than a type_of and which
+     * therefore does not use Typed.
+     */
+    class Typed {
+    public:
+        /**
+         * @brief The entity's type.
+         * @return The type as a Type.
+         */
         [[nodiscard]]
-        consteval Template template_of() const;
+        consteval Type type(this const auto& self) {
+            return Type(reflect::type_of(self._info));
+        }
+
+        /**
+         * @brief The cv-qualifiers of the entity's type.
+         * @return The cv-qualifier set.
+         */
+        [[nodiscard]]
+        consteval EnumSet<CvQualifier> cv_qualifiers(this const auto& self) {
+            return Type(reflect::type_of(self._info)).cv_qualifiers();
+        }
+    };
+
+    /**
+     * @interface MemberOf
+     * @brief Stateless interface granting the queries that are meaningful for
+     * an entity declared at class scope: visibility, static-ness, and the
+     * declaring class. Reaches the reflection through the final type's _info
+     * via a deduced explicit object parameter.
+     */
+    class MemberOf {
+    public:
+        /**
+         * @brief Whether the member is declared public.
+         * @return Whether the member is public.
+         */
+        [[nodiscard]]
+        consteval bool is_public(this const auto& self) {
+            return reflect::is_public(self._info);
+        }
+
+        /**
+         * @brief Whether the member is declared protected.
+         * @return Whether the member is protected.
+         */
+        [[nodiscard]]
+        consteval bool is_protected(this const auto& self) {
+            return reflect::is_protected(self._info);
+        }
+
+        /**
+         * @brief Whether the member is declared private.
+         * @return Whether the member is private.
+         */
+        [[nodiscard]]
+        consteval bool is_private(this const auto& self) {
+            return reflect::is_private(self._info);
+        }
+
+        /**
+         * @brief Whether the member is a static member (static data member or
+         * static member function).
+         * @return Whether the member is static.
+         */
+        [[nodiscard]]
+        consteval bool is_static(this const auto& self) {
+            return reflect::is_static_member(self._info);
+        }
+
+        /**
+         * @brief The class that declares this member.
+         * @return The declaring class as a Type.
+         */
+        [[nodiscard]]
+        consteval Type declaring_class(this const auto& self) {
+            return Type(reflect::parent_of(self._info));
+        }
+    };
+
+    /**
+     * @class Member
+     * @brief The erased reflection of a class member of any kind, carrying the
+     * visibility queries of MemberOf without narrowing to Field/Method/etc.
+     * @extends Mirror
+     *
+     * Returned when a lookup yields a class member whose specific kind is not
+     * needed (see Class::members). Like every wrapper, a cheap value over a
+     * single Info: copy it, do not reference it.
+     */
+    class Member: public Mirror, public MemberOf {
+    public:
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Member(Info i) noexcept:
+            Mirror(i) {
+            if (i != Mirror::NONE.value() && !reflect::is_class_member(i)) {
+                throw ReflectiveOperationException("Provided Info is not a class member", ^^Member);
+            }
+        }
+
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Member(Mirror m) noexcept:
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_class_member()) {
+                throw ReflectiveOperationException("Provided Mirror is not a class member", ^^Member);
+            }
+        }
     };
 
     /**
      * @class Parameter
      * @brief A parameter of a function.
      * @extends Mirror
+     * @implements Typed
      */
-    class Parameter: public Mirror {
+    class Parameter: public Mirror, public Typed {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Parameter(Info i):
@@ -1088,9 +1371,12 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type type() const {
-            return Type(reflect::type_of(_info));
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Parameter(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !reflect::is_function_parameter(m.value())) {
+                throw ReflectiveOperationException("Provided Mirror is not a function parameter", ^^Parameter);
+            }
         }
 
         [[nodiscard]]
@@ -1115,14 +1401,23 @@ export namespace stdx::meta::reflect {
      * represented by Method, constructors/destructors by their
      * own wrappers.
      * @extends Mirror
+     * @implements OperatorOf
      */
-    class Callback: public Mirror {
+    class Callback: public Mirror, public OperatorOf {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Callback(Info i):
             Mirror(i) {
             if (i != Mirror::NONE.value() && !reflect::is_function(i)) {
                 throw ReflectiveOperationException("Provided Info is not a function", ^^Callback);
+            }
+        }
+
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Callback(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_function()) {
+                throw ReflectiveOperationException("Provided Mirror is not a function", ^^Callback);
             }
         }
 
@@ -1143,6 +1438,17 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval bool is_noexcept() const {
             return reflect::is_noexcept(_info);
+        }
+
+        /**
+         * @brief Whether the function is pure virtual. Always false for free
+         * functions and constructors; meaningful for virtual methods and
+         * destructors.
+         * @return Whether the function is pure virtual.
+         */
+        [[nodiscard]]
+        consteval bool is_pure_virtual() const {
+            return reflect::is_pure_virtual(_info);
         }
 
         [[nodiscard]]
@@ -1179,34 +1485,15 @@ export namespace stdx::meta::reflect {
         consteval bool is_conversion() const {
             return reflect::is_conversion_function(_info);
         }
-
-        [[nodiscard]]
-        consteval bool is_operator() const {
-            return reflect::is_operator_function(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_literal_operator() const {
-            return reflect::is_literal_operator(_info);
-        }
-
-        [[nodiscard]]
-        consteval StringView operator_symbol() const {
-            return reflect::symbol_of(reflect::operator_of(_info));
-        }
-
-        [[nodiscard]]
-        consteval Utf8StringView u8operator_symbol() const {
-            return reflect::u8symbol_of(reflect::operator_of(_info));
-        }
     };
 
     /**
      * @class Method
      * @brief A method of a class.
      * @extends Callback
+     * @implements MemberOf
      */
-    class Method: public Callback {
+    class Method: public Callback, public MemberOf {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Method(Info i):
@@ -1218,34 +1505,21 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type declaring_class() const {
-            return Type(reflect::parent_of(_info));
-        }
-
-        [[nodiscard]]
-        consteval bool is_public() const {
-            return reflect::is_public(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_protected() const {
-            return reflect::is_protected(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_private() const {
-            return reflect::is_private(_info);
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Method(Callback c):
+            Callback(c) {
+            if (c != Mirror::NONE &&
+                (!reflect::is_class_member(c.value())
+                    || reflect::is_constructor(c.value())
+                    || reflect::is_destructor(c.value())))
+            {
+                throw ReflectiveOperationException("Provided Callback is not a (non-special) class member function", ^^Method);
+            }
         }
 
         [[nodiscard]]
         consteval bool is_virtual() const {
             return reflect::is_virtual(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_pure_virtual() const {
-            return reflect::is_pure_virtual(_info);
         }
 
         [[nodiscard]]
@@ -1256,11 +1530,6 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval bool is_final() const {
             return reflect::is_final(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_static() const {
-            return reflect::is_static_member(_info);
         }
 
         [[nodiscard]]
@@ -1364,8 +1633,10 @@ export namespace stdx::meta::reflect {
      * @class Field
      * @brief A field of a class.
      * @extends Mirror
+     * @implements MemberOf
+     * @implements Typed
      */
-    class Field: public Mirror {
+    class Field: public Mirror, public MemberOf, public Typed {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Field(Info i):
@@ -1375,29 +1646,12 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type type() const {
-            return Type(reflect::type_of(_info));
-        }
-
-        [[nodiscard]]
-        consteval Type declaring_class() const {
-            return Type(reflect::parent_of(_info));
-        }
-
-        [[nodiscard]]
-        consteval bool is_public() const {
-            return reflect::is_public(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_protected() const {
-            return reflect::is_protected(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_private() const {
-            return reflect::is_private(_info);
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Field(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_nonstatic_data_member()) {
+                throw ReflectiveOperationException("Provided Mirror is not a non-static data member", ^^Field);
+            }
         }
 
         [[nodiscard]]
@@ -1424,19 +1678,15 @@ export namespace stdx::meta::reflect {
         consteval usize bit_size() const {
             return reflect::bit_size_of(_info);
         }
-
-        [[nodiscard]]
-        consteval EnumSet<CvQualifier> cv_qualifiers() const {
-            return Type(reflect::type_of(_info)).cv_qualifiers();
-        }
     };
 
     /**
      * @class Variable
      * @brief A variable.
      * @extends Mirror
+     * @implements Typed
      */
-    class Variable: public Mirror {
+    class Variable: public Mirror, public Typed {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Variable(Info i):
@@ -1446,9 +1696,12 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type type() const {
-            return Type(reflect::type_of(_info));
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Variable(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_variable()) {
+                throw ReflectiveOperationException("Provided Mirror is not a variable", ^^Variable);
+            }
         }
 
         [[nodiscard]]
@@ -1517,11 +1770,6 @@ export namespace stdx::meta::reflect {
         }
 
         [[nodiscard]]
-        consteval EnumSet<CvQualifier> cv_qualifiers() const {
-            return Type(reflect::type_of(_info)).cv_qualifiers();
-        }
-
-        [[nodiscard]]
         consteval StorageClass storage_class() const {
             if (reflect::has_thread_storage_duration(_info)) {
                 return StorageClass::THREAD_LOCAL;
@@ -1557,8 +1805,9 @@ export namespace stdx::meta::reflect {
      * @class Constructor
      * @brief Represents a constructor in the reflection system.
      * @extends Callback
+     * @implements MemberOf
      */
-    class Constructor: public Callback {
+    class Constructor: public Callback, public MemberOf {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Constructor(Info i):
@@ -1568,9 +1817,12 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type declaring_class() const {
-            return Type(reflect::parent_of(_info));
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Constructor(Callback c):
+            Callback(c) {
+            if (c != Mirror::NONE && !reflect::is_constructor(c.value())) {
+                throw ReflectiveOperationException("Provided Callback is not a constructor", ^^Constructor);
+            }
         }
 
         [[nodiscard]]
@@ -1586,21 +1838,6 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval bool is_move() const {
             return reflect::is_move_constructor(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_public() const {
-            return reflect::is_public(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_protected() const {
-            return reflect::is_protected(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_private() const {
-            return reflect::is_private(_info);
         }
 
         [[nodiscard]]
@@ -1626,8 +1863,9 @@ export namespace stdx::meta::reflect {
      * @class Destructor
      * @brief Represents a destructor in the reflection system.
      * @extends Callback
+     * @implements MemberOf
      */
-    class Destructor: public Callback {
+    class Destructor: public Callback, public MemberOf {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Destructor(Info i):
@@ -1637,34 +1875,17 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type declaring_class() const {
-            return Type(reflect::parent_of(_info));
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Destructor(Callback c):
+            Callback(c) {
+            if (c != Mirror::NONE && !reflect::is_destructor(c.value())) {
+                throw ReflectiveOperationException("Provided Callback is not a destructor", ^^Destructor);
+            }
         }
 
         [[nodiscard]]
         consteval bool is_virtual() const {
             return reflect::is_virtual(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_pure_virtual() const {
-            return reflect::is_pure_virtual(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_public() const {
-            return reflect::is_public(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_protected() const {
-            return reflect::is_protected(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_private() const {
-            return reflect::is_private(_info);
         }
 
         [[nodiscard]]
@@ -1693,8 +1914,10 @@ export namespace stdx::meta::reflect {
      * @class Base
      * @brief Represents a base class in the reflection system.
      * @extends Mirror
+     * @implements MemberOf
+     * @implements Typed
      */
-    class Base: public Mirror {
+    class Base: public Mirror, public MemberOf, public Typed {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Base(Info i):
@@ -1704,29 +1927,17 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type type() const {
-            return Type(reflect::type_of(_info));
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Base(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_base()) {
+                throw ReflectiveOperationException("Provided Mirror is not a base class", ^^Base);
+            }
         }
 
         [[nodiscard]]
         consteval bool is_virtual() const {
             return reflect::is_virtual(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_public() const {
-            return reflect::is_public(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_protected() const {
-            return reflect::is_protected(_info);
-        }
-
-        [[nodiscard]]
-        consteval bool is_private() const {
-            return reflect::is_private(_info);
         }
     };
 
@@ -1734,8 +1945,9 @@ export namespace stdx::meta::reflect {
      * @class Enumerator
      * @brief Represents an enumerator in the reflection system.
      * @extends Mirror
+     * @implements Typed
      */
-    class Enumerator: public Mirror {
+    class Enumerator: public Mirror, public Typed {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Enumerator(Info i):
@@ -1745,9 +1957,12 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type type() const {
-            return Type(reflect::type_of(_info));
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Enumerator(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_enumerator()) {
+                throw ReflectiveOperationException("Provided Mirror is not an enumerator", ^^Enumerator);
+            }
         }
 
         template <typename T>
@@ -1774,6 +1989,14 @@ export namespace stdx::meta::reflect {
             }
         }
 
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Namespace(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_namespace()) {
+                throw ReflectiveOperationException("Provided Mirror is not a namespace", ^^Namespace);
+            }
+        }
+
         /**
          * @brief Distance from the global namespace. The global namespace
          * itself has depth 0; top-level namespaces have depth 1; etc.
@@ -1784,6 +2007,20 @@ export namespace stdx::meta::reflect {
         [[nodiscard]]
         consteval usize depth() const {
             return scope_depth();
+        }
+
+        /**
+         * @brief True iff this is an anonymous (unnamed) namespace.
+         * @return Whether the namespace is anonymous.
+         *
+         * An anonymous namespace carries no identifier, so name() returns
+         * nullopt; only display_name() exposes the synthesized
+         * "(anonymous namespace)" text. The global namespace is not
+         * considered anonymous.
+         */
+        [[nodiscard]]
+        consteval bool is_anonymous() const {
+            return !is_global_namespace() && !reflect::has_identifier(_info);
         }
 
         [[nodiscard]]
@@ -1813,6 +2050,14 @@ export namespace stdx::meta::reflect {
             }
         }
 
+        [[=Throws<ReflectiveOperationException>]]
+        consteval NamespaceAlias(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_namespace_alias()) {
+                throw ReflectiveOperationException("Provided Mirror is not a namespace alias", ^^NamespaceAlias);
+            }
+        }
+
         [[nodiscard]]
         consteval Namespace target() const {
             return Namespace(reflect::dealias(_info));
@@ -1834,6 +2079,14 @@ export namespace stdx::meta::reflect {
             }
         }
 
+        [[=Throws<ReflectiveOperationException>]]
+        consteval TypeAlias(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_type_alias()) {
+                throw ReflectiveOperationException("Provided Mirror is not a type alias", ^^TypeAlias);
+            }
+        }
+
         [[nodiscard]]
         consteval Type target() const {
             return Type(reflect::dealias(_info));
@@ -1849,8 +2102,10 @@ export namespace stdx::meta::reflect {
      * @class Concept
      * @brief Represents a concept in the reflection system.
      * @extends Mirror
+     * @implements Templated
+     * @implements Substitutable<Concept>
      */
-    class Concept: public Mirror {
+    class Concept: public Mirror, public Templated, public Substitutable<Concept> {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Concept(Info i):
@@ -1860,43 +2115,36 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        template <typename... Args>
-        [[nodiscard]]
-        consteval bool can_substitute() const {
-            return reflect::can_substitute(_info, Vector<Info>{^^Args...});
-        }
-
-        template <typename... Args>
-        [[nodiscard]]
-        consteval Info substitute() const {
-            return reflect::substitute(_info, Vector<Info>{^^Args...});
-        }
-
-        [[nodiscard]]
-        consteval Vector<Mirror> template_arguments() const {
-            Vector<Mirror> result;
-            for (Info a: reflect::template_arguments_of(_info)) {
-                result.emplace_back(a);
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Concept(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_concept()) {
+                throw ReflectiveOperationException("Provided Mirror is not a concept", ^^Concept);
             }
-            return result;
         }
-
-        [[nodiscard]]
-        consteval Template template_of() const;
     };
 
     /**
      * @class Template
      * @brief Represents a template in the reflection system.
      * @extends Mirror
+     * @implements Substitutable<Template>
      */
-    class Template: public Mirror {
+    class Template: public Mirror, public Substitutable<Template> {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Template(Info i):
             Mirror(i) {
             if (i != Mirror::NONE.value() && !reflect::is_template(i)) {
                 throw ReflectiveOperationException("Provided Info is not a template", ^^Template);
+            }
+        }
+
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Template(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_template()) {
+                throw ReflectiveOperationException("Provided Mirror is not a template", ^^Template);
             }
         }
 
@@ -1939,26 +2187,15 @@ export namespace stdx::meta::reflect {
         consteval bool is_literal_operator_template() const {
             return reflect::is_literal_operator_template(_info);
         }
-
-        template <typename... Args>
-        [[nodiscard]]
-        consteval bool can_substitute() const {
-            return reflect::can_substitute(_info, Vector<Info>{^^Args...});
-        }
-
-        template <typename... Args>
-        [[nodiscard]]
-        consteval Info substitute() const {
-            return reflect::substitute(_info, Vector<Info>{^^Args...});
-        }
     };
 
     /**
      * @class Annotation
      * @brief Represents an annotation in the reflection system.
      * @extends Mirror
+     * @implements Typed
      */
-    class Annotation: public Mirror {
+    class Annotation: public Mirror, public Typed {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval Annotation(Info i):
@@ -1968,9 +2205,12 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type type() const {
-            return Type(reflect::type_of(_info));
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Annotation(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_annotation()) {
+                throw ReflectiveOperationException("Provided Mirror is not an annotation", ^^Annotation);
+            }
         }
 
         template <typename T>
@@ -1984,8 +2224,9 @@ export namespace stdx::meta::reflect {
      * @class StructuredBinding
      * @brief Represents a structured binding in the reflection system.
      * @extends Mirror
+     * @implements Typed
      */
-    class StructuredBinding: public Mirror {
+    class StructuredBinding: public Mirror, public Typed {
     public:
         [[=Throws<ReflectiveOperationException>]]
         consteval StructuredBinding(Info i):
@@ -1995,9 +2236,12 @@ export namespace stdx::meta::reflect {
             }
         }
 
-        [[nodiscard]]
-        consteval Type type() const {
-            return Type(reflect::type_of(_info));
+        [[=Throws<ReflectiveOperationException>]]
+        consteval StructuredBinding(Mirror m):
+            Mirror(m) {
+            if (m != Mirror::NONE && !m.is_structured_binding()) {
+                throw ReflectiveOperationException("Provided Mirror is not a structured binding", ^^StructuredBinding);
+            }
         }
     };
 
@@ -2021,6 +2265,14 @@ export namespace stdx::meta::reflect {
             Type(i) {
             if (i != ^^T) {
                 throw ReflectiveOperationException("Provided Type does not match Class type", i);
+            }
+        }
+
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Class(Type t) noexcept:
+            Type(t) {
+            if (t.value() != ^^T) {
+                throw ReflectiveOperationException("Provided Type does not match Class type", ^^Class);
             }
         }
 
@@ -2114,6 +2366,19 @@ export namespace stdx::meta::reflect {
             return result;
         }
 
+        /**
+         * @brief Constructs a T from the given arguments, as if by {@code T(args...)}.
+         * @tparam Args The argument types.
+         * @param args The constructor arguments, forwarded to T.
+         * @return The constructed T.
+         */
+        template <typename... Args>
+            requires IsConstructibleValue<T, Args...>
+        [[nodiscard]]
+        static constexpr T construct(Args&&... args) {
+            return T(std::forward<Args>(args)...);
+        }
+
         [[nodiscard]]
         consteval bool has_inaccessible_bases(AccessContext ctx = AccessContext::unchecked()) const {
             return reflect::has_inaccessible_bases(^^T, ctx);
@@ -2149,7 +2414,15 @@ export namespace stdx::meta::reflect {
         consteval Enum(Info i) noexcept:
             Type(i) {
             if (i != ^^E) {
-                throw ReflectiveOperationException("Provided Type does not match Class type", i);
+                throw ReflectiveOperationException("Provided Type does not match Enum type", i);
+            }
+        }
+
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Enum(Type t) noexcept:
+            Type(t) {
+            if (t.value() != ^^E) {
+                throw ReflectiveOperationException("Provided Type does not match Enum type", ^^Enum);
             }
         }
 
@@ -2192,7 +2465,15 @@ export namespace stdx::meta::reflect {
         consteval Union(Info i) noexcept:
             Type(i) {
             if (i != ^^U) {
-                throw ReflectiveOperationException("Provided Type does not match Class type", i);
+                throw ReflectiveOperationException("Provided Type does not match Union type", i);
+            }
+        }
+
+        [[=Throws<ReflectiveOperationException>]]
+        consteval Union(Type t) noexcept:
+            Type(t) {
+            if (t.value() != ^^U) {
+                throw ReflectiveOperationException("Provided Type does not match Union type", ^^Union);
             }
         }
 
@@ -2232,12 +2513,8 @@ export namespace stdx::meta::reflect {
         return result;
     }
 
-    consteval Template Type::template_of() const {
-        return Template(reflect::template_of(_info));
-    }
-
-    consteval Template Concept::template_of() const {
-        return Template(reflect::template_of(_info));
+    consteval Template Templated::template_of(this const auto& self) {
+        return Template(reflect::template_of(self._info));
     }
 
     consteval Optional<Type> Mirror::enclosing_class() const {
