@@ -10,6 +10,7 @@ using stdx::linq::Query;
 using stdx::mem::Pointers;
 using stdx::mem::UniquePointer;
 using stdx::meta::reflect::AccessContext;
+using stdx::meta::reflect::AccessFlag;
 using stdx::meta::reflect::Annotation;
 using stdx::meta::reflect::Base;
 using stdx::meta::reflect::Class;
@@ -22,10 +23,12 @@ using stdx::meta::reflect::Enumerator;
 using stdx::meta::reflect::Field;
 using stdx::meta::reflect::FunctionSpecifier;
 using stdx::meta::reflect::Info;
+using stdx::meta::reflect::Member;
 using stdx::meta::reflect::Method;
 using stdx::meta::reflect::Mirror;
 using stdx::meta::reflect::Namespace;
 using stdx::meta::reflect::NamespaceAlias;
+using stdx::meta::reflect::Operators;
 using stdx::meta::reflect::Parameter;
 using stdx::meta::reflect::ReflectableAsClass;
 using stdx::meta::reflect::Template;
@@ -37,7 +40,7 @@ using stdx::meta::reflect::Variable;
 using stdx::util::ArgumentParser;
 using stdx::util::CommandLineParserException;
 using stdx::util::Description;
-using stdx::util::Env;
+using stdx::util::EnvVar;
 using stdx::util::ShortName;
 
 namespace reflect = stdx::meta::reflect;
@@ -146,6 +149,10 @@ namespace reflection_fixtures {
     using NestedAlias = Nested;
 
     inline constexpr i32 ANSWER = 42;
+
+    namespace {
+        inline constexpr i32 ANON_MARKER = 7;
+    }
 }
 
 namespace aliased_fixtures = reflection_fixtures;
@@ -158,6 +165,19 @@ namespace aliased_fixtures = reflection_fixtures;
 struct WithStatic {
     static constexpr i32 LIMIT = 100;
     const i32 id = 0;
+};
+
+/**
+ * @class Access
+ * @brief Fixture for the Member base: a private data member and a public
+ * member function, so Field and Method can be checked to share one set of
+ * visibility queries through Member.
+ */
+class Access {
+private:
+    i32 _hidden = 0;
+public:
+    void shown() const noexcept {}
 };
 
 /**
@@ -195,12 +215,12 @@ struct BasicOptions {
 };
 
 struct EnvOptions {
-    [[=Env<"REFTEST_TOKEN">()]]
+    [[=EnvVar<"REFTEST_TOKEN">()]]
     String token = "default-token";
 };
 
 struct EnvRequired {
-    [[=Env<"REFTEST_MISSING">()]]
+    [[=EnvVar<"REFTEST_MISSING">()]]
     String value;
 };
 
@@ -367,8 +387,11 @@ void test_reflection_classes() {
         constexpr StringView name = m.name().value_or("");
         if constexpr (m.is_operator()) {
             constexpr StringView symbol = m.operator_symbol();
+            constexpr Optional<Operators> kind = m.operator_kind();
             if (symbol == "+") {
                 found_operator_plus = true;
+                expect(kind.has_value(), "operator_kind() is present for an operator");
+                expect(kind.value().symbol() == "+", "operator_kind() reports the + operator");
             }
         } else if constexpr (name.empty()) {
             continue;
@@ -376,8 +399,10 @@ void test_reflection_classes() {
             found_norm_squared = true;
             constexpr bool is_const = m.cv_qualifiers().contains(CvQualifier::CONST);
             constexpr bool is_noexcept = m.specifiers().contains(FunctionSpecifier::NOEXCEPT);
+            constexpr Optional<Operators> kind = m.operator_kind();
             expect(is_const, "norm_squared is const-qualified");
             expect(is_noexcept, "norm_squared is noexcept");
+            expect(!kind.has_value(), "operator_kind() is nullopt for a non-operator");
         }
     }
     expect(found_norm_squared, "Vec2 exposes a norm_squared method");
@@ -417,6 +442,47 @@ void test_reflection_classes() {
     expect(int_is_integral, "i32 is integral");
     expect(int_is_signed, "i32 is signed");
     expect(int_size == sizeof(i32), "i32 size matches sizeof(i32)");
+
+    constexpr Vec2 built = VEC2_CLASS.construct(3.0, 4.0);
+    expect(built.x == 3.0 && built.y == 4.0, "Class<Vec2>::construct builds from its two-arg constructor");
+
+    constexpr Vec2 default_built = VEC2_CLASS.construct();
+    expect(default_built.x == 0.0 && default_built.y == 0.0, "Class<Vec2>::construct reaches the default constructor");
+
+    f64 rx = 1.5;
+    f64 ry = 2.5;
+    const Vec2 runtime_built = Class<Vec2>::construct(rx, ry);
+    expect(runtime_built.x == 1.5 && runtime_built.y == 2.5, "Class<Vec2>::construct also runs at run time");
+}
+
+/**
+ * @brief Exercises the shared Member base: Field and Method share one set of
+ * visibility queries (is_public/is_private), a generic Member wrapper carries
+ * them for any class member, and access() stays consistent with them.
+ */
+void test_member_base() {
+    constexpr AccessContext ctx = AccessContext::unchecked();
+
+    static constexpr Span<const Field> ACCESS_FIELDS = Ops::static_array(Class<Access>().fields(ctx));
+    constexpr Field hidden = ACCESS_FIELDS[0];
+    expect_eq(hidden.name().value(), "_hidden", "the fixture's data member is _hidden");
+    expect(hidden.is_private(), "a private field reports is_private() through Member");
+    expect(!hidden.is_public(), "and not is_public()");
+    expect(hidden.access() == AccessFlag::PRIVATE, "Field::access() agrees with is_private()");
+
+    static constexpr Span<const Method> ACCESS_METHODS = Query(Ops::static_array(Class<Access>().methods(ctx)))
+        .where([](Method m) -> bool { return m.name().value_or("") == "shown"; })
+        .to_array();
+    constexpr usize shown_count = ACCESS_METHODS.size();
+    expect_eq(shown_count, 1uz, "the fixture's member function is found");
+    constexpr Method shown = ACCESS_METHODS[0];
+    expect(shown.is_public(), "a public method reports is_public() through Member");
+    expect(!shown.is_private(), "and not is_private()");
+    expect(!shown.is_static(), "shown() is a non-static member");
+
+    constexpr Member hidden_member(hidden.value());
+    expect(hidden_member.is_private(), "a Member wrapping a private field is private");
+    expect(hidden_member.is_class_member(), "and reports membership through Mirror");
 }
 
 /**
@@ -597,6 +663,19 @@ void test_namespace_and_aliases() {
     constexpr Namespace reflection_fixtures_parent(enclosing_ns.parent()->value());
     constexpr bool reflection_fixtures_parent_is_global = reflection_fixtures_parent.value() == Namespace::GLOBAL.value();
     expect(reflection_fixtures_parent_is_global, "reflection_fixtures's parent is Namespace::GLOBAL");
+
+    constexpr Namespace anon_ns(reflect::parent_of(^^reflection_fixtures::ANON_MARKER));
+    expect(anon_ns.is_anonymous(), "an anonymous namespace reports is_anonymous()");
+    expect(!anon_ns.name().has_value(), "an anonymous namespace has no name()");
+    expect(!enclosing_ns.is_anonymous(), "a named namespace does not report is_anonymous()");
+    expect(!Namespace::GLOBAL.is_anonymous(), "the global namespace is not anonymous");
+
+    constexpr usize anon_depth = anon_ns.depth();
+    constexpr usize reflection_fixtures_depth = enclosing_ns.depth();
+    expect_eq(
+        anon_depth, reflection_fixtures_depth + 1uz,
+        "an anonymous namespace adds one to namespace depth"
+    );
 }
 
 /**
@@ -846,6 +925,7 @@ int main(int argc, char* argv[]) {
     #ifdef __cpp_impl_reflection
     return run(argc, argv, {
         {"Meta.reflection_classes", test_reflection_classes},
+        {"Meta.member_base", test_member_base},
         {"Meta.base_to_class", test_base_to_class},
         {"Meta.constructor_and_destructor", test_constructor_and_destructor},
         {"Meta.variable_and_static_fields", test_variable_and_static_fields},

@@ -127,11 +127,11 @@ export namespace stdx::sql {
                     uri.to_string()
                 ));
             }
-            this->_scheme = String(uri.scheme());
-            this->_host = Uri::percent_decode(uri.host());
-            this->_path = uri.decoded_path();
+            _scheme = String(uri.scheme());
+            _host = Uri::percent_decode(uri.host());
+            _path = uri.decoded_path();
             if (const Optional<u16> port = uri.port()) {
-                this->_port = static_cast<i32>(*port);
+                _port = static_cast<i32>(*port);
             }
 
             // The raw userinfo is split before either half is decoded. Decoding
@@ -139,14 +139,14 @@ export namespace stdx::sql {
             // separator, and the credential would divide in the wrong place.
             const StringView userinfo = uri.userinfo();
             if (const auto colon = userinfo.find(':'); colon != StringView::npos) {
-                this->_username = Uri::percent_decode(userinfo.substr(0, colon));
-                this->_password = Uri::percent_decode(userinfo.substr(colon + 1));
+                _username = Uri::percent_decode(userinfo.substr(0, colon));
+                _password = Uri::percent_decode(userinfo.substr(colon + 1));
             } else {
-                this->_username = Uri::percent_decode(userinfo);
+                _username = Uri::percent_decode(userinfo);
             }
 
             if (const Optional<StringView> query = uri.query()) {
-                parse_parameters(*query, this->_parameters);
+                parse_parameters(*query, _parameters);
             }
         }
 

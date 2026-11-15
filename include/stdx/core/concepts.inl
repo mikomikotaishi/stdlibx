@@ -92,6 +92,9 @@ export namespace stdx::core {
     template <typename T, typename... Args>
     concept IsAnyOf = (SameAs<T, Args> || ...);
 
+    template <typename T, typename... Args>
+    concept NotAnyOf = !IsAnyOf<T, Args...>;
+
     template <typename T>
     concept CharacterLike = IsAnyOf<T, char, unsigned char, char8_t, char16_t, char32_t, wchar_t>;
 

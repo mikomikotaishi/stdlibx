@@ -39,7 +39,7 @@ export namespace stdx::math::inline gmp {
             _value{Ops::move(value)} {}
     public:
         template <Numeric T>
-            requires (!SameAs<T, bool>)
+            requires (NotSameAs<T, bool>)
         explicit GnuInteger(T value = 0):
             _value{value} {}
 
@@ -208,12 +208,12 @@ export namespace stdx::math::inline gmp {
             _value{Ops::move(value)} {}
     public:
         template <Numeric T>
-            requires (!SameAs<T, bool>)
+            requires (NotSameAs<T, bool>)
         explicit GnuRational(T v = 0):
             _value{v} {}
 
         template <Numeric T1, Numeric T2>
-            requires (!SameAs<T1, bool>) && (!SameAs<T2, bool>)
+            requires (NotSameAs<T1, bool> && NotSameAs<T2, bool>)
         GnuRational(T1 numerator, T2 denominator):
             _value(numerator.value, denominator.value) {}
 
@@ -326,7 +326,7 @@ export namespace stdx::math::inline gmp {
             _value{Ops::move(value)} {}
     public:
         template <Numeric T>
-            requires (!SameAs<T, bool>)
+            requires (NotSameAs<T, bool>)
         explicit GnuFloat(T value = 0):
             _value{value} {}
 

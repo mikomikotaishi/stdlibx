@@ -1,16 +1,16 @@
 #pragma once
 
+#include "stdx/sql/exceptions.inl"
 #ifdef STDLIBX_EXTENSIONS_COMPILE_SQL_LIBRARY
 namespace stdx::sql {
     /**
      * @internal
      * @brief Determines if a SQLSTATE code represents a transient error.
+     * @param state The SQLSTATE code (5 characters).
+     * @return true if the error is transient, false if permanent or unknown.
      *
      * Transient errors are temporary conditions where retrying the operation
      * may succeed (e.g., connection lost, deadlock, timeout).
-     *
-     * @param state The SQLSTATE code (5 characters).
-     * @return true if the error is transient, false if permanent or unknown.
      */
     [[nodiscard]]
     bool is_transient_sqlstate(StringView state) noexcept {
@@ -35,18 +35,18 @@ namespace stdx::sql {
     /**
      * @internal
      * @brief Throws the appropriate SQL exception based on ODBC diagnostics.
-     *
-     * Extracts SQLSTATE from the ODBC handle and throws either
-     * SQLTransientException (for transient errors) or SQLNonTransientException
-     * (for permanent errors).
-     *
      * @param handle_type The ODBC handle type (SQL_HANDLE_ENV, SQL_HANDLE_DBC, SQL_HANDLE_STMT).
      * @param handle The ODBC handle to extract diagnostics from.
      * @param context A description of the operation that failed.
      * @throws SQLTransientException if the error is transient.
      * @throws SQLNonTransientException if the error is non-transient.
+     *
+     * Extracts SQLSTATE from the ODBC handle and throws either
+     * SQLTransientException (for transient errors) or SQLNonTransientException
+     * (for permanent errors).
      */
     [[noreturn]]
+    THROWS(SQLNonTransientException, SQLTransientException)
     void throw_sql_exception(SQLSMALLINT handle_type, SQLHANDLE handle, StringView context) {
         SQLCHAR state_buf[6]{};
         SQLCHAR message_buf[1024]{};

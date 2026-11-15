@@ -6,11 +6,11 @@
  */
 export namespace stdx::math::linalg {
     #ifdef __cpp_lib_linalg
-    template <typename Triangle, typename StorageOrder>
-    using LayoutBlasPacked = std::linalg::layout_blas_packed<Triangle, StorageOrder>;
+    template <typename Tri, typename StorageOrder>
+    using LayoutBlasPacked = std::linalg::layout_blas_packed<Tri, StorageOrder>;
 
-    template <typename Triangle, typename StorageOrder, typename Extents>
-    using LayoutBlasPackedMapping = std::linalg::layout_blas_packed_mapping<Triangle, StorageOrder, Extents>
+    template <typename Tri, typename StorageOrder, typename Exts>
+    using LayoutBlasPackedMapping = std::linalg::layout_blas_packed_mapping<Tri, StorageOrder, Exts>
 
     template <typename ScalingFactor, typename NestedAccessor>
     using ScaledAccessor = std::linalg::scaled_accessor<ScalingFactor, NestedAccessor>;

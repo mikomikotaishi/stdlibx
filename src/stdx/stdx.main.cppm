@@ -41,6 +41,8 @@ using namespace stdx::core;
 using namespace stdx::literals;
 
 #include "stdx/meta/type_traits.inl"
+#include "stdx/meta/fixed_string.inl"
+#include "stdx/meta/specialization.inl"
 #include "stdx/meta/typeindex.inl"
 #include "stdx/meta/typeinfo.inl"
 
@@ -277,6 +279,17 @@ using namespace stdx::literals;
 #include "stdx/util/logging/sinks.inl"
 #include "stdx/util/logging/logger.inl"
 
+#include "stdx/data/annotations.inl"
+
+#include "stdx/data/json/exceptions.inl"
+#include "stdx/data/json/value.inl"
+#include "stdx/data/json/parser.inl"
+#include "stdx/data/json/serializer.inl"
+#include "stdx/data/json/pointer.inl"
+#include "stdx/data/json/serde.inl"
+#include "stdx/data/json/builder.inl"
+#include "stdx/data/json/formatter.inl"
+
 #include "stdx/test/assertions.inl"
 #include "stdx/test/runner.inl"
 #include "stdx/test/annotations.inl"
@@ -304,5 +317,3 @@ using namespace stdx::literals;
 #include "stdx/audio/midi/synthesizer.inl"
 #include "stdx/audio/midi/system.inl"
 #include "stdx/audio/midi/dispatch.inl"
-
-#include "operators.inl"

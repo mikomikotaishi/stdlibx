@@ -5,7 +5,9 @@ import stdx;
 #ifdef __cpp_impl_reflection
 using stdx::collections::Vector;
 using stdx::meta::reflect::AccessContext;
-using stdx::meta::reflect::Info;
+using stdx::meta::reflect::Class;
+using stdx::meta::reflect::Member;
+using stdx::meta::reflect::Mirror;
 
 namespace reflect = stdx::meta::reflect;
 
@@ -85,6 +87,7 @@ public:
 
 /**
  * @brief The member of a class with the given name, whatever its access.
+ * @tparam T the type that the class object represents.
  * @param clazz The reflection of the class to search.
  * @param name The member name to look for.
  * @return The member's reflection, or a null reflection when there is no such member.
@@ -92,27 +95,30 @@ public:
  * Members are collected in an unchecked access context, so private members come back
  * alongside public ones.
  */
+template <typename T>
 [[nodiscard]]
-consteval Info memberNamed(Info clazz, StringView name) {
-    for (const Info member: reflect::members_of(clazz, AccessContext::unchecked())) {
-        if (reflect::has_identifier(member) && reflect::identifier_of(member) == name) {
-            return member;
+consteval Member memberNamed(Class<T> clazz, StringView name) {
+    for (const Member m: clazz.members()) {
+        if (m.has_identifier() && m.identifier_of() == name) {
+            return m;
         }
     }
-    return Info{};
+    return Mirror::NONE;
 }
 
 /**
  * @brief Whether a class has a member of the given name in a given access context.
+ * @tparam T the type that the class object represents.
  * @param clazz The reflection of the class to search.
  * @param name The member name to look for.
  * @param ctx The access context to search in.
  * @return True if the member is visible in that context.
  */
+template <typename T>
 [[nodiscard]]
-consteval bool hasMember(Info clazz, StringView name, AccessContext ctx) {
-    for (const Info member: reflect::members_of(clazz, ctx)) {
-        if (reflect::has_identifier(member) && reflect::identifier_of(member) == name) {
+consteval bool hasMember(Class<T> clazz, StringView name, AccessContext ctx) {
+    for (const Member m: clazz.members(ctx)) {
+        if (m.has_identifier() && m.identifier_of() == name) {
             return true;
         }
     }
@@ -126,16 +132,16 @@ using NextIndexFn = usize (*)(usize) noexcept; ///< The type of the private next
 // directly; a private *function* cannot - GCC rejects `(buffer.[:TAIL:])()` with "is
 // private within this context" - so its address is pulled out with extract(), which
 // is not access-checked.
-constexpr Info HEAD = memberNamed(^^RingBuffer, "_head");
-constexpr Info COUNT = memberNamed(^^RingBuffer, "_count");
-constexpr Info SLOTS = memberNamed(^^RingBuffer, "_slots");
-constexpr TailFn TAIL = reflect::extract<TailFn>(memberNamed(^^RingBuffer, "tail"));
+constexpr Member HEAD = memberNamed(Class<RingBuffer>(), "_head");
+constexpr Member COUNT = memberNamed(Class<RingBuffer>(), "_count");
+constexpr Member SLOTS = memberNamed(Class<RingBuffer>(), "_slots");
+constexpr TailFn TAIL = reflect::extract<TailFn>(memberNamed(Class<RingBuffer>(), "tail"));
 constexpr NextIndexFn NEXT_INDEX = reflect::extract<NextIndexFn>(
-    memberNamed(^^RingBuffer, "nextIndex")
+    memberNamed(Class<RingBuffer>(), "nextIndex")
 );
 
 namespace mmt::internals {
-    void testReadsThePrivateIndices() {
+    void test_reads_the_private_indices() {
         RingBuffer buffer;
         expect_eq(buffer.[:HEAD:], 0uz, "a fresh buffer writes at index 0");
         buffer.push(1);
@@ -144,7 +150,7 @@ namespace mmt::internals {
         expect_eq(buffer.[:COUNT:], 2uz, "and so did the live count");
     }
 
-    void testObservesTheWrapAround() {
+    void test_observes_the_wrap_around() {
         RingBuffer buffer;
         for (i32 value = 1; value <= 5; ++value) {
             buffer.push(value);
@@ -155,7 +161,7 @@ namespace mmt::internals {
         expect_eq(buffer.[:SLOTS:][0], 5, "and overwrote the oldest slot in place");
     }
 
-    void testWritesAStateThatIsAwkwardToReach() {
+    void test_writes_a_state_that_is_awkward_to_reach() {
         // Rather than pushing three values to walk the write index up to the
         // boundary, put it there and test only the transition that matters.
         RingBuffer buffer;
@@ -167,7 +173,7 @@ namespace mmt::internals {
         expect_eq(*buffer.pop(), 20, "then the one written after the wrap");
     }
 
-    void testCallsThePrivateHelpers() {
+    void test_calls_the_private_helpers() {
         RingBuffer buffer;
         buffer.push(1);
         buffer.push(2);
@@ -176,14 +182,14 @@ namespace mmt::internals {
         expect_eq(NEXT_INDEX(0uz), 1uz);
     }
 
-    void testTheAccessContextDecidesWhatIsVisible() {
-        constexpr bool headWhenChecked = hasMember(^^RingBuffer, "_head", AccessContext::current());
-        constexpr bool headWhenUnchecked = hasMember(^^RingBuffer, "_head", AccessContext::unchecked());
-        constexpr bool sizeWhenChecked = hasMember(^^RingBuffer, "size", AccessContext::current());
+    void test_the_access_context_decides_what_is_visible() {
+        constexpr bool headWhenChecked = hasMember(Class<RingBuffer>(), "_head", AccessContext::current());
+        constexpr bool headWhenUnchecked = hasMember(Class<RingBuffer>(), "_head", AccessContext::unchecked());
+        constexpr bool sizeWhenChecked = hasMember(Class<RingBuffer>(), "size", AccessContext::current());
         expect(!headWhenChecked, "a private member is hidden from a checked context");
         expect(headWhenUnchecked, "and revealed by an unchecked one");
         expect(sizeWhenChecked, "public members show up either way");
-        expect(reflect::is_private(HEAD), "_head reports its own access");
+        expect(HEAD.is_private(), "_head reports its own access");
     }
 }
 
@@ -198,17 +204,17 @@ namespace mmt::internals {
  */
 class BufferFixture {
 private:
-    static void testAPrivateStaticIsDiscovered() {
+    static void test_a_private_static_is_discovered() {
         RingBuffer buffer;
         buffer.push(7);
         expect_eq(buffer.[:COUNT:], 1uz, "and it can reach the internals as well");
     }
 public:
-    static void testAPublicStaticIsDiscovered() {
+    static void test_a_public_static_is_discovered() {
         expect(true, "static member functions become tests");
     }
 
-    void testANonStaticMemberIsNot() {
+    void test_a_non_static_member_is_not() {
         expect(false, "never discovered, so never run");
     }
 };

@@ -33,9 +33,7 @@ using namespace stdx::literals;
 
 namespace stdx::util {
     template <typename T>
-    concept Collection = !SameAs<T, String> 
-        && !SameAs<T, StringView>
-        && requires (T t) {
+    concept Collection = NotAnyOf<T, String, StringView> && requires (T t) {
         typename T::value_type;
         { t.begin() } -> InputIterator;
         { t.end() } -> InputIterator;
@@ -492,7 +490,7 @@ namespace stdx::util {
 
     template <typename Str>
     [[nodiscard]]
-    usize get_levenshtein_distance(const Str& s1, const Str& s2) {
+    usize levenshtein_distance(const Str& s1, const Str& s2) {
         Vector<Vector<usize>> dp(s1.size() + 1, Vector<usize>(s2.size() + 1, 0uz));
 
         for (usize i: IotaView(0uz, s1.size())) {
@@ -513,12 +511,12 @@ namespace stdx::util {
 
     template <typename V>
     [[nodiscard]]
-    String get_most_similar_string(const TreeMap<String, V>& map, StringView input) {
+    String most_similar_string(const TreeMap<String, V>& map, StringView input) {
         String most_similar;
         usize min_distance = UnsignedSize::MAX_VALUE;
 
         for (const auto& [key, value]: map) {
-            usize distance = get_levenshtein_distance(key, String(input));
+            usize distance = levenshtein_distance(key, String(input));
             if (distance < min_distance) {
                 min_distance = distance;
                 most_similar = key;
@@ -625,28 +623,28 @@ export namespace stdx::util {
     private:
         Vector<String> _names;
         Vector<Variant<ReturnableAction, VoidAction>> _actions;
-        Variant<ReturnableAction, VoidAction> default_action {
+        Variant<ReturnableAction, VoidAction> _default_action {
             InPlaceType<ReturnableAction>, [](const String& s) -> String { return s; }
         };
-        String help_text;
-        String meta_variable;
-        String default_value_repr;
-        Optional<String> default_value_string;
-        Any default_val;
-        Any implicit_val;
-        Optional<Vector<String>> choice_values;
-        Vector<Any> values;
-        NArgsRange num_args_range = {1, 1};
-        StringView used_name;
-        StringView prefix_chars;
-        usize group_index = 0;
-        u32 usage_newline_counter = 0;
-        bool accepts_optional_like_value : 1 = false;
-        bool is_optional : 1 = false;
-        bool is_required : 1 = false;
-        bool is_repeatable : 1 = false;
-        bool is_used : 1 = false;
-        bool is_hidden : 1 = false;
+        String _help_text;
+        String _metavar;
+        String _default_value_repr;
+        Optional<String> _default_value_string;
+        Any _default_value;
+        Any _implicit_value;
+        Optional<Vector<String>> _choices;
+        Vector<Any> _values;
+        NArgsRange _num_args_range = {1, 1};
+        StringView _used_name;
+        StringView _prefix_chars;
+        usize _group_index = 0;
+        u32 _usage_newline_counter = 0;
+        bool _accepts_optional_like_value : 1 = false;
+        bool _optional : 1 = false;
+        bool _required : 1 = false;
+        bool _repeatable : 1 = false;
+        bool _used : 1 = false;
+        bool _hidden : 1 = false;
 
         friend class ArgumentParser;
 
@@ -772,15 +770,15 @@ export namespace stdx::util {
         THROWS(CommandLineParserException)
         void throw_nargs_range_validation() const {
             StringStream stream;
-            stream << (!used_name.empty() ? used_name : StringView(_names.front())) << ": ";
-            if (num_args_range.is_exact()) {
-                stream << num_args_range.min();
-            } else if (num_args_range.is_right_bounded()) {
-                stream << Ops::fmt("{} to {}", num_args_range.min(), num_args_range.max());
+            stream << (!_used_name.empty() ? _used_name : StringView(_names.front())) << ": ";
+            if (_num_args_range.is_exact()) {
+                stream << _num_args_range.min();
+            } else if (_num_args_range.is_right_bounded()) {
+                stream << Ops::fmt("{} to {}", _num_args_range.min(), _num_args_range.max());
             } else {
-                stream << Ops::fmt("{} or more", num_args_range.min());
+                stream << Ops::fmt("{} or more", _num_args_range.min());
             }
-            stream << Ops::fmt(" argument(s) expected. {} provided.", values.size());
+            stream << Ops::fmt(" argument(s) expected. {} provided.", _values.size());
             throw CommandLineParserException(stream.str());
         }
 
@@ -793,7 +791,7 @@ export namespace stdx::util {
         [[noreturn]]
         THROWS(CommandLineParserException)
         void throw_required_arg_no_value_provided() const {
-            throw CommandLineParserException(Ops::fmt("{}: no value provided.", used_name));
+            throw CommandLineParserException(Ops::fmt("{}: no value provided.", _used_name));
         }
 
         template <typename T>
@@ -809,39 +807,39 @@ export namespace stdx::util {
 
         THROWS(CommandLineParserException)
         void find_default_value_in_choices_or_throw() const {
-            const Vector<String>& ch = choice_values.value();
-            if (default_val.has_value() && !stdx::ranges::contains(ch, default_value_string)) {
+            const Vector<String>& ch = _choices.value();
+            if (_default_value.has_value() && !stdx::ranges::contains(ch, _default_value_string)) {
                 const String csv = join(ch.begin(), ch.end(), ", "sv);
-                throw CommandLineParserException(Ops::fmt("Invalid default value {} - allowed options: {{{}}}", default_value_repr, csv));
+                throw CommandLineParserException(Ops::fmt("Invalid default value {} - allowed options: {{{}}}", _default_value_repr, csv));
             }
         }
 
         template <typename Iter>
         [[nodiscard]]
         bool is_value_in_choices(Iter option_it) const {
-            return stdx::ranges::contains(choice_values.value(), *option_it);
+            return stdx::ranges::contains(_choices.value(), *option_it);
         }
 
         template <typename Iter>
         [[noreturn]]
         THROWS(CommandLineParserException)
         void throw_invalid_arguments(Iter option_it) const {
-            const Vector<String>& ch = choice_values.value();
+            const Vector<String>& ch = _choices.value();
             const String csv = join(ch.begin(), ch.end(), ", "sv);
             throw CommandLineParserException(Ops::fmt("Invalid argument {} - allowed options: {{{}}}", represent(*option_it), csv));
         }
 
         void set_usage_newline_counter(u32 i) {
-            usage_newline_counter = i;
+            _usage_newline_counter = i;
         }
 
         void set_group_index(usize i) {
-            group_index = i;
+            _group_index = i;
         }
 
         template <usize N, usize... I>
         explicit Argument(StringView pfx, Array<StringView, N>&& a, [[maybe_unused]] IndexSequence<I...> ind_seq):
-            prefix_chars{pfx}, is_optional{(check_optional(a[I], pfx) || ...)} {
+            _prefix_chars{pfx}, _optional{(check_optional(a[I], pfx) || ...)} {
             (_names.emplace_back(a[I]), ...);
             stdx::ranges::sort(_names,
                 []<TotallyOrdered T>(const T& lhs, const T& rhs) -> bool
@@ -852,29 +850,29 @@ export namespace stdx::util {
 
     public:
         template <usize N>
-        explicit Argument(StringView prefix_chars, Array<StringView, N>&& a):
-            Argument(prefix_chars, Ops::move(a), IndexSequenceOf<N>{}) {}
+        explicit Argument(StringView _prefix_chars, Array<StringView, N>&& a):
+            Argument(_prefix_chars, Ops::move(a), IndexSequenceOf<N>{}) {}
 
         Argument& help(StringView text) {
-            help_text = text;
+            _help_text = text;
             return *this;
         }
 
         Argument& metavar(StringView mv) {
-            meta_variable = mv;
+            _metavar = mv;
             return *this;
         }
 
         template <typename T>
         Argument& default_value(T&& value) {
-            num_args_range = NArgsRange(0, num_args_range.max());
-            default_value_repr = represent(value);
+            _num_args_range = NArgsRange(0, _num_args_range.max());
+            _default_value_repr = represent(value);
             if constexpr (IsConvertibleValue<T, StringView>) {
-                default_value_string = String(StringView(value));
+                _default_value_string = String(StringView(value));
             } else if constexpr (CanInvokeToString<T>) {
-                default_value_string = to_string(value);
+                _default_value_string = to_string(value);
             }
-            default_val = Ops::forward<T>(value);
+            _default_value = Ops::forward<T>(value);
             return *this;
         }
 
@@ -883,13 +881,13 @@ export namespace stdx::util {
         }
 
         Argument& required() {
-            is_required = true;
+            _required = true;
             return *this;
         }
 
         Argument& implicit_value(Any value) {
-            implicit_val = Ops::move(value);
-            num_args_range = NArgsRange(0, 0);
+            _implicit_value = Ops::move(value);
+            _num_args_range = NArgsRange(0, 0);
             return *this;
         }
 
@@ -922,11 +920,11 @@ export namespace stdx::util {
         }
 
         Argument& store_into(bool& var) {
-            if (!default_val.has_value() && !implicit_val.has_value()) {
+            if (!_default_value.has_value() && !_implicit_value.has_value()) {
                 flag();
             }
-            if (default_val.has_value()) {
-                var = any_cast<bool>(default_val);
+            if (_default_value.has_value()) {
+                var = any_cast<bool>(_default_value);
             }
             action(
                 [&var](const String& _) -> bool {
@@ -939,8 +937,8 @@ export namespace stdx::util {
 
         template <Integral Int>
         Argument& store_into(Int& var) {
-            if (default_val.has_value()) {
-                var = any_cast<Int>(default_val);
+            if (_default_value.has_value()) {
+                var = any_cast<Int>(_default_value);
             }
             action(
                 [&var](const auto& s) -> Int {
@@ -953,8 +951,8 @@ export namespace stdx::util {
 
         template <FloatingPoint Flt>
         Argument& store_into(Flt& var) {
-            if (default_val.has_value()) {
-                var = any_cast<Flt>(default_val);
+            if (_default_value.has_value()) {
+                var = any_cast<Flt>(_default_value);
             }
             action(
                 [&var](const auto& s) -> Flt {
@@ -966,8 +964,8 @@ export namespace stdx::util {
         }
 
         Argument& store_into(String& var) {
-            if (default_val.has_value()) {
-                var = any_cast<String>(default_val);
+            if (_default_value.has_value()) {
+                var = any_cast<String>(_default_value);
             }
             action(
                 [&var](const String& s) -> String {
@@ -979,8 +977,8 @@ export namespace stdx::util {
         }
 
         Argument& store_into(Path& var) {
-            if (default_val.has_value()) {
-                var = any_cast<Path>(default_val);
+            if (_default_value.has_value()) {
+                var = any_cast<Path>(_default_value);
             }
             action(
                 [&var](const String& s) -> Path {
@@ -992,15 +990,15 @@ export namespace stdx::util {
         }
 
         Argument& store_into(Vector<String>& var) {
-            if (default_val.has_value()) {
-                var = any_cast<Vector<String>>(default_val);
+            if (_default_value.has_value()) {
+                var = any_cast<Vector<String>>(_default_value);
             }
             action(
                 [this, &var](const String& s) -> Vector<String> {
-                    if (!is_used) {
+                    if (!_used) {
                         var.clear();
                     }
-                    is_used = true;
+                    _used = true;
                     var.push_back(s);
                     return var;
                 }
@@ -1009,15 +1007,15 @@ export namespace stdx::util {
         }
 
         Argument& store_into(Vector<i32>& var) {
-            if (default_val.has_value()) {
-                var = any_cast<Vector<i32>>(default_val);
+            if (_default_value.has_value()) {
+                var = any_cast<Vector<i32>>(_default_value);
             }
             action(
                 [this, &var](const String& s) {
-                    if (!is_used) {
+                    if (!_used) {
                         var.clear();
                     }
-                    is_used = true;
+                    _used = true;
                     var.push_back(ParseNumber<i32, 10uz>()(s));
                     return var;
                 }
@@ -1026,12 +1024,12 @@ export namespace stdx::util {
         }
 
         Argument& append() {
-            is_repeatable = true;
+            _repeatable = true;
             return *this;
         }
 
         Argument& hidden() {
-            is_hidden = true;
+            _hidden = true;
             return *this;
         }
 
@@ -1065,51 +1063,51 @@ export namespace stdx::util {
         }
 
         Argument& nargs(usize num_args) {
-            num_args_range = NArgsRange(num_args, num_args);
+            _num_args_range = NArgsRange(num_args, num_args);
             return *this;
         }
 
         Argument& nargs(usize min, usize max) {
-            num_args_range = NArgsRange(min, max);
+            _num_args_range = NArgsRange(min, max);
             return *this;
         }
 
         Argument& nargs(NArgsPattern pattern) {
             switch (pattern) {
                 case NArgsPattern::OPTIONAL:
-                    num_args_range = NArgsRange(0, 1);
+                    _num_args_range = NArgsRange(0, 1);
                     break;
                 case NArgsPattern::ANY:
-                    num_args_range = NArgsRange(0, UnsignedSize::MAX_VALUE);
+                    _num_args_range = NArgsRange(0, UnsignedSize::MAX_VALUE);
                     break;
                 case NArgsPattern::AT_LEAST_ONE:
-                    num_args_range = NArgsRange(1, UnsignedSize::MAX_VALUE);
+                    _num_args_range = NArgsRange(1, UnsignedSize::MAX_VALUE);
                     break;
             }
             return *this;
         }
 
         Argument& remaining() {
-            accepts_optional_like_value = true;
+            _accepts_optional_like_value = true;
             return nargs(NArgsPattern::ANY);
         }
 
         template <typename T>
         void add_choice(T&& choice) {
             static_assert(ChoiceTypeSupported<T>, "Only string or integer type supported for choice");
-            if (!choice_values.has_value()) {
-                choice_values = Vector<String>{};
+            if (!_choices.has_value()) {
+                _choices = Vector<String>{};
             }
             if constexpr (IsConvertibleValue<T, StringView>) {
-                choice_values.value().push_back(String(StringView(Ops::forward<T>(choice))));
+                _choices.value().push_back(String(StringView(Ops::forward<T>(choice))));
             } else if constexpr (CanInvokeToString<T>) {
-                choice_values.value().push_back(to_string(Ops::forward<T>(choice)));
+                _choices.value().push_back(to_string(Ops::forward<T>(choice)));
             }
         }
 
         THROWS(CommandLineParserException)
         Argument& choices() {
-            if (!choice_values.has_value()) {
+            if (!_choices.has_value()) {
                 throw CommandLineParserException("Zero choices provided");
             }
             return *this;
@@ -1126,39 +1124,39 @@ export namespace stdx::util {
         template <typename Iter>
         THROWS(CommandLineParserException)
         Iter consume(Iter start, Iter end, StringView name_used = ""sv, bool dry_run = false) {
-            if (!is_repeatable && is_used) {
+            if (!_repeatable && _used) {
                 throw CommandLineParserException(Ops::fmt("Duplicate argument {}", name_used));
             }
-            this->used_name = name_used;
+            _used_name = name_used;
             usize passed_options = 0;
 
-            if (choice_values.has_value()) {
+            if (_choices.has_value()) {
                 for (auto it = start; it != end; ++it) {
                     if (is_value_in_choices(it)) {
                         passed_options += 1;
                         continue;
                     }
-                    if (passed_options >= num_args_range.min() && passed_options <= num_args_range.max()) {
+                    if (passed_options >= _num_args_range.min() && passed_options <= _num_args_range.max()) {
                         break;
                     }
                     throw_invalid_arguments(it);
                 }
             }
 
-            const usize num_args_max = choice_values.has_value() ? passed_options : num_args_range.max();
-            const usize num_args_min = num_args_range.min();
+            const usize num_args_max = _choices.has_value() ? passed_options : _num_args_range.max();
+            const usize num_args_min = _num_args_range.min();
             usize dist = 0;
 
             if (num_args_max == 0) {
                 if (!dry_run) {
-                    values.emplace_back(implicit_val);
+                    _values.emplace_back(_implicit_value);
                     for (auto& act: _actions) {
                         visit([&](const auto& f) { f({}); }, act);
                     }
                     if (_actions.empty()) {
-                        visit([&](const auto& f) { f({}); }, default_action);
+                        visit([&](const auto& f) { f({}); }, _default_action);
                     }
-                    is_used = true;
+                    _used = true;
                 }
                 return start;
             }
@@ -1167,32 +1165,32 @@ export namespace stdx::util {
                 if (num_args_max < dist) {
                     end = Iterators::next(start, static_cast<typename Iter::difference_type>(num_args_max));
                 }
-                if (!accepts_optional_like_value) {
+                if (!_accepts_optional_like_value) {
                     end = stdx::util::find_if(
                         start,
                         end,
                         [this](const StringView& arg) -> bool {
-                            return check_optional(arg, prefix_chars);
+                            return check_optional(arg, _prefix_chars);
                         }
                     );
                     dist = static_cast<usize>(Iterators::distance(start, end));
                     if (dist < num_args_min) {
-                        throw CommandLineParserException(Ops::fmt("Too few arguments for '{}'.", used_name));
+                        throw CommandLineParserException(Ops::fmt("Too few arguments for '{}'.", _used_name));
                     }
                 }
 
                 struct ActionApply {
                     void operator()(ReturnableAction& f) {
                         for (Iter it = first; it != last; ++it) {
-                            self.values.push_back(f(*it));
+                            self._values.push_back(f(*it));
                         }
                     }
                     void operator()(VoidAction& f) {
                         for (Iter it = first; it != last; ++it) {
                             f(*it);
                         }
-                        if (!self.default_val.has_value() && !self.accepts_optional_like_value) {
-                            self.values.resize(static_cast<usize>(Iterators::distance(first, last)));
+                        if (!self._default_value.has_value() && !self._accepts_optional_like_value) {
+                            self._values.resize(static_cast<usize>(Iterators::distance(first, last)));
                         }
                     }
 
@@ -1206,54 +1204,54 @@ export namespace stdx::util {
                         visit(ActionApply{start, end, *this}, act);
                     }
                     if (_actions.empty()) {
-                        visit(ActionApply{start, end, *this}, default_action);
+                        visit(ActionApply{start, end, *this}, _default_action);
                     }
-                    is_used = true;
+                    _used = true;
                 }
                 return end;
             }
 
-            if (default_val.has_value()) {
+            if (_default_value.has_value()) {
                 if (!dry_run) {
-                    is_used = true;
+                    _used = true;
                 }
                 return start;
             }
-            throw CommandLineParserException(Ops::fmt("Too few arguments for '{}'.", used_name));
+            throw CommandLineParserException(Ops::fmt("Too few arguments for '{}'.", _used_name));
         }
 
         THROWS(CommandLineParserException)
         void validate() const {
-            if (is_optional) {
-                if (!is_used && !default_val.has_value() && is_required) {
+            if (_optional) {
+                if (!_used && !_default_value.has_value() && _required) {
                     throw_required_arg_not_used();
                 }
-                if (is_used && is_required && values.empty()) {
+                if (_used && _required && _values.empty()) {
                     throw_required_arg_no_value_provided();
                 }
             } else {
-                if (!num_args_range.contains(values.size()) && !default_val.has_value()) {
+                if (!_num_args_range.contains(_values.size()) && !_default_value.has_value()) {
                     throw_nargs_range_validation();
                 }
             }
-            if (choice_values.has_value()) {
+            if (_choices.has_value()) {
                 find_default_value_in_choices_or_throw();
             }
         }
 
         [[nodiscard]]
-        String get_names_csv(char separator = ',') const {
+        String names_as_csv(char separator = ',') const {
             return join(_names.begin(), _names.end(), String(1, separator));
         }
 
         [[nodiscard]]
-        String get_usage_full() const {
+        String usage_full() const {
             StringStream usage;
-            usage << get_names_csv('/');
-            const String mv = !meta_variable.empty() ? meta_variable : "VAR";
-            if (num_args_range.max() > 0) {
+            usage << names_as_csv('/');
+            const String mv = !_metavar.empty() ? _metavar : "VAR";
+            if (_num_args_range.max() > 0) {
                 usage << Ops::fmt(" {}", mv);
-                if (num_args_range.max() > 1) {
+                if (_num_args_range.max() > 1) {
                     usage << "...";
                 }
             }
@@ -1261,7 +1259,7 @@ export namespace stdx::util {
         }
 
         [[nodiscard]]
-        String get_inline_usage() const {
+        String usage_inline() const {
             StringStream usage;
             String longest_name = _names.front();
             for (const String& s: _names) {
@@ -1269,27 +1267,28 @@ export namespace stdx::util {
                     longest_name = s;
                 }
             }
-            if (!is_required) {
+            if (!_required) {
                 usage << "[";
             }
             usage << longest_name;
-            const String mv = !meta_variable.empty() ? meta_variable : "VAR";
-            if (num_args_range.max() > 0) {
+            const String mv = !_metavar.empty() ? _metavar : "VAR";
+            if (_num_args_range.max() > 0) {
                 usage << Ops::fmt(" {}", mv);
-                if (num_args_range.max() > 1 && meta_variable.find("> <") == String::npos) {
+                if (_num_args_range.max() > 1 && _metavar.find("> <") == String::npos) {
                     usage << "...";
                 }
             }
-            if (!is_required) {
+            if (!_required) {
                 usage << "]";
             }
-            if (is_repeatable) {
+            if (_repeatable) {
                 usage << "...";
             }
             return usage.str();
         }
 
-        [[nodiscard]] usize get_arguments_length() const {
+        [[nodiscard]]
+        usize arguments_length() const {
             usize names_size = stdx::util::accumulate(
                 _names.begin(),
                 _names.end(),
@@ -1298,15 +1297,15 @@ export namespace stdx::util {
                     return sum + s.size();
                 }
             );
-            if (check_positional(_names.front(), prefix_chars)) {
-                if (!meta_variable.empty()) {
-                    return 2 + meta_variable.size();
+            if (check_positional(_names.front(), _prefix_chars)) {
+                if (!_metavar.empty()) {
+                    return 2 + _metavar.size();
                 }
                 return 2 + names_size + (_names.size() - 1);
             }
             usize size = names_size + 2 * (_names.size() - 1);
-            if (!meta_variable.empty() && num_args_range == NArgsRange(1, 1)) {
-                size += meta_variable.size() + 1;
+            if (!_metavar.empty() && _num_args_range == NArgsRange(1, 1)) {
+                size += _metavar.size() + 1;
             }
             return size + 2;
         }
@@ -1315,19 +1314,19 @@ export namespace stdx::util {
         [[nodiscard]]
         THROWS(LogicException)
         T get() const {
-            if (!values.empty()) {
+            if (!_values.empty()) {
                 if constexpr (Collection<T>) {
-                    return any_cast_container<T>(values);
+                    return any_cast_container<T>(_values);
                 } else {
-                    return any_cast<T>(values.front());
+                    return any_cast<T>(_values.front());
                 }
             }
-            if (default_val.has_value()) {
-                return any_cast<T>(default_val);
+            if (_default_value.has_value()) {
+                return any_cast<T>(_default_value);
             }
             if constexpr (Collection<T>) {
-                if (!accepts_optional_like_value) {
-                    return any_cast_container<T>(values);
+                if (!_accepts_optional_like_value) {
+                    return any_cast_container<T>(_values);
                 }
             }
             throw LogicException(Ops::fmt("No value provided for '{}'.", _names.back()));
@@ -1337,16 +1336,16 @@ export namespace stdx::util {
         [[nodiscard]]
         THROWS(LogicException)
         Optional<T> present() const {
-            if (default_val.has_value()) {
+            if (_default_value.has_value()) {
                 throw LogicException("Argument with default value always presents");
             }
-            if (values.empty()) {
+            if (_values.empty()) {
                 return nullopt;
             }
             if constexpr (Collection<T>) {
-                return any_cast_container<T>(values);
+                return any_cast_container<T>(_values);
             }
-            return any_cast<T>(values.front());
+            return any_cast<T>(_values.front());
         }
 
         template <typename T> bool operator==(const T& rhs) const {
@@ -1374,22 +1373,22 @@ export namespace stdx::util {
         friend OutputStream& operator<<(OutputStream& stream, const Argument& arg) {
             StringStream name_stream;
             name_stream << "  ";
-            if (check_positional(arg._names.front(), arg.prefix_chars)) {
-                if (!arg.meta_variable.empty()) {
-                    name_stream << arg.meta_variable;
+            if (check_positional(arg._names.front(), arg._prefix_chars)) {
+                if (!arg._metavar.empty()) {
+                    name_stream << arg._metavar;
                 } else {
                     name_stream << join(arg._names.begin(), arg._names.end(), " "sv);
                 }
             } else {
                 name_stream << join(arg._names.begin(), arg._names.end(), ", "sv);
-                if (!arg.meta_variable.empty() && arg.num_args_range == NArgsRange(1, 1)) {
-                    name_stream << Ops::fmt(" {}", arg.meta_variable);
+                if (!arg._metavar.empty() && arg._num_args_range == NArgsRange(1, 1)) {
+                    name_stream << Ops::fmt(" {}", arg._metavar);
                 } else if (
-                    !arg.meta_variable.empty() &&
-                    arg.num_args_range.min() == arg.num_args_range.max() &&
-                    arg.meta_variable.find("> <") != String::npos
+                    !arg._metavar.empty() &&
+                    arg._num_args_range.min() == arg._num_args_range.max() &&
+                    arg._metavar.find("> <") != String::npos
                 ) {
-                    name_stream << Ops::fmt(" {}", arg.meta_variable);
+                    name_stream << Ops::fmt(" {}", arg._metavar);
                 }
             }
 
@@ -1399,8 +1398,8 @@ export namespace stdx::util {
             usize prev_pos{};
             bool first_line = true;
             stream << name_stream.str();
-            StringView hv(arg.help_text);
-            while ((pos = arg.help_text.find('\n', prev_pos)) != String::npos) {
+            StringView hv(arg._help_text);
+            while ((pos = arg._help_text.find('\n', prev_pos)) != String::npos) {
                 StringView line = hv.substr(prev_pos, pos - prev_pos + 1);
                 if (first_line) {
                     stream << Ops::fmt("  {}", line);
@@ -1412,39 +1411,39 @@ export namespace stdx::util {
                 prev_pos += pos - prev_pos + 1;
             }
             if (first_line) {
-                stream << Ops::fmt("  {}", arg.help_text);
+                stream << Ops::fmt("  {}", arg._help_text);
             } else {
-                StringView leftover = hv.substr(prev_pos, arg.help_text.size() - prev_pos);
+                StringView leftover = hv.substr(prev_pos, arg._help_text.size() - prev_pos);
                 if (!leftover.empty()) {
                     stream.width(stream_width);
                     stream << Ops::fmt("{}  {}", name_pad, leftover);
                 }
             }
 
-            if (!arg.help_text.empty()) {
+            if (!arg._help_text.empty()) {
                 stream << " ";
             }
-            if (arg.num_args_range.is_exact()) {
-                if (arg.num_args_range.min() != 0 && arg.num_args_range.min() != 1) {
-                    stream << Ops::fmt("[nargs: {}]", arg.num_args_range.min());
+            if (arg._num_args_range.is_exact()) {
+                if (arg._num_args_range.min() != 0 && arg._num_args_range.min() != 1) {
+                    stream << Ops::fmt("[nargs: {}]", arg._num_args_range.min());
                 }
             } else {
-                if (!arg.num_args_range.is_right_bounded()) {
-                    stream << Ops::fmt("[nargs: {} or more]", arg.num_args_range.min());
+                if (!arg._num_args_range.is_right_bounded()) {
+                    stream << Ops::fmt("[nargs: {} or more]", arg._num_args_range.min());
                 } else {
-                    stream << Ops::fmt("[nargs={}..{}]", arg.num_args_range.min(), arg.num_args_range.max());
+                    stream << Ops::fmt("[nargs={}..{}]", arg._num_args_range.min(), arg._num_args_range.max());
                 }
             }
 
             bool add_space = false;
-            if (arg.default_val.has_value() && arg.num_args_range != NArgsRange(0, 0)) {
-                stream << Ops::fmt("[default: {}]", arg.default_value_repr);
+            if (arg._default_value.has_value() && arg._num_args_range != NArgsRange(0, 0)) {
+                stream << Ops::fmt("[default: {}]", arg._default_value_repr);
                 add_space = true;
-            } else if (arg.is_required) {
+            } else if (arg._required) {
                 stream << "[required]";
                 add_space = true;
             }
-            if (arg.is_repeatable) {
+            if (arg._repeatable) {
                 if (add_space) {
                     stream << " ";
                 }
@@ -1457,18 +1456,18 @@ export namespace stdx::util {
 
     /**
      * @class ParsedArguments
-     * @brief Container for parsed argument values with type-safe access.
+     * @brief Container for parsed argument _values with type-safe access.
      */
     class ParsedArguments {
     private:
-        HashMap<String, Any> values;
-        HashMap<String, Vector<String>> multi_values;
+        HashMap<String, Any> _values;
+        HashMap<String, Vector<String>> _multi_values;
     public:
         template <typename T>
         [[nodiscard]]
         T get(const String& name) const {
-            auto it = values.find(name);
-            if (it == values.end()) {
+            auto it = _values.find(name);
+            if (it == _values.end()) {
                 throw LogicException(Ops::fmt("No such argument: '{}'", name));
             }
             return any_cast<T>(it->second);
@@ -1477,32 +1476,32 @@ export namespace stdx::util {
         template <typename T>
         [[nodiscard]]
         T get_or(const String& name, const T& fallback) const {
-            auto it = values.find(name);
-            return it == values.end() ? fallback : any_cast<T>(it->second);
+            auto it = _values.find(name);
+            return it == _values.end() ? fallback : any_cast<T>(it->second);
         }
 
         [[nodiscard]]
         Vector<String> get_multiple(const String& name) const {
-            auto it = multi_values.find(name);
-            return it == multi_values.end() ? Vector<String>{} : it->second;
+            auto it = _multi_values.find(name);
+            return it == _multi_values.end() ? Vector<String>{} : it->second;
         }
 
         [[nodiscard]]
         bool has(const String& name) const {
-            return values.contains(name);
+            return _values.contains(name);
         }
 
         void set(const String& name, const Any& value) {
-            values.insert_or_assign(name, value);
+            _values.insert_or_assign(name, value);
         }
 
-        void set_multiple(const String& name, const Vector<String>& values) {
-            multi_values.insert_or_assign(name, values);
+        void set_multiple(const String& name, const Vector<String>& _values) {
+            _multi_values.insert_or_assign(name, _values);
         }
 
-        Vector<String> get_argument_names() const {
+        Vector<String> argument_names() const {
             Vector<String> names;
-            for (const auto& [key, val]: values) {
+            for (const auto& [key, val]: _values) {
                 names.push_back(key);
             }
             return names;
@@ -1567,7 +1566,7 @@ export namespace stdx::util {
         bool _is_parsed = false;
         bool _usage_break_on_mutex = false;
     protected:
-        const MutuallyExclusiveGroup* get_belonging_mutex(const Argument* arg) const {
+        const MutuallyExclusiveGroup* belonging_mutex(const Argument* arg) const {
             for (const MutuallyExclusiveGroup& m: _mutually_exclusive_groups) {
                 if (stdx::util::find(m._elems.begin(), m._elems.end(), arg) != m._elems.end()) {
                     return &m;
@@ -1582,7 +1581,7 @@ export namespace stdx::util {
         }
 
         [[nodiscard]]
-        char get_any_valid_prefix_char() const {
+        char any_valid_prefix_char() const {
             return _prefix_chars[0];
         }
 
@@ -1638,7 +1637,7 @@ export namespace stdx::util {
                                 throw CommandLineParserException(
                                     Ops::fmt("Failed to parse '{}', did you mean '{}'",
                                     cur,
-                                    get_most_similar_string(_subparser_map, cur))
+                                    most_similar_string(_subparser_map, cur))
                                 );
                             }
                             throw CommandLineParserException("Zero positional arguments expected");
@@ -1647,11 +1646,11 @@ export namespace stdx::util {
                             "Maximum number of positional arguments exceeded, failed to parse '{}'", cur));
                     }
                     auto argument = pos_it++;
-                    if (argument->num_args_range.min() == 1 &&
-                        argument->num_args_range.max() == UnsignedSize::MAX_VALUE &&
+                    if (argument->_num_args_range.min() == 1 &&
+                        argument->_num_args_range.max() == UnsignedSize::MAX_VALUE &&
                         pos_it != _positional_arguments.end() &&
                         Iterators::next(pos_it) == _positional_arguments.end() &&
-                        pos_it->num_args_range.min() == 1 && pos_it->num_args_range.max() == 1) {
+                        pos_it->_num_args_range.min() == 1 && pos_it->_num_args_range.max() == 1) {
                         if (Iterators::next(it) != end) {
                             pos_it->consume(Iterators::prev(end), end);
                             end = Iterators::prev(end);
@@ -1739,7 +1738,7 @@ export namespace stdx::util {
             }
             usize max_size = 0;
             for (const auto& [_, arg]: _argument_map) {
-                max_size = Math::max<usize>(max_size, arg->get_arguments_length());
+                max_size = Math::max<usize>(max_size, arg->arguments_length());
             }
             for (const auto& [cmd, _]: _subparser_map) {
                 max_size = Math::max<usize>(max_size, cmd.size());
@@ -1799,7 +1798,7 @@ export namespace stdx::util {
             bool arg_used = stdx::util::any_of(
                 _argument_map.cbegin(),
                 _argument_map.cend(),
-                [](auto& it) -> bool { return it.second->is_used; }
+                [](auto& it) -> bool { return it.second->_used; }
             );
             bool sub_used = stdx::util::any_of(
                 _subparser_used.cbegin(),
@@ -1813,7 +1812,7 @@ export namespace stdx::util {
         Argument& add_argument(Targs... f_args) {
             using ArrayOfSv = Array<StringView, sizeof...(Targs)>;
             auto argument = _optional_arguments.emplace(_optional_arguments.cend(), _prefix_chars, ArrayOfSv{f_args...});
-            if (!argument->is_optional) {
+            if (!argument->_optional) {
                 _positional_arguments.splice(_positional_arguments.cend(), _optional_arguments, argument);
             }
             argument->set_usage_newline_counter(_usage_newline_counter);
@@ -1900,14 +1899,14 @@ export namespace stdx::util {
                 bool mutex_used = false;
                 Argument* mutex_arg = nullptr;
                 for (Argument* arg: group._elems) {
-                    if (!mutex_used && arg->is_used) {
+                    if (!mutex_used && arg->_used) {
                         mutex_used = true;
                         mutex_arg = arg;
-                    } else if (mutex_used && arg->is_used) {
+                    } else if (mutex_used && arg->_used) {
                         throw CommandLineParserException(
                             Ops::fmt("Argument '{}' not allowed with '{}'",
-                            arg->get_usage_full(),
-                            mutex_arg->get_usage_full())
+                            arg->usage_full(),
+                            mutex_arg->usage_full())
                         );
                     }
                 }
@@ -1915,7 +1914,7 @@ export namespace stdx::util {
                     String names;
                     usize i = 0;
                     for (Argument* arg: group._elems) {
-                        names += Ops::fmt("'{}' ", arg->get_usage_full());
+                        names += Ops::fmt("'{}' ", arg->usage_full());
                         if (i + 1 != group._elems.size()) {
                             names += "or ";
                         }
@@ -1926,17 +1925,17 @@ export namespace stdx::util {
             }
         }
 
-        THROWS_DISABLED(CommandLineParserException)
+        THROWS(CommandLineParserException)
         void parse_args(Span<const StringView> arguments) {
             parse_args(Vector<String>(arguments.begin(), arguments.end()));
         }
 
-        THROWS_DISABLED(CommandLineParserException)
+        THROWS(CommandLineParserException)
         void parse_args(InitializerList<StringView> arguments) {
             parse_args(Vector<String>(arguments.begin(), arguments.end()));
         }
 
-        THROWS_DISABLED(CommandLineParserException)
+        THROWS(CommandLineParserException)
         void parse_args(ConvertibleTo<StringView> auto&&... arguments) requires (sizeof...(arguments) >= 1) {
             parse_args(Vector<String>{String(StringView(arguments))...});
         }
@@ -1954,7 +1953,7 @@ export namespace stdx::util {
         }
 
         [[nodiscard]]
-        THROWS_DISABLED(CommandLineParserException)
+        THROWS(CommandLineParserException)
         Vector<String> parse_known_args(Span<const String> arguments) {
             Vector<String> unknown = parse_known_args_internal(arguments);
             for (const auto& [_, argument]: _argument_map) {
@@ -1979,7 +1978,7 @@ export namespace stdx::util {
         // ICEs in tsubst_expr substituting the annotation into a variadic function
         // template. The forwarding target keeps its own annotation.
         [[nodiscard]]
-        THROWS_DISABLED(CommandLineParserException)
+        THROWS(CommandLineParserException)
         Vector<String> parse_known_args(ConvertibleTo<StringView> auto&&... arguments) requires (sizeof...(arguments) >= 1) {
             return parse_known_args(Vector<String>{String(StringView(arguments))...});
         }
@@ -2010,7 +2009,7 @@ export namespace stdx::util {
          * fresh instance - the declarative counterpart to parse_args().
          *
          * Describe the arguments as the fields of @p T, optionally decorating them
-         * with the ShortName / Description / Env annotations; see
+         * with the ShortName / Description / EnvVar annotations; see
          * argparse.annotations.inl for the field-to-flag and annotation conventions.
          *
          * @tparam T A reflectable, default-constructible struct describing the args.
@@ -2075,20 +2074,20 @@ export namespace stdx::util {
         #endif
 
         [[nodiscard]]
-        THROWS_DISABLED(CommandLineParserException)
+        THROWS(CommandLineParserException)
         Vector<String> parse_known_args(i32 argc, const char* argv[]) {
             return parse_known_args(Vector<String>(argv, argv + argc));
         }
 
         [[nodiscard]]
-        THROWS_DISABLED(CommandLineParserException)
+        THROWS(CommandLineParserException)
         Vector<String> parse_known_args(i32 argc, char* argv[]) {
             return parse_known_args(Vector<String>(argv, argv + argc));
         }
 
         template <typename T = String>
         [[nodiscard]]
-        THROWS_DISABLED(LogicException)
+        THROWS(LogicException)
         T get(StringView arg_name) const {
             if (!_is_parsed) {
                 throw LogicException("Nothing parsed, no arguments are available.");
@@ -2103,7 +2102,7 @@ export namespace stdx::util {
 
         [[nodiscard]]
         bool is_used(StringView arg_name) const {
-            return (*this)[arg_name].is_used;
+            return (*this)[arg_name]._used;
         }
 
         [[nodiscard]]
@@ -2123,7 +2122,7 @@ export namespace stdx::util {
                 return *(it->second);
             }
             if (!is_valid_prefix_char(arg_name.front())) {
-                String prefix = String(1, get_any_valid_prefix_char());
+                String prefix = String(1, any_valid_prefix_char());
                 name = prefix + name;
                 it = _argument_map.find(name);
                 if (it != _argument_map.end()) {
@@ -2148,13 +2147,13 @@ export namespace stdx::util {
 
             bool has_vis_pos = stdx::util::find_if(
                 parser._positional_arguments.begin(),
-                parser._positional_arguments.end(), [](const Argument& a) -> bool { return !a.is_hidden; }
+                parser._positional_arguments.end(), [](const Argument& a) -> bool { return !a._hidden; }
             ) != parser._positional_arguments.end();
             if (has_vis_pos) {
                 stream << "Positional arguments:\n";
             }
             for (const Argument& a: parser._positional_arguments) {
-                if (!a.is_hidden) {
+                if (!a._hidden) {
                     stream.width(static_cast<long>(longest));
                     stream << a;
                 }
@@ -2164,7 +2163,7 @@ export namespace stdx::util {
                 stream << Ops::fmt("{}{}", !has_vis_pos ? "" : "\n", "Optional arguments:\n");
             }
             for (const Argument& a: parser._optional_arguments) {
-                if (a.group_index == 0 && !a.is_hidden) {
+                if (a._group_index == 0 && !a._hidden) {
                     stream.width(static_cast<long>(longest));
                     stream << a;
                 }
@@ -2173,7 +2172,7 @@ export namespace stdx::util {
             for (usize ig = 0; ig < parser._group_names.size(); ++ig) {
                 stream << Ops::fmt("\n{} (detailed usage):\n", parser._group_names[ig]);
                 for (const Argument& a: parser._optional_arguments) {
-                    if (a.group_index == ig + 1 && !a.is_hidden) {
+                    if (a._group_index == ig + 1 && !a._hidden) {
                         stream.width(static_cast<long>(longest));
                         stream << a;
                     }
@@ -2236,24 +2235,24 @@ export namespace stdx::util {
                 const MutuallyExclusiveGroup* cur_mutex = nullptr;
                 i32 nl_counter = -1;
                 for (const Argument& arg: _optional_arguments) {
-                    if (arg.is_hidden) {
+                    if (arg._hidden) {
                         continue;
                     }
                     if (multiline) {
-                        if (arg.group_index != group_idx) {
+                        if (arg._group_index != group_idx) {
                             continue;
                         }
-                        if (nl_counter != static_cast<i32>(arg.usage_newline_counter)) {
+                        if (nl_counter != static_cast<i32>(arg._usage_newline_counter)) {
                             if (nl_counter >= 0 && curline.size() > indent) {
                                 stream << Ops::fmt("{}\n", curline);
                                 curline = String(indent, ' ');
                             }
-                            nl_counter = static_cast<i32>(arg.usage_newline_counter);
+                            nl_counter = static_cast<i32>(arg._usage_newline_counter);
                         }
                     }
                     found = true;
-                    const String iu = arg.get_inline_usage();
-                    const MutuallyExclusiveGroup* am = get_belonging_mutex(&arg);
+                    const String iu = arg.usage_inline();
+                    const MutuallyExclusiveGroup* am = belonging_mutex(&arg);
                     if (cur_mutex != nullptr && am == nullptr) {
                         curline += ']';
                         if (_usage_break_on_mutex) {
@@ -2300,18 +2299,18 @@ export namespace stdx::util {
                 curline = String(indent, ' ');
             }
             for (const Argument& arg: _positional_arguments) {
-                if (arg.is_hidden) {
+                if (arg._hidden) {
                     continue;
                 }
-                const String pa = !arg.meta_variable.empty() ? arg.meta_variable : arg._names.front();
+                const String pa = !arg._metavar.empty() ? arg._metavar : arg._names.front();
                 if (curline.size() + 1 + pa.size() > _usage_max_line_width) {
                     stream << Ops::fmt("{}\n", curline);
                     curline = String(indent, ' ');
                 }
                 curline += " ";
-                if (arg.num_args_range.min() == 0 && !arg.num_args_range.is_right_bounded()) {
+                if (arg._num_args_range.min() == 0 && !arg._num_args_range.is_right_bounded()) {
                     curline += Ops::fmt("[{}]...", pa);
-                } else if (arg.num_args_range.min() == 1 && !arg.num_args_range.is_right_bounded()) {
+                } else if (arg._num_args_range.min() == 1 && !arg._num_args_range.is_right_bounded()) {
                     curline += Ops::fmt("{}...", pa);
                 } else {
                     curline += pa;
@@ -2348,7 +2347,7 @@ export namespace stdx::util {
         }
 
         void set_suppress(bool suppress) {
-            this->_suppress = suppress;
+            _suppress = suppress;
         }
     };
 }

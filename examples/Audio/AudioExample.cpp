@@ -89,13 +89,13 @@ void playSine(const String& requestedId) {
     }
     System::out.println("Target output: {} (id={})", dev.name, dev.id);
 
-    AudioFormat fmt {
+    AudioFormat fmt = {
         .sample_rate = 48000,
         .channels = 2,
         .format = SampleFormat::FLOAT,
     };
 
-    SineRenderer renderer {
+    SineRenderer renderer = {
         .phase = 0.0f,
         .phaseInc = static_cast<f32>(Math::PI * 440.0) / static_cast<f32>(fmt.sample_rate),
         .channels = fmt.channels,

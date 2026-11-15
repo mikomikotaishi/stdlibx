@@ -450,6 +450,45 @@ export namespace stdx::sys {
             return *this;
         }
 
+        /**
+         * @brief Build a Builder from a single argv-style range: the first element
+         * is the program (searched via PATH) and the remaining elements are its
+         * arguments.
+         * @tparam R The type of the input range.
+         * @param args The input range of string-like values (program first).
+         * @return Builder A Builder configured with the given program and arguments.
+         */
+        template <InputRange R>
+            requires ConvertibleTo<RangeValue<R>, StringView>
+        [[nodiscard]]
+        static Builder from_args(R&& range) {
+            Builder b{""sv};
+            bool first = true;
+            for (ConvertibleTo<StringView> auto&& a: range) {
+                if (first) {
+                    b._prog = String(StringView(a));
+                    first = false;
+                } else {
+                    b._prog_args.emplace_back(a);
+                }
+            }
+            return b;
+        }
+
+        /**
+         * @brief Build from an argv-style range and spawn immediately, with stdio
+         * inherited from the parent.
+         * @tparam R The type of the input range.
+         * @param args The input range of string-like values (program first).
+         * @return Expected<Process, ErrorCode> A handle to the spawned child or an error.
+         */
+        template <InputRange R>
+            requires ConvertibleTo<RangeValue<R>, StringView>
+        [[nodiscard]]
+        static Expected<Process, ErrorCode> spawn_from_args(R&& args) {
+            return from_args(static_cast<R&&>(args)).spawn();
+        }
+
         [[nodiscard]]
         StringView program() const noexcept {
             return _prog;
@@ -466,6 +505,9 @@ export namespace stdx::sys {
          */
         [[nodiscard]]
         Expected<Process, ErrorCode> spawn() const {
+            if (_prog.empty()) {
+                return Unexpected(Ops::error_code(Errc::INVALID_ARGUMENT));
+            }
             #if defined(__unix__) || defined(__APPLE__)
             return spawn_unix();
             #elifdef _WIN32

@@ -99,8 +99,7 @@ namespace stdx::audio::sampled {
             return 0.0;
         }
         // value = sign * himant * 2^(expon - 16383 - 63)
-        f64 v = static_cast<f64>(himant)
-            * Math::ldexp(1.0, static_cast<i32>(expon) - 16383 - 63);
+        f64 v = static_cast<f64>(himant) * Math::ldexp(1.0, static_cast<i32>(expon) - 16383 - 63);
         if (p[0] & 0x80) {
             v = -v;
         }
@@ -149,13 +148,11 @@ namespace stdx::audio::sampled {
                 case 16:
                     if (be) {
                         for (usize i = 0; i < samples; ++i) {
-                            out[i] = static_cast<f32>(
-                                read_i16_be(src + i * stride)) * INT16_NORM;
+                            out[i] = static_cast<f32>(read_i16_be(src + i * stride)) * INT16_NORM;
                         }
                     } else {
                         for (usize i = 0; i < samples; ++i) {
-                            out[i] = static_cast<f32>(
-                                read_i16_le(src + i * stride)) * INT16_NORM;
+                            out[i] = static_cast<f32>(read_i16_le(src + i * stride)) * INT16_NORM;
                         }
                     }
                     break;

@@ -38,8 +38,7 @@ export namespace stdx::core {
 
         ~Random() = default;
 
-        template <Numeric T>
-            requires (!SameAs<T, bool>)
+        template <NotSameAs<bool> T>
         [[nodiscard]]
         THROWS(InvalidArgumentException)
         T next(T min, T max) {
@@ -62,7 +61,7 @@ export namespace stdx::core {
          * @throws InvalidArgumentException if {@code max <= 0}.
          */
         template <Integral Int>
-            requires (!SameAs<Int, bool>)
+            requires (NotSameAs<Int, bool>)
         [[nodiscard]]
         THROWS(InvalidArgumentException)
         Int next(Int max = NumericLimits<Int>::max()) {

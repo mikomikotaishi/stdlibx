@@ -5,7 +5,6 @@
  * @brief Annotation-driven dependency injection.
  */
 export namespace stdx::inject {
-
     /**
      * @class InjectionException
      * @brief Base exception for all dependency injection errors.
@@ -63,7 +62,7 @@ export namespace stdx::inject {
     /**
      * @brief The {@code [[=Qualifier]]} annotation.
      */
-    inline constexpr QualifierAnnotation Qualifier{};
+    inline constexpr QualifierAnnotation Qualifier = {};
 
     /**
      * @struct ScopeAnnotation
@@ -78,7 +77,7 @@ export namespace stdx::inject {
     /**
      * @brief The {@code [[=Scope]]} annotation.
      */
-    inline constexpr ScopeAnnotation Scope{};
+    inline constexpr ScopeAnnotation Scope = {};
 
     /**
      * @struct InjectAnnotation
@@ -91,7 +90,7 @@ export namespace stdx::inject {
     /**
      * @brief The {@code [[=Inject]]} annotation.
      */
-    inline constexpr InjectAnnotation Inject{};
+    inline constexpr InjectAnnotation Inject = {};
 
     /**
      * @struct SingletonAnnotation
@@ -109,7 +108,7 @@ export namespace stdx::inject {
     /**
      * @brief The {@code [[=Singleton]]} annotation.
      */
-    inline constexpr SingletonAnnotation Singleton{};
+    inline constexpr SingletonAnnotation Singleton = {};
 
     #ifdef __cpp_impl_reflection
     /**

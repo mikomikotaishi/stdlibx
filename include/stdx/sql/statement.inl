@@ -132,20 +132,16 @@ export namespace stdx::sql {
                 throw_sql_exception(SQL_HANDLE_DBC, dbc, "Failed to allocate statement handle");
             }
 
-            ret = SQLPrepare(
-                this->_stmt,
-                reinterpret_cast<SQLCHAR*>(const_cast<char*>(this->_sql.c_str())),
-                SQL_NTS
-            );
+            ret = SQLPrepare(_stmt, reinterpret_cast<SQLCHAR*>(const_cast<char*>(_sql.c_str())), SQL_NTS);
 
             if (!SQL_SUCCEEDED(ret)) {
-                SQLException ex(SQL_HANDLE_STMT, this->_stmt, "Failed to prepare statement");
+                SQLException ex(SQL_HANDLE_STMT, _stmt, "Failed to prepare statement");
                 SQLFreeHandle(SQL_HANDLE_STMT, _stmt);
                 throw ex;
             }
 
             SQLSMALLINT param_count;
-            SQLNumParams(this->_stmt, &param_count);
+            SQLNumParams(_stmt, &param_count);
 
             _params.resize(param_count);
         }
@@ -621,20 +617,16 @@ export namespace stdx::sql {
                 throw_sql_exception(SQL_HANDLE_DBC, dbc, "Failed to allocate statement handle");
             }
 
-            ret = SQLPrepare(
-                this->_stmt,
-                reinterpret_cast<SQLCHAR*>(const_cast<char*>(this->_sql.c_str())),
-                SQL_NTS
-            );
+            ret = SQLPrepare(_stmt, reinterpret_cast<SQLCHAR*>(const_cast<char*>(_sql.c_str())), SQL_NTS);
 
             if (!SQL_SUCCEEDED(ret)) {
-                SQLException ex(SQL_HANDLE_STMT, this->_stmt, "Failed to prepare callable statement");
+                SQLException ex(SQL_HANDLE_STMT, _stmt, "Failed to prepare callable statement");
                 SQLFreeHandle(SQL_HANDLE_STMT, _stmt);
                 throw ex;
             }
 
             SQLSMALLINT param_count;
-            SQLNumParams(this->_stmt, &param_count);
+            SQLNumParams(_stmt, &param_count);
 
             _params.resize(param_count);
             _param_directions.resize(param_count, SQL_PARAM_INPUT);
@@ -989,9 +981,9 @@ export namespace stdx::sql {
         THROWS(SQLException)
         explicit Statement(SQLHDBC dbc):
             _dbc{dbc}, _stmt{nullptr}, _rs_type{ResultSetType::FORWARD_ONLY}, closed{false} {
-            SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, this->_dbc, &this->_stmt);
+            SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, _dbc, &_stmt);
             if (!SQL_SUCCEEDED(ret)) {
-                throw_sql_exception(SQL_HANDLE_DBC, this->_dbc, "Failed to allocate statement handle");
+                throw_sql_exception(SQL_HANDLE_DBC, _dbc, "Failed to allocate statement handle");
             }
         }
 

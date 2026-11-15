@@ -67,7 +67,7 @@ export namespace stdx::net {
             if (!parsed.has_value()) {
                 throw AddressSyntaxException("invalid IPv4 literal");
             }
-            this->_bytes = parsed->_bytes;
+            _bytes = parsed->_bytes;
         }
 
         /**
@@ -332,8 +332,8 @@ export namespace stdx::net {
             if (!parsed.has_value()) {
                 throw AddressSyntaxException("invalid IPv6 literal");
             }
-            this->_bytes = parsed->_bytes;
-            this->_scope_id = parsed->_scope_id;
+            _bytes = parsed->_bytes;
+            _scope_id = parsed->_scope_id;
         }
 
         /**
@@ -740,11 +740,11 @@ export namespace stdx::net {
         THROWS(AddressSyntaxException)
         constexpr explicit IPAddress(StringView text) {
             if (const Optional<IPv4Address> v4 = IPv4Address::parse(text)) {
-                this->_address = *v4;
+                _address = *v4;
                 return;
             }
             if (const Optional<IPv6Address> v6 = IPv6Address::parse(text)) {
-                this->_address = *v6;
+                _address = *v6;
                 return;
             }
             throw AddressSyntaxException("invalid IP literal");
@@ -927,9 +927,9 @@ export namespace stdx::net {
 
         [[nodiscard]]
         constexpr StrongOrdering operator<=>(const IPAddress& other) const noexcept {
-            if (const StrongOrdering family = Ops::to_underlying(this->family()) <=> Ops::to_underlying(other.family());
-                family != 0) {
-                return family;
+            if (const StrongOrdering fam = Ops::to_underlying(family()) <=> Ops::to_underlying(other.family());
+                fam != 0) {
+                return fam;
             }
             if (const IPv4Address* left = get_if<IPv4Address>(&_address)) {
                 return *left <=> *get_if<IPv4Address>(&other._address);
@@ -1007,8 +1007,8 @@ export namespace stdx::net {
                 if (!address.has_value() || !port.has_value()) {
                     throw AddressSyntaxException("invalid endpoint literal");
                 }
-                this->_address = *address;
-                this->_port = *port;
+                _address = *address;
+                _port = *port;
                 return;
             }
 
@@ -1021,8 +1021,8 @@ export namespace stdx::net {
             if (!address.has_value() || !port.has_value()) {
                 throw AddressSyntaxException("invalid endpoint literal");
             }
-            this->_address = *address;
-            this->_port = *port;
+            _address = *address;
+            _port = *port;
         }
 
         /**

@@ -965,12 +965,10 @@ export namespace stdx::math {
         [[nodiscard]]
         f32 float_value() const {
             const String repr = to_string();
-            f32 result = 0.0f;
-            const auto [ptr, ec] = stdx::text::from_chars(repr.data(), repr.data() + repr.size(), result);
-            if (ec != Errc::SUCCESS) {
-                return overflowed_value<f32>();
+            if (Optional<f32> result = Float::parse(repr)) {
+                return *result;
             }
-            return result;
+            return overflowed_value<f32>();
         }
 
         /**
@@ -980,12 +978,10 @@ export namespace stdx::math {
         [[nodiscard]]
         f64 double_value() const {
             const String repr = to_string();
-            f64 result = 0.0;
-            const auto [ptr, ec] = stdx::text::from_chars(repr.data(), repr.data() + repr.size(), result);
-            if (ec != Errc::SUCCESS) {
-                return overflowed_value<f64>();
+            if (Optional<f64> result = Double::parse(repr)) {
+                return *result;
             }
-            return result;
+            return overflowed_value<f64>();
         }
 
         /**

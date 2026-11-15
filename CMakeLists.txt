@@ -20,7 +20,7 @@ elseif(CMAKE_VERSION VERSION_LESS_EQUAL "4.2.3")
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
 elseif(CMAKE_VERSION VERSION_LESS_EQUAL "4.3.4")
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
-else()
+elseif(CMAKE_VERSION VERSION_LESS_EQUAL "4.4.5")
     set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "f35a9ac6-8463-4d38-8eec-5d6008153e7d")
 endif()
 
@@ -629,8 +629,14 @@ if(COMPILER_GCC AND NOT STDLIBX_EXPORT_IMPORT_STD)
     set(STDLIBX_EXPORT_IMPORT_STD ON CACHE BOOL "export import std is forced on GCC due to compiler bugs" FORCE)
 endif()
 
-if(COMPILER_GCC AND STDLIBX_ENABLE_REFLECTION)
-    set(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY OFF CACHE BOOL "Internal compiler error occurs on GCC" FORCE)
+# stdexec can only be built with Clang. GCC fails with an internal compiler
+# error while compiling stdexec as a C++20 module, so the stdexec-backed
+# stdx::exec::* surface (and everything guarded by STDLIBX_EXECUTION_AVAILABLE)
+# is unavailable on GCC. Force the option off there so a GCC configure does not
+# fail; build with Clang to get the execution features.
+if(COMPILER_GCC)
+    set(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY OFF CACHE BOOL "stdexec cannot be built as a module on GCC (internal compiler error); Clang only" FORCE)
+    message(STATUS "stdlibx: GCC detected - disabling stdexec backend (Clang only); stdx::exec::* execution features will be unavailable")
 endif()
 
 #   libc++     -> _LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_{FAST,EXTENSIVE,DEBUG}
