@@ -19,6 +19,7 @@ export namespace stdx::sync {
         using Self = std::memory_order;
 
         static constexpr Self RELAXED = std::memory_order::relaxed;
+        [[deprecated]]
         static constexpr Self CONSUME = std::memory_order::consume;
         static constexpr Self ACQUIRE = std::memory_order::acquire;
         static constexpr Self RELEASE = std::memory_order::release;
@@ -34,19 +35,10 @@ export namespace stdx::sync {
             return value;
         }
     };
-    
-    // Memory order constants
 
-    inline constexpr MemoryOrder MEMORY_ORDER_RELAXED = std::memory_order_relaxed;
-    inline constexpr MemoryOrder MEMORY_ORDER_CONSUME = std::memory_order_consume;
-    inline constexpr MemoryOrder MEMORY_ORDER_ACQUIRE = std::memory_order_acquire;
-    inline constexpr MemoryOrder MEMORY_ORDER_RELEASE = std::memory_order_release;
-    inline constexpr MemoryOrder MEMORY_ORDER_ACQUIRE_RELEASE = std::memory_order_acq_rel;
-    inline constexpr MemoryOrder MEMORY_ORDER_SEQUENTIALLY_CONSISTENT = std::memory_order_seq_cst;
-    
     // Atomic flag
     using AtomicFlag = std::atomic_flag;
-    
+
     // Basic atomic typedefs
 
     using AtomicBoolean = std::atomic_bool;

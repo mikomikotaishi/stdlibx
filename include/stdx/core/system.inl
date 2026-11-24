@@ -298,7 +298,7 @@ export namespace stdx::core {
             std::time_t time = SystemClock::to_time_t(now);
             char buffer[32]{};
             std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
-            return String{buffer};
+            return String(buffer);
             #endif
         }
 

@@ -251,6 +251,7 @@ using namespace stdx::literals;
 #include "stdx/fs/glob.inl"
 
 #include "stdx/sys/exit.inl"
+#include "stdx/net/reactor.task.inl"
 #include "stdx/sys/process.inl"
 #include "stdx/sys/process.builder.inl"
 
@@ -290,6 +291,20 @@ using namespace stdx::literals;
 #include "stdx/data/json/builder.inl"
 #include "stdx/data/json/formatter.inl"
 
+#include "stdx/data/csv/exceptions.inl"
+#include "stdx/data/csv/value.inl"
+#include "stdx/data/csv/parser.inl"
+#include "stdx/data/csv/serializer.inl"
+#include "stdx/data/csv/serde.inl"
+#include "stdx/data/csv/formatter.inl"
+
+#include "stdx/data/toml/exceptions.inl"
+#include "stdx/data/toml/value.inl"
+#include "stdx/data/toml/parser.inl"
+#include "stdx/data/toml/serializer.inl"
+#include "stdx/data/toml/serde.inl"
+#include "stdx/data/toml/formatter.inl"
+
 #include "stdx/test/assertions.inl"
 #include "stdx/test/runner.inl"
 #include "stdx/test/annotations.inl"
@@ -308,10 +323,13 @@ using namespace stdx::literals;
 #include "stdx/audio/sampled/clip.inl"
 
 #include "stdx/audio/midi/message.inl"
+#include "stdx/audio/midi/ump.inl"
+#include "stdx/audio/midi/midi_ci.inl"
 #include "stdx/audio/midi/device.inl"
 #include "stdx/audio/midi/sequence.inl"
 #include "stdx/audio/midi/sequencer.inl"
 #include "stdx/audio/midi/smf.inl"
+#include "stdx/audio/midi/clip.inl"
 #include "stdx/audio/midi/soft_sequencer.inl"
 #include "stdx/audio/midi/soundbank.inl"
 #include "stdx/audio/midi/synthesizer.inl"

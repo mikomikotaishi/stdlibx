@@ -64,6 +64,11 @@ export namespace stdx::os::linux::alsa {
     using ::snd_ctl_hwdep_next_device;
     using ::snd_ctl_hwdep_info;
 
+    // UMP (MIDI 2.0) endpoint enumeration
+    using ::snd_ctl_ump_next_device;
+    using ::snd_ctl_ump_endpoint_info;
+    using ::snd_ctl_ump_block_info;
+
     // Element-level queries
     using ::snd_ctl_elem_list;
     using ::snd_ctl_elem_info;

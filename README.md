@@ -4,6 +4,8 @@
 
 This is a framework that wraps the C++ Standard Library, in an API more consistent with standard libraries of other languages, while also extending it with additional features. The main purpose is to create a "batteries-included" standard library experience that is more enjoyable and familiar to use, while remaining compatible (to some degree) with the original standard library.
 
+The guiding vision is simple: a Java/C#-style expansive, elegant library for C++, that sits right on top of the original standard library (or an "enhanced" standard library). Comparable to POCO more than Boost (as a unified single library rather than collection of libraries).
+
 The motivation for creating this was that at the time, support for `import std;` was very poor (especially on CMake), a personal dislike of ISO C++'s usage of snake_case for class names, and a dislike of the flat `std::` namespace.
 
 The main features of this repackaging of the standard library are:
@@ -27,6 +29,8 @@ Requires a minimum of C++26. This library is tested with libstdc++ (GCC) as the 
 > **WARNING:** Clang libc++ support lags behind GCC libstdc++ tremendously, and some feature-test macros are incorrectly activated on libc++ despite incomplete support. As such, it is recommended to use libstdc++.
 
 Note that currently, Clang module support is far superior to that of GCC, and thus more features are supported on Clang due to certain bugs (such as compiler crashes and conflicting definition loads) on GCC. Many of these are beyond my ability to solve unfortunately.
+
+> **Note:** The `std::execution` (senders/receivers) support in `stdx::exec::*` is backed by the NVIDIA stdexec library, which is built from source as its own C++ module (`import stdexec;`) and works with both Clang and GCC. It is currently pinned to a fork commit carrying the module fixes from [NVIDIA/stdexec#2473](https://github.com/NVIDIA/stdexec/pull/2473); set `FETCHCONTENT_SOURCE_DIR_STDEXEC` to build a local checkout instead of fetching. Turning it off (`-DSTDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY=OFF`) leaves `STDLIBX_EXECUTION_AVAILABLE` undefined and compiles out everything that depends on it (`stdx::exec::Task`, the reactor's asynchronous operations, `Process::wait_async`, and related features).
 
 Because the library is built on `import std`, **Apple Clang cannot build it**. Apple's toolchain does not ship the `std` module sources. Configuration rejects Apple Clang with an error. Use one of:
 

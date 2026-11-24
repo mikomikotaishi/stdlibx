@@ -14,6 +14,9 @@ export namespace stdx::ranges {
         using ReverseEnd = decltype(std::ranges::rend);
         using ConstReverseBegin = decltype(std::ranges::crbegin);
         using ConstReverseEnd = decltype(std::ranges::crend);
+        #ifdef __cpp_lib_ranges_reserve_hint
+        using ReserveHint = decltype(std::ranges::reserve_hint);
+        #endif
         using Size = decltype(std::ranges::size);
         using SignedSize = decltype(std::ranges::ssize);
         using Empty = decltype(std::ranges::empty);
@@ -30,6 +33,9 @@ export namespace stdx::ranges {
         inline constexpr access::ReverseEnd ReverseEnd = std::ranges::rend;
         inline constexpr access::ConstReverseBegin ConstReverseBegin = std::ranges::crbegin;
         inline constexpr access::ConstReverseEnd ConstReverseEnd = std::ranges::crend;
+        #ifdef __cpp_lib_ranges_reserve_hint
+        inline constexpr access::ReserveHint ReserveHint = std::ranges::reserve_hint;
+        #endif
         inline constexpr access::Size Size = std::ranges::size;
         inline constexpr access::SignedSize SignedSize = std::ranges::ssize;
         inline constexpr access::Empty Empty = std::ranges::empty;
@@ -180,6 +186,9 @@ export namespace stdx::ranges {
         using Empty = decltype(std::ranges::views::empty<T>);
         using Single = decltype(std::ranges::views::single);
         using Iota = decltype(std::ranges::views::iota);
+        #ifdef __cpp_lib_ranges_indices
+        using Indices = decltype(std::ranges::views::indices);
+        #endif
         using Repeat = decltype(std::ranges::views::repeat);
         template <typename T>
         using InputStream = decltype(std::ranges::views::istream<T>);
@@ -241,6 +250,9 @@ export namespace stdx::ranges {
         #endif
         #ifdef __cpp_lib_ranges_to_input
         using ToInput = decltype(std::ranges::views::to_input);
+        #endif
+        #ifdef __cpp_lib_ranges_as_input
+        using AsInput = decltype(std::ranges::views::as_input);
         #endif
     }
 
@@ -364,12 +376,20 @@ export namespace stdx::ranges {
     template <InputRange V>
     using ToInputView = std::ranges::to_input_view<V>;
     #endif
+
+    #ifdef __cpp_lib_ranges_as_input
+    template <InputRange V>
+    using AsInputView = std::ranges::as_input_view<V>;
+    #endif
     
     namespace views {
         template <typename T>
         inline constexpr types::Empty<T> Empty = std::ranges::views::empty<T>;
         inline constexpr types::Single Single = std::ranges::views::single;
         inline constexpr types::Iota Iota = std::ranges::views::iota;
+        #ifdef __cpp_lib_ranges_indices
+        inline constexpr types::Indices Indices = std::ranges::views::indices;
+        #endif
         inline constexpr types::Repeat Repeat = std::ranges::views::repeat;
         template <typename T>
         inline constexpr types::InputStream<T> InputStream = std::ranges::views::istream<T>;
@@ -433,6 +453,9 @@ export namespace stdx::ranges {
         #endif
         #ifdef __cpp_lib_ranges_to_input
         inline constexpr types::ToInput ToInput = std::ranges::views::to_input;
+        #endif
+        #ifdef __cpp_lib_ranges_as_input
+        inline constexpr types::AsInput AsInput = std::ranges::views::as_input;
         #endif
     }
 

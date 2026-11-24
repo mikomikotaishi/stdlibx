@@ -157,20 +157,16 @@ endif()
 
 if(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY AND TARGET STDEXEC::stdexec)
     target_compile_definitions(stdlibx_stdx PRIVATE STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY)
+    # Enable the reactor's coroutine-task driver: Reactor::run_until and the
+    # async operations layered on it, including Process::wait_async. PUBLIC so
+    # the declaration is baked into the module BMI (needed to compile the bodies)
+    # and is also visible to consumers that call run_until. Gated on the stdexec
+    # backend because the whole surface needs std::execution, which only that
+    # backend provides here. See net/async.inl for the history.
+    target_compile_definitions(stdlibx_stdx PUBLIC STDLIBX_NET_ASYNC_TASKS)
+    # The stdexec module carries its own parallel-scheduler backend, so
+    # linking it is all that is needed (see cmake/Dependencies.cmake).
     target_link_libraries(stdlibx_stdx PUBLIC STDEXEC::stdexec)
-
-    if(STDLIBX_STDEXEC_NEEDS_BACKEND)
-        add_library(stdlibx_stdexec_backend OBJECT
-            ${CMAKE_CURRENT_SOURCE_DIR}/details/exec_parallel_scheduler_backend.cpp)
-        set_target_properties(stdlibx_stdexec_backend PROPERTIES
-            CXX_STANDARD 26
-            CXX_STANDARD_REQUIRED ON
-            CXX_EXTENSIONS OFF
-            CXX_SCAN_FOR_MODULES OFF
-            POSITION_INDEPENDENT_CODE ON)
-        target_link_libraries(stdlibx_stdexec_backend PRIVATE STDEXEC::stdexec)
-        target_sources(stdlibx_stdx PRIVATE $<TARGET_OBJECTS:stdlibx_stdexec_backend>)
-    endif()
 elseif(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY)
     message(WARNING "stdexec not found. Skipping stdexec extension.")
 endif()

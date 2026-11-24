@@ -13,6 +13,8 @@ export namespace stdx::audio::midi {
         NONE, ///< No MIDI support; placeholder for error cases.
         ALSA_SEQ, ///< Linux: ALSA sequencer API (virtual ports, synths, etc.)
         ALSA_RAW_MIDI, ///< Linux: ALSA raw MIDI API (physical ports, no synths)
+        ALSA_UMP, ///< Linux: ALSA UMP/rawmidi endpoint (MIDI 2.0 Universal MIDI Packets)
+        ALSA_SEQ_UMP, ///< Linux: ALSA sequencer port spoken to in UMP (MIDI 2.0), including virtual endpoints
         WINMM, ///< Windows: legacy Multimedia API
         CORE_MIDI, ///< macOS/iOS: Core MIDI
         SOFT, ///< Built-in soft-synth / virtual device

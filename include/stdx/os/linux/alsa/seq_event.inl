@@ -20,6 +20,7 @@ export namespace stdx::os::linux::alsa {
 
     // Event union and helpers
     using SoundSequencerEvent = ::snd_seq_event_t;
+    using SoundSequencerUmpEvent = ::snd_seq_ump_event_t; ///< A UMP-mode event: the legacy header plus four UMP words.
     using SoundSequencerExtendedEvent = ::snd_seq_ev_ext_t;
     using SoundSequencerNoteEvent = ::snd_seq_ev_note_t;
     using SoundSequencerControlEvent = ::snd_seq_ev_ctrl_t;

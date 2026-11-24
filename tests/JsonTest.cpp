@@ -11,7 +11,13 @@ using stdx::data::json::JsonPointerException;
 using stdx::data::json::JsonTypeException;
 
 #ifdef __cpp_lib_reflection
+using stdx::data::AllowPrivate;
+using stdx::data::Flatten;
+using stdx::data::Reflectable;
+using stdx::data::Rename;
 using stdx::data::Transient;
+using stdx::data::csv::CsvFlatten;
+using stdx::data::json::JsonFlatten;
 using stdx::data::json::JsonIgnore;
 using stdx::data::json::JsonPropertyName;
 #endif
@@ -449,6 +455,159 @@ void test_json_serde() {
     expect(text.find("full_name") != String::npos, "serialize + to_string emits the renamed key");
     expect(text.find("scratch") == String::npos, "the ignored field is omitted");
 }
+
+namespace {
+    struct Stats {
+        i32 str = 0;
+        i32 dex = 0;
+    };
+
+    struct Address {
+        String street;
+        [[=Rename("town")]]
+        String city;
+    };
+
+    struct Hero {
+        [[=Rename("display_name")]]
+        String name;
+
+        // JSON's own name beats the universal one.
+        [[=Rename("everywhere"), =JsonPropertyName<"json_only">]]
+        String tag;
+
+        [[=Flatten]]
+        Stats stats;
+
+        // Flattened for CSV only: JSON keeps it as a nested object.
+        [[=CsvFlatten]]
+        Address home;
+
+        [[=JsonFlatten]]
+        Address billing;
+
+        [[=Transient, =Flatten]]
+        Stats scratch;
+    };
+
+    struct Party {
+        // Flattening nests: Hero's own flattened Stats comes up too.
+        [[=Flatten]]
+        Hero leader;
+
+        i32 gold = 0;
+    };
+}
+
+void test_json_rename_and_flatten() {
+    Hero sanae = {
+        .name = "Sanae",
+        .tag = "shrine",
+        .stats = {.str = 4, .dex = 7},
+        .home = {.street = "Moriya", .city = "Gensokyo"},
+        .billing = {.street = "Mountain", .city = "Youkai"},
+        .scratch = {.str = 99, .dex = 99},
+    };
+    Json j = Json::serialize(sanae);
+    expect(j.contains("display_name") && !j.contains("name"), "Rename renames the key");
+    expect(j.contains("json_only") && !j.contains("everywhere"), "JsonPropertyName beats Rename");
+    expect(!j.contains("stats"), "a flattened member has no key of its own");
+    expect_eq(j["str"].get<i64>(), 4ll, "its fields sit in the parent object");
+    expect_eq(j["dex"].get<i64>(), 7ll, "all of them");
+    require(j.contains("home") && j["home"].is_object(), "a CsvFlatten member stays nested in JSON");
+    expect_eq(j["home"]["town"].get<String>(), "Gensokyo"s, "with its own renames applied");
+    expect(!j.contains("billing"), "JsonFlatten flattens in JSON");
+    expect_eq(j["street"].get<String>(), "Mountain"s, "billing's street is top-level");
+    expect_eq(j["town"].get<String>(), "Youkai"s, "and its renamed city too");
+    expect(!j.contains("scratch"), "Transient beats Flatten");
+
+    Hero back = j.deserialize<Hero>();
+    expect_eq(back.name, "Sanae"s, "renamed member reads back");
+    expect_eq(back.tag, "shrine"s, "format-renamed member reads back");
+    expect(back.stats.str == 4 && back.stats.dex == 7, "flattened member reads back from the parent");
+    expect_eq(back.home.city, "Gensokyo"s, "nested member reads back");
+    expect_eq(back.billing.street, "Mountain"s, "JsonFlatten member reads back");
+    expect_eq(back.scratch.str, 0, "Transient member stays default");
+
+    Party party = {.leader = sanae, .gold = 300};
+    Json p = Json::serialize(party);
+    expect(p.contains("display_name") && p.contains("str") && p.contains("gold"), "flattening nests");
+    expect(!p.contains("leader"), "the outer flattened member has no key either");
+    Party party_back = p.deserialize<Party>();
+    expect(party_back.leader.stats.dex == 7 && party_back.gold == 300, "nested flattening reads back");
+}
+
+namespace {
+    /**
+     * @brief A class that opts its private members in.
+     */
+    class [[=Reflectable]] Ledger {
+    public:
+        String owner;
+
+        Ledger() = default;
+        Ledger(String who, i64 cents): owner{Ops::move(who)}, _balance_cents{cents} {}
+
+        [[nodiscard]]
+        i64 balance() const noexcept {
+            return _balance_cents;
+        }
+    private:
+        [[=Rename("balance")]]
+        i64 _balance_cents = 0;
+
+        [[=Transient]]
+        i64 _cached_hash = 42;
+    };
+
+    /**
+     * @brief Stands in for a type from a library you do not own: private
+     * members and no annotations.
+     */
+    class Gauge {
+    public:
+        Gauge() = default;
+        Gauge(String unit, f64 reading): _unit{Ops::move(unit)}, _reading{reading} {}
+
+        [[nodiscard]]
+        const String& unit() const noexcept {
+            return _unit;
+        }
+
+        [[nodiscard]]
+        f64 reading() const noexcept {
+            return _reading;
+        }
+    private:
+        String _unit;
+        f64 _reading = 0;
+    };
+
+    struct Station {
+        String name;
+        Gauge gauge; // a foreign type nested in a public one
+    };
+}
+
+void test_json_private_members() {
+    Json ledger = Json::serialize(Ledger{"Marisa", 1'250});
+    expect(ledger.contains("owner"), "public members serialize as usual");
+    expect_eq(ledger["balance"].get<i64>(), 1250ll, "a Reflectable class's private member serializes, renamed");
+    expect(!ledger.contains("_cached_hash"), "and Transient still excludes a private member");
+    Ledger ledger_back = ledger.deserialize<Ledger>();
+    expect_eq(ledger_back.balance(), i64{1250}, "and the private member reads back");
+
+    Json gauge = Json::serialize(Gauge{"kPa", 101.3}, AllowPrivate);
+    expect_eq(gauge["_unit"].get<String>(), "kPa"s, "AllowPrivate reads a foreign type's private members");
+    Gauge gauge_back = gauge.deserialize<Gauge>(AllowPrivate);
+    expect_eq(gauge_back.unit(), "kPa"s, "and writes them back");
+    expect(gauge_back.reading() > 101.2 && gauge_back.reading() < 101.4, "every one of them");
+
+    Json station = Json::serialize(Station{.name = "Summit", .gauge = Gauge{"hPa", 700.0}}, AllowPrivate);
+    expect_eq(station["gauge"]["_unit"].get<String>(), "hPa"s, "AllowPrivate reaches nested types too");
+    Station station_back = station.deserialize<Station>(AllowPrivate);
+    expect_eq(station_back.gauge.unit(), "hPa"s, "on the way back as well");
+}
 #endif // __cpp_lib_reflection
 
 int main(int argc, char* argv[]) {
@@ -465,6 +624,8 @@ int main(int argc, char* argv[]) {
         {"Json.errors", test_json_errors},
         #ifdef __cpp_lib_reflection
         {"Json.serde", test_json_serde},
+        {"Json.rename_and_flatten", test_json_rename_and_flatten},
+        {"Json.private_members", test_json_private_members},
         #endif
     });
 }

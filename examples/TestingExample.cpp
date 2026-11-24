@@ -38,7 +38,11 @@ public:
         if (unitPrice < 0.0) {
             throw InvalidArgumentException("price must not be negative");
         }
-        _lines.emplace_back(Line{String(item), quantity, unitPrice});
+        _lines.push_back(Line {
+            .item = String(item),
+            .quantity = quantity,
+            .unitPrice = unitPrice,
+        });
     }
 
     /**

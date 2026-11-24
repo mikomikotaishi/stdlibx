@@ -297,32 +297,26 @@ export namespace stdx::sql {
         }
 
         #ifdef __cpp_impl_reflection
+    private:
         /**
-         * @brief Executes a query and maps each row to an instance of T.
-         * @tparam T The row type to map each result row onto.
-         * @tparam Args The deduced bound-parameter types.
-         * @param sql The SQL query, with a `?` marker per argument.
-         * @param args One value per marker, in order.
-         * @return A vector of mapped rows.
-         * @throws SQLException on error.
-         *
-         * T must be a default-constructible reflectable class. Its data members are
-         * filled, in declaration order, from the result columns by position (the
-         * Nth member from the Nth column). Each member type must be column-readable
-         * (see ResultSet::get); a SQL NULL column leaves the member at its
-         * default-constructed value.
-         *
-         * @note Requires reflection support (__cpp_lib_reflection).
+         * @internal
+         * @brief The shared body of both query<T> overloads.
+         * @tparam Forced Whether private members are mapped regardless (AllowPrivate).
          */
-        template <ReflectableAsClass T, Bindable... Args>
+        template <ReflectableAsClass T, bool Forced, Bindable... Args>
         [[nodiscard]]
         [[=Throws<SQLException>]]
-        Vector<T> query(StringView sql, Args&&... args) {
+        Vector<T> query_rows(StringView sql, Args&&... args) {
             static_assert(
                 Class<T>().is_default_constructible(),
                 "Connection::query<T> requires T to be default-constructible"
             );
-            constexpr AccessContext ctx = AccessContext::unchecked();
+            // Columns map to members by position, so the members walked here
+            // must be exactly the ones the caller expects: public ones only,
+            // unless T opted in or the call is forced. A class whose private
+            // members were silently skipped would shift every column after
+            // them onto the wrong member, so that is a compile error instead.
+            constexpr AccessContext ctx = stdx::data::fields_access<T, Forced>();
 
             ResultSet rs = query(sql, Ops::forward<Args>(args)...);
 
@@ -340,6 +334,44 @@ export namespace stdx::sql {
                 rows.push_back(Ops::move(row));
             }
             return rows;
+        }
+    public:
+        /**
+         * @brief Executes a query and maps each row to an instance of T.
+         * @tparam T The row type to map each result row onto.
+         * @tparam Args The deduced bound-parameter types.
+         * @param sql The SQL query, with a `?` marker per argument.
+         * @param args One value per marker, in order.
+         * @return A vector of mapped rows.
+         * @throws SQLException on error.
+         *
+         * T must be a default-constructible reflectable class. Its public data
+         * members are filled, in declaration order, from the result columns by
+         * position (the Nth member from the Nth column). Each member type must
+         * be column-readable (see ResultSet::get); a SQL NULL column leaves the
+         * member at its default-constructed value. A class with private or
+         * protected data members must be marked {@code [[=stdx::data::Reflectable]]},
+         * or queried through the AllowPrivate overload.
+         *
+         * @note Requires reflection support (__cpp_impl_reflection).
+         */
+        template <ReflectableAsClass T, Bindable... Args>
+        [[nodiscard]]
+        [[=Throws<SQLException>]]
+        Vector<T> query(StringView sql, Args&&... args) {
+            return query_rows<T, false>(sql, Ops::forward<Args>(args)...);
+        }
+
+        /**
+         * @brief Like query<T>(sql, args...), but also maps onto T's private and
+         * protected data members, in declaration order with the public ones.
+         * @see stdx::data::AllowPrivate
+         */
+        template <ReflectableAsClass T, Bindable... Args>
+        [[nodiscard]]
+        [[=Throws<SQLException>]]
+        Vector<T> query(stdx::data::AllowPrivateTag, StringView sql, Args&&... args) {
+            return query_rows<T, true>(sql, Ops::forward<Args>(args)...);
         }
         #endif
 

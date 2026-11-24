@@ -39,6 +39,13 @@ export namespace stdx::data::json {
      * @brief The {@code [[=JsonIgnore]]} annotation.
      */
     inline constexpr IgnoreAnnotation<DataFormat::JSON> JsonIgnore = {};
+
+    /**
+     * @brief The {@code [[=JsonFlatten]]} annotation: inline a nested struct's
+     * members into the parent object, in JSON only.
+     * @see stdx::data::Flatten for every format at once.
+     */
+    inline constexpr FormatFlattenAnnotation<DataFormat::JSON> JsonFlatten = {};
 }
 
 namespace stdx::data::json {
@@ -117,49 +124,66 @@ namespace stdx::data::json {
         throw JsonTypeException(Ops::fmt("unknown enumerator '{}'", *name));
     }
 
+    template <bool Forced, typename T>
+    [[nodiscard]]
+    Json serialize_value(const T& value);
+
+    template <typename T, bool Forced>
+    [[nodiscard]]
+    [[=Throws<JsonTypeException>]]
+    T deserialize_value(const Json& json);
+
     /**
      * @internal
-     * @brief The JSON key for a field: its PropertyName override, else its name.
-     *
-     * The last PropertyName wins; absent one, the member's own identifier is the key.
+     * @brief Write T's members into @p object: each non-excluded member under
+     * its key, a flattened member's own members in its place.
+     * @tparam Forced Whether private members are read regardless (AllowPrivate).
      */
-    template <Field field>
-    [[nodiscard]]
-    consteval StringView json_key_of() {
-        StringView key = field.name().value();
-        template for (constexpr Annotation ann: Ops::static_array(field.annotations())) {
-            using Ann = typename [:ann.type().value():];
-            if constexpr (IsPropertyNameAnnotation<Ann, DataFormat::JSON>) {
-                constexpr Ann instance = ann.template as<Ann>();
-                key = instance.str();
+    template <bool Forced, typename T>
+    void write_fields(const T& value, JsonObject& object) {
+        constexpr AccessContext ctx = fields_access<T, Forced>();
+        template for (constexpr Field field: Ops::static_array(Class<T>().fields(ctx))) {
+            if constexpr (!is_excluded<DataFormat::JSON, field>()) {
+                if constexpr (is_flattened<DataFormat::JSON, field>()) {
+                    write_fields<Forced>(value.[:field.value():], object);
+                } else {
+                    object.set(key_of<DataFormat::JSON, field>(), serialize_value<Forced>(value.[:field.value():]));
+                }
             }
         }
-        return key;
     }
 
     /**
      * @internal
-     * @brief Whether a field is excluded from JSON serialization.
-     *
-     * True if the member carries either the universal @ref stdx::data::Transient
-     * annotation (excluded from every format) or JSON's own @ref JsonIgnore
-     * (excluded from JSON specifically). Another format's Ignore does not count.
+     * @brief Read T's members out of @p object, the reverse of write_fields:
+     * a flattened member is read from the same object as its parent. An
+     * absent key leaves the member default-constructed.
      */
-    template <Field field>
-    [[nodiscard]]
-    consteval bool is_ignored() {
-        bool ignored = false;
-        template for (constexpr Annotation ann: Ops::static_array(field.annotations())) {
-            using Ann = typename [:ann.type().value():];
-            if constexpr (IsTransientAnnotation<Ann> || IsIgnoreAnnotation<Ann, DataFormat::JSON>) {
-                ignored = true;
+    template <bool Forced, typename T>
+    [[=Throws<JsonTypeException>]]
+    void read_fields(const JsonObject& object, T& result) {
+        constexpr AccessContext ctx = fields_access<T, Forced>();
+        template for (constexpr Field field: Ops::static_array(Class<T>().fields(ctx))) {
+            if constexpr (!is_excluded<DataFormat::JSON, field>()) {
+                if constexpr (is_flattened<DataFormat::JSON, field>()) {
+                    read_fields<Forced>(object, result.[:field.value():]);
+                } else {
+                    using Mem = typename [:field.type().value():];
+                    if (const Json* member = object.find(key_of<DataFormat::JSON, field>())) {
+                        result.[:field.value():] = deserialize_value<Mem, Forced>(*member);
+                    }
+                }
             }
         }
-        return ignored;
     }
 
-    template <typename T>
-    inline Json Json::serialize(const T& value) {
+    /**
+     * @internal
+     * @brief Json::serialize, with the access mode carried down to every
+     * nested value.
+     */
+    template <bool Forced, typename T>
+    Json serialize_value(const T& value) {
         if constexpr (SameAs<T, Json>) {
             return value;
         } else if constexpr (SerdeScalar<T>) {
@@ -172,56 +196,57 @@ namespace stdx::data::json {
             if (!value.has_value()) {
                 return Json();
             }
-            return Json::serialize(*value);
+            return serialize_value<Forced>(*value);
         } else if constexpr (SerdeSequence<T>) {
             Json::Array array;
             array.reserve(value.size());
             for (const auto& element: value) {
-                array.push_back(Json::serialize(element));
+                array.push_back(serialize_value<Forced>(element));
             }
             return Json(Ops::move(array));
         } else {
             static_assert(ReflectableAsClass<T>, "type is not JSON-serializable");
-            constexpr AccessContext ctx = AccessContext::unchecked();
+            constexpr StringView key_problem = key_error<DataFormat::JSON, T, Forced>();
+            static_assert(key_problem.empty(), key_problem);
             JsonObject object;
-            template for (constexpr Field field: Ops::static_array(Class<T>().fields(ctx))) {
-                if constexpr (!is_ignored<field>()) {
-                    object.set(json_key_of<field>(), Json::serialize(value.[:field.value():]));
-                }
-            }
+            write_fields<Forced>(value, object);
             return Json(Ops::move(object));
         }
     }
 
-    template <typename T>
-    [[=Throws<JsonTypeException>]]
-    inline T Json::deserialize() const {
+    /**
+     * @internal
+     * @brief Json::deserialize, with the access mode carried down to every
+     * nested value.
+     */
+    template <typename T, bool Forced>
+    T deserialize_value(const Json& json) {
         if constexpr (SameAs<T, Json>) {
-            return *this;
+            return json;
         } else if constexpr (SerdeScalar<T> || SameAs<T, StringView>) {
-            Optional<T> v = as<T>();
+            Optional<T> v = json.as<T>();
             if (!v.has_value()) {
-                throw JsonTypeException(Ops::fmt("JSON value is not the requested scalar (is {})", type_name()));
+                throw JsonTypeException(Ops::fmt("JSON value is not the requested scalar (is {})", json.type_name()));
             }
             return *v;
         } else if constexpr (IsEnumValue<T>) {
-            return enum_from_json<T>(*this);
+            return enum_from_json<T>(json);
         } else if constexpr (SerdeOptional<T>) {
             using Inner = OptionalValue<T>;
-            if (is_null()) {
+            if (json.is_null()) {
                 return T{};
             }
-            return T(deserialize<Inner>());
+            return T(deserialize_value<Inner, Forced>(json));
         } else if constexpr (SerdeSequence<T>) {
             using Element = SerdeSequenceValue<T>;
-            if (!is_array()) {
-                throw JsonTypeException(Ops::fmt("expected an array (got {})", type_name()));
+            if (!json.is_array()) {
+                throw JsonTypeException(Ops::fmt("expected an array (got {})", json.type_name()));
             }
             T out;
-            const Json::Array& array = as_array();
+            const Json::Array& array = json.as_array();
             out.reserve(array.size());
             for (const Json& element: array) {
-                out.push_back(element.deserialize<Element>());
+                out.push_back(deserialize_value<Element, Forced>(element));
             }
             return out;
         } else {
@@ -230,24 +255,39 @@ namespace stdx::data::json {
                 Class<T>().is_default_constructible(),
                 "JSON deserialization requires the target struct to be default-constructible"
             );
-            if (!is_object()) {
-                throw JsonTypeException(Ops::fmt("expected an object (got {})", type_name()));
+            constexpr StringView key_problem = key_error<DataFormat::JSON, T, Forced>();
+            static_assert(key_problem.empty(), key_problem);
+            if (!json.is_object()) {
+                throw JsonTypeException(Ops::fmt("expected an object (got {})", json.type_name()));
             }
-            constexpr AccessContext ctx = AccessContext::unchecked();
+            // Absent keys keep the default-constructed member value, so
+            // missing fields and explicit Optional both work.
             T result;
-            template for (constexpr Field field: Ops::static_array(Class<T>().fields(ctx))) {
-                if constexpr (!is_ignored<field>()) {
-                    using Mem = typename [:field.type().value():];
-                    constexpr StringView key = json_key_of<field>();
-                    if (const Json* member = as_object().find(key)) {
-                        result.[:field.value():] = member->deserialize<Mem>();
-                    }
-                    // Absent key: keep the default-constructed member value,
-                    // so missing fields and explicit Optional both work.
-                }
-            }
+            read_fields<Forced>(json.as_object(), result);
             return result;
         }
+    }
+
+    template <typename T>
+    inline Json Json::serialize(const T& value) {
+        return serialize_value<false>(value);
+    }
+
+    template <typename T>
+    inline Json Json::serialize(const T& value, AllowPrivateTag) {
+        return serialize_value<true>(value);
+    }
+
+    template <typename T>
+    [[=Throws<JsonTypeException>]]
+    inline T Json::deserialize() const {
+        return deserialize_value<T, false>(*this);
+    }
+
+    template <typename T>
+    [[=Throws<JsonTypeException>]]
+    inline T Json::deserialize(AllowPrivateTag) const {
+        return deserialize_value<T, true>(*this);
     }
 }
 #endif // __cpp_lib_reflection

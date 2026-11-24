@@ -170,8 +170,29 @@ namespace stdx::audio::midi {
                         }
                     }
                     // Other meta types are SMF-only; never forwarded to a wire Receiver.
+                } else if (
+                    dynamic_cast<const UtilityMessage*>(msg) != nullptr
+                    || dynamic_cast<const UmpStreamMessage*>(msg) != nullptr
+                ) {
+                    // UMP's counterpart to meta events: delta clockstamps,
+                    // jitter-reduction stamps and clip/endpoint stream
+                    // messages describe the file or the transport, not the
+                    // performance, so they stay here. The event's tick
+                    // already carries any timing they expressed.
                 } else {
-                    // ShortMessage or SysexMessage - forward to the wired Receiver.
+                    // UMP Set Tempo (Flex Data) times the sequence just like
+                    // meta 0x51, but it is also a real wire message, so it is
+                    // still forwarded below.
+                    if (const FlexDataMessage* flex = dynamic_cast<const FlexDataMessage*>(msg)) {
+                        if (const Optional<u32> us = flex->tempo_us_per_quarter(); us.has_value() && *us > 0) {
+                            _tempo_us_per_qn.store(*us);
+                            if (!is_smpte) {
+                                tempo = *us;
+                            }
+                        }
+                    }
+                    // Everything else - MIDI 1.0 or UMP - goes to the wired
+                    // Receiver, which translates for its own transport.
                     Receiver* r = _tx.receiver();
                     if (r != nullptr) {
                         try {

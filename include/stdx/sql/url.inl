@@ -96,7 +96,7 @@ export namespace stdx::sql {
                 if (!pair.empty()) {
                     const auto equals = pair.find('=');
                     if (equals == StringView::npos) {
-                        out.emplace_back(Uri::percent_decode(pair), String());
+                        out.emplace_back(Uri::percent_decode(pair), ""s);
                     } else {
                         out.emplace_back(
                             Uri::percent_decode(pair.substr(0, equals)),

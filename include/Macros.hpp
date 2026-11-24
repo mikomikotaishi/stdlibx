@@ -7,6 +7,11 @@
 
 #pragma once
 
+/**
+ * @brief Defined when the std::execution (senders/receivers) surface is usable,
+ * i.e. stdx::exec::* is backed either by the NVIDIA stdexec library or by a
+ * standard library that ships std::execution natively.
+ */
 #if defined(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY) \
     || (defined(__cpp_senders) && defined(__cpp_lib_task) && defined(__cpp_lib_parallel_scheduler))
 #define STDLIBX_EXECUTION_AVAILABLE

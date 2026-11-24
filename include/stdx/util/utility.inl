@@ -36,4 +36,12 @@ export namespace stdx::util {
 
     template <usize I>
     inline constexpr InPlaceIndexTag InPlaceIndex = std::in_place_index<I>;
+
+    #ifdef __cpp_lib_constant_wrapper
+    template <auto X, typename T = decltype(X)>
+    using ConstantWrapper = std::constant_wrapper<X, T>;
+
+    template <auto X>
+    constexpr auto Wrapped = std::cw<X>;
+    #endif
 }

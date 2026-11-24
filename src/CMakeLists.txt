@@ -1,4 +1,4 @@
-include("${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../cmake/Dependencies.cmake")
 
 add_subdirectory(stdx)
 

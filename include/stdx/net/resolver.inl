@@ -155,7 +155,7 @@ export namespace stdx::net {
         #ifdef _WIN32
         const String reason = describe_socket_error(status);
         #else
-        const String reason = String(unix::gai_strerror(status));
+        const String reason = unix::gai_strerror(status);
 
         if (status == unix::EAI_SYSTEM) {
             raise_socket_error(last_socket_error(), Ops::fmt("resolving {}", shown));

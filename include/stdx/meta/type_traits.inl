@@ -502,6 +502,14 @@ export namespace stdx::meta {
     template <typename R, typename Fn, typename... ArgTs>
     constexpr bool IsNothrowInvocableReturnValue = std::is_nothrow_invocable_r_v<R, Fn, ArgTs...>;
 
+    #ifdef __cpp_lib_is_structural
+    template <typename T>
+    using IsStructural = std::is_structural<T>;
+
+    template <typename T>
+    constexpr bool IsStructuralValue = std::is_structural_v<T>;
+    #endif
+
     template <typename T>
     using RemoveConstVolatile = std::remove_cv<T>;
 
@@ -674,6 +682,4 @@ export namespace stdx::meta {
 
     template <typename Bn>
     constexpr bool NegationValue = std::negation_v<Bn>;
-
-    using std::is_constant_evaluated;
 }

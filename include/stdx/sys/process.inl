@@ -2,8 +2,17 @@
 
 using stdx::sys::Signal;
 using stdx::thread::Thread;
+using stdx::time::Instant;
+using stdx::time::Milliseconds;
+using stdx::time::SteadyClock;
 
 using namespace stdx::os;
+
+#ifdef STDLIBX_EXECUTION_AVAILABLE
+// Declared in net/reactor.task.inl, which is included ahead of this header.
+using stdx::net::Reactor;
+using stdx::net::ReactorTask;
+#endif
 
 /**
  * @namespace stdx::sys
@@ -92,6 +101,9 @@ export namespace stdx::sys {
         i32 _stdin_wr = -1; ///< The write end of the child's stdin pipe (or -1 if not piped).
         i32 _stdout_rd = -1; ///< The read end of the child's stdout pipe (or -1 if not piped).
         i32 _stderr_rd = -1; ///< The read end of the child's stderr pipe (or -1 if not piped).
+        #ifdef __linux__
+        i32 _exit_pidfd = -1; ///< A pidfd for the child, readable on exit; -1 unless the Process was bound to a Reactor. @see Reactor::spawn
+        #endif
         #elifdef _WIN32
         win32::Handle _process = nullptr; ///< The child process HANDLE.
         win32::Handle _thread = nullptr; ///< The child thread HANDLE (for proper cleanup).
@@ -124,6 +136,9 @@ export namespace stdx::sys {
             close_fd(_stdin_wr);
             close_fd(_stdout_rd);
             close_fd(_stderr_rd);
+            #ifdef __linux__
+            close_fd(_exit_pidfd);
+            #endif
             #elifdef _WIN32
             auto close_h = [](win32::Handle& h) noexcept -> void {
                 if (h) {
@@ -149,6 +164,9 @@ export namespace stdx::sys {
             _stdin_wr{Ops::exchange(o._stdin_wr, -1)},
             _stdout_rd{Ops::exchange(o._stdout_rd, -1)},
             _stderr_rd{Ops::exchange(o._stderr_rd, -1)}
+            #ifdef __linux__
+            , _exit_pidfd{Ops::exchange(o._exit_pidfd, -1)}
+            #endif
         #elifdef _WIN32
             _process{Ops::exchange(o._process, nullptr)},
             _thread{Ops::exchange(o._thread, nullptr)},
@@ -235,6 +253,51 @@ export namespace stdx::sys {
         }
         #endif
 
+        #if defined(__linux__) && defined(STDLIBX_EXECUTION_AVAILABLE)
+        /**
+         * @brief The pidfd watching this child for exit, or -1 if this Process
+         * was not bound to a Reactor via @ref stdx::net::Reactor::spawn.
+         * @return i32 The pidfd, or -1.
+         */
+        [[nodiscard]]
+        i32 exit_pidfd() const noexcept {
+            return _exit_pidfd;
+        }
+
+        /**
+         * @internal
+         * @brief Attach a pidfd that a Reactor opened for this child. Takes
+         * ownership: the fd is closed with the other handles. Only
+         * @ref stdx::net::Reactor::spawn calls this.
+         * @param pidfd A pidfd referring to this child, from pidfd_open.
+         */
+        void set_exit_pidfd(i32 pidfd) noexcept {
+            if (_exit_pidfd != -1) {
+                unix::close(_exit_pidfd);
+            }
+            _exit_pidfd = pidfd;
+        }
+
+        /**
+         * @brief Asynchronously wait for the child to exit, suspending the
+         * calling coroutine instead of blocking its thread.
+         *
+         * Requires this Process to have been spawned through
+         * @ref stdx::net::Reactor::spawn, which opens the pidfd this awaits on.
+         * Awaiting a Process that was not reactor-bound is a precondition
+         * violation. The @p reactor must be the same loop the Process was
+         * spawned on, and must outlive the returned Task.
+         *
+         * Defined out of line in net/async.inl, where Reactor and Readiness are
+         * complete types.
+         *
+         * @param reactor The loop driving the wait; the one this was spawned on.
+         * @return A reactor task completing with the child's exit status.
+         */
+        [[nodiscard]]
+        ReactorTask<ExitStatus> wait_async(Reactor& reactor);
+        #endif
+
         /**
          * @brief Block until the child exits and return its exit status.
          * @return Expected<ExitStatus, ErrorCode> The exit status or an error.
@@ -307,6 +370,80 @@ export namespace stdx::sys {
             return ExitStatus(static_cast<i32>(code));
             #else
             return nullopt;
+            #endif
+        }
+
+        /**
+         * @brief Wait up to @p timeout for the child to exit.
+         *
+         * Returns the exit status if the child finishes within @p timeout, or an
+         * empty Optional if the timeout elapses first (the child is still running).
+         * Unlike @ref wait, this will not block indefinitely; unlike @ref try_wait,
+         * it gives the child a bounded window to finish. A non-positive @p timeout
+         * behaves like a single @ref try_wait poll.
+         *
+         * @param timeout The maximum time to wait.
+         * @return Expected<Optional<ExitStatus>, ErrorCode> The exit status, nullopt
+         * on timeout, or an error.
+         */
+        [[nodiscard]]
+        Expected<Optional<ExitStatus>, ErrorCode> wait_timeout(Milliseconds timeout) {
+            #if defined(__unix__) || defined(__APPLE__)
+            if (_pid == -1) {
+                return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
+            }
+            // Poll with WNOHANG against a steady deadline, backing off between
+            // polls. waitpid has no timeout variant that is portable across
+            // Linux and the BSDs, so a bounded poll loop is the lowest-common-
+            // denominator that stays correct everywhere.
+            const Instant<SteadyClock> deadline = SteadyClock::now() + timeout;
+            // Cap the sleep so we stay responsive without busy-spinning.
+            constexpr u32 max_backoff_us = 10'000; // 10ms
+            u32 backoff_us = 500;
+            while (true) {
+                i32 status = 0;
+                unix::ProcessId ret;
+                do {
+                    ret = unix::sys::waitpid(_pid, &status, unix::sys::WNOHANG);
+                } while (ret == -1 && unix::errnov() == unix::EINTR);
+                if (ret == -1) {
+                    return Unexpected(ErrorCode(unix::errnov(), Ops::system_category()));
+                }
+                if (ret != 0) {
+                    _pid = -1;
+                    return ExitStatus(status);
+                }
+                if (SteadyClock::now() >= deadline) {
+                    return nullopt;
+                }
+                unix::usleep(backoff_us);
+                if (backoff_us < max_backoff_us) {
+                    backoff_us *= 2;
+                    if (backoff_us > max_backoff_us) {
+                        backoff_us = max_backoff_us;
+                    }
+                }
+            }
+            #elifdef _WIN32
+            if (!_process) {
+                return Unexpected(Ops::error_code(Errc::NO_CHILD_PROCESS));
+            }
+            const i64 ms = timeout.count();
+            const win32::DWord wait_ms = ms <= 0
+                ? 0
+                : static_cast<win32::DWord>(ms);
+            const win32::DWord res = win32::WaitForSingleObject(static_cast<win32::Handle>(_process), wait_ms);
+            if (res == win32::WAIT_TIMEOUT) {
+                return nullopt;
+            }
+            if (res == win32::WAIT_FAILED) {
+                return Unexpected(ErrorCode(static_cast<i32>(win32::GetLastError()), Ops::system_category()));
+            }
+            win32::DWord code = 0;
+            win32::GetExitCodeProcess(static_cast<win32::Handle>(_process), &code);
+            return ExitStatus(static_cast<i32>(code));
+            #else
+            return Unexpected(Ops::error_code(Errc::FUNCTION_NOT_SUPPORTED));
             #endif
         }
 

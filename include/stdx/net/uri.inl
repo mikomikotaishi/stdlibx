@@ -17,6 +17,8 @@ export namespace stdx::net {
      * The UriSyntaxException class is used to represent an exception that occurs when a URI has invalid syntax.
      */
     class UriSyntaxException: public Exception {
+    private:
+        String msg; ///< The human-readable description of the syntax error.
     public:
         explicit UriSyntaxException(const String& msg = ""):
             Exception(), msg{msg} {}
@@ -25,8 +27,6 @@ export namespace stdx::net {
         const char* what() const noexcept override {
             return msg.c_str();
         }
-    private:
-        String msg; ///< The human-readable description of the syntax error.
     };
 
     /**

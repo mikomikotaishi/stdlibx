@@ -31,6 +31,10 @@ StringView backendName(MidiBackend b) noexcept {
             return "alsa-seq";
         case MidiBackend::ALSA_RAW_MIDI:
             return "alsa-rawmidi";
+        case MidiBackend::ALSA_UMP:
+            return "alsa-ump";
+        case MidiBackend::ALSA_SEQ_UMP:
+            return "alsa-seq-ump";
         case MidiBackend::WINMM:
             return "winmm";
         case MidiBackend::CORE_MIDI:

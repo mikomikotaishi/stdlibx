@@ -10,7 +10,7 @@ export namespace stdx::exec {
 
     using std::execution::parallel_scheduler;
 
-    namespace replaceability {
+    namespace psr {
         using ReceiverProxy = std::execution::system_context_replaceability::receiver_proxy;
         using BulkItemReceiverProxy = std::execution::system_context_replaceability::bulk_item_receiver_proxy;
         using ParallelSchedulerBackend = std::execution::system_context_replaceability::parallel_scheduler_backend;

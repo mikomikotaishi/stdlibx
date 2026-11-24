@@ -26,6 +26,18 @@ endif()
 
 option(BUILD_STATIC_LIBS "Build static libraries instead of shared" OFF)
 
+# stdlibx is either configured directly (top-level) or consumed by another project
+# through add_subdirectory, CPM or FetchContent. Deciding the compiler, the standard
+# library, or the library type must only happen in the top-level case: a consumer has
+# already detected its compiler and chosen its library type, and changing either here
+# changes the consumer's build. It also deletes CMakeFiles/*/CMakeCXXCompiler.cmake
+# from CMAKE_BINARY_DIR, which in this case is the consumer's build directory.
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(STDLIBX_IS_TOP_LEVEL ON)
+else()
+    set(STDLIBX_IS_TOP_LEVEL OFF)
+endif()
+
 set(STDLIB "default" CACHE STRING "C++ standard library to use (default, libstdc++, libc++)")
 set_property(CACHE STDLIB PROPERTY STRINGS "default" "libstdc++" "libc++")
 
@@ -50,7 +62,7 @@ set(STDLIB_NAME_GCC OFF)
 # The marker being absent counts as a mismatch: a build directory configured
 # before this check existed carries detection results of unknown provenance, and
 # a fresh one has nothing to delete, so re-detecting is right either way.
-if(NOT DEFINED STDLIBX_CONFIGURED_STDLIB OR NOT STDLIBX_CONFIGURED_STDLIB STREQUAL STDLIB)
+if(STDLIBX_IS_TOP_LEVEL AND (NOT DEFINED STDLIBX_CONFIGURED_STDLIB OR NOT STDLIBX_CONFIGURED_STDLIB STREQUAL STDLIB))
     message(STATUS "Detecting the compiler for STDLIB=${STDLIB} so 'import std' matches")
     file(GLOB _stdlibx_stale_detection "${CMAKE_BINARY_DIR}/CMakeFiles/*/CMakeCXXCompiler.cmake")
     if(_stdlibx_stale_detection)
@@ -86,7 +98,7 @@ set(STDLIBX_CONFIGURED_STDLIB "${STDLIB}" CACHE INTERNAL "The STDLIB this build 
 # either compiler depending on the system.
 set(STDLIB_FLAG_APPLIED OFF)
 
-if(NOT STDLIB STREQUAL "default")
+if(STDLIBX_IS_TOP_LEVEL AND NOT STDLIB STREQUAL "default")
     set(_stdlibx_early_cxx "${CMAKE_CXX_COMPILER}")
     if(NOT _stdlibx_early_cxx AND DEFINED ENV{CXX})
         set(_stdlibx_early_cxx "$ENV{CXX}")
@@ -135,7 +147,8 @@ endif()
 # line is left alone, so a toolchain this does not know about stays configurable
 # by hand - which is how the libstdc++ side of the same problem is handled, where
 # the metadata belongs to a GCC that clang may not be the one to name.
-if(NOT CMAKE_CXX_STDLIB_MODULES_JSON
+if(STDLIBX_IS_TOP_LEVEL
+   AND NOT CMAKE_CXX_STDLIB_MODULES_JSON
    AND (STDLIB STREQUAL "libc++" OR (APPLE AND STDLIB STREQUAL "default")))
     set(_stdlibx_cxx "${CMAKE_CXX_COMPILER}")
     if(NOT _stdlibx_cxx AND DEFINED ENV{CXX})
@@ -160,7 +173,9 @@ if(NOT CMAKE_CXX_STDLIB_MODULES_JSON
     endif()
 endif()
 
-if(BUILD_STATIC_LIBS)
+if(NOT STDLIBX_IS_TOP_LEVEL)
+    message(STATUS "Library type is chosen by the consuming project (BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS})")
+elseif(BUILD_STATIC_LIBS)
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
 
     if(WIN32)
@@ -180,10 +195,13 @@ else()
     message(STATUS "Configuring for shared library build")
 endif()
 
-project(stdlibx
-    LANGUAGES C CXX
-    VERSION 0.0.1
-)
+# A consumer has already called project(), so stdlibx only calls it when top-level.
+if(STDLIBX_IS_TOP_LEVEL)
+    project(stdlibx
+        LANGUAGES C CXX
+        VERSION 0.0.1
+    )
+endif()
 
 # find_package() on macOS keeps finding headers inside the SDK, because the SDK
 # ships sql.h and zlib.h of its own, and hands back <sdk>/usr/include as the
@@ -627,16 +645,6 @@ endif()
 
 if(COMPILER_GCC AND NOT STDLIBX_EXPORT_IMPORT_STD)
     set(STDLIBX_EXPORT_IMPORT_STD ON CACHE BOOL "export import std is forced on GCC due to compiler bugs" FORCE)
-endif()
-
-# stdexec can only be built with Clang. GCC fails with an internal compiler
-# error while compiling stdexec as a C++20 module, so the stdexec-backed
-# stdx::exec::* surface (and everything guarded by STDLIBX_EXECUTION_AVAILABLE)
-# is unavailable on GCC. Force the option off there so a GCC configure does not
-# fail; build with Clang to get the execution features.
-if(COMPILER_GCC)
-    set(STDLIBX_EXTENSIONS_COMPILE_NVIDIA_STDEXEC_LIBRARY OFF CACHE BOOL "stdexec cannot be built as a module on GCC (internal compiler error); Clang only" FORCE)
-    message(STATUS "stdlibx: GCC detected - disabling stdexec backend (Clang only); stdx::exec::* execution features will be unavailable")
 endif()
 
 #   libc++     -> _LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_{FAST,EXTENSIVE,DEBUG}

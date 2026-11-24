@@ -706,6 +706,25 @@ struct UserRow {
 };
 
 /**
+ * @class OpaqueUserRow
+ * @brief The same row with private members and no annotations, as a type from
+ * another library would have.
+ */
+class OpaqueUserRow {
+private:
+    i32 _id = 0;
+    String _name;
+    i32 _age = 0;
+public:
+    OpaqueUserRow() = default;
+
+    [[nodiscard]]
+    const String& name() const noexcept {
+        return _name;
+    }
+};
+
+/**
  * @brief Tests that query<T>() can map rows to a reflectable struct T.
  * @param ctx TestContext to record pass/fail results.
  * @param c A live Connection to a test database.
@@ -739,6 +758,16 @@ void test_reflection_row_mapping() {
             users[1].id == 2 && users[1].name == "Grace" && users[1].age == 85,
             "row 1 mapped to {2, Grace, 85}"
         );
+    }
+
+    // A type that cannot be annotated: AllowPrivate maps its private members
+    // by position too, in declaration order.
+    Vector<OpaqueUserRow> opaque = c.query<OpaqueUserRow>(
+        stdx::data::AllowPrivate, "SELECT id, name, age FROM stdx_refl ORDER BY id ASC;"
+    );
+    expect(opaque.size() == 2, "query<T>(AllowPrivate, ...) mapped 2 rows");
+    if (!opaque.empty()) {
+        expect(opaque[0].name() == "Alan", "onto private members");
     }
 
     static_cast<void>(c.execute("DROP TABLE stdx_refl;"));

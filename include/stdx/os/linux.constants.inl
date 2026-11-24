@@ -341,6 +341,11 @@ export namespace stdx::os::linux {
         inline constexpr i32 SND_SEQ_OPEN_DUPLEX = SND_SEQ_OPEN_OUTPUT | SND_SEQ_OPEN_INPUT; ///< open for both input and output (read/write)
         inline constexpr u32 SND_SEQ_NONBLOCK = 0x0001; ///< non-blocking mode (flag to open mode)
 
+        // Client MIDI version (snd_seq_set_client_midi_version)
+        inline constexpr i32 SND_SEQ_CLIENT_LEGACY_MIDI = 0; ///< legacy (MIDI 1.0 event) client
+        inline constexpr i32 SND_SEQ_CLIENT_UMP_MIDI_1_0 = 1; ///< UMP client, MIDI 1.0 protocol
+        inline constexpr i32 SND_SEQ_CLIENT_UMP_MIDI_2_0 = 2; ///< UMP client, MIDI 2.0 protocol
+
         // Sequencer addresses
         inline constexpr u8 SND_SEQ_ADDRESS_UNKNOWN = 253; ///< unknown source
         inline constexpr u8 SND_SEQ_ADDRESS_SUBSCRIBERS = 254; ///< send event to all subscribed ports
@@ -486,6 +491,13 @@ export namespace stdx::os::linux {
         inline constexpr u32 SND_UMP_EP_INFO_PROTO_JRTS_RX = 0x0002;
         inline constexpr u32 SND_UMP_EP_INFO_DEFAULT_VERSION = 0x0101;
         inline constexpr u32 SND_UMP_BLOCK_IS_MIDI1 = 1U << 0;
+        inline constexpr u32 SND_UMP_DIR_INPUT = 0x01; ///< function block receives (device's view)
+        inline constexpr u32 SND_UMP_DIR_OUTPUT = 0x02; ///< function block sends (device's view)
+        inline constexpr u32 SND_UMP_DIR_BIDIRECTION = 0x03; ///< both
+        inline constexpr u32 SND_UMP_BLOCK_UI_HINT_UNKNOWN = 0x00;
+        inline constexpr u32 SND_UMP_BLOCK_UI_HINT_RECEIVER = 0x01;
+        inline constexpr u32 SND_UMP_BLOCK_UI_HINT_SENDER = 0x02;
+        inline constexpr u32 SND_UMP_BLOCK_UI_HINT_BOTH = 0x03;
         inline constexpr u32 SND_UMP_BLOCK_INFO_DEFAULT_MIDI_CI_VERSION = 0x01;
 
         /**

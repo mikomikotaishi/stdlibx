@@ -29,6 +29,12 @@ export namespace stdx::os::linux::alsa {
     using ::snd_seq_set_client_pool_output_room;
     using ::snd_seq_set_client_pool_input;
 
+    // UMP (MIDI 2.0) clients and virtual endpoints
+    using ::snd_seq_set_client_midi_version;
+    using ::snd_seq_set_client_ump_conversion;
+    using ::snd_seq_create_ump_endpoint;
+    using ::snd_seq_create_ump_block;
+
     // Event composition
     using ::snd_seq_parse_address;
     using ::snd_seq_reset_pool_output;

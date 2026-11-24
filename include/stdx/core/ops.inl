@@ -174,9 +174,22 @@ export namespace stdx::core {
             return std::declval<T>();
         }
 
+        #ifdef __cpp_lib_unreachable
         [[noreturn]]
         static void unreachable() noexcept {
             std::unreachable();
+        }
+        #endif
+
+        #ifdef __cpp_lib_observable_checkpoint
+        static void observable_checkpoint() noexcept {
+            std::observable_checkpoint();
+        }
+        #endif
+
+        [[nodiscard]]
+        static constexpr bool is_constant_evaluated() noexcept {
+            return std::is_constant_evaluated();;
         }
 
         template <typename F, typename... Args>

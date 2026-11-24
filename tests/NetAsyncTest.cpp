@@ -8,7 +8,7 @@ import stdx;
 using stdx::collections::Vector;
 using stdx::exec::Scheduler;
 using stdx::exec::Sender;
-using stdx::exec::Task;
+using stdx::net::ByteStream;
 using stdx::net::Endpoint;
 using stdx::net::IPAddress;
 using stdx::net::Interest;
@@ -46,7 +46,7 @@ namespace {
     /**
      * @brief Accepts one connection, echoes the first message back, and reports its size.
      */
-    Task<usize> echo_once(Reactor& reactor, TcpListener& listener) {
+    Reactor::Task<usize> echo_once(Reactor& reactor, TcpListener& listener) {
         TcpStream peer = co_await reactor.accept(listener);
         peer.socket().set_blocking(false);
 
@@ -130,7 +130,7 @@ void test_a_task_resumes_on_the_reactor_thread() {
     String echoed;
     Thread client = spawn_client(listener.local_endpoint(), "thread", echoed);
 
-    const auto observe = [&](Reactor& loop, TcpListener& source) -> Task<usize> {
+    const auto observe = [&](Reactor& loop, TcpListener& source) -> Reactor::Task<usize> {
         TcpStream peer = co_await loop.accept(source);
         peer.socket().set_blocking(false);
         resumed = Thread::current_id();

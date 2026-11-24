@@ -56,6 +56,10 @@ export namespace stdx::mem {
     using std::start_lifetime_as_array;
     #endif
 
+    #ifdef __cpp_lib_start_lifetime
+    using std::start_lifetime;
+    #endif
+
     using std::uninitialized_copy;
     using std::uninitialized_copy_n;
     using std::uninitialized_fill;

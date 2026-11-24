@@ -855,21 +855,46 @@ export namespace stdx::data::json {
          * @tparam T The source type.
          * @param value The value to convert.
          * @return The equivalent JSON value.
+         *
+         * Reads public data members only; a class with private or protected
+         * ones must be marked {@code [[=Reflectable]]}, or serialized with the
+         * AllowPrivate overload.
          */
         template <typename T>
         [[nodiscard]]
         static Json serialize(const T& value);
 
         /**
+         * @brief Like serialize(const T&), but also reads private and
+         * protected data members, of T and every type nested in it.
+         * @see stdx::data::AllowPrivate
+         */
+        template <typename T>
+        [[nodiscard]]
+        static Json serialize(const T& value, AllowPrivateTag);
+
+        /**
          * @brief Reconstructs a value of type T from this Json by reflection.
          * @tparam T The target type.
          * @return The reconstructed value.
          * @throws JsonTypeException if this value does not match T's shape.
+         *
+         * Writes public data members only; see serialize(const T&).
          */
         template <typename T>
         [[nodiscard]]
         [[=Throws<JsonTypeException>]]
         T deserialize() const;
+
+        /**
+         * @brief Like deserialize(), but also writes private and protected
+         * data members, of T and every type nested in it.
+         * @see stdx::data::AllowPrivate
+         */
+        template <typename T>
+        [[nodiscard]]
+        [[=Throws<JsonTypeException>]]
+        T deserialize(AllowPrivateTag) const;
         #endif
 
         /**

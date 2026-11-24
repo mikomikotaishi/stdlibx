@@ -4,6 +4,7 @@ using stdx::collections::Deque;
 using stdx::collections::HashMap;
 using stdx::collections::Vector;
 using stdx::sync::Atomic;
+using stdx::sys::Process;
 using stdx::time::Instant;
 using stdx::time::Milliseconds;
 using stdx::time::SteadyClock;
@@ -29,6 +30,22 @@ namespace stdx::net {
 export namespace stdx::net {
     #ifdef STDLIBX_EXECUTION_AVAILABLE
     class Readiness;
+
+    // The reactor's byte/accept operations are senders, not Task coroutines.
+    // A Task wrapper would make each operation its own child coroutine, and
+    // stdexec inserts a continues_on/__finally affinity hop around each such
+    // child; two of those chained in one parent task trip a stack-buffer
+    // overflow deep in stdexec's __finally on clang. Senders await directly,
+    // with no child-task frame and no hop, so the problem does not arise.
+    // Defined in net/async.inl.
+    template <typename S>
+    class ReceiveSender;
+    template <typename S>
+    class SendSender;
+    template <typename S>
+    class SendAllSender;
+    template <typename L>
+    class AcceptSender;
     #endif
 
     /**
@@ -118,6 +135,27 @@ export namespace stdx::net {
         using NativeHandle = Socket::NativeHandle; ///< The platform's descriptor type, matching the one Socket hands out.
         using Handler = OwnedCallable<void(const Event&)>; ///< What runs when a descriptor is ready.
         using Callback = OwnedCallable<void()>; ///< What runs when a deadline passes.
+
+        #ifdef STDLIBX_EXECUTION_AVAILABLE
+        /**
+         * @brief The task environment for coroutines driven by this reactor.
+         *
+         * Pins the task's start scheduler to the concrete ReactorScheduler
+         * instead of stdexec's type-erased task_scheduler, which crashed when
+         * awaiting value-producing operations. See net/reactor.task.inl.
+         */
+        using Env = ReactorTaskEnv;
+
+        /**
+         * @brief A coroutine task pinned to a ReactorScheduler start scheduler.
+         *
+         * Use this, not the plain stdx::exec::Task, for any coroutine driven by
+         * Reactor::run_until; awaiting a default-env Task inside one would
+         * reintroduce the type-erased scheduler and its crash.
+         */
+        template <typename T>
+        using Task = ReactorTask<T>;
+        #endif
     private:
         /**
          * @internal
@@ -176,6 +214,28 @@ export namespace stdx::net {
         bool _dispatching = false; ///< Whether a turn is in progress, so removal defers.
         Atomic<bool> _stopping = false; ///< Set by @ref stop from any thread; read by @ref run.
         bool _running = false; ///< Whether @ref run is on the stack, so re-entry can be refused.
+
+    public:
+        /**
+         * @struct ReadyNode
+         * @brief An intrusive node for a continuation to run on the next turn.
+         *
+         * The reactor keeps a list of these but never owns them: each node lives
+         * inside the operation state that posted it (see ReactorScheduler), which
+         * outlives the post. Because the node is caller-provided storage,
+         * @ref post_ready allocates nothing and cannot throw - which is what lets
+         * ReactorScheduler::schedule() advertise a completion with no error
+         * channel, the property a coroutine Task's start scheduler must have.
+         */
+        struct ReadyNode {
+            void (*run)(void*) noexcept = nullptr; ///< Invoked once with @ref context, on the next turn.
+            void* context = nullptr; ///< Passed to @ref run; the caller's operation state.
+            ReadyNode* next = nullptr; ///< The next node in the pending list; internal.
+        };
+    private:
+        ReadyNode* _ready_head = nullptr; ///< Head of the intrusive pending-continuation list.
+        ReadyNode* _ready_tail = nullptr; ///< Tail, so appends stay O(1) and FIFO.
+        usize _ready_count = 0; ///< How many continuations are queued but not yet run.
 
         /**
          * @internal
@@ -436,7 +496,67 @@ export namespace stdx::net {
                 slot.handler(event);
             }
         }
+
+        /**
+         * @internal
+         * @brief Runs every continuation queued by @ref post_ready this turn.
+         * @return Whether anything ran.
+         *
+         * The list is detached first so a continuation that posts another (a
+         * task resuming and immediately re-suspending onto the scheduler) lands
+         * on the next turn rather than being run to exhaustion inside this one -
+         * the same discipline @ref collect_expired uses for timers, and what
+         * keeps a turn bounded.
+         */
+        bool drain_ready() noexcept {
+            if (_ready_head == nullptr) {
+                return false;
+            }
+            ReadyNode* node = _ready_head;
+            _ready_head = nullptr;
+            _ready_tail = nullptr;
+            _ready_count = 0;
+
+            while (node != nullptr) {
+                // Detach before running: the node's storage may be reused the
+                // instant its continuation completes.
+                ReadyNode* const current = node;
+                node = node->next;
+                current->next = nullptr;
+                current->run(current->context);
+            }
+            return true;
+        }
     public:
+        /**
+         * @brief Queue a continuation to run on the reactor's next turn.
+         * @param node A node whose storage outlives the post; not owned.
+         *
+         * Appends in O(1) and allocates nothing, so it cannot throw - the whole
+         * point of the intrusive design. The node runs exactly once, on the next
+         * @ref run_once, and is detached before it runs. Used by
+         * ReactorScheduler to resume a coroutine on the loop's own thread.
+         */
+        void post_ready(ReadyNode* node) noexcept {
+            node->next = nullptr;
+            if (_ready_tail != nullptr) {
+                _ready_tail->next = node;
+            } else {
+                _ready_head = node;
+            }
+            _ready_tail = node;
+            ++_ready_count;
+        }
+
+        /**
+         * @brief How many continuations are queued but not yet run.
+         * @return The count of pending @ref post_ready nodes.
+         */
+        [[nodiscard]]
+        usize pending_ready() const noexcept {
+            return _ready_count;
+        }
+
         /**
          * @brief Constructs a reactor with nothing registered and no timers.
          * @throws PollerException if the readiness mechanism cannot be created.
@@ -459,7 +579,10 @@ export namespace stdx::net {
             _live_timers{other._live_timers},
             _pending_release{Ops::move(other._pending_release)},
             _expired{Ops::move(other._expired)},
-            _stopping{other._stopping.load()} {
+            _stopping{other._stopping.load()},
+            _ready_head{Ops::exchange(other._ready_head, nullptr)},
+            _ready_tail{Ops::exchange(other._ready_tail, nullptr)},
+            _ready_count{Ops::exchange(other._ready_count, 0uz)} {
             other._live_timers = 0;
         }
 
@@ -476,6 +599,9 @@ export namespace stdx::net {
                 _pending_release = Ops::move(other._pending_release);
                 _expired = Ops::move(other._expired);
                 _stopping.store(other._stopping.load());
+                _ready_head = Ops::exchange(other._ready_head, nullptr);
+                _ready_tail = Ops::exchange(other._ready_tail, nullptr);
+                _ready_count = Ops::exchange(other._ready_count, 0uz);
                 other._live_timers = 0;
             }
             return *this;
@@ -638,7 +764,7 @@ export namespace stdx::net {
          */
         template <ByteReader S>
         [[nodiscard]]
-        Task<usize> receive(S& stream, Span<byte> into);
+        ReceiveSender<S> receive(S& stream, Span<byte> into) noexcept;
 
         /**
          * @brief Writes to @p stream, suspending until it will take bytes.
@@ -648,7 +774,7 @@ export namespace stdx::net {
          */
         template <ByteWriter S>
         [[nodiscard]]
-        Task<usize> send(S& stream, Span<const byte> from);
+        SendSender<S> send(S& stream, Span<const byte> from) noexcept;
 
         /**
          * @brief Writes all of @p from, suspending as often as it takes.
@@ -658,7 +784,7 @@ export namespace stdx::net {
          */
         template <ByteWriter S>
         [[nodiscard]]
-        Task<usize> send_all(S& stream, Span<const byte> from);
+        SendAllSender<S> send_all(S& stream, Span<const byte> from) noexcept;
 
         /**
          * @brief Accepts one connection, suspending until a peer arrives.
@@ -667,7 +793,26 @@ export namespace stdx::net {
          */
         template <Acceptor L>
         [[nodiscard]]
-        Task<typename L::Stream> accept(L& listener);
+        AcceptSender<L> accept(L& listener) noexcept;
+
+        #ifdef __linux__
+        /**
+         * @brief Spawn a child bound to this Reactor so its exit can be awaited.
+         * @param builder A configured Process::Builder.
+         * @return The spawned Process, or an error.
+         *
+         * Spawns through the ordinary Process::Builder, then opens a pidfd for
+         * the child and hands it to the Process. The returned Process can be
+         * passed to @ref stdx::sys::Process::wait_async on this Reactor. Apart
+         * from the pidfd it is an ordinary Process: wait(), kill() and the pipes
+         * all work as usual, and the synchronous Builder::spawn path is
+         * untouched and reactor-free.
+         *
+         * Defined out of line in net/async.inl.
+         */
+        [[nodiscard]]
+        Expected<stdx::sys::Process, ErrorCode> spawn(Process::Builder builder);
+        #endif
 
         #ifdef STDLIBX_NET_ASYNC_TASKS
         /**
@@ -788,12 +933,26 @@ export namespace stdx::net {
                 throw ReactorException("the loop is already dispatching");
             }
 
-            const Span<const Event> events = _poller.wait(effective_timeout(timeout));
+            // Continuations queued before this turn are ready now; snapshot the
+            // count so a continuation that posts another does not make this turn
+            // claim work it deferred to the next.
+            const bool ready_due = _ready_head != nullptr;
+
+            // A pending continuation must not be left waiting behind a blocking
+            // poll: force a non-blocking wait so it runs this turn. Without a
+            // deadline or a descriptor the wait would otherwise block forever.
+            Optional<Milliseconds> wait_for = effective_timeout(timeout);
+            if (ready_due) {
+                wait_for = 0ms;
+            }
+
+            const Span<const Event> events = _poller.wait(wait_for);
             const bool timers_due = collect_expired();
-            const bool anything = timers_due || !events.empty();
+            const bool anything = ready_due || timers_due || !events.empty();
 
             _dispatching = true;
             try {
+                drain_ready();
                 fire_expired();
                 dispatch(events);
             } catch (...) {
@@ -829,7 +988,7 @@ export namespace stdx::net {
             try {
                 while (!_stopping.load()) {
                     drop_cancelled_roots();
-                    if (_handles.empty() && _heap.empty()) {
+                    if (_handles.empty() && _heap.empty() && _ready_head == nullptr) {
                         break;
                     }
                     run_once();

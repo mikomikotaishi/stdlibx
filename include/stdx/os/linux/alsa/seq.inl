@@ -110,6 +110,13 @@ export namespace stdx::os::linux::alsa {
 
     // Event I/O
     using ::snd_seq_event_input;
+
+    // UMP-mode event I/O and per-client / per-port UMP information
+    using ::snd_seq_ump_event_input;
+    using ::snd_seq_ump_event_output;
+    using ::snd_seq_ump_event_output_direct;
+    using ::snd_seq_client_info_get_midi_version;
+    using ::snd_seq_port_info_get_ump_group;
     using ::snd_seq_event_input_pending;
     using ::snd_seq_event_output;
     using ::snd_seq_event_output_buffer;

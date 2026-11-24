@@ -79,22 +79,20 @@ namespace stdx::audio::midi {
         i32 _dest_port;
         AlsaMidiParser _encoder;
         Mutex _send_mutex;
-    public:
-        AlsaSeqReceiver(i32 my, i32 dc, i32 dp) noexcept:
-            _my_port{my}, _dest_client{dc}, _dest_port{dp} {}
 
-        void send(const MidiMessage& msg, [[maybe_unused]] u64 time_micros) override {
-            linux::alsa::SoundSequencer* client = alsa_seq_client();
-            if (client == nullptr || !_encoder.valid() || msg.length() == 0) {
+        /**
+         * @internal
+         * @brief Encode one complete MIDI 1.0 message and send it direct.
+         * Caller holds _send_mutex.
+         */
+        void send_bytes(linux::alsa::SoundSequencer* client, Span<const u8> bytes) {
+            if (bytes.empty()) {
                 return;
             }
-
-            LockGuard<Mutex> guard{_send_mutex};
 
             linux::alsa::SoundSequencerEvent ev{};
 
             linux::alsa::snd_midi_event_reset_encode(_encoder.get());
-            const Span<const u8> bytes = msg.data();
             i64 n = linux::alsa::snd_midi_event_encode(
                 _encoder.get(),
                 bytes.data(),
@@ -111,6 +109,37 @@ namespace stdx::audio::midi {
             ev.queue = linux::alsa::SND_SEQ_QUEUE_DIRECT;
 
             linux::alsa::snd_seq_event_output_direct(client, &ev);
+        }
+    public:
+        AlsaSeqReceiver(i32 my, i32 dc, i32 dp) noexcept:
+            _my_port{my}, _dest_client{dc}, _dest_port{dp} {}
+
+        /**
+         * @brief Send @p msg to the destination port.
+         *
+         * The sequencer speaks MIDI 1.0, so a UMP-family message is first
+         * down-converted with MidiTranslator::to_midi1_bytes - possibly into
+         * several messages (a banked program change, an RPN), possibly into
+         * none (flex data, stream messages, SysEx8). Feeding UMP's own bytes
+         * to the MIDI 1.0 encoder would misread them as unrelated status
+         * bytes.
+         */
+        THROWS(InvalidMidiDataException)
+        void send(const MidiMessage& msg, [[maybe_unused]] u64 time_micros) override {
+            linux::alsa::SoundSequencer* client = alsa_seq_client();
+            if (client == nullptr || !_encoder.valid() || msg.length() == 0) {
+                return;
+            }
+
+            LockGuard<Mutex> guard{_send_mutex};
+
+            if (!MidiTranslator::is_ump(msg)) {
+                send_bytes(client, msg.data());
+                return;
+            }
+            for (const Vector<u8>& bytes: MidiTranslator::to_midi1_bytes(msg)) {
+                send_bytes(client, Span<const u8>{bytes.data(), bytes.size()});
+            }
         }
 
         void close() noexcept override {
@@ -403,6 +432,10 @@ export namespace stdx::audio::midi {
             }
 
             const char* client_name = linux::alsa::snd_seq_client_info_get_name(cinfo);
+            // A UMP client's ports are opened in UMP mode, so packets pass
+            // through unconverted; legacy clients keep the MIDI 1.0 path.
+            const bool ump_client = linux::alsa::snd_seq_client_info_get_midi_version(cinfo)
+                != linux::alsa::SND_SEQ_CLIENT_LEGACY_MIDI;
 
             linux::alsa::snd_seq_port_info_set_client(pinfo, c);
             linux::alsa::snd_seq_port_info_set_port(pinfo, -1);
@@ -421,7 +454,7 @@ export namespace stdx::audio::midi {
                 out.push_back(Ops::move(MidiDeviceInfo {
                     .id = make_alsa_id(c, p),
                     .name = Ops::fmt("{} - {}", client_name, port_name),
-                    .backend = MidiBackend::ALSA_SEQ,
+                    .backend = ump_client ? MidiBackend::ALSA_SEQ_UMP : MidiBackend::ALSA_SEQ,
                     .is_input = can_read,
                     .is_output = can_write,
                 }));
@@ -430,17 +463,34 @@ export namespace stdx::audio::midi {
 
         linux::alsa::snd_seq_port_info_free(pinfo);
         linux::alsa::snd_seq_client_info_free(cinfo);
+
+        // Append any native UMP (MIDI 2.0) endpoints alongside the seq ports.
+        Vector<MidiDeviceInfo> ump = enumerate_ump_endpoints();
+        for (MidiDeviceInfo& info: ump) {
+            out.push_back(Ops::move(info));
+        }
         return out;
     }
 
     UniquePointer<MidiDevice> MidiSystem::open_device(const MidiDeviceInfo& info) {
-        if (info.backend != MidiBackend::ALSA_SEQ) {
+        if (info.backend == MidiBackend::ALSA_UMP) {
+            // Keep the enumerated name and description, not just the id.
+            UniquePointer<AlsaUmpDevice> ump = Pointers::unique<AlsaUmpDevice>(info);
+            ump->open();
+            return ump;
+        }
+        if (info.backend != MidiBackend::ALSA_SEQ && info.backend != MidiBackend::ALSA_SEQ_UMP) {
             throw MidiException("not an ALSA-seq device");
         }
         i32 c = -1;
         i32 p = -1;
         if (!parse_alsa_id(info.id, c, p)) {
             throw MidiException("malformed ALSA-seq device id");
+        }
+        if (info.backend == MidiBackend::ALSA_SEQ_UMP) {
+            UniquePointer<AlsaSeqUmpDevice> ump = Pointers::unique<AlsaSeqUmpDevice>(info, c, p);
+            ump->open();
+            return ump;
         }
         UniquePointer<AlsaSeqDevice> dev = Pointers::unique<AlsaSeqDevice>(info, c, p);
         dev->open();
